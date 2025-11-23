@@ -1,0 +1,12 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: web
+      root: frontend/web
+      stage_fixed: true
+      run: npm run biome
+
+    - name: mobile
+      root: frontend/mobile
+      stage_fixed: true
+      run: npm run biome
