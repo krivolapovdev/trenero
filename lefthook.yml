@@ -10,3 +10,8 @@ pre-commit:
       root: frontend/mobile
       stage_fixed: true
       run: npm run biome
+
+    - name: backend
+      root: backend
+      stage_fixed: true
+      run: ./gradlew spotlessApply
