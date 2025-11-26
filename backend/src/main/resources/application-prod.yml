@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/trenero
+    url: ${DB_URL}
     driverClassName: org.postgresql.Driver
-    username: username
-    password: password
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     show-sql: false
     hibernate:
@@ -17,4 +17,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, prometheus, refresh
+        include: health, info
