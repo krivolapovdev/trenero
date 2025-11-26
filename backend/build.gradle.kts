@@ -25,12 +25,23 @@ repositories {
     mavenCentral()
 }
 
+val springModulithVersion = "2.0.0"
+val openApiVersion = "3.0.0"
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.modulith:spring-modulith-starter-core:$springModulithVersion")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$openApiVersion")
+    implementation("org.postgresql:postgresql")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.modulith:spring-modulith-starter-test:$springModulithVersion")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> {

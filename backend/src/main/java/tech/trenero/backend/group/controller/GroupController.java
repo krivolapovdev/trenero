@@ -1,0 +1,32 @@
+package tech.trenero.backend.group.controller;
+
+import java.util.List;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import tech.trenero.backend.group.entity.Group;
+import tech.trenero.backend.group.request.GroupRequest;
+import tech.trenero.backend.group.service.GroupService;
+
+@RestController
+@RequestMapping("/api/v1/groups")
+@RequiredArgsConstructor
+@Validated
+public class GroupController {
+  private final GroupService groupService;
+
+  @GetMapping
+  public List<Group> getAllGroups() {
+    return groupService.getAllGroups();
+  }
+
+  @PostMapping
+  public UUID createGroup(@RequestBody GroupRequest groupRequest) {
+    return groupService.createGroup(groupRequest);
+  }
+}
