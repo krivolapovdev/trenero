@@ -27,6 +27,7 @@ repositories {
 
 val springModulithVersion = "2.0.0"
 val openApiVersion = "3.0.0"
+val mapStructVersion = "1.6.3"
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -35,6 +36,7 @@ dependencies {
     implementation("org.springframework.modulith:spring-modulith-starter-core:$springModulithVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$openApiVersion")
     implementation("org.postgresql:postgresql")
+    implementation("org.mapstruct:mapstruct:$mapStructVersion")
 
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.modulith:spring-modulith-starter-test:$springModulithVersion")
@@ -42,7 +44,9 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     compileOnly("org.projectlombok:lombok")
+
     annotationProcessor("org.projectlombok:lombok")
+    annotationProcessor("org.mapstruct:mapstruct-processor:$mapStructVersion")
 }
 
 tasks.withType<Test> {

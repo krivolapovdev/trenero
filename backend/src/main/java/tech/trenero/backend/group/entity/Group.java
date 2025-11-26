@@ -13,7 +13,7 @@ import lombok.Data;
 public class Group {
   @Id
   @Column(name = "id")
-  private UUID id;
+  private UUID id = UUID.randomUUID();
 
   @Column(name = "name")
   private String name;
