@@ -5,7 +5,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import tech.trenero.backend.student.response.StudentResponse;
+import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.student.spi.StudentSpi;
 
 @Service
@@ -16,7 +16,6 @@ public class StudentSpiImpl implements StudentSpi {
 
   @Override
   public List<StudentResponse> getStudentsByGroupId(UUID studentId) {
-    log.info("Getting students by group id: {}", studentId);
     return studentService.getStudentsByGroupId(studentId);
   }
 }

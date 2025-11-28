@@ -23,4 +23,8 @@ public class StudentGroupService {
 
     studentGroupRepository.saveAll(studentGroupList);
   }
+
+  public List<UUID> getGroupIdsByStudentId(UUID studentId) {
+    return studentGroupRepository.findGroupIdsByStudentId(studentId);
+  }
 }

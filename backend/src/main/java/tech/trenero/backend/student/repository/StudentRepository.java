@@ -13,10 +13,10 @@ public interface StudentRepository extends JpaRepository<Student, UUID> {
       value =
           """
             SELECT s.*
-            FROM students_module.students s
-            INNER JOIN students_module.student_groups sg
+            FROM students_module.students AS s
+            INNER JOIN students_module.student_groups AS sg
             ON s.id = sg.student_id
             WHERE sg.group_id = :groupId""",
       nativeQuery = true)
-  List<Student> getStudentsByGroupId(UUID groupId);
+  List<Student> findStudentsByGroupId(UUID groupId);
 }

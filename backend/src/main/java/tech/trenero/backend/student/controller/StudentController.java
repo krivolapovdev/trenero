@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tech.trenero.backend.student.request.StudentRequest;
-import tech.trenero.backend.student.response.StudentResponse;
+import tech.trenero.backend.student.response.StudentWithGroupsResponse;
 import tech.trenero.backend.student.service.StudentService;
 
 @RestController
@@ -21,7 +21,7 @@ public class StudentController {
   private final StudentService studentService;
 
   @GetMapping("/{id}")
-  public StudentResponse getStudentById(@PathVariable UUID id) {
+  public StudentWithGroupsResponse getStudentById(@PathVariable UUID id) {
     return studentService.getStudentById(id);
   }
 
