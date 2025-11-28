@@ -1,0 +1,13 @@
+spring:
+  sql:
+    init:
+      mode: always
+  datasource:
+    url: jdbc:postgresql://localhost:5432/trenero
+    driverClassName: org.postgresql.Driver
+    username: username
+    password: password
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
