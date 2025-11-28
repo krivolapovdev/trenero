@@ -3,3 +3,7 @@ server:
 spring:
   jpa:
     open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 25
