@@ -9,6 +9,5 @@ import tech.trenero.backend.group.request.GroupRequest;
 @Mapper(componentModel = ComponentModel.SPRING)
 public interface GroupMapper {
   Group toGroup(GroupRequest groupRequest);
-
   GroupResponse toGroupResponse(Group group);
 }

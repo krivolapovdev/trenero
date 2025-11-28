@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tech.trenero.backend.common.response.GroupResponse;
 import tech.trenero.backend.group.request.GroupRequest;
+import tech.trenero.backend.group.response.GroupWithStudentsResponse;
 import tech.trenero.backend.group.service.GroupService;
 
 @RestController
@@ -27,7 +28,7 @@ public class GroupController {
   }
 
   @GetMapping("/{id}")
-  public GroupResponse getGroupById(@PathVariable UUID id) {
+  public GroupWithStudentsResponse getGroupById(@PathVariable UUID id) {
     return groupService.getGroupById(id);
   }
 
