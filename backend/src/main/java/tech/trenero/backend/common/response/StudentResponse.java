@@ -1,4 +1,4 @@
-package tech.trenero.backend.student.response;
+package tech.trenero.backend.common.response;
 
 import java.time.LocalDate;
 import java.util.UUID;
