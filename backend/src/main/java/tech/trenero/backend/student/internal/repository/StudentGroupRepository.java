@@ -6,9 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import tech.trenero.backend.student.internal.entity.StudentGroup;
+import tech.trenero.backend.student.internal.entity.StudentGroup.StudentGroupId;
 
 @Repository
-public interface StudentGroupRepository extends JpaRepository<StudentGroup, UUID> {
+public interface StudentGroupRepository extends JpaRepository<StudentGroup, StudentGroupId> {
   @Query(
       """
           SELECT sg.groupId
