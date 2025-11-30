@@ -18,6 +18,7 @@ check_tool git
 check_tool java
 check_tool node
 check_tool lefthook
+check_tool docker
 echo "✅ All required tools are available."
 
 echo ""
