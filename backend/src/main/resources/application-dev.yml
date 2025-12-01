@@ -25,3 +25,5 @@ management:
   endpoint:
     health:
       show-details: always
+jwt:
+  secret-key: your-jwt-ultra-secure-and-ultra-long-secret

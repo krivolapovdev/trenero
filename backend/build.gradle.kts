@@ -28,6 +28,7 @@ repositories {
 val springModulithVersion = "2.0.0"
 val openApiVersion = "3.0.0"
 val mapStructVersion = "1.6.3"
+val jjwtVersion = "0.13.0"
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -39,6 +40,7 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$openApiVersion")
     implementation("org.postgresql:postgresql")
     implementation("org.mapstruct:mapstruct:$mapStructVersion")
+    implementation("io.jsonwebtoken:jjwt-api:${jjwtVersion}")
 
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
@@ -48,6 +50,9 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:${jjwtVersion}")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:${jjwtVersion}")
 
     compileOnly("org.projectlombok:lombok")
 

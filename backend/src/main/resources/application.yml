@@ -17,3 +17,6 @@ spring:
             scope:
               - email
               - profile
+jwt:
+  access-token-expiration: 15m
+  refresh-token-expiration: 7d
