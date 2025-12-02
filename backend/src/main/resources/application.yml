@@ -7,6 +7,8 @@ spring:
       hibernate:
         jdbc:
           batch_size: 25
+  datasource:
+    driverClassName: org.postgresql.Driver
   security:
     oauth2:
       client:
@@ -18,5 +20,9 @@ spring:
               - email
               - profile
 jwt:
+  secret-key: your-jwt-ultra-secure-and-ultra-long-secret
   access-token-expiration: 15m
   refresh-token-expiration: 7d
+oauth2:
+  secret-key: your-oauth2-ultra-secure-and-ultra-long-secret
+  cookie-expiration: 5m

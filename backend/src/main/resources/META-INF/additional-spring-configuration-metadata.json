@@ -11,6 +11,14 @@
     {
       "name": "jwt.refresh-token-expiration",
       "type": "java.lang.String"
+    },
+    {
+      "name": "oauth2.encryption-password",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "oauth2.cookie-expiration",
+      "type": "java.lang.String"
     }
   ]
 }

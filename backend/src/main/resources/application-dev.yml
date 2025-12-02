@@ -4,7 +4,6 @@ spring:
       mode: always
   datasource:
     url: jdbc:postgresql://localhost:5432/trenero
-    driverClassName: org.postgresql.Driver
     username: username
     password: password
   jpa:
@@ -25,7 +24,6 @@ management:
   endpoint:
     health:
       show-details: always
-jwt:
-  secret-key: your-jwt-ultra-secure-and-ultra-long-secret
 cors:
   allowed-origins: http://localhost:3000,http://localhost:5173
+
