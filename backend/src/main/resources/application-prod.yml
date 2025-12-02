@@ -20,3 +20,5 @@ management:
         include: health, info
 jwt:
   secret-key: ${JWT_SECRET_KEY}
+cors:
+  allowed-origins: https://trenero.tech,https://www.trenero.tech
