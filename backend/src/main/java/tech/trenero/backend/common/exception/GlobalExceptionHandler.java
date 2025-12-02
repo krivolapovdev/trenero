@@ -6,16 +6,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-  @ExceptionHandler(EntityNotFoundException.class)
-  public ResponseStatusException handleException(EntityNotFoundException e) {
+  @ExceptionHandler({EntityNotFoundException.class, NoResourceFoundException.class})
+  public ResponseStatusException handleNotFoundExceptions(RuntimeException e) {
     return buildResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
   }
 
@@ -32,6 +34,12 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseStatusException handleDataIntegrityViolation(DataIntegrityViolationException e) {
     return buildResponseStatusException(HttpStatus.CONFLICT, e.getMessage(), e);
+  }
+
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  public ResponseStatusException handleAuthorizationDeniedException(
+      AuthorizationDeniedException e) {
+    return buildResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage(), e);
   }
 
   @ExceptionHandler(Exception.class)
