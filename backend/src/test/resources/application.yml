@@ -1,4 +1,8 @@
+server:
+  port: 0
 spring:
+  config:
+    import: file:src/main/resources/application.yml
   main:
     banner-mode: off
   sql:
@@ -13,3 +17,5 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: create-drop
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:5173
