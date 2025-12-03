@@ -2,6 +2,7 @@ package tech.trenero.backend.common.config;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import tech.trenero.backend.common.security.JwtAuthenticationFilter;
+import tech.trenero.backend.common.security.JwtTokenProvider;
 import tech.trenero.backend.common.security.OAuth2AuthorizationRequestRepository;
 import tech.trenero.backend.common.security.OAuth2FailureHandler;
 import tech.trenero.backend.common.security.OAuth2SuccessHandler;
@@ -41,6 +43,13 @@ public class SecurityConfig {
                                     oAuth2AuthorizationRequestRepository))
                     .successHandler(oAuth2SuccessHandler)
                     .failureHandler(oAuth2FailureHandler))
+        .logout(
+            logout ->
+                logout
+                    .logoutUrl("/api/logout")
+                    .deleteCookies(JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME)
+                    .logoutSuccessHandler(
+                        (_, response, _) -> response.setStatus(HttpServletResponse.SC_OK)))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .build();
   }
