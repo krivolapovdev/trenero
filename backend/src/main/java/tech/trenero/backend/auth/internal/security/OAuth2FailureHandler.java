@@ -1,4 +1,4 @@
-package tech.trenero.backend.common.security;
+package tech.trenero.backend.auth.internal.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -8,6 +8,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 import tech.trenero.backend.common.helper.CookieHelper;
+import tech.trenero.backend.common.security.JwtTokenProvider;
 
 @Component
 public class OAuth2FailureHandler implements AuthenticationFailureHandler {

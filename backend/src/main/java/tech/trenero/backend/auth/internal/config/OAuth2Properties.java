@@ -1,4 +1,4 @@
-package tech.trenero.backend.common.config;
+package tech.trenero.backend.auth.internal.config;
 
 import java.time.Duration;
 import lombok.Data;

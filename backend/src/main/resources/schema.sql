@@ -1,2 +1,3 @@
 CREATE SCHEMA IF NOT EXISTS students_module;
 CREATE SCHEMA IF NOT EXISTS groups_module;
+CREATE SCHEMA IF NOT EXISTS users_module;

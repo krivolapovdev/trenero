@@ -1,4 +1,4 @@
-package tech.trenero.backend.common.security;
+package tech.trenero.backend.auth.internal.security;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
-import tech.trenero.backend.common.config.OAuth2Properties;
+import tech.trenero.backend.auth.internal.config.OAuth2Properties;
 import tech.trenero.backend.common.helper.CookieHelper;
 import tech.trenero.backend.common.helper.EncryptionHelper;
 
