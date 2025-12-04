@@ -15,9 +15,6 @@ import tech.trenero.backend.common.config.JwtProperties;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
-  public static final String ACCESS_TOKEN_JSON_NAME = "access-token";
-  public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-
   private final JwtProperties jwtProperties;
 
   private SecretKey secretKey;

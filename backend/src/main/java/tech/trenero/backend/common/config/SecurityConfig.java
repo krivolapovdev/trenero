@@ -13,8 +13,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import tech.trenero.backend.auth.external.OAuth2Handlers;
+import tech.trenero.backend.common.helper.CookieHelper;
 import tech.trenero.backend.common.security.JwtAuthenticationFilter;
-import tech.trenero.backend.common.security.JwtTokenProvider;
 
 @Configuration
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
@@ -43,7 +43,7 @@ public class SecurityConfig {
             logout ->
                 logout
                     .logoutUrl("/api/logout")
-                    .deleteCookies(JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME)
+                    .deleteCookies(CookieHelper.REFRESH_TOKEN_COOKIE_NAME)
                     .logoutSuccessHandler(
                         (_, response, _) -> response.setStatus(HttpServletResponse.SC_OK)))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

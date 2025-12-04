@@ -8,7 +8,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 import tech.trenero.backend.common.helper.CookieHelper;
-import tech.trenero.backend.common.security.JwtTokenProvider;
 
 @Component
 public class OAuth2FailureHandler implements AuthenticationFailureHandler {
@@ -21,7 +20,7 @@ public class OAuth2FailureHandler implements AuthenticationFailureHandler {
     response.addHeader(HttpHeaders.SET_COOKIE, expiredOauthCookie);
 
     String expiredRefreshTokenCookie =
-        CookieHelper.generateExpiredCookie(JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME);
+        CookieHelper.generateExpiredCookie(CookieHelper.REFRESH_TOKEN_COOKIE_NAME);
     response.addHeader(HttpHeaders.SET_COOKIE, expiredRefreshTokenCookie);
 
     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

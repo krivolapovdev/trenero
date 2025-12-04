@@ -4,12 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.Duration;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -18,14 +15,14 @@ import org.springframework.stereotype.Component;
 import tech.trenero.backend.auth.internal.client.UserClient;
 import tech.trenero.backend.common.enums.OAuth2Provider;
 import tech.trenero.backend.common.helper.CookieHelper;
-import tech.trenero.backend.common.security.JwtTokenProvider;
+import tech.trenero.backend.common.helper.TokenHelper;
 
 @Component
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
-  private final JwtTokenProvider jwtTokenProvider;
   private final UserClient userClient;
   private final ObjectMapper objectMapper;
+  private final TokenHelper tokenHelper;
 
   @Override
   public void onAuthenticationSuccess(
@@ -37,7 +34,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     response.addHeader(HttpHeaders.SET_COOKIE, expiredOauthCookie);
 
     String expiredRefreshTokenCookie =
-        CookieHelper.generateExpiredCookie(JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME);
+        CookieHelper.generateExpiredCookie(CookieHelper.REFRESH_TOKEN_COOKIE_NAME);
     response.addHeader(HttpHeaders.SET_COOKIE, expiredRefreshTokenCookie);
 
     if (!(authentication instanceof OAuth2AuthenticationToken auth2AuthenticationToken)) {
@@ -57,21 +54,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     String providerId = oAuth2User.getAttribute("sub");
     userClient.getOrCreateUserFromOAuth(email, oAuth2Provider, providerId);
 
-    String refreshToken = jwtTokenProvider.generateRefreshToken(email);
-    int refreshTokenExpiryInSeconds =
-        (int) (jwtTokenProvider.getRefreshTokenExpirationMillis() / 1000);
-    String refreshTokenCookie =
-        CookieHelper.generateCookie(
-            JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME,
-            refreshToken,
-            Duration.ofSeconds(refreshTokenExpiryInSeconds));
-    response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie);
-
-    String accessToken = jwtTokenProvider.generateAccessToken(email);
-    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-    response.setCharacterEncoding("UTF-8");
-    Map<String, String> accessTokenResponse =
-        Map.of(JwtTokenProvider.ACCESS_TOKEN_JSON_NAME, accessToken);
+    var accessTokenResponse = tokenHelper.generateTokens(email, response);
     objectMapper.writeValue(response.getWriter(), accessTokenResponse);
   }
 }
