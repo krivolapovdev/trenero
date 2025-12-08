@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tech.trenero.backend.common.response.GroupResponse;
 import tech.trenero.backend.common.response.StudentResponse;
+import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.internal.client.StudentClient;
 import tech.trenero.backend.group.internal.entity.Group;
 import tech.trenero.backend.group.internal.mapper.GroupMapper;
@@ -23,21 +24,26 @@ public class GroupService {
   private final GroupMapper groupMapper;
   private final StudentClient studentClient;
 
-  public List<GroupResponse> getAllGroups() {
-    log.info("Getting all groups");
-    return groupRepository.findAll().stream().map(groupMapper::toGroupResponse).toList();
+  public List<GroupResponse> getAllGroupsForUser(JwtUser jwtUser) {
+    log.info("Getting all groups for ownerId={}", jwtUser.userId());
+    return groupRepository.findByOwnerId(jwtUser.userId()).stream()
+        .map(groupMapper::toGroupResponse)
+        .toList();
   }
 
-  public GroupWithStudentsResponse getGroupById(UUID id) {
-    log.info("Getting group by id: {}", id);
+  public GroupWithStudentsResponse getUserGroupById(UUID groupId, JwtUser jwtUser) {
+    log.info("Getting group by id={} for ownerId={}", groupId, jwtUser.userId());
 
     GroupResponse groupResponse =
         groupRepository
-            .findById(id)
+            .findByIdAndOwnerId(groupId, jwtUser.userId())
             .map(groupMapper::toGroupResponse)
-            .orElseThrow(() -> new EntityNotFoundException("Group not found with id: " + id));
+            .orElseThrow(
+                () ->
+                    new EntityNotFoundException(
+                        "Group not found with id: " + groupId + " for current user"));
 
-    List<StudentResponse> studentsByGroupId = studentClient.getStudentsByGroupId(id);
+    List<StudentResponse> studentsByGroupId = studentClient.getStudentsByGroupId(groupId);
 
     return new GroupWithStudentsResponse(groupResponse, studentsByGroupId);
   }
@@ -49,9 +55,10 @@ public class GroupService {
         .toList();
   }
 
-  public UUID createGroup(GroupRequest groupRequest) {
-    log.info("Creating group: {}", groupRequest);
+  public UUID createGroup(GroupRequest groupRequest, JwtUser jwtUser) {
+    log.info("Creating group: name='{}', ownerId={}", groupRequest.name(), jwtUser.userId());
     Group group = groupMapper.toGroup(groupRequest);
+    group.setOwnerId(jwtUser.userId());
     return saveGroup(group);
   }
 

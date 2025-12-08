@@ -19,4 +19,7 @@ public class Group {
 
   @Column(name = "name", nullable = false)
   private String name;
+
+  @Column(name = "owner_id", nullable = false)
+  private UUID ownerId;
 }
