@@ -16,6 +16,7 @@ import tech.trenero.backend.auth.internal.client.UserClient;
 import tech.trenero.backend.common.enums.OAuth2Provider;
 import tech.trenero.backend.common.helper.CookieHelper;
 import tech.trenero.backend.common.helper.TokenHelper;
+import tech.trenero.backend.common.security.JwtUser;
 
 @Component
 @RequiredArgsConstructor
@@ -52,9 +53,11 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     String provider = auth2AuthenticationToken.getAuthorizedClientRegistrationId();
     OAuth2Provider oAuth2Provider = OAuth2Provider.valueOf(provider.toUpperCase());
     String providerId = oAuth2User.getAttribute("sub");
-    userClient.getOrCreateUserFromOAuth(email, oAuth2Provider, providerId);
 
-    var accessTokenResponse = tokenHelper.generateTokens(email, response);
+    var userFromOAuth = userClient.getOrCreateUserFromOAuth(email, oAuth2Provider, providerId);
+    var jwtUser = new JwtUser(userFromOAuth.id(), userFromOAuth.email());
+    var accessTokenResponse = tokenHelper.createAccessAndRefreshTokens(jwtUser, response);
+
     objectMapper.writeValue(response.getWriter(), accessTokenResponse);
   }
 }

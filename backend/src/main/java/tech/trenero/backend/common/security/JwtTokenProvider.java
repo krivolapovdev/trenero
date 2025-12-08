@@ -7,6 +7,7 @@ import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,8 @@ import tech.trenero.backend.common.config.JwtProperties;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
+  public static final String TOKEN_CLAIM_EMAIL = "email";
+
   private final JwtProperties jwtProperties;
 
   private SecretKey secretKey;
@@ -26,34 +29,36 @@ public class JwtTokenProvider {
     this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
   }
 
-  public String generateAccessToken(String email) {
-    Date expiration =
-        new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration().toMillis());
+  public String generateAccessToken(JwtUser jwtUser) {
+    long accessTokenExpirationMillis = jwtProperties.getAccessTokenExpiration().toMillis();
+    Date expiration = new Date(System.currentTimeMillis() + accessTokenExpirationMillis);
     return Jwts.builder()
-        .subject(email)
+        .subject(jwtUser.userId().toString())
+        .claim(TOKEN_CLAIM_EMAIL, jwtUser.email())
         .expiration(expiration)
         .issuedAt(new Date())
         .signWith(secretKey)
         .compact();
   }
 
-  public String generateRefreshToken(String email) {
+  public String generateRefreshToken(JwtUser jwtUser) {
     Date expiration = new Date(System.currentTimeMillis() + getRefreshTokenExpirationMillis());
     return Jwts.builder()
-        .subject(email)
+        .subject(jwtUser.userId().toString())
+        .claim(TOKEN_CLAIM_EMAIL, jwtUser.email())
         .expiration(expiration)
         .issuedAt(new Date())
         .signWith(secretKey)
         .compact();
   }
 
-  public String extractEmail(String token) {
-    return Jwts.parser()
-        .verifyWith(secretKey)
-        .build()
-        .parseSignedClaims(token)
-        .getPayload()
-        .getSubject();
+  public JwtUser extractUser(String token) {
+    var claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+
+    UUID userId = UUID.fromString(claims.getSubject());
+    String email = claims.get(TOKEN_CLAIM_EMAIL, String.class);
+
+    return new JwtUser(userId, email);
   }
 
   public boolean isTokenValid(String token) {

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import tech.trenero.backend.common.helper.TokenHelper;
 import tech.trenero.backend.common.response.AccessTokenResponse;
 import tech.trenero.backend.common.security.JwtTokenProvider;
+import tech.trenero.backend.common.security.JwtUser;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +25,8 @@ public class TokenService {
       throw new JwtException("Invalid refresh token");
     }
 
-    String email = jwtTokenProvider.extractEmail(oldRefreshTokenCookie);
+    JwtUser jwtUser = jwtTokenProvider.extractUser(oldRefreshTokenCookie);
 
-    return tokenHelper.generateTokens(email, response);
+    return tokenHelper.createAccessAndRefreshTokens(jwtUser, response);
   }
 }
