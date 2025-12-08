@@ -2,13 +2,14 @@ package tech.trenero.backend.student.internal.repository;
 
 import java.util.List;
 import java.util.UUID;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import tech.trenero.backend.student.internal.entity.Student;
 
 @Repository
-public interface StudentRepository extends JpaRepository<Student, UUID> {
+public interface StudentRepository extends JpaRepository<@NonNull Student, @NonNull UUID> {
   @Query(
       value =
           """
