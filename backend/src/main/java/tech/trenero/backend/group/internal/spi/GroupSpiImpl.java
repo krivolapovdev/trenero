@@ -32,4 +32,17 @@ public class GroupSpiImpl implements GroupSpi {
 
     return groupService.getGroupsByIdsAndOwner(groupIds, jwtUser);
   }
+
+  @Override
+  public GroupResponse getGroupForUserById(UUID groupId, JwtUser jwtUser) {
+    if (groupId == null) {
+      throw new IllegalArgumentException("groupId must not be null");
+    }
+
+    if (jwtUser == null) {
+      throw new IllegalArgumentException("jwtUser must not be null");
+    }
+
+    return groupService.getGroupForUserById(groupId, jwtUser);
+  }
 }

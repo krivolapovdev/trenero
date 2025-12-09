@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.response.GroupResponse;
 import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.student.internal.client.GroupClient;
+import tech.trenero.backend.student.internal.client.StudentGroupClient;
 import tech.trenero.backend.student.internal.entity.Student;
 import tech.trenero.backend.student.internal.mapper.StudentMapper;
 import tech.trenero.backend.student.internal.repository.StudentRepository;
@@ -24,7 +24,7 @@ public class StudentService {
   private final StudentRepository studentRepository;
   private final StudentMapper studentMapper;
   private final StudentGroupService studentGroupService;
-  private final GroupClient groupClient;
+  private final StudentGroupClient studentGroupClient;
 
   public StudentWithGroupsResponse getStudentForUserById(UUID studentId, JwtUser jwtUser) {
     log.info("Getting student by id={} for ownerId={}", studentId, jwtUser.userId());
@@ -39,7 +39,8 @@ public class StudentService {
 
     List<UUID> groupIds = studentGroupService.getGroupIdsForUserByStudentId(studentId, jwtUser);
 
-    List<GroupResponse> studentGroups = groupClient.getGroupsByIdsAndOwner(groupIds, jwtUser);
+    List<GroupResponse> studentGroups =
+        studentGroupClient.getGroupsByIdsAndOwner(groupIds, jwtUser);
 
     StudentResponse studentResponse = studentMapper.toStudentResponse(student);
 

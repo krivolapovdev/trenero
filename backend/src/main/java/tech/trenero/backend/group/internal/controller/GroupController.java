@@ -33,9 +33,9 @@ public class GroupController {
 
   @GetMapping("/{id}")
   @PreAuthorize("isAuthenticated()")
-  public GroupWithStudentsResponse getGroupForUserById(
+  public GroupWithStudentsResponse getGroupWithStudentsForUserById(
       @PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.getGroupForUserById(id, jwtUser);
+    return groupService.getGroupWithStudentsForUserById(id, jwtUser);
   }
 
   @PostMapping

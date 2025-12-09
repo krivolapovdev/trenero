@@ -11,7 +11,7 @@ import tech.trenero.backend.group.external.GroupSpi;
 
 @Component
 @RequiredArgsConstructor
-public class GroupClient {
+public class StudentGroupClient {
   @Lazy private final GroupSpi groupSpi;
 
   public List<GroupResponse> getGroupsByIdsAndOwner(List<UUID> groupIds, JwtUser jwtUser) {

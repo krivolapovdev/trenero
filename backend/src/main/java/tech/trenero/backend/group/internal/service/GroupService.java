@@ -31,8 +31,19 @@ public class GroupService {
         .toList();
   }
 
-  public GroupWithStudentsResponse getGroupForUserById(UUID groupId, JwtUser jwtUser) {
-    log.info("Getting group by id={} for ownerId={}", groupId, jwtUser.userId());
+  public GroupResponse getGroupForUserById(UUID groupId, JwtUser jwtUser) {
+    log.info("Getting group for ownerId={}", jwtUser.userId());
+    return groupRepository
+        .findByIdAndOwnerId(groupId, jwtUser.userId())
+        .map(groupMapper::toGroupResponse)
+        .orElseThrow(
+            () ->
+                new EntityNotFoundException(
+                    "Group not found with id=" + groupId + " and userId=" + jwtUser.userId()));
+  }
+
+  public GroupWithStudentsResponse getGroupWithStudentsForUserById(UUID groupId, JwtUser jwtUser) {
+    log.info("Getting group with students by id={} for ownerId={}", groupId, jwtUser.userId());
 
     GroupResponse groupResponse =
         groupRepository
@@ -41,7 +52,7 @@ public class GroupService {
             .orElseThrow(
                 () ->
                     new EntityNotFoundException(
-                        "Group not found with id: " + groupId + " for current user"));
+                        "Group not found with id=" + groupId + " and userId=" + jwtUser.userId()));
 
     List<StudentResponse> studentsByGroupId = studentClient.getStudentsByGroupId(groupId, jwtUser);
 
