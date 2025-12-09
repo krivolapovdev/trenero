@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.response.GroupResponse;
 import tech.trenero.backend.common.response.StudentResponse;
+import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.student.internal.client.GroupClient;
 import tech.trenero.backend.student.internal.entity.Student;
 import tech.trenero.backend.student.internal.mapper.StudentMapper;
@@ -25,44 +26,50 @@ public class StudentService {
   private final StudentGroupService studentGroupService;
   private final GroupClient groupClient;
 
-  public StudentWithGroupsResponse getStudentById(UUID studentId) {
-    log.info("Getting student by id: {}", studentId);
+  public StudentWithGroupsResponse getStudentForUserById(UUID studentId, JwtUser jwtUser) {
+    log.info("Getting student by id={} for ownerId={}", studentId, jwtUser.userId());
 
-    StudentResponse studentResponse =
+    Student student =
         studentRepository
-            .findById(studentId)
-            .map(studentMapper::toStudentResponse)
+            .findStudentByIdAndOwnerId(studentId, jwtUser.userId())
             .orElseThrow(
-                () -> new EntityNotFoundException("Student not found with id: " + studentId));
+                () ->
+                    new EntityNotFoundException(
+                        "Student not found with id: " + studentId + " for current user"));
 
-    List<UUID> groupIds = studentGroupService.getGroupIdsByStudentId(studentId);
-    List<GroupResponse> studentGroups = groupClient.getGroupsByIds(groupIds);
+    List<UUID> groupIds = studentGroupService.getGroupIdsForUserByStudentId(studentId, jwtUser);
+
+    List<GroupResponse> studentGroups = groupClient.getGroupsByIdsAndOwner(groupIds, jwtUser);
+
+    StudentResponse studentResponse = studentMapper.toStudentResponse(student);
 
     return new StudentWithGroupsResponse(studentResponse, studentGroups);
   }
 
-  public List<StudentResponse> getStudentsByGroupId(UUID groupId) {
-    log.info("Getting students by group id: {}", groupId);
-    return studentRepository.findStudentsByGroupId(groupId).stream()
-        .map(studentMapper::toStudentResponse)
-        .toList();
-  }
-
   @Transactional
-  public UUID createStudent(StudentRequest request) {
+  public UUID createStudentForUser(StudentRequest request, JwtUser jwtUser) {
     log.info("Creating student: {}", request);
 
     Student student = studentMapper.toStudent(request);
-    UUID studentId = saveStudent(student);
+    student.setOwnerId(jwtUser.userId());
 
-    studentGroupService.assignGroupsToStudent(studentId, request.studentGroups());
+    Student savedStudent = saveStudent(student);
+    UUID savedStudentId = savedStudent.getId();
 
-    return studentId;
+    studentGroupService.assignGroupsToStudent(savedStudentId, request.studentGroups());
+
+    return savedStudentId;
   }
 
-  public UUID saveStudent(Student student) {
+  public Student saveStudent(Student student) {
     log.info("Saving student: {}", student);
-    Student savedStudent = studentRepository.save(student);
-    return savedStudent.getId();
+    return studentRepository.save(student);
+  }
+
+  public List<StudentResponse> getStudentsForUserByGroupId(UUID groupId, JwtUser jwtUser) {
+    log.info("Getting students by groupId={} for ownerId={}", groupId, jwtUser.userId());
+    return studentRepository.findStudentsByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
+        .map(studentMapper::toStudentResponse)
+        .toList();
   }
 }

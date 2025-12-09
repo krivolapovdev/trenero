@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tech.trenero.backend.common.response.StudentResponse;
+import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.student.external.StudentSpi;
 import tech.trenero.backend.student.internal.service.StudentService;
 
@@ -16,7 +17,15 @@ public class StudentSpiImpl implements StudentSpi {
   private final StudentService studentService;
 
   @Override
-  public List<StudentResponse> getStudentsByGroupId(UUID studentId) {
-    return studentService.getStudentsByGroupId(studentId);
+  public List<StudentResponse> getStudentsForUserByGroupId(UUID studentId, JwtUser jwtUser) {
+    if (studentId == null) {
+      throw new IllegalArgumentException("studentId must not be null");
+    }
+
+    if (jwtUser == null) {
+      throw new IllegalArgumentException("jwtUser must not be null");
+    }
+
+    return studentService.getStudentsForUserByGroupId(studentId, jwtUser);
   }
 }

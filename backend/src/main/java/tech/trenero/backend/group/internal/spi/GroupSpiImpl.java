@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tech.trenero.backend.common.response.GroupResponse;
+import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupSpi;
 import tech.trenero.backend.group.internal.service.GroupService;
 
@@ -16,7 +17,19 @@ public class GroupSpiImpl implements GroupSpi {
   private final GroupService groupService;
 
   @Override
-  public List<GroupResponse> getGroupsByIds(List<UUID> groupIds) {
-    return groupService.getGroupsByIds(groupIds);
+  public List<GroupResponse> getGroupsByIdsAndOwner(List<UUID> groupIds, JwtUser jwtUser) {
+    if (groupIds == null) {
+      throw new IllegalArgumentException("groupIds must not be null");
+    }
+
+    if (jwtUser == null) {
+      throw new IllegalArgumentException("jwtUser must not be null");
+    }
+
+    if (groupIds.isEmpty()) {
+      return List.of();
+    }
+
+    return groupService.getGroupsByIdsAndOwner(groupIds, jwtUser);
   }
 }

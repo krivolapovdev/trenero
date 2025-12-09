@@ -33,15 +33,15 @@ public class GroupController {
 
   @GetMapping("/{id}")
   @PreAuthorize("isAuthenticated()")
-  public GroupWithStudentsResponse getUserGroupById(
+  public GroupWithStudentsResponse getGroupForUserById(
       @PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.getUserGroupById(id, jwtUser);
+    return groupService.getGroupForUserById(id, jwtUser);
   }
 
   @PostMapping
   @PreAuthorize("isAuthenticated()")
-  public UUID createGroup(
+  public UUID createGroupForUser(
       @RequestBody GroupRequest groupRequest, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.createGroup(groupRequest, jwtUser);
+    return groupService.createGroupForUser(groupRequest, jwtUser);
   }
 }

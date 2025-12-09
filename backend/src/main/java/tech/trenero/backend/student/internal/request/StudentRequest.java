@@ -10,4 +10,10 @@ public record StudentRequest(
     String phone,
     LocalDate birthDate,
     String note,
-    Set<UUID> studentGroups) {}
+    Set<UUID> studentGroups) {
+  public StudentRequest {
+    if (studentGroups == null) {
+      studentGroups = Set.of();
+    }
+  }
+}

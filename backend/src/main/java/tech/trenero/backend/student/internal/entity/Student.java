@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,10 +14,14 @@ import lombok.NoArgsConstructor;
 @Table(name = "students", schema = "students_module")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Student {
   @Id
   @Column(name = "id")
   private UUID id = UUID.randomUUID();
+
+  @Column(name = "owner_id", nullable = false)
+  private UUID ownerId;
 
   @Column(name = "full_name", nullable = false)
   private String fullName;
