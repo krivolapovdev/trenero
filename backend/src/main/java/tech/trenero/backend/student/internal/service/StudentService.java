@@ -31,7 +31,7 @@ public class StudentService {
 
     Student student =
         studentRepository
-            .findStudentByIdAndOwnerId(studentId, jwtUser.userId())
+            .findByIdAndOwnerId(studentId, jwtUser.userId())
             .orElseThrow(
                 () ->
                     new EntityNotFoundException(
@@ -69,8 +69,18 @@ public class StudentService {
 
   public List<StudentResponse> getStudentsForUserByGroupId(UUID groupId, JwtUser jwtUser) {
     log.info("Getting students by groupId={} for ownerId={}", groupId, jwtUser.userId());
-    return studentRepository.findStudentsByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
+    return studentRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
         .map(studentMapper::toStudentResponse)
         .toList();
+  }
+
+  public void softDeleteStudent(UUID studentId, JwtUser jwtUser) {
+    log.info("Deleting student: {}", studentId);
+    Student student =
+        studentRepository
+            .findByIdAndOwnerId(studentId, jwtUser.userId())
+            .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+    student.setDeleted(true);
+    studentRepository.save(student);
   }
 }

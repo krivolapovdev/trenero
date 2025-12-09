@@ -18,7 +18,7 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           FROM Student AS s
           WHERE s.id = :studentId
           AND s.ownerId = :ownerId""")
-  Optional<Student> findStudentByIdAndOwnerId(
+  Optional<Student> findByIdAndOwnerId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 
   @Query(
@@ -28,6 +28,6 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           JOIN StudentGroup sg ON s.id = sg.studentId
           WHERE sg.groupId = :groupId
           AND s.ownerId = :ownerId""")
-  List<Student> findStudentsByGroupIdAndOwnerId(
+  List<Student> findAllByGroupIdAndOwnerId(
       @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
 }

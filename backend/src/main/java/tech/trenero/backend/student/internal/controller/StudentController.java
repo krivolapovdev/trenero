@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,11 +24,11 @@ import tech.trenero.backend.student.internal.service.StudentService;
 public class StudentController {
   private final StudentService studentService;
 
-  @GetMapping("/{id}")
+  @GetMapping("/{studentId}")
   @PreAuthorize("isAuthenticated()")
   public StudentWithGroupsResponse getStudentForUserById(
-      @PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.getStudentForUserById(id, jwtUser);
+      @PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.getStudentForUserById(studentId, jwtUser);
   }
 
   @PostMapping
@@ -35,5 +36,12 @@ public class StudentController {
   public UUID createStudentForUser(
       @RequestBody StudentRequest studentRequest, @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.createStudentForUser(studentRequest, jwtUser);
+  }
+
+  @DeleteMapping("/{studentId}")
+  @PreAuthorize("isAuthenticated()")
+  public void deleteStudent(
+      @PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+    studentService.softDeleteStudent(studentId, jwtUser);
   }
 }

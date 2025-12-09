@@ -34,4 +34,7 @@ public class Student {
 
   @Column(name = "note")
   private String note;
+
+  @Column(name = "deleted")
+  private boolean deleted = false;
 }
