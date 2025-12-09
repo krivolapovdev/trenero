@@ -15,7 +15,7 @@ public interface StudentGroupRepository
     extends JpaRepository<@NonNull StudentGroup, @NonNull StudentGroupId> {
   @Query(
       """
-            SELECT sg.groupId
+            SELECT DISTINCT sg.groupId
             FROM StudentGroup AS sg
             JOIN Student s ON s.id = sg.studentId
             WHERE sg.studentId = :studentId

@@ -14,15 +14,15 @@ import tech.trenero.backend.group.internal.entity.Group;
 public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull UUID> {
   @Query(
       """
-        SELECT g
-        FROM Group g
+        SELECT DISTINCT g
+        FROM Group AS g
         WHERE g.ownerId = :ownerId""")
   List<Group> findByOwnerId(@Param("ownerId") UUID ownerId);
 
   @Query(
       """
         SELECT g
-        FROM Group g
+        FROM Group AS g
         WHERE g.id = :groupId
         AND g.ownerId = :ownerId""")
   Optional<Group> findByIdAndOwnerId(
@@ -30,8 +30,8 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
 
   @Query(
       """
-          SELECT g
-          FROM Group g
+          SELECT DISTINCT g
+          FROM Group AS g
           WHERE g.id IN :groupIds
           AND g.ownerId = :ownerId""")
   List<Group> findAllByIdAndOwnerId(

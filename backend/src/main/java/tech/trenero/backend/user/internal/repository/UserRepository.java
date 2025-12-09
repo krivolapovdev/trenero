@@ -14,7 +14,7 @@ public interface UserRepository extends JpaRepository<@NonNull User, @NonNull UU
   @Query(
       """
           SELECT u
-          FROM User u
+          FROM User AS u
           WHERE u.provider = :provider
           AND u.providerId = :providerId""")
   Optional<User> findByProviderAndProviderId(OAuth2Provider provider, String providerId);
