@@ -2,7 +2,7 @@ package tech.trenero.backend.student.internal.request;
 
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 public record StudentRequest(
@@ -10,10 +10,8 @@ public record StudentRequest(
     String phone,
     LocalDate birthDate,
     String note,
-    Set<UUID> studentGroups) {
+    List<UUID> studentGroups) {
   public StudentRequest {
-    if (studentGroups == null) {
-      studentGroups = Set.of();
-    }
+    studentGroups = studentGroups == null ? List.of() : studentGroups;
   }
 }

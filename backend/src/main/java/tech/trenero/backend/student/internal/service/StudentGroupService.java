@@ -2,7 +2,6 @@ package tech.trenero.backend.student.internal.service;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,7 @@ import tech.trenero.backend.student.internal.repository.StudentGroupRepository;
 public class StudentGroupService {
   private final StudentGroupRepository studentGroupRepository;
 
-  public void assignGroupsToStudent(UUID studentId, Set<UUID> studentGroups) {
+  public void assignGroupsToStudent(UUID studentId, List<UUID> studentGroups) {
     log.info("Assigning groups {} to student {}", studentGroups, studentId);
 
     List<StudentGroup> studentGroupList =
