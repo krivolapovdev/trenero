@@ -15,11 +15,11 @@ public interface StudentGroupRepository
     extends JpaRepository<@NonNull StudentGroup, @NonNull StudentGroupId> {
   @Query(
       """
-            SELECT DISTINCT sg.groupId
-            FROM StudentGroup AS sg
-            JOIN Student s ON s.id = sg.studentId
-            WHERE sg.studentId = :studentId
-            AND s.ownerId = :ownerId""")
+          SELECT DISTINCT sg.groupId
+          FROM StudentGroup AS sg
+          JOIN Student s ON s.id = sg.studentId
+          WHERE sg.studentId = :studentId
+          AND s.ownerId = :ownerId""")
   List<UUID> findGroupIdsByStudentIdAndOwnerId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 }

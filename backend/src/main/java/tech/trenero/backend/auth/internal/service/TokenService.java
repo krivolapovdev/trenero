@@ -17,7 +17,7 @@ public class TokenService {
   private final JwtTokenProvider jwtTokenProvider;
   private final TokenHelper tokenHelper;
 
-  public AccessTokenResponse refreshToken(
+  public AccessTokenResponse renewTokens(
       String oldRefreshTokenCookie, HttpServletResponse response) {
     log.info("Refreshing token: {}", oldRefreshTokenCookie);
 

@@ -19,9 +19,9 @@ public class TokenController {
   private final TokenService tokenService;
 
   @PostMapping("/refresh")
-  public AccessTokenResponse refresh(
+  public AccessTokenResponse renewTokens(
       @CookieValue(CookieHelper.REFRESH_TOKEN_COOKIE_NAME) String refreshToken,
       HttpServletResponse response) {
-    return tokenService.refreshToken(refreshToken, response);
+    return tokenService.renewTokens(refreshToken, response);
   }
 }
