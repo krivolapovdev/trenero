@@ -46,8 +46,7 @@ public class StudentService {
 
     List<UUID> groupIds = studentGroupService.getGroupIdsByStudentIdForUser(studentId, jwtUser);
 
-    List<GroupResponse> studentGroups =
-        studentGroupClient.getGroupsByIdsAndOwner(groupIds, jwtUser);
+    List<GroupResponse> studentGroups = studentGroupClient.getGroupsByIds(groupIds, jwtUser);
 
     StudentResponse studentResponse = studentMapper.toStudentResponse(student);
 

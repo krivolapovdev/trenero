@@ -27,21 +27,21 @@ public class GroupController {
 
   @GetMapping
   @PreAuthorize("isAuthenticated()")
-  public List<GroupResponse> getAllGroupsForUser(@AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.getAllGroupsForUser(jwtUser);
+  public List<GroupResponse> getAllGroups(@AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getAllGroups(jwtUser);
   }
 
   @GetMapping("/{id}")
   @PreAuthorize("isAuthenticated()")
-  public GroupWithStudentsResponse getGroupWithStudentsForUserById(
+  public GroupWithStudentsResponse getGroupWithStudentsById(
       @PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.getGroupWithStudentsForUserById(id, jwtUser);
+    return groupService.getGroupWithStudentsById(id, jwtUser);
   }
 
   @PostMapping
   @PreAuthorize("isAuthenticated()")
-  public UUID createGroupForUser(
+  public UUID createGroup(
       @RequestBody GroupRequest groupRequest, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.createGroupForUser(groupRequest, jwtUser);
+    return groupService.createGroup(groupRequest, jwtUser);
   }
 }

@@ -12,7 +12,11 @@ import tech.trenero.backend.group.external.GroupSpi;
 public class AttendanceGroupClient {
   @Lazy private final GroupSpi groupSpi;
 
-  public void getGroupForUserById(UUID groupId, JwtUser jwtUser) {
-    groupSpi.getGroupForUserById(groupId, jwtUser);
+  public void getGroupById(UUID groupId, JwtUser jwtUser) {
+    groupSpi.getGroupById(groupId, jwtUser);
+  }
+
+  public void checkUserOwnsGroup(UUID groupId, JwtUser jwtUser) {
+    groupSpi.getGroupById(groupId, jwtUser);
   }
 }

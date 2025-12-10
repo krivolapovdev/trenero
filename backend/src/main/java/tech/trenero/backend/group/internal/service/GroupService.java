@@ -24,7 +24,7 @@ public class GroupService {
   private final GroupMapper groupMapper;
   private final StudentClient studentClient;
 
-  public List<GroupResponse> getAllGroupsForUser(JwtUser jwtUser) {
+  public List<GroupResponse> getAllGroups(JwtUser jwtUser) {
     log.info("Getting all groups for ownerId={}", jwtUser.userId());
     return groupRepository.findByOwnerId(jwtUser.userId()).stream()
         .map(groupMapper::toGroupResponse)
@@ -42,7 +42,7 @@ public class GroupService {
                     "Group not found with id=" + groupId + " and userId=" + jwtUser.userId()));
   }
 
-  public GroupWithStudentsResponse getGroupWithStudentsForUserById(UUID groupId, JwtUser jwtUser) {
+  public GroupWithStudentsResponse getGroupWithStudentsById(UUID groupId, JwtUser jwtUser) {
     log.info("Getting group with students by id={} for ownerId={}", groupId, jwtUser.userId());
 
     GroupResponse groupResponse =
@@ -66,7 +66,7 @@ public class GroupService {
         .toList();
   }
 
-  public UUID createGroupForUser(GroupRequest groupRequest, JwtUser jwtUser) {
+  public UUID createGroup(GroupRequest groupRequest, JwtUser jwtUser) {
     log.info("Creating group: name='{}', ownerId={}", groupRequest.name(), jwtUser.userId());
     Group group = groupMapper.toGroup(groupRequest);
     group.setOwnerId(jwtUser.userId());
