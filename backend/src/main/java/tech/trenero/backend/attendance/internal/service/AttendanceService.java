@@ -24,12 +24,12 @@ public class AttendanceService {
   private final StudentAttendanceMapper studentAttendanceMapper;
 
   @Transactional
-  public UUID createLessonWithAttendanceForUser(LessonRequest lessonRequest, JwtUser jwtUser) {
-    log.info("Creating lesson with attendance={} and user={}", lessonRequest, jwtUser);
+  public UUID recordAttendance(LessonRequest lessonRequest, JwtUser jwtUser) {
+    log.info("Recording attendance={} for user={}", lessonRequest, jwtUser);
 
     checkUserOwnsGroup(lessonRequest.groupId(), jwtUser);
 
-    var lesson = lessonService.createLesson(lessonRequest);
+    var lesson = lessonService.create(lessonRequest);
 
     List<StudentAttendance> studentAttendanceList =
         lessonRequest.attendance().stream()
@@ -43,6 +43,6 @@ public class AttendanceService {
   }
 
   private void checkUserOwnsGroup(UUID groupId, JwtUser jwtUser) {
-    attendanceGroupClient.getGroupForUserById(groupId, jwtUser);
+    attendanceGroupClient.getForUserById(groupId, jwtUser);
   }
 }

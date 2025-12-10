@@ -17,7 +17,7 @@ public class GroupSpiImpl implements GroupSpi {
   private final GroupService groupService;
 
   @Override
-  public List<GroupResponse> getGroupsByIdsAndOwner(List<UUID> groupIds, JwtUser jwtUser) {
+  public List<GroupResponse> getByIdsAndOwner(List<UUID> groupIds, JwtUser jwtUser) {
     if (groupIds == null) {
       throw new IllegalArgumentException("groupIds must not be null");
     }
@@ -30,11 +30,11 @@ public class GroupSpiImpl implements GroupSpi {
       return List.of();
     }
 
-    return groupService.getGroupsByIdsAndOwner(groupIds, jwtUser);
+    return groupService.getByIdsAndOwner(groupIds, jwtUser);
   }
 
   @Override
-  public GroupResponse getGroupForUserById(UUID groupId, JwtUser jwtUser) {
+  public GroupResponse getForUserById(UUID groupId, JwtUser jwtUser) {
     if (groupId == null) {
       throw new IllegalArgumentException("groupId must not be null");
     }
@@ -43,6 +43,6 @@ public class GroupSpiImpl implements GroupSpi {
       throw new IllegalArgumentException("jwtUser must not be null");
     }
 
-    return groupService.getGroupForUserById(groupId, jwtUser);
+    return groupService.getForUserById(groupId, jwtUser);
   }
 }

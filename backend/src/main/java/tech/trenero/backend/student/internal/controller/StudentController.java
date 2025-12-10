@@ -26,22 +26,21 @@ public class StudentController {
 
   @GetMapping("/{studentId}")
   @PreAuthorize("isAuthenticated()")
-  public StudentWithGroupsResponse getStudentForUserById(
+  public StudentWithGroupsResponse getForUserById(
       @PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.getStudentForUserById(studentId, jwtUser);
+    return studentService.getForUserById(studentId, jwtUser);
   }
 
   @PostMapping
   @PreAuthorize("isAuthenticated()")
-  public UUID createStudentForUser(
+  public UUID createForUser(
       @RequestBody StudentRequest studentRequest, @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.createStudentForUser(studentRequest, jwtUser);
+    return studentService.createForUser(studentRequest, jwtUser);
   }
 
   @DeleteMapping("/{studentId}")
   @PreAuthorize("isAuthenticated()")
-  public void deleteStudent(
-      @PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
-    studentService.softDeleteStudent(studentId, jwtUser);
+  public void delete(@PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+    studentService.softDelete(studentId, jwtUser);
   }
 }

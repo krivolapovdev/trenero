@@ -14,11 +14,11 @@ import tech.trenero.backend.group.external.GroupSpi;
 public class StudentGroupClient {
   @Lazy private final GroupSpi groupSpi;
 
-  public List<GroupResponse> getGroupsByIdsAndOwner(List<UUID> groupIds, JwtUser jwtUser) {
+  public List<GroupResponse> getByIdsAndOwner(List<UUID> groupIds, JwtUser jwtUser) {
     if (groupIds == null || groupIds.isEmpty() || jwtUser == null) {
       return List.of();
     }
 
-    return groupSpi.getGroupsByIdsAndOwner(groupIds, jwtUser);
+    return groupSpi.getByIdsAndOwner(groupIds, jwtUser);
   }
 }
