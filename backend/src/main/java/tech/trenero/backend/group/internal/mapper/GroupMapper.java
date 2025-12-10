@@ -4,11 +4,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants.ComponentModel;
 import tech.trenero.backend.common.response.GroupResponse;
 import tech.trenero.backend.group.internal.entity.Group;
-import tech.trenero.backend.group.internal.request.GroupRequest;
+import tech.trenero.backend.group.internal.request.CreateGroupRequest;
 
 @Mapper(componentModel = ComponentModel.SPRING)
 public interface GroupMapper {
-  Group toGroup(GroupRequest groupRequest);
+  Group toGroup(CreateGroupRequest createGroupRequest);
 
   GroupResponse toGroupResponse(Group group);
 }

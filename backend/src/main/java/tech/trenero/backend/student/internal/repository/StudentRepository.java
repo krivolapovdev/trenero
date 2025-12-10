@@ -17,7 +17,7 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           SELECT DISTINCT s
           FROM Student AS s
           WHERE s.ownerId = :ownerId
-          AND s.deleted = false""")
+            AND s.deleted = false""")
   List<Student> findAllByOwnerIdAndDeletedFalse(@Param("ownerId") UUID ownerId);
 
   @Query(
@@ -25,7 +25,7 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           SELECT s
           FROM Student AS s
           WHERE s.id = :studentId
-          AND s.ownerId = :ownerId""")
+            AND s.ownerId = :ownerId""")
   Optional<Student> findByIdAndOwnerId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 
@@ -33,9 +33,8 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
       """
           SELECT DISTINCT s
           FROM Student AS s
-          JOIN StudentGroup sg ON s.id = sg.studentId
-          WHERE sg.groupId = :groupId
-          AND s.ownerId = :ownerId""")
-  List<Student> findAllByGroupIdAndOwnerId(
-      @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
+          WHERE s.id IN :ids
+            AND s.ownerId = :ownerId""")
+  List<Student> findStudentsByIdsAndOwnerId(
+      @Param("ids") List<UUID> ids, @Param("ownerId") UUID ownerId);
 }

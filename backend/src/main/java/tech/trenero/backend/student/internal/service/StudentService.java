@@ -14,7 +14,7 @@ import tech.trenero.backend.student.internal.client.StudentGroupClient;
 import tech.trenero.backend.student.internal.entity.Student;
 import tech.trenero.backend.student.internal.mapper.StudentMapper;
 import tech.trenero.backend.student.internal.repository.StudentRepository;
-import tech.trenero.backend.student.internal.request.StudentRequest;
+import tech.trenero.backend.student.internal.request.CreateStudentRequest;
 import tech.trenero.backend.student.internal.response.StudentWithGroupsResponse;
 
 @Service
@@ -23,7 +23,6 @@ import tech.trenero.backend.student.internal.response.StudentWithGroupsResponse;
 public class StudentService {
   private final StudentRepository studentRepository;
   private final StudentMapper studentMapper;
-  private final StudentGroupService studentGroupService;
   private final StudentGroupClient studentGroupClient;
 
   public List<StudentResponse> getAllStudents(JwtUser jwtUser) {
@@ -45,45 +44,48 @@ public class StudentService {
                     "Student not found with id: " + studentId + " for current user"));
   }
 
+  public List<StudentResponse> getStudentsByIds(List<UUID> studentIds, JwtUser jwtUser) {
+    log.info(
+        "Getting students by ids={} for ownerId={}",
+        studentIds != null ? studentIds.toString() : null,
+        jwtUser.userId());
+    return studentRepository.findStudentsByIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
+        .map(studentMapper::toStudentResponse)
+        .toList();
+  }
+
   public StudentWithGroupsResponse getStudentWithGroupsById(UUID studentId, JwtUser jwtUser) {
     log.info("Getting student with groups by id={} for ownerId={}", studentId, jwtUser.userId());
 
     StudentResponse studentResponse = getStudentById(studentId, jwtUser);
 
-    List<UUID> groupIds = studentGroupService.getGroupIdsByStudentIdForUser(studentId, jwtUser);
-
-    List<GroupResponse> studentGroups = studentGroupClient.getGroupsByIds(groupIds, jwtUser);
+    List<GroupResponse> studentGroups = studentGroupClient.getGroupsByStudentId(studentId, jwtUser);
 
     return new StudentWithGroupsResponse(studentResponse, studentGroups);
   }
 
-  public List<StudentResponse> getStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
-    log.info("Getting students by groupId={} for ownerId={}", groupId, jwtUser.userId());
-    return studentRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
-        .map(studentMapper::toStudentResponse)
-        .toList();
-  }
-
   @Transactional
-  public UUID createStudent(StudentRequest request, JwtUser jwtUser) {
+  public UUID createStudent(CreateStudentRequest request, JwtUser jwtUser) {
     log.info("Creating student: {}", request);
 
     Student student = studentMapper.toStudent(request);
     student.setOwnerId(jwtUser.userId());
 
     Student savedStudent = saveStudent(student);
-    UUID savedStudentId = savedStudent.getId();
 
-    studentGroupService.assignGroupsToStudent(savedStudentId, request.studentGroups());
+    studentGroupClient.assignGroupsToStudent(
+        savedStudent.getId(), request.studentGroups(), jwtUser);
 
-    return savedStudentId;
+    return savedStudent.getId();
   }
 
+  @Transactional
   public Student saveStudent(Student student) {
     log.info("Saving student: {}", student);
     return studentRepository.save(student);
   }
 
+  @Transactional
   public void softDeleteStudent(UUID studentId, JwtUser jwtUser) {
     log.info("Deleting student: {}", studentId);
     Student student =

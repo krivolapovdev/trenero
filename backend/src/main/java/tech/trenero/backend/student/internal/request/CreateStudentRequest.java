@@ -5,13 +5,13 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-public record StudentRequest(
+public record CreateStudentRequest(
     @NotBlank String fullName,
     String phone,
     LocalDate birthDate,
     String note,
     List<UUID> studentGroups) {
-  public StudentRequest {
+  public CreateStudentRequest {
     studentGroups = studentGroups == null ? List.of() : studentGroups;
   }
 }

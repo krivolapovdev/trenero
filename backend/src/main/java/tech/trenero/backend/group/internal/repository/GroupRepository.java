@@ -21,10 +21,11 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
 
   @Query(
       """
-        SELECT g
-        FROM Group AS g
-        WHERE g.id = :groupId
-        AND g.ownerId = :ownerId""")
+          SELECT g
+          FROM Group AS g
+          LEFT JOIN FETCH g.studentIds
+          WHERE g.id = :groupId
+            AND g.ownerId = :ownerId""")
   Optional<Group> findByIdAndOwnerId(
       @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
 
@@ -33,7 +34,17 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
           SELECT DISTINCT g
           FROM Group AS g
           WHERE g.id IN :groupIds
-          AND g.ownerId = :ownerId""")
+            AND g.ownerId = :ownerId""")
   List<Group> findAllByIdAndOwnerId(
       @Param("groupIds") List<UUID> groupIds, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+        SELECT DISTINCT g
+        FROM Group AS g
+        JOIN g.studentIds AS s
+        WHERE s = :studentId
+          AND g.ownerId = :ownerId""")
+  List<Group> findGroupsByStudentIdAndOwnerId(
+      @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 }

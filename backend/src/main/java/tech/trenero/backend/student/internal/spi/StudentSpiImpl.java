@@ -1,5 +1,7 @@
 package tech.trenero.backend.student.internal.spi;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -18,27 +20,17 @@ public class StudentSpiImpl implements StudentSpi {
 
   @Override
   public StudentResponse getStudentById(UUID studentId, JwtUser jwtUser) {
-    if (studentId == null) {
-      throw new IllegalArgumentException("studentId must not be null");
-    }
-
-    if (jwtUser == null) {
-      throw new IllegalArgumentException("jwtUser must not be null");
-    }
-
+    requireNonNull(studentId, "studentId must not be null");
+    requireNonNull(jwtUser, "jwtUser must not be null");
+    log.debug("Fetching student by id={} for user={}", studentId, jwtUser.userId());
     return studentService.getStudentById(studentId, jwtUser);
   }
 
   @Override
-  public List<StudentResponse> getStudentsByGroupId(UUID studentId, JwtUser jwtUser) {
-    if (studentId == null) {
-      throw new IllegalArgumentException("studentId must not be null");
-    }
-
-    if (jwtUser == null) {
-      throw new IllegalArgumentException("jwtUser must not be null");
-    }
-
-    return studentService.getStudentsByGroupId(studentId, jwtUser);
+  public List<StudentResponse> getStudentsByIds(List<UUID> studentIds, JwtUser jwtUser) {
+    requireNonNull(studentIds, "studentIds must not be null");
+    requireNonNull(jwtUser, "jwtUser must not be null");
+    log.debug("Fetching students by ids={} for user={}", studentIds, jwtUser.userId());
+    return studentService.getStudentsByIds(studentIds, jwtUser);
   }
 }
