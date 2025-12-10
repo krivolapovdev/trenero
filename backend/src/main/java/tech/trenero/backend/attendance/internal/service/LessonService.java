@@ -15,13 +15,13 @@ public class LessonService {
   private final LessonMapper lessonMapper;
   private final LessonRepository lessonRepository;
 
-  public Lesson createLesson(LessonRequest lessonRequest) {
+  public Lesson create(LessonRequest lessonRequest) {
     log.info("Creating lesson={}", lessonRequest);
     var lesson = lessonMapper.toLesson(lessonRequest);
-    return saveLesson(lesson);
+    return save(lesson);
   }
 
-  public Lesson saveLesson(Lesson lesson) {
+  public Lesson save(Lesson lesson) {
     log.info("Saving lesson {}", lesson);
     return lessonRepository.save(lesson);
   }

@@ -14,11 +14,11 @@ import tech.trenero.backend.student.external.StudentSpi;
 public class StudentClient {
   @Lazy private final StudentSpi studentSpi;
 
-  public List<StudentResponse> getStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
+  public List<StudentResponse> getAllForUserByGroupId(UUID groupId, JwtUser jwtUser) {
     if (groupId == null || jwtUser == null) {
       return List.of();
     }
 
-    return studentSpi.getStudentsForUserByGroupId(groupId, jwtUser);
+    return studentSpi.getAllForUserByGroupId(groupId, jwtUser);
   }
 }

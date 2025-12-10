@@ -24,14 +24,14 @@ public class GroupService {
   private final GroupMapper groupMapper;
   private final StudentClient studentClient;
 
-  public List<GroupResponse> getAllGroupsForUser(JwtUser jwtUser) {
+  public List<GroupResponse> getAllForUser(JwtUser jwtUser) {
     log.info("Getting all groups for ownerId={}", jwtUser.userId());
     return groupRepository.findByOwnerId(jwtUser.userId()).stream()
         .map(groupMapper::toGroupResponse)
         .toList();
   }
 
-  public GroupResponse getGroupForUserById(UUID groupId, JwtUser jwtUser) {
+  public GroupResponse getForUserById(UUID groupId, JwtUser jwtUser) {
     log.info("Getting group for ownerId={}", jwtUser.userId());
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
@@ -42,7 +42,7 @@ public class GroupService {
                     "Group not found with id=" + groupId + " and userId=" + jwtUser.userId()));
   }
 
-  public GroupWithStudentsResponse getGroupWithStudentsForUserById(UUID groupId, JwtUser jwtUser) {
+  public GroupWithStudentsResponse getWithStudentsForUserById(UUID groupId, JwtUser jwtUser) {
     log.info("Getting group with students by id={} for ownerId={}", groupId, jwtUser.userId());
 
     GroupResponse groupResponse =
@@ -54,26 +54,27 @@ public class GroupService {
                     new EntityNotFoundException(
                         "Group not found with id=" + groupId + " and userId=" + jwtUser.userId()));
 
-    List<StudentResponse> studentsByGroupId = studentClient.getStudentsByGroupId(groupId, jwtUser);
+    List<StudentResponse> studentsByGroupId =
+        studentClient.getAllForUserByGroupId(groupId, jwtUser);
 
     return new GroupWithStudentsResponse(groupResponse, studentsByGroupId);
   }
 
-  public List<GroupResponse> getGroupsByIdsAndOwner(List<UUID> groupIds, JwtUser jwtUser) {
+  public List<GroupResponse> getByIdsAndOwner(List<UUID> groupIds, JwtUser jwtUser) {
     log.info("Getting groups by ids={} for ownerId={}", groupIds, jwtUser.userId());
     return groupRepository.findAllByIdAndOwnerId(groupIds, jwtUser.userId()).stream()
         .map(groupMapper::toGroupResponse)
         .toList();
   }
 
-  public UUID createGroupForUser(GroupRequest groupRequest, JwtUser jwtUser) {
+  public UUID createForUser(GroupRequest groupRequest, JwtUser jwtUser) {
     log.info("Creating group: name='{}', ownerId={}", groupRequest.name(), jwtUser.userId());
     Group group = groupMapper.toGroup(groupRequest);
     group.setOwnerId(jwtUser.userId());
-    return saveGroup(group);
+    return save(group);
   }
 
-  public UUID saveGroup(Group group) {
+  public UUID save(Group group) {
     log.info("Saving group: {}", group);
     Group savedGroup = groupRepository.save(group);
     return savedGroup.getId();

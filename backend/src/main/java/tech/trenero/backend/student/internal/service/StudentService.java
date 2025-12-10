@@ -26,7 +26,7 @@ public class StudentService {
   private final StudentGroupService studentGroupService;
   private final StudentGroupClient studentGroupClient;
 
-  public StudentWithGroupsResponse getStudentForUserById(UUID studentId, JwtUser jwtUser) {
+  public StudentWithGroupsResponse getForUserById(UUID studentId, JwtUser jwtUser) {
     log.info("Getting student by id={} for ownerId={}", studentId, jwtUser.userId());
 
     Student student =
@@ -39,8 +39,7 @@ public class StudentService {
 
     List<UUID> groupIds = studentGroupService.getGroupIdsForUserByStudentId(studentId, jwtUser);
 
-    List<GroupResponse> studentGroups =
-        studentGroupClient.getGroupsByIdsAndOwner(groupIds, jwtUser);
+    List<GroupResponse> studentGroups = studentGroupClient.getByIdsAndOwner(groupIds, jwtUser);
 
     StudentResponse studentResponse = studentMapper.toStudentResponse(student);
 
@@ -48,13 +47,13 @@ public class StudentService {
   }
 
   @Transactional
-  public UUID createStudentForUser(StudentRequest request, JwtUser jwtUser) {
+  public UUID createForUser(StudentRequest request, JwtUser jwtUser) {
     log.info("Creating student: {}", request);
 
     Student student = studentMapper.toStudent(request);
     student.setOwnerId(jwtUser.userId());
 
-    Student savedStudent = saveStudent(student);
+    Student savedStudent = save(student);
     UUID savedStudentId = savedStudent.getId();
 
     studentGroupService.assignGroupsToStudent(savedStudentId, request.studentGroups());
@@ -62,19 +61,19 @@ public class StudentService {
     return savedStudentId;
   }
 
-  public Student saveStudent(Student student) {
+  public Student save(Student student) {
     log.info("Saving student: {}", student);
     return studentRepository.save(student);
   }
 
-  public List<StudentResponse> getStudentsForUserByGroupId(UUID groupId, JwtUser jwtUser) {
+  public List<StudentResponse> getAllForUserByGroupId(UUID groupId, JwtUser jwtUser) {
     log.info("Getting students by groupId={} for ownerId={}", groupId, jwtUser.userId());
     return studentRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
         .map(studentMapper::toStudentResponse)
         .toList();
   }
 
-  public void softDeleteStudent(UUID studentId, JwtUser jwtUser) {
+  public void softDelete(UUID studentId, JwtUser jwtUser) {
     log.info("Deleting student: {}", studentId);
     Student student =
         studentRepository

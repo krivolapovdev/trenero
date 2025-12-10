@@ -20,8 +20,8 @@ public class AttendanceController {
   private final AttendanceService attendanceService;
 
   @PostMapping("/lesson")
-  public UUID createLessonWithAttendanceForUser(
+  public UUID recordAttendance(
       @RequestBody LessonRequest lessonRequest, @AuthenticationPrincipal JwtUser jwtUser) {
-    return attendanceService.createLessonWithAttendanceForUser(lessonRequest, jwtUser);
+    return attendanceService.recordAttendance(lessonRequest, jwtUser);
   }
 }
