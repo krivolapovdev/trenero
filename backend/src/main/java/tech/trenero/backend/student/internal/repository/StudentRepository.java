@@ -14,6 +14,14 @@ import tech.trenero.backend.student.internal.entity.Student;
 public interface StudentRepository extends JpaRepository<@NonNull Student, @NonNull UUID> {
   @Query(
       """
+          SELECT DISTINCT s
+          FROM Student AS s
+          WHERE s.ownerId = :ownerId
+          AND s.deleted = false""")
+  List<Student> findAllByOwnerIdAndDeletedFalse(@Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
           SELECT s
           FROM Student AS s
           WHERE s.id = :studentId

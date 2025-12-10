@@ -26,7 +26,14 @@ public class StudentService {
   private final StudentGroupService studentGroupService;
   private final StudentGroupClient studentGroupClient;
 
-  public StudentWithGroupsResponse getStudentForUserById(UUID studentId, JwtUser jwtUser) {
+  public List<StudentResponse> getAllStudents(JwtUser jwtUser) {
+    log.info("Getting all students for ownerId={}", jwtUser.userId());
+    return studentRepository.findAllByOwnerIdAndDeletedFalse(jwtUser.userId()).stream()
+        .map(studentMapper::toStudentResponse)
+        .toList();
+  }
+
+  public StudentWithGroupsResponse getStudentById(UUID studentId, JwtUser jwtUser) {
     log.info("Getting student by id={} for ownerId={}", studentId, jwtUser.userId());
 
     Student student =
@@ -37,7 +44,7 @@ public class StudentService {
                     new EntityNotFoundException(
                         "Student not found with id: " + studentId + " for current user"));
 
-    List<UUID> groupIds = studentGroupService.getGroupIdsForUserByStudentId(studentId, jwtUser);
+    List<UUID> groupIds = studentGroupService.getGroupIdsByStudentIdForUser(studentId, jwtUser);
 
     List<GroupResponse> studentGroups =
         studentGroupClient.getGroupsByIdsAndOwner(groupIds, jwtUser);
@@ -47,8 +54,15 @@ public class StudentService {
     return new StudentWithGroupsResponse(studentResponse, studentGroups);
   }
 
+  public List<StudentResponse> getStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
+    log.info("Getting students by groupId={} for ownerId={}", groupId, jwtUser.userId());
+    return studentRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
+        .map(studentMapper::toStudentResponse)
+        .toList();
+  }
+
   @Transactional
-  public UUID createStudentForUser(StudentRequest request, JwtUser jwtUser) {
+  public UUID createStudent(StudentRequest request, JwtUser jwtUser) {
     log.info("Creating student: {}", request);
 
     Student student = studentMapper.toStudent(request);
@@ -65,13 +79,6 @@ public class StudentService {
   public Student saveStudent(Student student) {
     log.info("Saving student: {}", student);
     return studentRepository.save(student);
-  }
-
-  public List<StudentResponse> getStudentsForUserByGroupId(UUID groupId, JwtUser jwtUser) {
-    log.info("Getting students by groupId={} for ownerId={}", groupId, jwtUser.userId());
-    return studentRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
-        .map(studentMapper::toStudentResponse)
-        .toList();
   }
 
   public void softDeleteStudent(UUID studentId, JwtUser jwtUser) {

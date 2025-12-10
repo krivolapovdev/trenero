@@ -28,7 +28,7 @@ public class StudentGroupService {
     studentGroupRepository.saveAll(studentGroupList);
   }
 
-  public List<UUID> getGroupIdsForUserByStudentId(UUID studentId, JwtUser jwtUser) {
+  public List<UUID> getGroupIdsByStudentIdForUser(UUID studentId, JwtUser jwtUser) {
     return studentGroupRepository.findGroupIdsByStudentIdAndOwnerId(studentId, jwtUser.userId());
   }
 }

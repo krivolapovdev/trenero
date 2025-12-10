@@ -6,5 +6,5 @@ import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
 
 public interface StudentSpi {
-  List<StudentResponse> getStudentsForUserByGroupId(UUID groupId, JwtUser jwtUser);
+  List<StudentResponse> getStudentsByGroupId(UUID groupId, JwtUser jwtUser);
 }

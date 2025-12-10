@@ -17,7 +17,7 @@ public class StudentSpiImpl implements StudentSpi {
   private final StudentService studentService;
 
   @Override
-  public List<StudentResponse> getStudentsForUserByGroupId(UUID studentId, JwtUser jwtUser) {
+  public List<StudentResponse> getStudentsByGroupId(UUID studentId, JwtUser jwtUser) {
     if (studentId == null) {
       throw new IllegalArgumentException("studentId must not be null");
     }
@@ -26,6 +26,6 @@ public class StudentSpiImpl implements StudentSpi {
       throw new IllegalArgumentException("jwtUser must not be null");
     }
 
-    return studentService.getStudentsForUserByGroupId(studentId, jwtUser);
+    return studentService.getStudentsByGroupId(studentId, jwtUser);
   }
 }

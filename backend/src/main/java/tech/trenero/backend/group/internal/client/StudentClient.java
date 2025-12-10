@@ -19,6 +19,6 @@ public class StudentClient {
       return List.of();
     }
 
-    return studentSpi.getStudentsForUserByGroupId(groupId, jwtUser);
+    return studentSpi.getStudentsByGroupId(groupId, jwtUser);
   }
 }
