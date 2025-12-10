@@ -2,6 +2,7 @@ package tech.trenero.backend.attendance.internal.controller;
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,7 @@ public class AttendanceController {
   private final AttendanceService attendanceService;
 
   @PostMapping("/lesson")
+  @PreAuthorize("isAuthenticated()")
   public UUID createLessonWithAttendance(
       @RequestBody LessonRequest lessonRequest, @AuthenticationPrincipal JwtUser jwtUser) {
     return attendanceService.createLessonWithAttendance(lessonRequest, jwtUser);
