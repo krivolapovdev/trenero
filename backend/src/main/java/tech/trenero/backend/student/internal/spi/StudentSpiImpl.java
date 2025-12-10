@@ -17,6 +17,19 @@ public class StudentSpiImpl implements StudentSpi {
   private final StudentService studentService;
 
   @Override
+  public StudentResponse getStudentById(UUID studentId, JwtUser jwtUser) {
+    if (studentId == null) {
+      throw new IllegalArgumentException("studentId must not be null");
+    }
+
+    if (jwtUser == null) {
+      throw new IllegalArgumentException("jwtUser must not be null");
+    }
+
+    return studentService.getStudentById(studentId, jwtUser);
+  }
+
+  @Override
   public List<StudentResponse> getStudentsByGroupId(UUID studentId, JwtUser jwtUser) {
     if (studentId == null) {
       throw new IllegalArgumentException("studentId must not be null");

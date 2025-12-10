@@ -34,9 +34,9 @@ public class StudentController {
 
   @GetMapping("/{studentId}")
   @PreAuthorize("isAuthenticated()")
-  public StudentWithGroupsResponse getStudentById(
+  public StudentWithGroupsResponse getStudentWithGroupsById(
       @PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.getStudentById(studentId, jwtUser);
+    return studentService.getStudentWithGroupsById(studentId, jwtUser);
   }
 
   @PostMapping

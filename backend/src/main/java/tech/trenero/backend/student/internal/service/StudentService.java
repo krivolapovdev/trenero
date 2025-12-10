@@ -33,22 +33,26 @@ public class StudentService {
         .toList();
   }
 
-  public StudentWithGroupsResponse getStudentById(UUID studentId, JwtUser jwtUser) {
+  public StudentResponse getStudentById(UUID studentId, JwtUser jwtUser) {
     log.info("Getting student by id={} for ownerId={}", studentId, jwtUser.userId());
 
-    Student student =
-        studentRepository
-            .findByIdAndOwnerId(studentId, jwtUser.userId())
-            .orElseThrow(
-                () ->
-                    new EntityNotFoundException(
-                        "Student not found with id: " + studentId + " for current user"));
+    return studentRepository
+        .findByIdAndOwnerId(studentId, jwtUser.userId())
+        .map(studentMapper::toStudentResponse)
+        .orElseThrow(
+            () ->
+                new EntityNotFoundException(
+                    "Student not found with id: " + studentId + " for current user"));
+  }
+
+  public StudentWithGroupsResponse getStudentWithGroupsById(UUID studentId, JwtUser jwtUser) {
+    log.info("Getting student with groups by id={} for ownerId={}", studentId, jwtUser.userId());
+
+    StudentResponse studentResponse = getStudentById(studentId, jwtUser);
 
     List<UUID> groupIds = studentGroupService.getGroupIdsByStudentIdForUser(studentId, jwtUser);
 
     List<GroupResponse> studentGroups = studentGroupClient.getGroupsByIds(groupIds, jwtUser);
-
-    StudentResponse studentResponse = studentMapper.toStudentResponse(student);
 
     return new StudentWithGroupsResponse(studentResponse, studentGroups);
   }
