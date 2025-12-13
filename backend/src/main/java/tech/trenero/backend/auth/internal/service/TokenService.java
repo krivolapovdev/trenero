@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tech.trenero.backend.common.helper.TokenHelper;
-import tech.trenero.backend.common.response.AccessTokenResponse;
+import tech.trenero.backend.common.response.JwtTokenResponse;
 import tech.trenero.backend.common.security.JwtTokenProvider;
 import tech.trenero.backend.common.security.JwtUser;
 
@@ -17,8 +17,7 @@ public class TokenService {
   private final JwtTokenProvider jwtTokenProvider;
   private final TokenHelper tokenHelper;
 
-  public AccessTokenResponse renewTokens(
-      String oldRefreshTokenCookie, HttpServletResponse response) {
+  public JwtTokenResponse renewTokens(String oldRefreshTokenCookie, HttpServletResponse response) {
     log.info("Refreshing token: {}", oldRefreshTokenCookie);
 
     if (!jwtTokenProvider.isTokenValid(oldRefreshTokenCookie)) {

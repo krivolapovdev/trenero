@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tech.trenero.backend.auth.internal.service.TokenService;
 import tech.trenero.backend.common.helper.CookieHelper;
-import tech.trenero.backend.common.response.AccessTokenResponse;
+import tech.trenero.backend.common.response.JwtTokenResponse;
 
 @RestController
 @RequestMapping("/api/v1/tokens")
@@ -19,7 +19,7 @@ public class TokenController {
   private final TokenService tokenService;
 
   @PostMapping("/refresh")
-  public AccessTokenResponse renewTokens(
+  public JwtTokenResponse renewTokens(
       @CookieValue(CookieHelper.REFRESH_TOKEN_COOKIE_NAME) String refreshToken,
       HttpServletResponse response) {
     return tokenService.renewTokens(refreshToken, response);

@@ -5,7 +5,7 @@ import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import tech.trenero.backend.common.response.AccessTokenResponse;
+import tech.trenero.backend.common.response.JwtTokenResponse;
 import tech.trenero.backend.common.security.JwtTokenProvider;
 import tech.trenero.backend.common.security.JwtUser;
 
@@ -14,7 +14,7 @@ import tech.trenero.backend.common.security.JwtUser;
 public class TokenHelper {
   private final JwtTokenProvider jwtTokenProvider;
 
-  public AccessTokenResponse createAccessAndRefreshTokens(
+  public JwtTokenResponse createAccessAndRefreshTokens(
       JwtUser jwtUser, HttpServletResponse response) {
     String refreshToken = jwtTokenProvider.generateRefreshToken(jwtUser);
 
@@ -31,6 +31,6 @@ public class TokenHelper {
 
     String accessToken = jwtTokenProvider.generateAccessToken(jwtUser);
 
-    return new AccessTokenResponse(accessToken);
+    return new JwtTokenResponse(accessToken);
   }
 }
