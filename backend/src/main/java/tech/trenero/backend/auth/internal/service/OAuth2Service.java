@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import tech.trenero.backend.auth.internal.client.UserClient;
 import tech.trenero.backend.auth.internal.request.OAuth2IdTokenRequest;
 import tech.trenero.backend.auth.internal.response.AuthResponse;
-import tech.trenero.backend.common.helper.TokenHelper;
 import tech.trenero.backend.common.response.UserResponse;
 import tech.trenero.backend.common.security.JwtUser;
 
@@ -20,7 +19,7 @@ import tech.trenero.backend.common.security.JwtUser;
 @Slf4j
 public class OAuth2Service {
   private final GoogleAuthService googleAuthService;
-  private final TokenHelper tokenHelper;
+  private final JwtTokenService jwtTokenService;
   private final UserClient userClient;
 
   @SneakyThrows
@@ -41,7 +40,8 @@ public class OAuth2Service {
     UserResponse userResponse = userClient.getOrCreateUserFromOAuth(email, GOOGLE, providerId);
 
     var jwtUser = new JwtUser(userResponse.id(), email);
-    var accessTokenResponse = tokenHelper.createAccessAndRefreshTokens(jwtUser, servletResponse);
+    var accessTokenResponse =
+        jwtTokenService.createAccessAndRefreshTokens(jwtUser, servletResponse);
 
     return new AuthResponse(userResponse, accessTokenResponse);
   }

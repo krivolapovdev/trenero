@@ -1,17 +1,17 @@
-package tech.trenero.backend.common.helper;
+package tech.trenero.backend.auth.internal.helper;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import tech.trenero.backend.common.response.JwtTokenResponse;
+import tech.trenero.backend.auth.internal.response.JwtTokenResponse;
 import tech.trenero.backend.common.security.JwtTokenProvider;
 import tech.trenero.backend.common.security.JwtUser;
 
 @Component
 @RequiredArgsConstructor
-public class TokenHelper {
+public class JwtTokenHelper {
   private final JwtTokenProvider jwtTokenProvider;
 
   public JwtTokenResponse createAccessAndRefreshTokens(

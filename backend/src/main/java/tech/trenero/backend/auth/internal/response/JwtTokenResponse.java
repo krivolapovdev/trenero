@@ -1,3 +1,3 @@
-package tech.trenero.backend.common.response;
+package tech.trenero.backend.auth.internal.response;
 
 public record JwtTokenResponse(String accessToken) {}

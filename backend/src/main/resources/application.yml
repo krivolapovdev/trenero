@@ -9,22 +9,12 @@ spring:
           batch_size: 25
   datasource:
     driverClassName: org.postgresql.Driver
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            clientId: ${GOOGLE_CLIENT_ID}
-            clientSecret: ${GOOGLE_CLIENT_SECRET}
-            scope:
-              - email
-              - profile
+  autoconfigure:
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
 jwt:
   secret-key: your-jwt-ultra-secure-and-ultra-long-secret
   access-token-expiration: 15m
   refresh-token-expiration: 7d
 oauth2:
-  secret-key: your-oauth2-ultra-secure-and-ultra-long-secret
-  cookie-expiration: 5m
   google:
     client-id: ${EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID}

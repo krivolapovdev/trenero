@@ -9,6 +9,7 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class GoogleAuthService {
   @Value("${oauth2.google.client-id}")
   private String clientId;
 
-  public GoogleIdToken verifyIdToken(String idTokenString)
+  public @Nullable GoogleIdToken verifyIdToken(String idTokenString)
       throws GeneralSecurityException, IOException {
     log.info("Verifying idToken={}", idTokenString);
 
