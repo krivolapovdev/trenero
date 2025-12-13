@@ -1,19 +1,16 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider
-} from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from 'react-native';
+import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
+  const paperTheme =
+    colorScheme === 'light' ? { ...MD3LightTheme } : { ...MD3DarkTheme };
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <PaperProvider theme={paperTheme}>
       <StatusBar style='auto' />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen
@@ -25,6 +22,6 @@ export default function RootLayout() {
           options={{ headerShown: false }}
         />
       </Stack>
-    </ThemeProvider>
+    </PaperProvider>
   );
 }

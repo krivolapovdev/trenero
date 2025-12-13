@@ -6,8 +6,7 @@ import {
   statusCodes
 } from '@react-native-google-signin/google-signin';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Text, useColorScheme, View } from 'react-native';
 import { authService } from '@/services/authService';
 
 GoogleSignin.configure({

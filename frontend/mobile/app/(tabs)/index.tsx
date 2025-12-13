@@ -1,12 +1,5 @@
-import { Text, View } from 'react-native';
-import { useThemeColor } from '@/hooks/useThemeColor';
+import { Text } from 'react-native-paper';
 
-export default function HomeScreen() {
-  const textColor = useThemeColor({}, 'text');
-
-  return (
-    <View>
-      <Text style={{ color: textColor }}>Main page</Text>
-    </View>
-  );
+export default function GroupsScreen() {
+  return <Text>Music</Text>;
 }
