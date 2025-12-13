@@ -3,13 +3,12 @@ import {
   GoogleSigninButton,
   isErrorWithCode,
   isSuccessResponse,
-  type SignInResponse,
   statusCodes
 } from '@react-native-google-signin/google-signin';
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { authService } from '@/services/authService';
 
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
@@ -20,7 +19,6 @@ GoogleSignin.configure({
 export function GoogleButton() {
   const colorScheme = useColorScheme();
 
-  const [user, setUser] = useState<SignInResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -33,12 +31,18 @@ export function GoogleButton() {
       const response = await GoogleSignin.signIn();
 
       if (isSuccessResponse(response)) {
-        setUser(response);
+        const { data } = response;
+        const googleIdToken = data.idToken;
+
+        if (!googleIdToken) {
+          setErrorMessage('Google ID token is missing');
+          return;
+        }
+
+        await authService.authenticateWithGoogle(googleIdToken);
       } else {
         setErrorMessage('Google Sign In failed');
       }
-
-      router.replace('/(tabs)');
 
       setIsLoading(false);
     } catch (error) {
@@ -56,9 +60,9 @@ export function GoogleButton() {
       } else {
         setErrorMessage('Something went wrong');
       }
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
@@ -79,12 +83,6 @@ export function GoogleButton() {
         onPress={signInWithGoogle}
         disabled={isLoading}
       />
-
-      {user && (
-        <Text style={{ color: 'white', marginTop: 10 }}>
-          Logged in as: {JSON.stringify(user, null, 2)}
-        </Text>
-      )}
     </View>
   );
 }
