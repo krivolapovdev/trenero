@@ -1,18 +1,28 @@
-import { StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, useColorScheme } from 'react-native';
 import { AppleButton } from '@/components/AppleButton';
 import { GoogleButton } from '@/components/GoogleButton';
 import { Logo } from '@/components/Logo';
-import { useThemeColor } from '@/hooks/useThemeColor';
 
 export default function LoginScreen() {
-  const backgroundColor = useThemeColor({}, 'background');
+  const colorScheme = useColorScheme();
+
+  const colors =
+    colorScheme === 'light'
+      ? (['#a6c1ee', '#209cff'] as const)
+      : (['#000000', '#3F51B5'] as const);
 
   return (
-    <View style={[styles.container, { backgroundColor: backgroundColor }]}>
+    <LinearGradient
+      colors={colors}
+      style={styles.container}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+    >
       <Logo />
       <AppleButton />
       <GoogleButton />
-    </View>
+    </LinearGradient>
   );
 }
 

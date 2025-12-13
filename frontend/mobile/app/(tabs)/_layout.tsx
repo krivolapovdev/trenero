@@ -1,7 +1,7 @@
 import { Redirect, Tabs } from 'expo-router';
 
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAuthStore } from '@/stores/authStore';
