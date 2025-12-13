@@ -12,8 +12,8 @@ import tech.trenero.backend.user.external.UserSpi;
 public class UserClient {
   @Lazy private final UserSpi userSpi;
 
-  public UserResponse getOrCreateUserFromOAuth(
+  public UserResponse getOrCreateUserFromOAuth2(
       String email, OAuth2Provider provider, String providerId) {
-    return userSpi.getOrCreateUserFromOAuth(email, provider, providerId);
+    return userSpi.getOrCreateUserFromOAuth2(email, provider, providerId);
   }
 }

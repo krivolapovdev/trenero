@@ -2,10 +2,12 @@ package tech.trenero.backend.auth.internal.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import tech.trenero.backend.auth.internal.request.OAuth2IdTokenRequest;
 import tech.trenero.backend.auth.internal.response.AuthResponse;
@@ -28,5 +30,11 @@ public class OAuth2Controller {
   public AuthResponse appleLogin(
       @RequestBody OAuth2IdTokenRequest request, HttpServletResponse servletResponse) {
     return oAuth2Service.appleLogin(request, servletResponse);
+  }
+
+  @PostMapping("/logout")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void logout(HttpServletResponse servletResponse) {
+    oAuth2Service.logout(servletResponse);
   }
 }

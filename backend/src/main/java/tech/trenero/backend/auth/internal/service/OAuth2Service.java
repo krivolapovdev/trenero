@@ -37,7 +37,7 @@ public class OAuth2Service {
     String providerId = payload.getSubject();
     String email = payload.getEmail();
 
-    UserResponse userResponse = userClient.getOrCreateUserFromOAuth(email, GOOGLE, providerId);
+    UserResponse userResponse = userClient.getOrCreateUserFromOAuth2(email, GOOGLE, providerId);
 
     var jwtUser = new JwtUser(userResponse.id(), email);
     var accessTokenResponse =
@@ -50,5 +50,10 @@ public class OAuth2Service {
       OAuth2IdTokenRequest request, HttpServletResponse servletResponse) {
     log.info("Apple login request: {}", request);
     return null;
+  }
+
+  public void logout(HttpServletResponse servletResponse) {
+    log.info("Logging out user");
+    jwtTokenService.revokeRefreshToken(servletResponse);
   }
 }

@@ -26,10 +26,10 @@ public class UserService {
         .orElseThrow(() -> new UsernameNotFoundException("User not found by id: " + id));
   }
 
-  public UserResponse getOrCreateUserFromOAuth(
+  public UserResponse getOrCreateUserFromOAuth2(
       String email, OAuth2Provider provider, String providerId) {
     log.info(
-        "Getting or creating user from OAuth: email={}, provider={}, providerId={}",
+        "Getting or creating user from OAuth2: email={}, provider={}, providerId={}",
         email,
         provider,
         providerId);

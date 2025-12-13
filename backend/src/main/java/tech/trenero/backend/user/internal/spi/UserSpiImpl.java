@@ -13,8 +13,8 @@ public class UserSpiImpl implements UserSpi {
   private final UserService userService;
 
   @Override
-  public UserResponse getOrCreateUserFromOAuth(
+  public UserResponse getOrCreateUserFromOAuth2(
       String email, OAuth2Provider provider, String providerId) {
-    return userService.getOrCreateUserFromOAuth(email, provider, providerId);
+    return userService.getOrCreateUserFromOAuth2(email, provider, providerId);
   }
 }

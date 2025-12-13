@@ -18,4 +18,8 @@ public class CookieHelper {
     Rfc6265CookieProcessor processor = new Rfc6265CookieProcessor();
     return processor.generateHeader(cookie, null);
   }
+
+  public static String generateExpiredCookie(String name) {
+    return generateCookie(name, "-", Duration.ZERO);
+  }
 }
