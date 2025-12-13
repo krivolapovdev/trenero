@@ -6,8 +6,10 @@ import {
   type SignInResponse,
   statusCodes
 } from '@react-native-google-signin/google-signin';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
@@ -16,6 +18,8 @@ GoogleSignin.configure({
 });
 
 export function GoogleButton() {
+  const colorScheme = useColorScheme();
+
   const [user, setUser] = useState<SignInResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -33,6 +37,8 @@ export function GoogleButton() {
       } else {
         setErrorMessage('Google Sign In failed');
       }
+
+      router.replace('/(tabs)');
 
       setIsLoading(false);
     } catch (error) {
@@ -65,7 +71,11 @@ export function GoogleButton() {
 
       <GoogleSigninButton
         size={GoogleSigninButton.Size.Wide}
-        color={GoogleSigninButton.Color.Light}
+        color={
+          colorScheme === 'light'
+            ? GoogleSigninButton.Color.Light
+            : GoogleSigninButton.Color.Dark
+        }
         onPress={signInWithGoogle}
         disabled={isLoading}
       />
