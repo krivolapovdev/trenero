@@ -39,5 +39,15 @@ export const authService = {
       console.error('Google authentication failed:', error);
       throw new Error('Failed to authenticate with backend');
     }
+  },
+
+  async logout() {
+    try {
+      await api.post(`${baseURL}/logout`);
+    } catch (error: unknown) {
+      console.error('Failed to logout:', error);
+    } finally {
+      useAuthStore.getState().logout();
+    }
   }
 };
