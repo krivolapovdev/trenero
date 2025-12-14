@@ -1,3 +1,4 @@
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useState } from 'react';
 import { Appearance, ScrollView, useColorScheme } from 'react-native';
 import { Divider, List, Switch, Text, useTheme } from 'react-native-paper';
@@ -25,6 +26,7 @@ export default function SettingsScreen() {
   };
 
   const confirmLogout = async () => {
+    await GoogleSignin.signOut();
     await authService.logout();
     setLogoutDialogVisible(false);
   };
