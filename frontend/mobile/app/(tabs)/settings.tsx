@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Appearance, ScrollView, useColorScheme } from 'react-native';
-import { List, Switch, Text, useTheme } from 'react-native-paper';
+import { Divider, List, Switch, Text, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { LanguageDialog } from '@/components/LanguageDialog';
 import { SettingsItem } from '@/components/SettingsItem';
 import { SettingsSection } from '@/components/SettingsSection';
 import { authService } from '@/services/authService';
@@ -10,15 +11,21 @@ import { authService } from '@/services/authService';
 export default function SettingsScreen() {
   const theme = useTheme();
   const [isDarkMode, setIsDarkMode] = useState(useColorScheme() === 'dark');
-  const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
+  const [logoutDialogVisible, setLogoutDialogVisible] =
+    useState<boolean>(false);
+  const [language, setLanguage] = useState<'en' | 'ru'>('en');
+  const [languageMenuVisible, setLanguageMenuVisible] =
+    useState<boolean>(false);
 
   const toggleTheme = () => {
-    setIsDarkMode(prev => !prev);
-    Appearance.setColorScheme(isDarkMode ? 'light' : 'dark');
+    setIsDarkMode(prev => {
+      Appearance.setColorScheme(prev ? 'light' : 'dark');
+      return !prev;
+    });
   };
 
-  const confirmLogout = () => {
-    authService.logout();
+  const confirmLogout = async () => {
+    await authService.logout();
     setLogoutDialogVisible(false);
   };
 
@@ -30,13 +37,22 @@ export default function SettingsScreen() {
         <SettingsSection title='APPEARANCE'>
           <SettingsItem
             title='Dark Mode'
-            icon='moon-waning-crescent'
+            icon='weather-sunset-down'
             right={() => (
               <Switch
                 value={isDarkMode}
                 onValueChange={toggleTheme}
               />
             )}
+          />
+
+          <Divider />
+
+          <SettingsItem
+            title='Language'
+            icon='flag-outline'
+            right={() => <List.Icon icon='chevron-right' />}
+            onPress={() => setLanguageMenuVisible(true)}
           />
         </SettingsSection>
 
@@ -52,11 +68,18 @@ export default function SettingsScreen() {
         <SettingsSection title='OTHER'>
           <SettingsItem
             title='Version'
-            icon='application-brackets'
+            icon='application-brackets-outline'
             right={() => <Text variant='bodyMedium'>1.0.0</Text>}
           />
         </SettingsSection>
       </ScrollView>
+
+      <LanguageDialog
+        visible={languageMenuVisible}
+        language={language}
+        setLanguage={setLanguage}
+        onDismiss={() => setLanguageMenuVisible(false)}
+      />
 
       <ConfirmDialog
         visible={logoutDialogVisible}
