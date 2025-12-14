@@ -7,8 +7,6 @@ import StatisticsScreen from '@/app/(tabs)/statistics';
 import StudentsScreen from '@/app/(tabs)/students';
 import { useAuthStore } from '@/stores/authStore';
 
-type RouteProps = { route: { key: string } };
-
 const routes = [
   {
     key: 'groups',
@@ -41,20 +39,12 @@ export default function TabsLayout() {
   const user = useAuthStore(state => state.user);
   const [index, setIndex] = useState(0);
 
-  const renderScene = ({ route }: RouteProps) => {
-    switch (route.key) {
-      case 'groups':
-        return <GroupsScreen />;
-      case 'students':
-        return <StudentsScreen />;
-      case 'statistics':
-        return <StatisticsScreen />;
-      case 'settings':
-        return <SettingsScreen />;
-      default:
-        return null;
-    }
-  };
+  const renderScene = BottomNavigation.SceneMap({
+    groups: GroupsScreen,
+    students: StudentsScreen,
+    statistics: StatisticsScreen,
+    settings: SettingsScreen
+  });
 
   if (!user) {
     return <Redirect href='/(auth)' />;
@@ -66,6 +56,8 @@ export default function TabsLayout() {
       onIndexChange={setIndex}
       renderScene={renderScene}
       barStyle={{ backgroundColor: theme.colors.surface }}
+      sceneAnimationType='opacity'
+      sceneAnimationEnabled
       shifting
     />
   );
