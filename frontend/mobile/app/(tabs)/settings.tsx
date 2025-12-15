@@ -43,7 +43,6 @@ export default function SettingsScreen() {
       <Appbar.Header
         mode='center-aligned'
         elevated
-        style={{ backgroundColor: theme.colors.surface }}
       >
         <Appbar.Content title='Settings' />
       </Appbar.Header>

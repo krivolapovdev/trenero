@@ -6,6 +6,7 @@ type Props = { title: string; children: ReactNode };
 
 export function SettingsSection({ title, children }: Readonly<Props>) {
   const theme = useTheme();
+
   return (
     <>
       <Text style={styles.sectionLabel}>{title}</Text>

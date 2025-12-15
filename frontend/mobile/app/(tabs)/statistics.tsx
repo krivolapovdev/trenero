@@ -1,5 +1,15 @@
-import { Text } from 'react-native-paper';
+import { Appbar, Text } from 'react-native-paper';
 
 export default function StatisticsScreen() {
-  return <Text>Statistics</Text>;
+  return (
+    <>
+      <Appbar.Header
+        mode='center-aligned'
+        elevated
+      >
+        <Appbar.Content title='Statistics' />
+      </Appbar.Header>
+      <Text>Statistics</Text>
+    </>
+  );
 }
