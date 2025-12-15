@@ -1,29 +1,24 @@
 import {
   GoogleSignin,
-  GoogleSigninButton,
   isErrorWithCode,
   isSuccessResponse,
   statusCodes
 } from '@react-native-google-signin/google-signin';
 import { useState } from 'react';
-import { Text, useColorScheme, View } from 'react-native';
 import { authService } from '@/services/authService';
 
-GoogleSignin.configure({
-  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  scopes: ['profile', 'email']
-});
+export function useGoogleSignIn(
+  setErrorMessage: (message: string | null) => void
+) {
+  const [loading, setLoading] = useState<boolean>(false);
 
-export function GoogleButton() {
-  const colorScheme = useColorScheme();
+  const signIn = async () => {
+    if (loading) {
+      return;
+    }
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const signInWithGoogle = async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       setErrorMessage(null);
 
       await GoogleSignin.hasPlayServices();
@@ -42,8 +37,6 @@ export function GoogleButton() {
       } else {
         setErrorMessage('Google Sign In failed');
       }
-
-      setIsLoading(false);
     } catch (error) {
       if (isErrorWithCode(error)) {
         switch (error.code) {
@@ -60,28 +53,9 @@ export function GoogleButton() {
         setErrorMessage('Something went wrong');
       }
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  return (
-    <View>
-      {errorMessage && (
-        <Text style={{ color: 'red', marginTop: 10 }}>
-          Error: {errorMessage}
-        </Text>
-      )}
-
-      <GoogleSigninButton
-        size={GoogleSigninButton.Size.Wide}
-        color={
-          colorScheme === 'light'
-            ? GoogleSigninButton.Color.Light
-            : GoogleSigninButton.Color.Dark
-        }
-        onPress={signInWithGoogle}
-        disabled={isLoading}
-      />
-    </View>
-  );
+  return { signIn, loading };
 }
