@@ -9,22 +9,22 @@ import { useAuthStore } from '@/stores/authStore';
 
 const routes = [
   {
-    key: 'groups',
-    title: 'Groups',
-    focusedIcon: 'folder-account',
-    unfocusedIcon: 'folder-account-outline'
-  },
-  {
     key: 'students',
     title: 'Students',
     focusedIcon: 'account-group',
     unfocusedIcon: 'account-group-outline'
   },
   {
+    key: 'groups',
+    title: 'Groups',
+    focusedIcon: 'folder-account',
+    unfocusedIcon: 'folder-account-outline'
+  },
+  {
     key: 'statistics',
     title: 'Statistics',
-    focusedIcon: 'archive',
-    unfocusedIcon: 'archive-outline'
+    focusedIcon: 'chart-box',
+    unfocusedIcon: 'chart-box-outline'
   },
   {
     key: 'settings',
@@ -40,8 +40,8 @@ export default function TabsLayout() {
   const [index, setIndex] = useState(0);
 
   const renderScene = BottomNavigation.SceneMap({
-    groups: GroupsScreen,
     students: StudentsScreen,
+    groups: GroupsScreen,
     statistics: StatisticsScreen,
     settings: SettingsScreen
   });
