@@ -17,7 +17,7 @@ export function GroupItem({ group, onPress }: Readonly<Props>) {
 
   return (
     <Card
-      mode='elevated'
+      mode='contained'
       style={[styles.card, { backgroundColor: theme.colors.surface }]}
     >
       <TouchableRipple
