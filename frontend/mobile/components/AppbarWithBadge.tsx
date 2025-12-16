@@ -3,10 +3,10 @@ import { Appbar, Badge, Text, useTheme } from 'react-native-paper';
 
 type Props = {
   title: string;
-  badgeCount: number;
+  badgeCount?: number;
 };
 
-export function AppbarWithBadge({ title, badgeCount }: Props) {
+export function AppbarWithBadge({ title, badgeCount }: Readonly<Props>) {
   const theme = useTheme();
 
   return (
@@ -18,17 +18,19 @@ export function AppbarWithBadge({ title, badgeCount }: Props) {
         title={
           <View>
             <Text variant='titleLarge'>{title}</Text>
-            <Badge
-              style={[
-                styles.badge,
-                {
-                  backgroundColor: theme.colors.secondaryContainer,
-                  color: theme.colors.onSecondaryContainer
-                }
-              ]}
-            >
-              {badgeCount}
-            </Badge>
+            {badgeCount && (
+              <Badge
+                style={[
+                  styles.badge,
+                  {
+                    backgroundColor: theme.colors.secondaryContainer,
+                    color: theme.colors.onSecondaryContainer
+                  }
+                ]}
+              >
+                {badgeCount}
+              </Badge>
+            )}
           </View>
         }
       />
