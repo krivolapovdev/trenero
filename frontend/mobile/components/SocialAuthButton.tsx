@@ -1,5 +1,6 @@
-import { StyleSheet, useColorScheme } from 'react-native';
-import { Button, useTheme } from 'react-native-paper';
+import { StyleSheet } from 'react-native';
+import { Button } from 'react-native-paper';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 type Props = {
   label: string;
@@ -9,32 +10,31 @@ type Props = {
   onPress: () => Promise<void> | void;
 };
 
-export function SocialAuthButton({
+export const SocialAuthButton = ({
   label,
   icon,
   loading,
   disabled,
   onPress
-}: Readonly<Props>) {
-  const theme = useTheme();
-  const isDark = useColorScheme() === 'dark';
+}: Readonly<Props>) => {
+  const theme = useAppTheme();
 
   return (
     <Button
-      mode='elevated'
+      mode='text'
       focusable={false}
       icon={icon}
       loading={loading}
       disabled={disabled}
       contentStyle={styles.buttonContent}
-      buttonColor={isDark ? theme.colors.surface : undefined}
-      textColor={isDark ? theme.colors.onSurface : undefined}
+      buttonColor={theme.colors.surface}
+      textColor={theme.colors.onSurface}
       onPress={onPress}
     >
       {label}
     </Button>
   );
-}
+};
 
 const styles = StyleSheet.create({
   buttonContent: {
