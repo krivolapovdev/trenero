@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useDeferredValue, useState } from 'react';
 import { FlatList } from 'react-native';
-import { Searchbar, useTheme } from 'react-native-paper';
+import { Searchbar } from 'react-native-paper';
 import { AppbarWithBadge } from '@/components/AppbarWithBadge';
 import { GroupItem } from '@/components/GroupItem';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 type GroupResponse = {
   id: string;
@@ -27,12 +28,13 @@ const groups: GroupResponse[] = [
 ];
 
 export default function GroupsScreen() {
-  const theme = useTheme();
+  const theme = useAppTheme();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const deferredQuery = useDeferredValue(searchQuery);
 
-  const filteredGroups = searchQuery.trim()
+  const filteredGroups = deferredQuery.trim()
     ? groups.filter(group =>
         group.name.toLowerCase().includes(searchQuery.toLowerCase())
       )

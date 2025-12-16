@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useDeferredValue, useState } from 'react';
 import { FlatList } from 'react-native';
-import { Searchbar, useTheme } from 'react-native-paper';
+import { Searchbar } from 'react-native-paper';
 import { AppbarWithBadge } from '@/components/AppbarWithBadge';
 import { StudentItem } from '@/components/StudentItem';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 const students = [
   {
@@ -64,12 +65,13 @@ const students = [
 ];
 
 export default function StudentsScreen() {
-  const theme = useTheme();
+  const theme = useAppTheme();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const deferredQuery = useDeferredValue(searchQuery);
 
-  const filteredStudents = searchQuery.trim()
+  const filteredStudents = deferredQuery.trim()
     ? students.filter(student =>
         student.fullName.toLowerCase().includes(searchQuery.toLowerCase())
       )
