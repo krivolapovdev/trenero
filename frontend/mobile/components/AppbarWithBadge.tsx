@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
-import { Appbar, Badge, Text, useTheme } from 'react-native-paper';
+import { Appbar, Badge, Text } from 'react-native-paper';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 type Props = {
   title: string;
@@ -7,7 +8,7 @@ type Props = {
 };
 
 export function AppbarWithBadge({ title, badgeCount }: Readonly<Props>) {
-  const theme = useTheme();
+  const theme = useAppTheme();
 
   return (
     <Appbar.Header
@@ -18,7 +19,7 @@ export function AppbarWithBadge({ title, badgeCount }: Readonly<Props>) {
         title={
           <View>
             <Text variant='titleLarge'>{title}</Text>
-            {badgeCount && (
+            {badgeCount ? (
               <Badge
                 style={[
                   styles.badge,
@@ -30,7 +31,7 @@ export function AppbarWithBadge({ title, badgeCount }: Readonly<Props>) {
               >
                 {badgeCount}
               </Badge>
-            )}
+            ) : null}
           </View>
         }
       />
