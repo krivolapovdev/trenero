@@ -1,12 +1,13 @@
 import { Image } from 'expo-image';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
-import { Divider, Text, useTheme } from 'react-native-paper';
+import { Divider, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SocialButtonsGroup } from '@/components/SocialButtonsGroup';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 export default function LoginScreen() {
   const { width, height } = useWindowDimensions();
-  const theme = useTheme();
+  const theme = useAppTheme();
 
   return (
     <SafeAreaView
@@ -28,7 +29,9 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.bottomContainer}>
-          <Divider style={styles.divider} />
+          <Divider
+            style={[styles.divider, { backgroundColor: theme.colors.outline }]}
+          />
           <Text
             variant='bodySmall'
             style={{
