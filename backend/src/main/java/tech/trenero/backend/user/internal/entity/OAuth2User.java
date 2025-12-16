@@ -17,7 +17,7 @@ import tech.trenero.backend.common.enums.OAuth2Provider;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class OAuth2User {
   @Id
   @Column(name = "id")
   private UUID id = UUID.randomUUID();
@@ -32,7 +32,7 @@ public class User {
   @Column(name = "provider_id", nullable = false)
   private String providerId;
 
-  public User(String email, OAuth2Provider provider, String providerId) {
+  public OAuth2User(String email, OAuth2Provider provider, String providerId) {
     this.email = email;
     this.provider = provider;
     this.providerId = providerId;
