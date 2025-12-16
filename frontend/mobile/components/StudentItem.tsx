@@ -46,7 +46,7 @@ export function StudentItem({ student, onPress = () => {} }: Readonly<Props>) {
               style={{
                 borderRadius: 16,
                 backgroundColor: isAttending
-                  ? theme.colors.green40
+                  ? theme.colors.green
                   : theme.colors.tertiaryContainer
               }}
               textStyle={{
@@ -93,18 +93,6 @@ const styles = StyleSheet.create({
   divider: {
     marginVertical: 10,
     height: 1
-  },
-  scheduleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10
-  },
-  verticalLine: {
-    width: 4,
-    height: '100%',
-    minHeight: 20,
-    marginRight: 10,
-    borderRadius: 2
   },
   statusContainer: {
     flexDirection: 'row',

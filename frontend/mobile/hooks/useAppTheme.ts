@@ -9,16 +9,14 @@ export function useAppTheme() {
         ...MD3LightTheme,
         colors: {
           ...MD3LightTheme.colors,
-          green40: '#ceef85',
-          yellow90: '#ffe088'
+          green: '#DCEDC8'
         }
       }
     : {
         ...MD3DarkTheme,
         colors: {
           ...MD3DarkTheme.colors,
-          green40: '#131f00',
-          yellow90: '#765b01'
+          green: '#33691E'
         }
       };
 }
