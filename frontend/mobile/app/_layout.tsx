@@ -1,16 +1,13 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'react-native';
-import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
+import { PaperProvider } from 'react-native-paper';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
-  const paperTheme =
-    colorScheme === 'light' ? { ...MD3LightTheme } : { ...MD3DarkTheme };
+  const theme = useAppTheme();
 
   return (
-    <PaperProvider theme={paperTheme}>
+    <PaperProvider theme={theme}>
       <StatusBar style='auto' />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen
