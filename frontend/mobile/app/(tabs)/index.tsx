@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { FlatList } from 'react-native';
-import { useTheme } from 'react-native-paper';
+import { Searchbar, useTheme } from 'react-native-paper';
 import { AppbarWithBadge } from '@/components/AppbarWithBadge';
 import { StudentItem } from '@/components/StudentItem';
 
@@ -65,23 +66,35 @@ const students = [
 export default function StudentsScreen() {
   const theme = useTheme();
 
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredStudents = searchQuery.trim()
+    ? students.filter(student =>
+        student.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : students;
+
   return (
     <>
       <AppbarWithBadge
         title='Students'
-        badgeCount={students.length}
+        badgeCount={filteredStudents.length}
       />
 
       <FlatList
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
-        data={students}
+        data={filteredStudents}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <StudentItem
-            student={item}
-            onPress={student => console.log('Pressed:', student.id)}
+        ListHeaderComponent={
+          <Searchbar
+            placeholder='Search by name'
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={{ backgroundColor: theme.colors.surface }}
+            onClearIconPress={() => setSearchQuery('')}
           />
-        )}
+        }
+        renderItem={({ item }) => <StudentItem student={item} />}
         contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
       />

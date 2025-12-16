@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Chip, Divider, Text, TouchableRipple } from 'react-native-paper';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -12,19 +13,22 @@ type Student = {
 
 type Props = {
   student: Student;
-  onPress?: (student: Student) => void;
 };
 
-export function StudentItem({ student, onPress = () => {} }: Readonly<Props>) {
+export const StudentItem = memo(({ student }: Readonly<Props>) => {
   const theme = useAppTheme();
 
   const { fullName, groups, isAttending, isPaid } = student;
+
+  const handlePress = () => {
+    console.log(student.id);
+  };
 
   return (
     <Card
       mode='contained'
       style={{ backgroundColor: theme.colors.surface }}
-      onPress={() => onPress(student)}
+      onPress={() => handlePress()}
     >
       <TouchableRipple
         onPress={() => console.log('Pressed:', student.id)}
@@ -55,7 +59,7 @@ export function StudentItem({ student, onPress = () => {} }: Readonly<Props>) {
                   : theme.colors.onTertiaryContainer
               }}
             >
-              {isAttending ? 'Ходит' : 'Не ходит'}
+              <Text>{isAttending ? 'Ходит' : 'Не ходит'}</Text>
             </Chip>
 
             {!isPaid && (
@@ -69,7 +73,7 @@ export function StudentItem({ student, onPress = () => {} }: Readonly<Props>) {
                   color: theme.colors.onErrorContainer
                 }}
               >
-                Не оплатил
+                <Text>Не оплатил</Text>
               </Chip>
             )}
           </View>
@@ -77,7 +81,7 @@ export function StudentItem({ student, onPress = () => {} }: Readonly<Props>) {
       </TouchableRipple>
     </Card>
   );
-}
+});
 
 const styles = StyleSheet.create({
   touchable: {
