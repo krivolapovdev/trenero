@@ -28,10 +28,10 @@ const groups: GroupResponse[] = [
 ];
 
 export default function GroupsScreen() {
-  const theme = useAppTheme();
-
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+
+  const theme = useAppTheme();
   const deferredQuery = useDeferredValue(searchQuery);
 
   const filteredGroups = deferredQuery.trim()
