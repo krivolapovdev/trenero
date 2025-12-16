@@ -30,12 +30,23 @@ export default function GroupsScreen() {
   const theme = useTheme();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const filteredGroups = searchQuery.trim()
     ? groups.filter(group =>
         group.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : groups;
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+
+    try {
+      console.log('refreshing...');
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
     <>
@@ -60,6 +71,8 @@ export default function GroupsScreen() {
         renderItem={({ item }) => <GroupItem group={item} />}
         contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
       />
     </>
   );

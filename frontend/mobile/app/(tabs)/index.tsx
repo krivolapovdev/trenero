@@ -67,12 +67,23 @@ export default function StudentsScreen() {
   const theme = useTheme();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const filteredStudents = searchQuery.trim()
     ? students.filter(student =>
         student.fullName.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : students;
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+
+    try {
+      console.log('refreshing...');
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
     <>
@@ -97,6 +108,8 @@ export default function StudentsScreen() {
         renderItem={({ item }) => <StudentItem student={item} />}
         contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
       />
     </>
   );
