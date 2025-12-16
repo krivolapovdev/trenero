@@ -1,5 +1,6 @@
-import { FlatList, StyleSheet, View } from 'react-native';
-import { Appbar, Badge, Text, useTheme } from 'react-native-paper';
+import { FlatList } from 'react-native';
+import { useTheme } from 'react-native-paper';
+import { AppbarWithBadge } from '@/components/AppbarWithBadge';
 import { GroupItem } from '@/components/GroupItem';
 
 type GroupResponse = {
@@ -33,35 +34,10 @@ export default function GroupsScreen() {
 
   return (
     <>
-      <Appbar.Header
-        mode='center-aligned'
-        elevated
-      >
-        <Appbar.Content
-          title={
-            <View
-              style={{
-                alignItems: 'center',
-                display: 'flex',
-                flexDirection: 'row'
-              }}
-            >
-              <Text variant='titleLarge'>Groups</Text>
-              <Badge
-                style={[
-                  styles.badge,
-                  {
-                    backgroundColor: theme.colors.secondaryContainer,
-                    color: theme.colors.onSecondaryContainer
-                  }
-                ]}
-              >
-                {groups.length}
-              </Badge>
-            </View>
-          }
-        />
-      </Appbar.Header>
+      <AppbarWithBadge
+        title='Groups'
+        badgeCount={groups.length}
+      />
 
       <FlatList
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
@@ -73,20 +49,9 @@ export default function GroupsScreen() {
             onPress={handleGroupPress}
           />
         )}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ padding: 16 }}
         showsVerticalScrollIndicator={false}
       />
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  listContent: {
-    padding: 12
-  },
-  badge: {
-    position: 'absolute',
-    top: -10,
-    right: -20
-  }
-});
