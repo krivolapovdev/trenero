@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { FlatList } from 'react-native';
-import { useTheme } from 'react-native-paper';
+import { Searchbar, useTheme } from 'react-native-paper';
 import { AppbarWithBadge } from '@/components/AppbarWithBadge';
 import { GroupItem } from '@/components/GroupItem';
 
@@ -28,28 +29,36 @@ const groups: GroupResponse[] = [
 export default function GroupsScreen() {
   const theme = useTheme();
 
-  const handleGroupPress = (group: GroupResponse) => {
-    console.log('Pressed', group.name);
-  };
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredGroups = searchQuery.trim()
+    ? groups.filter(group =>
+        group.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : groups;
 
   return (
     <>
       <AppbarWithBadge
         title='Groups'
-        badgeCount={groups.length}
+        badgeCount={filteredGroups.length}
       />
 
       <FlatList
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
-        data={groups}
+        data={filteredGroups}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <GroupItem
-            group={item}
-            onPress={handleGroupPress}
+        ListHeaderComponent={
+          <Searchbar
+            placeholder='Search by name'
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={{ backgroundColor: theme.colors.surface }}
+            onClearIconPress={() => setSearchQuery('')}
           />
-        )}
-        contentContainerStyle={{ padding: 16 }}
+        }
+        renderItem={({ item }) => <GroupItem group={item} />}
+        contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
       />
     </>

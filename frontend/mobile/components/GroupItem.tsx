@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Text, TouchableRipple, useTheme } from 'react-native-paper';
 
@@ -9,11 +10,14 @@ type GroupResponse = {
 
 type Props = {
   group: GroupResponse;
-  onPress?: (group: GroupResponse) => void;
 };
 
-export function GroupItem({ group, onPress }: Readonly<Props>) {
+export const GroupItem = memo(({ group }: Readonly<Props>) => {
   const theme = useTheme();
+
+  const handlePress = () => {
+    console.log(group.id);
+  };
 
   return (
     <Card
@@ -21,7 +25,7 @@ export function GroupItem({ group, onPress }: Readonly<Props>) {
       style={[styles.card, { backgroundColor: theme.colors.surface }]}
     >
       <TouchableRipple
-        onPress={() => onPress?.(group)}
+        onPress={() => handlePress()}
         borderless
         style={styles.touchable}
       >
@@ -53,11 +57,10 @@ export function GroupItem({ group, onPress }: Readonly<Props>) {
       </TouchableRipple>
     </Card>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: 8,
     borderRadius: 8
   },
   touchable: {
