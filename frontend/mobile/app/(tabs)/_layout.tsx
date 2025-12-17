@@ -54,6 +54,7 @@ export default function TabsLayout() {
       navigationState={{ index, routes }}
       onIndexChange={setIndex}
       renderScene={renderScene}
+      keyboardHidesNavigationBar={false}
       sceneAnimationType='opacity'
       sceneAnimationEnabled
       shifting
