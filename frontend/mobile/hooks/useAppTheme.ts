@@ -13,22 +13,15 @@ export const useAppTheme = (): AppTheme => {
   const colorScheme = useColorScheme();
 
   return useMemo(() => {
-    if (colorScheme === 'light') {
-      return {
-        ...MD3LightTheme,
-        colors: {
-          ...MD3LightTheme.colors,
-          green: '#DCEDC8'
-        }
-      };
-    } else {
-      return {
-        ...MD3DarkTheme,
-        colors: {
-          ...MD3DarkTheme.colors,
-          green: '#33691E'
-        }
-      };
-    }
+    const baseTheme = colorScheme === 'light' ? MD3LightTheme : MD3DarkTheme;
+    const greenColor = colorScheme === 'light' ? '#DCEDC8' : '#33691E';
+
+    return {
+      ...baseTheme,
+      colors: {
+        ...baseTheme.colors,
+        green: greenColor
+      }
+    };
   }, [colorScheme]);
 };
