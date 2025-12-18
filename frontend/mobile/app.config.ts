@@ -17,8 +17,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     adaptiveIcon: {
       backgroundColor: '#E6F4FE',
-      foregroundImage: './assets/images/android-icon-foreground.png',
-      monochromeImage: './assets/images/android-icon-monochrome.png'
+      foregroundImage: './assets/images/icon.png',
+      monochromeImage: './assets/images/icon-monochrome.png'
     },
     predictiveBackGestureEnabled: false,
     package: 'tech.trenero'
