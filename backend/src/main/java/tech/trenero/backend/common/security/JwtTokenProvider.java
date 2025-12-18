@@ -42,7 +42,8 @@ public class JwtTokenProvider {
   }
 
   public String generateRefreshToken(JwtUser jwtUser) {
-    Date expiration = new Date(System.currentTimeMillis() + getRefreshTokenExpirationMillis());
+    long refreshTokenExpirationMillis = jwtProperties.getRefreshTokenExpiration().toMillis();
+    Date expiration = new Date(System.currentTimeMillis() + refreshTokenExpirationMillis);
     return Jwts.builder()
         .subject(jwtUser.userId().toString())
         .claim(TOKEN_CLAIM_EMAIL, jwtUser.email())
@@ -68,9 +69,5 @@ public class JwtTokenProvider {
     } catch (JwtException | IllegalArgumentException _) {
       return false;
     }
-  }
-
-  public long getRefreshTokenExpirationMillis() {
-    return jwtProperties.getRefreshTokenExpiration().toMillis();
   }
 }
