@@ -1,13 +1,10 @@
 package tech.trenero.backend.auth.internal.service;
 
 import io.jsonwebtoken.JwtException;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-import tech.trenero.backend.auth.internal.helper.CookieHelper;
-import tech.trenero.backend.auth.internal.helper.JwtTokenHelper;
+import tech.trenero.backend.auth.internal.request.RefreshTokenRequest;
 import tech.trenero.backend.auth.internal.response.JwtTokenResponse;
 import tech.trenero.backend.common.security.JwtTokenProvider;
 import tech.trenero.backend.common.security.JwtUser;
@@ -17,29 +14,27 @@ import tech.trenero.backend.common.security.JwtUser;
 @Slf4j
 public class JwtTokenService {
   private final JwtTokenProvider jwtTokenProvider;
-  private final JwtTokenHelper jwtTokenHelper;
 
-  public JwtTokenResponse createAccessAndRefreshTokens(
-      JwtUser jwtUser, HttpServletResponse response) {
+  public JwtTokenResponse createAccessAndRefreshTokens(JwtUser jwtUser) {
     log.info("Creating tokens for user: {}", jwtUser);
-    return jwtTokenHelper.createAccessAndRefreshTokens(jwtUser, response);
+
+    String accessToken = jwtTokenProvider.generateAccessToken(jwtUser);
+    String refreshToken = jwtTokenProvider.generateRefreshToken(jwtUser);
+
+    return new JwtTokenResponse(accessToken, refreshToken);
   }
 
-  public JwtTokenResponse renewTokens(String oldRefreshTokenCookie, HttpServletResponse response) {
-    log.info("Refreshing token: {}", oldRefreshTokenCookie);
+  public JwtTokenResponse renewTokens(RefreshTokenRequest request) {
+    String oldRefreshToken = request.refreshToken();
 
-    if (!jwtTokenProvider.isTokenValid(oldRefreshTokenCookie)) {
+    log.info("Refreshing token: {}", oldRefreshToken);
+
+    if (!jwtTokenProvider.isTokenValid(oldRefreshToken)) {
       throw new JwtException("Invalid refresh token");
     }
 
-    JwtUser jwtUser = jwtTokenProvider.extractUser(oldRefreshTokenCookie);
+    JwtUser jwtUser = jwtTokenProvider.extractUser(oldRefreshToken);
 
-    return jwtTokenHelper.createAccessAndRefreshTokens(jwtUser, response);
-  }
-
-  public void revokeRefreshToken(HttpServletResponse response) {
-    String expiredRefreshTokenCookie =
-        CookieHelper.generateExpiredCookie(CookieHelper.REFRESH_TOKEN_COOKIE_NAME);
-    response.addHeader(HttpHeaders.SET_COOKIE, expiredRefreshTokenCookie);
+    return createAccessAndRefreshTokens(jwtUser);
   }
 }

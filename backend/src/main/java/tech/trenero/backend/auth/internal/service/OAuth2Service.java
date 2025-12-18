@@ -3,7 +3,6 @@ package tech.trenero.backend.auth.internal.service;
 import static tech.trenero.backend.common.enums.OAuth2Provider.GOOGLE;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +22,7 @@ public class OAuth2Service {
   private final UserClient userClient;
 
   @SneakyThrows
-  public AuthResponse googleLogin(
-      OAuth2IdTokenRequest request, HttpServletResponse servletResponse) {
+  public AuthResponse googleLogin(OAuth2IdTokenRequest request) {
     log.info("Google login request: {}", request);
 
     GoogleIdToken googleIdToken = googleAuthService.verifyIdToken(request.idToken());
@@ -40,20 +38,13 @@ public class OAuth2Service {
     UserResponse userResponse = userClient.getOrCreateUserFromOAuth2(email, GOOGLE, providerId);
 
     var jwtUser = new JwtUser(userResponse.id(), email);
-    var accessTokenResponse =
-        jwtTokenService.createAccessAndRefreshTokens(jwtUser, servletResponse);
+    var accessTokenResponse = jwtTokenService.createAccessAndRefreshTokens(jwtUser);
 
     return new AuthResponse(userResponse, accessTokenResponse);
   }
 
-  public AuthResponse appleLogin(
-      OAuth2IdTokenRequest request, HttpServletResponse servletResponse) {
+  public AuthResponse appleLogin(OAuth2IdTokenRequest request) {
     log.info("Apple login request: {}", request);
     return null;
-  }
-
-  public void logout(HttpServletResponse servletResponse) {
-    log.info("Logging out user");
-    jwtTokenService.revokeRefreshToken(servletResponse);
   }
 }
