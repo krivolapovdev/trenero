@@ -11,7 +11,7 @@ type GroupResponse = {
   countOfStudents: number;
 };
 
-const groups: GroupResponse[] = [
+const index: GroupResponse[] = [
   { id: '1', name: 'OTG-1', countOfStudents: 10 },
   { id: '2', name: 'FALCON-4', countOfStudents: 30 },
   { id: '3', name: 'URN-4', countOfStudents: 40 },
@@ -35,10 +35,10 @@ export default function GroupsScreen() {
   const deferredQuery = useDeferredValue(searchQuery);
 
   const filteredGroups = deferredQuery.trim()
-    ? groups.filter(group =>
+    ? index.filter(group =>
         group.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : groups;
+    : index;
 
   const handleRefresh = async () => {
     setRefreshing(true);

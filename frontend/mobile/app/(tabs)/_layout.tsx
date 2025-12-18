@@ -2,9 +2,9 @@ import { Redirect } from 'expo-router';
 import { useState } from 'react';
 import { BottomNavigation } from 'react-native-paper';
 import GroupsScreen from '@/app/(tabs)/groups';
-import StudentsScreen from '@/app/(tabs)/index';
 import SettingsScreen from '@/app/(tabs)/settings';
 import StatisticsScreen from '@/app/(tabs)/statistics';
+import StudentsScreen from '@/app/(tabs)/students';
 import { useAuthStore } from '@/stores/authStore';
 
 const routes = [
