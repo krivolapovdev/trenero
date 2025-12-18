@@ -5,9 +5,14 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 type Props = {
   title: string;
   badgeCount?: number;
+  onAddPress?: () => void;
 };
 
-export function AppbarWithBadge({ title, badgeCount }: Readonly<Props>) {
+export function AppbarWithBadge({
+  title,
+  badgeCount,
+  onAddPress
+}: Readonly<Props>) {
   const theme = useAppTheme();
 
   return (
@@ -19,7 +24,7 @@ export function AppbarWithBadge({ title, badgeCount }: Readonly<Props>) {
         title={
           <View>
             <Text variant='titleLarge'>{title}</Text>
-            {badgeCount ? (
+            {!!badgeCount && badgeCount > 0 && (
               <Badge
                 style={[
                   styles.badge,
@@ -31,10 +36,16 @@ export function AppbarWithBadge({ title, badgeCount }: Readonly<Props>) {
               >
                 {badgeCount}
               </Badge>
-            ) : null}
+            )}
           </View>
         }
       />
+      {onAddPress && (
+        <Appbar.Action
+          icon='plus'
+          onPress={onAddPress}
+        />
+      )}
     </Appbar.Header>
   );
 }
