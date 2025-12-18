@@ -5,7 +5,7 @@ import {
   statusCodes
 } from '@react-native-google-signin/google-signin';
 import { useState } from 'react';
-import { authService } from '@/services/authService';
+import { authService } from '@/services/auth/authService';
 
 export function useGoogleSignIn(
   setErrorMessage: (message: string | null) => void

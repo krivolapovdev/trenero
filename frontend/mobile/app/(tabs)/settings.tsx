@@ -14,10 +14,12 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { LanguageDialog } from '@/components/LanguageDialog';
 import { SettingsItem } from '@/components/SettingsItem';
 import { SettingsSection } from '@/components/SettingsSection';
-import { authService } from '@/services/authService';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function SettingsScreen() {
   const theme = useTheme();
+  const logout = useAuthStore(state => state.logout);
+
   const [isDarkMode, setIsDarkMode] = useState(useColorScheme() === 'dark');
   const [logoutDialogVisible, setLogoutDialogVisible] =
     useState<boolean>(false);
@@ -33,8 +35,8 @@ export default function SettingsScreen() {
   };
 
   const confirmLogout = async () => {
+    await logout();
     await GoogleSignin.signOut();
-    await authService.logout();
     setLogoutDialogVisible(false);
   };
 
