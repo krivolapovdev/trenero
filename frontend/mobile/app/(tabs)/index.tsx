@@ -1,91 +1,50 @@
-import { useDeferredValue, useState } from 'react';
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import { FlatList } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import { AppbarWithBadge } from '@/components/AppbarWithBadge';
 import { StudentItem } from '@/components/StudentItem';
 import { useAppTheme } from '@/hooks/useAppTheme';
-
-const students = [
-  {
-    id: '1',
-    fullName: 'Иван Иванов',
-    groups: ['UTG-1', 'FALCON-4'],
-    isAttending: true,
-    isPaid: true
-  },
-  {
-    id: '2',
-    fullName: 'Петр Петров',
-    groups: ['VB4-6', 'FAB-1'],
-    isAttending: false,
-    isPaid: false
-  },
-  {
-    id: '3',
-    fullName: 'Мария Сидорова',
-    groups: ['UTG-1', 'FAB-1'],
-    isAttending: true,
-    isPaid: false
-  },
-  {
-    id: '4',
-    fullName: 'Алексей Козлов',
-    groups: ['FALCON-4', 'VB4-6'],
-    isAttending: true,
-    isPaid: true
-  },
-  {
-    id: '5',
-    fullName: 'Елена Морозова',
-    groups: ['FAB-1'],
-    isAttending: false,
-    isPaid: true
-  },
-  {
-    id: '6',
-    fullName: 'Дмитрий Федоров',
-    groups: ['UTG-1'],
-    isAttending: true,
-    isPaid: true
-  },
-  {
-    id: '7',
-    fullName: 'Анна Кузнецова',
-    groups: ['FALCON-4', 'FAB-1'],
-    isAttending: true,
-    isPaid: false
-  },
-  {
-    id: '8',
-    fullName: 'Сергей Васильев',
-    groups: ['VB4-6'],
-    isAttending: true,
-    isPaid: true
-  }
-];
+import type { StudentResponse } from '@/services/student/student.types';
+import { studentService } from '@/services/student/studentService';
 
 export default function StudentsScreen() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
+  const [students, setStudents] = useState<StudentResponse[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const theme = useAppTheme();
   const deferredQuery = useDeferredValue(searchQuery);
 
-  const filteredStudents = deferredQuery.trim()
-    ? students.filter(student =>
-        student.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : students;
+  const filteredStudents = useMemo(() => {
+    const query = deferredQuery.trim().toLowerCase();
+    return query
+      ? students.filter(student =>
+          student.fullName.toLowerCase().includes(query)
+        )
+      : students;
+  }, [students, deferredQuery]);
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-
+  const loadStudents = useCallback(async () => {
     try {
-      console.log('refreshing...');
+      setRefreshing(true);
+      const data = await studentService.getAllUsers();
+      setStudents(data);
+    } catch (error) {
+      console.error('Failed to load students', error);
     } finally {
       setRefreshing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void loadStudents();
+  }, [loadStudents]);
 
   return (
     <>
@@ -107,11 +66,21 @@ export default function StudentsScreen() {
             onClearIconPress={() => setSearchQuery('')}
           />
         }
-        renderItem={({ item }) => <StudentItem student={item} />}
+        renderItem={({ item }) => (
+          <StudentItem
+            student={{
+              id: item.id,
+              fullName: item.fullName,
+              groups: ['OTG-1'],
+              isAttending: true,
+              isPaid: false
+            }}
+          />
+        )}
         contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
         refreshing={refreshing}
-        onRefresh={handleRefresh}
+        onRefresh={loadStudents}
       />
     </>
   );
