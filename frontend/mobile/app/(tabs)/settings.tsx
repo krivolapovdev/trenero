@@ -1,6 +1,6 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useState } from 'react';
-import { Appearance, ScrollView, useColorScheme } from 'react-native';
+import { Appearance, Linking, ScrollView, useColorScheme } from 'react-native';
 import {
   Appbar,
   Divider,
@@ -25,6 +25,8 @@ export default function SettingsScreen() {
     useState<boolean>(false);
   const [language, setLanguage] = useState<'en' | 'ru'>('en');
   const [languageMenuVisible, setLanguageMenuVisible] =
+    useState<boolean>(false);
+  const [contactDialogVisible, setContactDialogVisible] =
     useState<boolean>(false);
 
   const toggleTheme = () => {
@@ -90,6 +92,15 @@ export default function SettingsScreen() {
               icon='application-brackets-outline'
               right={() => <Text variant='bodyMedium'>1.0.0</Text>}
             />
+
+            <Divider />
+
+            <SettingsItem
+              title='Contact'
+              icon='account-circle-outline'
+              right={() => <List.Icon icon='chevron-right' />}
+              onPress={() => setContactDialogVisible(true)}
+            />
           </SettingsSection>
         </ScrollView>
 
@@ -107,6 +118,30 @@ export default function SettingsScreen() {
           onConfirm={confirmLogout}
           onCancel={() => setLogoutDialogVisible(false)}
           confirmText='Logout'
+        />
+
+        <ConfirmDialog
+          visible={contactDialogVisible}
+          title='Contact'
+          message={
+            <Text
+              variant='bodyMedium'
+              style={{ textAlign: 'justify' }}
+            >
+              Do you have questions regarding our services or suggestions for
+              future improvements? We are committed to providing the best
+              experience possible and welcome your communication. Please use the
+              following contact information to get in touch with our team:
+              {'\n\n'}
+              <Text
+                style={{ fontWeight: '700' }}
+                onPress={() => Linking.openURL('https://t.me/krivolapovdev')}
+              >
+                Telegram: @krivolapovdev
+              </Text>
+            </Text>
+          }
+          onConfirm={() => setContactDialogVisible(false)}
         />
       </SafeAreaView>
     </>

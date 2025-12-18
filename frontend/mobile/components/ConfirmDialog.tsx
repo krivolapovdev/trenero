@@ -1,10 +1,11 @@
+import type { ReactNode } from 'react';
 import type { ViewStyle } from 'react-native';
-import { Button, Dialog, Portal, Text } from 'react-native-paper';
+import { Button, Dialog, Portal } from 'react-native-paper';
 
 type Props = {
   visible: boolean;
   title?: string;
-  message: string;
+  message: ReactNode;
   onConfirm: () => void;
   onCancel?: () => void;
   confirmText?: string;
@@ -29,11 +30,9 @@ export function ConfirmDialog({
         onDismiss={onCancel}
       >
         {title && <Dialog.Title>{title}</Dialog.Title>}
-        <Dialog.Content style={contentStyle}>
-          <Text>{message}</Text>
-        </Dialog.Content>
+        <Dialog.Content style={contentStyle}>{message}</Dialog.Content>
         <Dialog.Actions>
-          <Button onPress={onCancel}>{cancelText}</Button>
+          {onCancel && <Button onPress={onCancel}>{cancelText}</Button>}
           <Button onPress={onConfirm}>{confirmText}</Button>
         </Dialog.Actions>
       </Dialog>
