@@ -1,5 +1,4 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { tokenService } from '@/services/auth/tokenService';
 import { useAuthStore } from '@/stores/authStore';
 
 export const api = axios.create({
@@ -43,6 +42,7 @@ api.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
+      const { tokenService } = await import('./auth/tokenService');
       const tokens = await tokenService.refreshTokens(refreshToken);
 
       await useAuthStore
