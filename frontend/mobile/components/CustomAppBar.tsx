@@ -1,6 +1,10 @@
 import { StyleSheet, View } from 'react-native';
 import { Appbar, Badge, Text } from 'react-native-paper';
+import { modeAppbarHeight } from 'react-native-paper/src/components/Appbar/utils';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/useAppTheme';
+
+const mode = 'center-aligned';
 
 type Props = {
   title: string;
@@ -8,17 +12,22 @@ type Props = {
   onAddPress?: () => void;
 };
 
-export function AppbarWithBadge({
+export const CustomAppBar = ({
   title,
   badgeCount,
   onAddPress
-}: Readonly<Props>) {
+}: Readonly<Props>) => {
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   return (
-    <Appbar.Header
-      mode='center-aligned'
-      elevated
+    <Appbar
+      safeAreaInsets={insets}
+      mode={mode}
+      style={{
+        backgroundColor: theme.colors.elevation.level2,
+        height: modeAppbarHeight[mode] + insets.top
+      }}
     >
       <Appbar.Content
         title={
@@ -46,9 +55,9 @@ export function AppbarWithBadge({
           onPress={onAddPress}
         />
       )}
-    </Appbar.Header>
+    </Appbar>
   );
-}
+};
 
 const styles = StyleSheet.create({
   badge: {

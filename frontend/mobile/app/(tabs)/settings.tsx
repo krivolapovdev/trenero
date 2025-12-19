@@ -1,16 +1,10 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useState } from 'react';
 import { Appearance, Linking, ScrollView, useColorScheme } from 'react-native';
-import {
-  Appbar,
-  Divider,
-  List,
-  Switch,
-  Text,
-  useTheme
-} from 'react-native-paper';
+import { Divider, List, Switch, Text, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { CustomAppBar } from '@/components/CustomAppBar';
 import { LanguageDialog } from '@/components/LanguageDialog';
 import { SettingsItem } from '@/components/SettingsItem';
 import { SettingsSection } from '@/components/SettingsSection';
@@ -44,12 +38,7 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <Appbar.Header
-        mode='center-aligned'
-        elevated
-      >
-        <Appbar.Content title='Settings' />
-      </Appbar.Header>
+      <CustomAppBar title='Settings' />
 
       <SafeAreaView
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}

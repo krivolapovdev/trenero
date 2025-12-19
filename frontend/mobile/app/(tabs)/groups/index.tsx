@@ -1,7 +1,7 @@
 import { useDeferredValue, useState } from 'react';
 import { FlatList } from 'react-native';
 import { Searchbar } from 'react-native-paper';
-import { AppbarWithBadge } from '@/components/AppbarWithBadge';
+import { CustomAppBar } from '@/components/CustomAppBar';
 import { GroupItem } from '@/components/GroupItem';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
@@ -52,7 +52,7 @@ export default function GroupsScreen() {
 
   return (
     <>
-      <AppbarWithBadge
+      <CustomAppBar
         title='Groups'
         badgeCount={filteredGroups.length}
       />

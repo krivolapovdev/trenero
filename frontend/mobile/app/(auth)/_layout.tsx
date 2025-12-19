@@ -1,4 +1,4 @@
-import { Redirect, Tabs } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 
 import { useAuthStore } from '@/stores/authStore';
 
@@ -10,13 +10,15 @@ export default function AuthLayout() {
   }
 
   return (
-    <Tabs
+    <Stack
       screenOptions={{
-        headerShown: false,
-        tabBarStyle: { display: 'none' }
+        headerShown: false
       }}
     >
-      <Tabs.Screen name='index' />
-    </Tabs>
+      <Stack.Screen
+        name='index'
+        options={{ headerShown: false }}
+      />
+    </Stack>
   );
 }

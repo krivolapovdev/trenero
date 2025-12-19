@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 
-export default function GroupsLayout() {
+export default function StudentsLayout() {
   return (
     <Stack
       screenOptions={{
@@ -9,6 +9,10 @@ export default function GroupsLayout() {
     >
       <Stack.Screen
         name='index'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='[id]'
         options={{ headerShown: false }}
       />
     </Stack>

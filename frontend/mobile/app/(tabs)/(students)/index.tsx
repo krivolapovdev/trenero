@@ -7,7 +7,7 @@ import {
 } from 'react';
 import { FlatList } from 'react-native';
 import { Searchbar } from 'react-native-paper';
-import { AppbarWithBadge } from '@/components/AppbarWithBadge';
+import { CustomAppBar } from '@/components/CustomAppBar';
 import { StudentItem } from '@/components/StudentItem';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { StudentResponse } from '@/services/student/student.types';
@@ -48,7 +48,7 @@ export default function StudentsScreen() {
 
   return (
     <>
-      <AppbarWithBadge
+      <CustomAppBar
         title='Students'
         badgeCount={filteredStudents.length}
         onAddPress={() => console.log('Add student pressed')}

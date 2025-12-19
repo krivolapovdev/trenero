@@ -1,15 +1,28 @@
-import { Appbar, Text } from 'react-native-paper';
+import { Link } from 'expo-router';
+import { Button, Text } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { CustomAppBar } from '@/components/CustomAppBar';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 export default function StatisticsScreen() {
+  const theme = useAppTheme();
+
   return (
     <>
-      <Appbar.Header
-        mode='center-aligned'
-        elevated
+      <CustomAppBar title={'Statistics'} />
+
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: theme.colors.surfaceVariant,
+          paddingHorizontal: 16
+        }}
       >
-        <Appbar.Content title='Statistics' />
-      </Appbar.Header>
-      <Text>Statistics</Text>
+        <Text>Statistics</Text>
+        <Link href={'/(tabs)/groups'}>
+          <Button>CLICK</Button>
+        </Link>
+      </SafeAreaView>
     </>
   );
 }

@@ -1,63 +1,94 @@
-import { Redirect } from 'expo-router';
-import { useState } from 'react';
-import { BottomNavigation } from 'react-native-paper';
-import GroupsScreen from '@/app/(tabs)/groups';
-import SettingsScreen from '@/app/(tabs)/settings';
-import StatisticsScreen from '@/app/(tabs)/statistics';
-import StudentsScreen from '@/app/(tabs)/students';
-import { useAuthStore } from '@/stores/authStore';
+import { CommonActions } from '@react-navigation/native';
+import { Tabs } from 'expo-router';
+import { BottomNavigation, Icon } from 'react-native-paper';
 
-const routes = [
+const TAB_CONFIG = [
   {
-    key: 'students',
+    name: '(students)',
     title: 'Students',
-    focusedIcon: 'account-group',
-    unfocusedIcon: 'account-group-outline'
+    icon: 'account-group',
+    iconOutline: 'account-group-outline'
   },
   {
-    key: 'groups',
+    name: 'groups',
     title: 'Groups',
-    focusedIcon: 'folder-account',
-    unfocusedIcon: 'folder-account-outline'
+    icon: 'folder-account',
+    iconOutline: 'folder-account-outline'
   },
   {
-    key: 'statistics',
+    name: 'statistics',
     title: 'Statistics',
-    focusedIcon: 'chart-box',
-    unfocusedIcon: 'chart-box-outline'
+    icon: 'chart-box',
+    iconOutline: 'chart-box-outline'
   },
   {
-    key: 'settings',
+    name: 'settings',
     title: 'Settings',
-    focusedIcon: 'cog',
-    unfocusedIcon: 'cog-outline'
+    icon: 'cog',
+    iconOutline: 'cog-outline'
   }
 ];
 
 export default function TabsLayout() {
-  const user = useAuthStore(state => state.user);
-  const [index, setIndex] = useState(0);
-
-  const renderScene = BottomNavigation.SceneMap({
-    students: StudentsScreen,
-    groups: GroupsScreen,
-    statistics: StatisticsScreen,
-    settings: SettingsScreen
-  });
-
-  if (!user) {
-    return <Redirect href='/(auth)' />;
-  }
-
   return (
-    <BottomNavigation
-      navigationState={{ index, routes }}
-      onIndexChange={setIndex}
-      renderScene={renderScene}
-      keyboardHidesNavigationBar={false}
-      sceneAnimationType='opacity'
-      sceneAnimationEnabled
-      shifting
-    />
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        animation: 'fade',
+        transitionSpec: {
+          animation: 'timing',
+          config: { duration: 300 }
+        }
+      }}
+      tabBar={({ navigation, state, descriptors, insets }) => (
+        <BottomNavigation.Bar
+          navigationState={state}
+          safeAreaInsets={insets}
+          shifting={true}
+          onTabPress={({ route, preventDefault }) => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true
+            });
+
+            if (event.defaultPrevented) {
+              preventDefault();
+            } else {
+              navigation.dispatch({
+                ...CommonActions.navigate(route.name, route.params),
+                target: state.key
+              });
+            }
+          }}
+          renderIcon={({ route, focused, color }) => {
+            const { options } = descriptors[route.key];
+            if (options.tabBarIcon) {
+              return options.tabBarIcon({ focused, color, size: 24 });
+            }
+            return null;
+          }}
+          getLabelText={({ route }) => descriptors[route.key].options.title}
+        />
+      )}
+    >
+      {TAB_CONFIG.map(({ name, title, icon, iconOutline }) => (
+        <Tabs.Screen
+          key={name}
+          name={name}
+          options={{
+            title,
+            popToTopOnBlur: true,
+            tabBarIcon: ({ color, focused, size }) => (
+              <Icon
+                source={focused ? icon : iconOutline}
+                size={size}
+                color={color}
+              />
+            )
+          }}
+        />
+      ))}
+    </Tabs>
   );
 }

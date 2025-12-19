@@ -1,3 +1,4 @@
+import { Link, useRouter } from 'expo-router';
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Chip, Divider, Text, TouchableRipple } from 'react-native-paper';
@@ -17,6 +18,7 @@ type Props = {
 
 export const StudentItem = memo(({ student }: Readonly<Props>) => {
   const theme = useAppTheme();
+  const router = useRouter();
 
   const { fullName, groups, isAttending, isPaid } = student;
 
@@ -30,55 +32,61 @@ export const StudentItem = memo(({ student }: Readonly<Props>) => {
       style={{ backgroundColor: theme.colors.surface }}
       onPress={() => handlePress()}
     >
-      <TouchableRipple
-        onPress={() => console.log('Pressed:', student.id)}
-        borderless
-        style={styles.touchable}
+      <Link
+        href={{
+          pathname: '/(tabs)/(students)/[id]',
+          params: { id: student.id }
+        }}
       >
-        <Card.Content>
-          <View style={styles.headerContainer}>
-            <Text variant='titleMedium'>{fullName}</Text>
-          </View>
+        <TouchableRipple
+          borderless
+          style={styles.touchable}
+        >
+          <Card.Content>
+            <View style={styles.headerContainer}>
+              <Text variant='titleMedium'>{fullName}</Text>
+            </View>
 
-          <Text variant='bodySmall'>{groups.join(' • ')}</Text>
+            <Text variant='bodySmall'>{groups.join(' • ')}</Text>
 
-          <Divider style={styles.divider} />
+            <Divider style={styles.divider} />
 
-          <View style={styles.statusContainer}>
-            <Chip
-              compact={true}
-              style={{
-                borderRadius: 16,
-                backgroundColor: isAttending
-                  ? theme.colors.green
-                  : theme.colors.tertiaryContainer
-              }}
-              textStyle={{
-                color: isAttending
-                  ? theme.colors.onSecondaryContainer
-                  : theme.colors.onTertiaryContainer
-              }}
-            >
-              <Text>{isAttending ? 'Ходит' : 'Не ходит'}</Text>
-            </Chip>
-
-            {!isPaid && (
+            <View style={styles.statusContainer}>
               <Chip
                 compact={true}
                 style={{
                   borderRadius: 16,
-                  backgroundColor: theme.colors.errorContainer
+                  backgroundColor: isAttending
+                    ? theme.colors.green
+                    : theme.colors.tertiaryContainer
                 }}
                 textStyle={{
-                  color: theme.colors.onErrorContainer
+                  color: isAttending
+                    ? theme.colors.onSecondaryContainer
+                    : theme.colors.onTertiaryContainer
                 }}
               >
-                <Text>Не оплатил</Text>
+                <Text>{isAttending ? 'Ходит' : 'Не ходит'}</Text>
               </Chip>
-            )}
-          </View>
-        </Card.Content>
-      </TouchableRipple>
+
+              {!isPaid && (
+                <Chip
+                  compact={true}
+                  style={{
+                    borderRadius: 16,
+                    backgroundColor: theme.colors.errorContainer
+                  }}
+                  textStyle={{
+                    color: theme.colors.onErrorContainer
+                  }}
+                >
+                  <Text>Не оплатил</Text>
+                </Chip>
+              )}
+            </View>
+          </Card.Content>
+        </TouchableRipple>
+      </Link>
     </Card>
   );
 });
