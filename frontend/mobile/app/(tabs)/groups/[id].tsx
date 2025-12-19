@@ -7,7 +7,7 @@ export default function StudentByIdScreen() {
 
   return (
     <>
-      <CustomAppbar title='Student' />
+      <CustomAppbar title='Group' />
       <Text>{id}</Text>
     </>
   );

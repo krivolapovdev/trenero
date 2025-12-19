@@ -12,7 +12,7 @@ type Props = {
   onAddPress?: () => void;
 };
 
-export const CustomAppBar = ({
+export const CustomAppbar = ({
   title,
   badgeCount,
   onAddPress

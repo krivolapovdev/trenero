@@ -1,4 +1,4 @@
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Chip, Divider, Text, TouchableRipple } from 'react-native-paper';
@@ -18,19 +18,13 @@ type Props = {
 
 export const StudentItem = memo(({ student }: Readonly<Props>) => {
   const theme = useAppTheme();
-  const router = useRouter();
 
   const { fullName, groups, isAttending, isPaid } = student;
-
-  const handlePress = () => {
-    console.log(student.id);
-  };
 
   return (
     <Card
       mode='contained'
       style={{ backgroundColor: theme.colors.surface }}
-      onPress={() => handlePress()}
     >
       <Link
         href={{
@@ -94,7 +88,8 @@ export const StudentItem = memo(({ student }: Readonly<Props>) => {
 const styles = StyleSheet.create({
   touchable: {
     borderRadius: 8,
-    padding: 16
+    padding: 16,
+    width: '100%'
   },
   headerContainer: {
     flexDirection: 'row',

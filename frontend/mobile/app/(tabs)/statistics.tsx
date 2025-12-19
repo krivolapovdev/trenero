@@ -1,7 +1,7 @@
 import { Link } from 'expo-router';
 import { Button, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CustomAppBar } from '@/components/CustomAppBar';
+import { CustomAppbar } from '@/components/CustomAppbar';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
 export default function StatisticsScreen() {
@@ -9,7 +9,7 @@ export default function StatisticsScreen() {
 
   return (
     <>
-      <CustomAppBar title={'Statistics'} />
+      <CustomAppbar title={'Statistics'} />
 
       <SafeAreaView
         style={{

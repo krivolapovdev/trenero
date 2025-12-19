@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Text, TouchableRipple, useTheme } from 'react-native-paper';
@@ -15,57 +16,57 @@ type Props = {
 export const GroupItem = memo(({ group }: Readonly<Props>) => {
   const theme = useTheme();
 
-  const handlePress = () => {
-    console.log(group.id);
-  };
-
   return (
     <Card
       mode='contained'
-      style={[styles.card, { backgroundColor: theme.colors.surface }]}
+      style={{ backgroundColor: theme.colors.surface }}
     >
-      <TouchableRipple
-        onPress={() => handlePress()}
-        borderless
-        style={styles.touchable}
+      <Link
+        href={{
+          pathname: '/(tabs)/groups/[id]',
+          params: { id: group.id }
+        }}
       >
-        <View style={styles.row}>
-          <View style={styles.info}>
-            <Text variant='titleMedium'>{group.name}</Text>
-            <Text
-              variant='bodySmall'
-              style={{ color: theme.colors.outline }}
-            >
-              ID: {group.id}
-            </Text>
-          </View>
+        <TouchableRipple
+          borderless
+          style={styles.touchable}
+        >
+          <View style={styles.row}>
+            <View style={styles.info}>
+              <Text variant='titleMedium'>{group.name}</Text>
+              <Text
+                variant='bodySmall'
+                style={{ color: theme.colors.outline }}
+              >
+                ID: {group.id}
+              </Text>
+            </View>
 
-          <View
-            style={[
-              styles.countBadge,
-              { backgroundColor: theme.colors.secondaryContainer }
-            ]}
-          >
-            <Text
-              variant='labelMedium'
-              style={{ color: theme.colors.onSecondaryContainer }}
+            <View
+              style={[
+                styles.countBadge,
+                { backgroundColor: theme.colors.secondaryContainer }
+              ]}
             >
-              {group.countOfStudents} Students
-            </Text>
+              <Text
+                variant='labelMedium'
+                style={{ color: theme.colors.onSecondaryContainer }}
+              >
+                {group.countOfStudents} Students
+              </Text>
+            </View>
           </View>
-        </View>
-      </TouchableRipple>
+        </TouchableRipple>
+      </Link>
     </Card>
   );
 });
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 8
-  },
   touchable: {
     borderRadius: 8,
-    padding: 16
+    padding: 16,
+    width: '100%'
   },
   row: {
     flexDirection: 'row',
