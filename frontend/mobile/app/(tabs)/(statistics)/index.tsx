@@ -20,7 +20,9 @@ export default function StatisticsScreen() {
       >
         <Text>Statistics</Text>
         <Link href={'/(tabs)/groups'}>
-          <Button>CLICK</Button>
+          <Button>
+            <Text>CLICK</Text>
+          </Button>
         </Link>
       </SafeAreaView>
     </>

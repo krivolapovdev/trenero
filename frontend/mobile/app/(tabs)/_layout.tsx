@@ -1,13 +1,14 @@
 import { CommonActions } from '@react-navigation/native';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { BottomNavigation, Icon } from 'react-native-paper';
+import { useAuthStore } from '@/stores/authStore';
 
 const TAB_CONFIG = [
   {
-    name: '(students)',
-    title: 'Students',
-    icon: 'account-group',
-    iconOutline: 'account-group-outline'
+    name: '(statistics)',
+    title: 'Statistics',
+    icon: 'chart-box',
+    iconOutline: 'chart-box-outline'
   },
   {
     name: 'groups',
@@ -16,10 +17,10 @@ const TAB_CONFIG = [
     iconOutline: 'folder-account-outline'
   },
   {
-    name: 'statistics',
-    title: 'Statistics',
-    icon: 'chart-box',
-    iconOutline: 'chart-box-outline'
+    name: 'students',
+    title: 'Students',
+    icon: 'account-group',
+    iconOutline: 'account-group-outline'
   },
   {
     name: 'settings',
@@ -30,6 +31,12 @@ const TAB_CONFIG = [
 ];
 
 export default function TabsLayout() {
+  const user = useAuthStore(state => state.user);
+
+  if (!user) {
+    return <Redirect href='/(auth)' />;
+  }
+
   return (
     <Tabs
       screenOptions={{
