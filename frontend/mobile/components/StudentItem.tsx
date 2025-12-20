@@ -28,7 +28,7 @@ export const StudentItem = memo(({ student }: Readonly<Props>) => {
     >
       <Link
         href={{
-          pathname: '/(tabs)/(students)/[id]',
+          pathname: '/(tabs)/students/[id]',
           params: { id: student.id }
         }}
       >
