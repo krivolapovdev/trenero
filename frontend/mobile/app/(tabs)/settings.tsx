@@ -103,35 +103,35 @@ export default function SettingsScreen() {
         <ConfirmDialog
           visible={logoutDialogVisible}
           title='Confirm Logout'
-          message='Are you sure you want to logout?'
           onConfirm={confirmLogout}
           onCancel={() => setLogoutDialogVisible(false)}
           confirmText='Logout'
-        />
+        >
+          <Text variant='bodyMedium'>Are you sure you want to logout?</Text>
+        </ConfirmDialog>
 
         <ConfirmDialog
           visible={contactDialogVisible}
           title='Contact'
-          message={
-            <Text
-              variant='bodyMedium'
-              style={{ textAlign: 'justify' }}
-            >
-              Do you have questions regarding our services or suggestions for
-              future improvements? We are committed to providing the best
-              experience possible and welcome your communication. Please use the
-              following contact information to get in touch with our team:
-              {'\n\n'}
-              <Text
-                style={{ fontWeight: '700' }}
-                onPress={() => Linking.openURL('https://t.me/krivolapovdev')}
-              >
-                Telegram: @krivolapovdev
-              </Text>
-            </Text>
-          }
           onConfirm={() => setContactDialogVisible(false)}
-        />
+        >
+          <Text
+            variant='bodyMedium'
+            style={{ textAlign: 'justify' }}
+          >
+            Do you have questions regarding our services or suggestions for
+            future improvements? We are committed to providing the best
+            experience possible and welcome your communication. Please use the
+            following contact information to get in touch with our team:
+            {'\n\n'}
+            <Text
+              style={{ fontWeight: '700' }}
+              onPress={() => Linking.openURL('https://t.me/krivolapovdev')}
+            >
+              Telegram: @krivolapovdev
+            </Text>
+          </Text>
+        </ConfirmDialog>
       </SafeAreaView>
     </>
   );
