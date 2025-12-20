@@ -1,5 +1,6 @@
 package tech.trenero.backend.user.internal.entity;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,8 +20,8 @@ import tech.trenero.backend.common.enums.OAuth2Provider;
 @AllArgsConstructor
 public class OAuth2User {
   @Id
-  @Column(name = "id")
-  private UUID id = UUID.randomUUID();
+  @Column(name = "id", updatable = false, nullable = false)
+  private UUID id = UuidCreator.getTimeOrderedEpoch();
 
   @Column(name = "email", nullable = false)
   private String email;

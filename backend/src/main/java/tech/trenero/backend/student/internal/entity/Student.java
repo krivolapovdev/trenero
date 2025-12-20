@@ -1,5 +1,6 @@
 package tech.trenero.backend.student.internal.entity;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -17,8 +18,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Student {
   @Id
-  @Column(name = "id")
-  private UUID id = UUID.randomUUID();
+  @Column(name = "id", updatable = false, nullable = false)
+  private UUID id = UuidCreator.getTimeOrderedEpoch();
 
   @Column(name = "owner_id", nullable = false)
   private UUID ownerId;

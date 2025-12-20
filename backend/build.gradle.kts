@@ -30,6 +30,7 @@ val openApiVersion = "3.0.0"
 val mapStructVersion = "1.6.3"
 val jjwtVersion = "0.13.0"
 val googleApiClientVersion = "2.8.1"
+val uuidCreatorVersion = "6.1.0"
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -42,6 +43,7 @@ dependencies {
     implementation("org.mapstruct:mapstruct:$mapStructVersion")
     implementation("io.jsonwebtoken:jjwt-api:${jjwtVersion}")
     implementation("com.google.api-client:google-api-client:${googleApiClientVersion}")
+    implementation("com.github.f4b6a3:uuid-creator:${uuidCreatorVersion}")
 
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
