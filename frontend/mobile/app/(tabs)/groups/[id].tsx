@@ -42,6 +42,7 @@ export default function GroupByIdScreen() {
       <CustomAppbar
         title='Group'
         onEditPress={handleEditPress}
+        showBackButton={true}
       />
 
       <ScrollView

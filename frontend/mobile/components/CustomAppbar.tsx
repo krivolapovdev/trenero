@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { Appbar, Badge, Text } from 'react-native-paper';
 import { modeAppbarHeight } from 'react-native-paper/src/components/Appbar/utils';
@@ -9,6 +10,7 @@ const mode = 'center-aligned';
 type Props = {
   title: string;
   badgeCount?: number;
+  showBackButton?: boolean;
   onAddPress?: () => void;
   onEditPress?: () => void;
 };
@@ -16,11 +18,13 @@ type Props = {
 export const CustomAppbar = ({
   title,
   badgeCount,
+  showBackButton,
   onAddPress,
   onEditPress
 }: Readonly<Props>) => {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   return (
     <Appbar
@@ -32,6 +36,7 @@ export const CustomAppbar = ({
         zIndex: 100
       }}
     >
+      {showBackButton && <Appbar.BackAction onPress={() => router.back()} />}
       <Appbar.Content
         title={
           <View>

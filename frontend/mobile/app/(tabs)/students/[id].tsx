@@ -43,6 +43,7 @@ export default function StudentByIdScreen() {
       <CustomAppbar
         title='Student'
         onEditPress={handleEditPress}
+        showBackButton={true}
       />
 
       <ScrollView
