@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.response.GroupResponse;
 import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.student.internal.client.StudentGroupClient;
+import tech.trenero.backend.group.external.GroupSpi;
 import tech.trenero.backend.student.internal.entity.Student;
 import tech.trenero.backend.student.internal.mapper.StudentMapper;
 import tech.trenero.backend.student.internal.repository.StudentRepository;
@@ -23,7 +24,7 @@ import tech.trenero.backend.student.internal.response.StudentWithGroupsResponse;
 public class StudentService {
   private final StudentRepository studentRepository;
   private final StudentMapper studentMapper;
-  private final StudentGroupClient studentGroupClient;
+  @Lazy private final GroupSpi groupSpi;
 
   public List<StudentResponse> getAllStudents(JwtUser jwtUser) {
     log.info("Getting all students for ownerId={}", jwtUser.userId());
@@ -59,7 +60,7 @@ public class StudentService {
 
     StudentResponse studentResponse = getStudentById(studentId, jwtUser);
 
-    List<GroupResponse> studentGroups = studentGroupClient.getGroupsByStudentId(studentId, jwtUser);
+    List<GroupResponse> studentGroups = groupSpi.getGroupsByStudentId(studentId, jwtUser);
 
     return new StudentWithGroupsResponse(studentResponse, studentGroups);
   }
@@ -73,8 +74,7 @@ public class StudentService {
 
     Student savedStudent = saveStudent(student);
 
-    studentGroupClient.assignGroupsToStudent(
-        savedStudent.getId(), request.studentGroups(), jwtUser);
+    groupSpi.assignGroupsToStudent(savedStudent.getId(), request.studentGroups(), jwtUser);
 
     return savedStudent.getId();
   }

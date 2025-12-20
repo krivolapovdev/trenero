@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.response.GroupResponse;
 import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.group.internal.client.GroupStudentClient;
 import tech.trenero.backend.group.internal.entity.Group;
 import tech.trenero.backend.group.internal.mapper.GroupMapper;
 import tech.trenero.backend.group.internal.repository.GroupRepository;
@@ -18,6 +18,7 @@ import tech.trenero.backend.group.internal.request.AddStudentRequest;
 import tech.trenero.backend.group.internal.request.CreateGroupRequest;
 import tech.trenero.backend.group.internal.request.RemoveStudentRequest;
 import tech.trenero.backend.group.internal.response.GroupWithStudentsResponse;
+import tech.trenero.backend.student.external.StudentSpi;
 
 @Service
 @Slf4j
@@ -25,7 +26,7 @@ import tech.trenero.backend.group.internal.response.GroupWithStudentsResponse;
 public class GroupService {
   private final GroupRepository groupRepository;
   private final GroupMapper groupMapper;
-  private final GroupStudentClient studentClient;
+  @Lazy private final StudentSpi studentSpi;
 
   public List<GroupResponse> getAllGroups(JwtUser jwtUser) {
     log.info("Getting all groups for ownerId={}", jwtUser.userId());
@@ -43,7 +44,7 @@ public class GroupService {
   public GroupWithStudentsResponse getGroupWithStudentsById(UUID groupId, JwtUser jwtUser) {
     log.info("Getting group with students by id={} for ownerId={}", groupId, jwtUser.userId());
     Group group = findGroupOrThrow(groupId, jwtUser);
-    List<StudentResponse> students = studentClient.getStudentsByIds(group.getStudentIds(), jwtUser);
+    List<StudentResponse> students = studentSpi.getStudentsByIds(group.getStudentIds(), jwtUser);
     return new GroupWithStudentsResponse(groupMapper.toGroupResponse(group), students);
   }
 
@@ -81,7 +82,7 @@ public class GroupService {
 
     Group group = findGroupOrThrow(groupId, jwtUser);
 
-    studentClient.checkStudentExists(request.studentId(), jwtUser);
+    validateStudentById(request.studentId(), jwtUser);
 
     group.getStudentIds().add(request.studentId());
 
@@ -96,7 +97,7 @@ public class GroupService {
         studentGroups,
         jwtUser.userId());
 
-    studentClient.checkStudentExists(studentId, jwtUser);
+    validateStudentById(studentId, jwtUser);
 
     List<Group> groups = groupRepository.findAllByIdInAndOwnerId(studentGroups, jwtUser.userId());
 
@@ -128,5 +129,10 @@ public class GroupService {
             () ->
                 new EntityNotFoundException(
                     "Group not found with id=" + groupId + " and ownerId=" + jwtUser.userId()));
+  }
+
+  private void validateStudentById(UUID studentId, JwtUser jwtUser) {
+    log.debug("Checking if student exists by id={} for user={}", studentId, jwtUser.userId());
+    studentSpi.getStudentById(studentId, jwtUser);
   }
 }

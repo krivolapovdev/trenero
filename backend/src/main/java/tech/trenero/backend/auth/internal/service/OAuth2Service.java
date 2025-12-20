@@ -6,12 +6,13 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import tech.trenero.backend.auth.internal.client.UserClient;
 import tech.trenero.backend.auth.internal.request.OAuth2IdTokenRequest;
 import tech.trenero.backend.auth.internal.response.AuthResponse;
 import tech.trenero.backend.common.response.UserResponse;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.user.external.UserSpi;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +20,7 @@ import tech.trenero.backend.common.security.JwtUser;
 public class OAuth2Service {
   private final GoogleAuthService googleAuthService;
   private final JwtTokenService jwtTokenService;
-  private final UserClient userClient;
+  @Lazy private final UserSpi userSpi;
 
   @SneakyThrows
   public AuthResponse googleLogin(OAuth2IdTokenRequest request) {
@@ -35,7 +36,7 @@ public class OAuth2Service {
     String providerId = payload.getSubject();
     String email = payload.getEmail();
 
-    UserResponse userResponse = userClient.getOrCreateUserFromOAuth2(email, GOOGLE, providerId);
+    UserResponse userResponse = userSpi.getOrCreateUserFromOAuth2(email, GOOGLE, providerId);
 
     var jwtUser = new JwtUser(userResponse.id(), email);
     var accessTokenResponse = jwtTokenService.createAccessAndRefreshTokens(jwtUser);
