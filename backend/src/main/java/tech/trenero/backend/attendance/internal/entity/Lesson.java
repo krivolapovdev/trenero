@@ -10,6 +10,7 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "lessons", schema = "attendance_module")
@@ -29,4 +30,8 @@ public class Lesson {
 
   @Column(name = "end_date_time", nullable = false)
   private LocalDateTime endDateTime;
+
+  @CreationTimestamp
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private LocalDateTime createdAt;
 }

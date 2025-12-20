@@ -11,6 +11,7 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "payments", schema = "payments_module")
@@ -28,6 +29,7 @@ public class Payment {
   @Column(name = "amount", nullable = false)
   private BigDecimal amount;
 
-  @Column(name = "created_at", nullable = false)
-  private LocalDateTime createdAt = LocalDateTime.now();
+  @CreationTimestamp
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private LocalDateTime createdAt;
 }
