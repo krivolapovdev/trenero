@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,7 +19,10 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "groups", schema = "groups_module")
+@Table(
+    name = "groups",
+    schema = "groups_module",
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"owner_id", "name"})})
 @Data
 @NoArgsConstructor
 public class Group {
@@ -26,10 +30,10 @@ public class Group {
   @Column(name = "id", updatable = false, nullable = false)
   private UUID id = UuidCreator.getTimeOrderedEpoch();
 
-  @Column(name = "owner_id", nullable = false)
+  @Column(name = "owner_id", nullable = false, updatable = false)
   private UUID ownerId;
 
-  @Column(name = "name", nullable = false, unique = true)
+  @Column(name = "name", nullable = false)
   private String name;
 
   @Column(name = "default_price")
