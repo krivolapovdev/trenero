@@ -17,7 +17,8 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           SELECT DISTINCT s
           FROM Student AS s
           WHERE s.ownerId = :ownerId
-            AND s.deleted = false""")
+            AND s.deleted = false
+          ORDER BY s.fullName""")
   List<Student> findAllByOwnerIdAndDeletedFalse(@Param("ownerId") UUID ownerId);
 
   @Query(
@@ -34,7 +35,8 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           SELECT DISTINCT s
           FROM Student AS s
           WHERE s.id IN :ids
-            AND s.ownerId = :ownerId""")
-  List<Student> findStudentsByIdsAndOwnerId(
+            AND s.ownerId = :ownerId
+          ORDER BY s.fullName""")
+  List<Student> findAllByIdInAndOwnerId(
       @Param("ids") List<UUID> ids, @Param("ownerId") UUID ownerId);
 }

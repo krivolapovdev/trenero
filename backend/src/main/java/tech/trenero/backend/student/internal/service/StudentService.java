@@ -49,7 +49,7 @@ public class StudentService {
         "Getting students by ids={} for ownerId={}",
         studentIds != null ? studentIds.toString() : null,
         jwtUser.userId());
-    return studentRepository.findStudentsByIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
+    return studentRepository.findAllByIdInAndOwnerId(studentIds, jwtUser.userId()).stream()
         .map(studentMapper::toStudentResponse)
         .toList();
   }
