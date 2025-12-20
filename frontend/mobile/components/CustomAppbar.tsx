@@ -10,12 +10,14 @@ type Props = {
   title: string;
   badgeCount?: number;
   onAddPress?: () => void;
+  onEditPress?: () => void;
 };
 
 export const CustomAppbar = ({
   title,
   badgeCount,
-  onAddPress
+  onAddPress,
+  onEditPress
 }: Readonly<Props>) => {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -26,7 +28,8 @@ export const CustomAppbar = ({
       mode={mode}
       style={{
         backgroundColor: theme.colors.elevation.level2,
-        height: modeAppbarHeight[mode] + insets.top
+        height: modeAppbarHeight[mode] + insets.top,
+        zIndex: 100
       }}
     >
       <Appbar.Content
@@ -53,6 +56,13 @@ export const CustomAppbar = ({
         <Appbar.Action
           icon='plus'
           onPress={onAddPress}
+        />
+      )}
+
+      {onEditPress && (
+        <Appbar.Action
+          icon='pencil'
+          onPress={onEditPress}
         />
       )}
     </Appbar>
