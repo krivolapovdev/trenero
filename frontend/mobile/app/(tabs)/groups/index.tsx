@@ -1,60 +1,62 @@
-import { useDeferredValue, useState } from 'react';
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import { FlatList } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import { CustomAppbar } from '@/components/CustomAppbar';
 import { GroupItem } from '@/components/GroupItem';
+import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
-
-type GroupResponse = {
-  id: string;
-  name: string;
-  countOfStudents: number;
-};
-
-const index: GroupResponse[] = [
-  { id: '1', name: 'OTG-1', countOfStudents: 10 },
-  { id: '2', name: 'FALCON-4', countOfStudents: 30 },
-  { id: '3', name: 'URN-4', countOfStudents: 40 },
-  { id: '4', name: 'BATTLE-65', countOfStudents: 53 },
-  { id: '5', name: 'УТК-3', countOfStudents: 544 },
-  { id: '6', name: 'УТК-4', countOfStudents: 44 },
-  { id: '7', name: 'УТК-5', countOfStudents: 544 },
-  { id: '8', name: 'УТК-6', countOfStudents: 655 },
-  { id: '9', name: 'УТК-7', countOfStudents: 76 },
-  { id: '10', name: 'УТК-8', countOfStudents: 98 },
-  { id: '11', name: 'УТК-9', countOfStudents: 7 },
-  { id: '12', name: 'УТК-10', countOfStudents: 94 },
-  { id: '13', name: 'УТК-11', countOfStudents: 445 }
-];
+import { type GroupResponse, groupService } from '@/services/group';
 
 export default function GroupsScreen() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
+  const [groups, setGroups] = useState<GroupResponse[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const theme = useAppTheme();
   const deferredQuery = useDeferredValue(searchQuery);
 
-  const filteredGroups = deferredQuery.trim()
-    ? index.filter(group =>
-        group.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : index;
+  const filteredGroups = useMemo(() => {
+    const query = deferredQuery.trim().toLowerCase();
+    return query
+      ? groups.filter(group => group.name.toLowerCase().includes(query))
+      : groups;
+  }, [groups, deferredQuery]);
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-
+  const fetchGroups = useCallback(async () => {
     try {
-      console.log('refreshing...');
+      setRefreshing(true);
+      setError(null);
+      const data = await groupService.getAllGroups();
+      setGroups(data);
+    } catch (error) {
+      console.error(error);
+      setError('Failed to load groups');
     } finally {
       setRefreshing(false);
     }
+  }, []);
+
+  const handleAddGroup = () => {
+    console.log('Add group pressed');
   };
+
+  useEffect(() => {
+    void fetchGroups();
+  }, [fetchGroups]);
 
   return (
     <>
       <CustomAppbar
         title='Groups'
         badgeCount={filteredGroups.length}
+        onAddPress={handleAddGroup}
       />
 
       <FlatList
@@ -62,19 +64,30 @@ export default function GroupsScreen() {
         data={filteredGroups}
         keyExtractor={item => item.id}
         ListHeaderComponent={
-          <Searchbar
-            placeholder='Search by name'
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={{ backgroundColor: theme.colors.surface }}
-            onClearIconPress={() => setSearchQuery('')}
-          />
+          <>
+            <Searchbar
+              placeholder='Search by name'
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              style={{ backgroundColor: theme.colors.surface }}
+              onClearIconPress={() => setSearchQuery('')}
+            />
+            <OptionalErrorMessage error={error} />
+          </>
         }
-        renderItem={({ item }) => <GroupItem group={item} />}
+        renderItem={({ item }) => (
+          <GroupItem
+            group={{
+              id: item.id,
+              name: item.name,
+              countOfStudents: 42
+            }}
+          />
+        )}
         contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
         refreshing={refreshing}
-        onRefresh={handleRefresh}
+        onRefresh={fetchGroups}
       />
     </>
   );

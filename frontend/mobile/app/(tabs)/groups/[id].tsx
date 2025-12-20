@@ -3,32 +3,45 @@ import { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
 import { CustomAppbar } from '@/components/CustomAppbar';
+import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { type GroupResponse, groupService } from '@/services/group';
 
-export default function StudentByIdScreen() {
+export default function GroupByIdScreen() {
+  const [group, setGroup] = useState<GroupResponse | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { id } = useLocalSearchParams();
   const theme = useAppTheme();
 
-  const loadGroupById = useCallback(async () => {
-    setRefreshing(true);
+  const fetchGroupById = useCallback(async () => {
     try {
-      await new Promise<void>(resolve => setTimeout(resolve, 3000));
+      setRefreshing(true);
+      setError(null);
+      const data = await groupService.getGroupById(id as string);
+      setGroup(data);
+    } catch (err) {
+      console.error(err);
+      setError(`Failed to load group: ${id}`);
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [id]);
+
+  const handleEditPress = () => {
+    console.log('Edit pressed');
+  };
 
   useEffect(() => {
-    void loadGroupById();
-  }, [loadGroupById]);
+    void fetchGroupById();
+  }, [fetchGroupById]);
 
   return (
     <>
       <CustomAppbar
         title='Group'
-        onEditPress={() => console.log('Edit pressed')}
+        onEditPress={handleEditPress}
       />
 
       <ScrollView
@@ -41,11 +54,13 @@ export default function StudentByIdScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={loadGroupById}
+            onRefresh={fetchGroupById}
           />
         }
       >
+        <OptionalErrorMessage error={error} />
         <Text>{id}</Text>
+        <Text>{JSON.stringify(group, null, 2)}</Text>
       </ScrollView>
     </>
   );
