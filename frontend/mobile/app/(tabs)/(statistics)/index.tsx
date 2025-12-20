@@ -1,6 +1,6 @@
 import { Link } from 'expo-router';
+import { ScrollView } from 'react-native';
 import { Button, Text } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomAppbar } from '@/components/CustomAppbar';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
@@ -11,11 +11,12 @@ export default function StatisticsScreen() {
     <>
       <CustomAppbar title={'Statistics'} />
 
-      <SafeAreaView
+      <ScrollView
+        contentContainerStyle={{ padding: 16 }}
+        showsVerticalScrollIndicator={false}
         style={{
           flex: 1,
-          backgroundColor: theme.colors.surfaceVariant,
-          paddingHorizontal: 16
+          backgroundColor: theme.colors.surfaceVariant
         }}
       >
         <Text>Statistics</Text>
@@ -24,7 +25,7 @@ export default function StatisticsScreen() {
             <Text>CLICK</Text>
           </Button>
         </Link>
-      </SafeAreaView>
+      </ScrollView>
     </>
   );
 }
