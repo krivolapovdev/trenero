@@ -8,15 +8,16 @@ import {
 import { FlatList } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import { CustomAppbar } from '@/components/CustomAppbar';
+import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { StudentItem } from '@/components/StudentItem';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import type { StudentResponse } from '@/services/student/student.types';
-import { studentService } from '@/services/student/studentService';
+import { type StudentResponse, studentService } from '@/services/student';
 
 export default function StudentsScreen() {
   const [students, setStudents] = useState<StudentResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const theme = useAppTheme();
   const deferredQuery = useDeferredValue(searchQuery);
@@ -30,28 +31,34 @@ export default function StudentsScreen() {
       : students;
   }, [students, deferredQuery]);
 
-  const loadStudents = useCallback(async () => {
+  const fetchStudents = useCallback(async () => {
     try {
       setRefreshing(true);
-      const data = await studentService.getAllUsers();
+      setError(null);
+      const data = await studentService.getAllStudents();
       setStudents(data);
     } catch (error) {
-      console.error('Failed to load students', error);
+      console.error(error);
+      setError('Failed to load students');
     } finally {
       setRefreshing(false);
     }
   }, []);
 
+  const handleAddStudent = () => {
+    console.log('Add student pressed');
+  };
+
   useEffect(() => {
-    void loadStudents();
-  }, [loadStudents]);
+    void fetchStudents();
+  }, [fetchStudents]);
 
   return (
     <>
       <CustomAppbar
         title='Students'
         badgeCount={filteredStudents.length}
-        onAddPress={() => console.log('Add student pressed')}
+        onAddPress={handleAddStudent}
       />
 
       <FlatList
@@ -59,13 +66,16 @@ export default function StudentsScreen() {
         data={filteredStudents}
         keyExtractor={item => item.id}
         ListHeaderComponent={
-          <Searchbar
-            placeholder='Search by name'
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={{ backgroundColor: theme.colors.surface }}
-            onClearIconPress={() => setSearchQuery('')}
-          />
+          <>
+            <Searchbar
+              placeholder='Search by name'
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              style={{ backgroundColor: theme.colors.surface }}
+              onClearIconPress={() => setSearchQuery('')}
+            />
+            <OptionalErrorMessage error={error} />
+          </>
         }
         renderItem={({ item }) => (
           <StudentItem
@@ -81,7 +91,7 @@ export default function StudentsScreen() {
         contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
         refreshing={refreshing}
-        onRefresh={loadStudents}
+        onRefresh={fetchStudents}
       />
     </>
   );
