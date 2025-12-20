@@ -29,7 +29,7 @@ public class GroupService {
 
   public List<GroupResponse> getAllGroups(JwtUser jwtUser) {
     log.info("Getting all groups for ownerId={}", jwtUser.userId());
-    return groupRepository.findByOwnerId(jwtUser.userId()).stream()
+    return groupRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(groupMapper::toGroupResponse)
         .toList();
   }
@@ -49,7 +49,9 @@ public class GroupService {
 
   public List<GroupResponse> getGroupsByStudentId(UUID studentId, JwtUser jwtUser) {
     log.info("Getting groups by studentId={} for ownerId={}", studentId, jwtUser.userId());
-    return groupRepository.findGroupsByStudentIdAndOwnerId(studentId, jwtUser.userId()).stream()
+    return groupRepository
+        .findAllByStudentIdsContainsAndOwnerId(studentId, jwtUser.userId())
+        .stream()
         .map(groupMapper::toGroupResponse)
         .toList();
   }
@@ -96,7 +98,7 @@ public class GroupService {
 
     studentClient.checkStudentExists(studentId, jwtUser);
 
-    List<Group> groups = groupRepository.findAllByIdAndOwnerId(studentGroups, jwtUser.userId());
+    List<Group> groups = groupRepository.findAllByIdInAndOwnerId(studentGroups, jwtUser.userId());
 
     groups.forEach(group -> group.getStudentIds().add(studentId));
 
