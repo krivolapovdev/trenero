@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +28,9 @@ public class Group {
 
   @Column(name = "name", nullable = false, unique = true)
   private String name;
+
+  @Column(name = "default_price")
+  private BigDecimal defaultPrice;
 
   @ElementCollection
   @CollectionTable(
