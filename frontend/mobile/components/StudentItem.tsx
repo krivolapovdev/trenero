@@ -3,87 +3,82 @@ import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Chip, Divider, Text, TouchableRipple } from 'react-native-paper';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import type { StudentResponse } from '@/services/student';
 
-type Student = {
-  id: string;
-  fullName: string;
+type Props = StudentResponse & {
   groups: string[];
   isAttending: boolean;
   isPaid: boolean;
 };
 
-type Props = {
-  student: Student;
-};
+export const StudentItem = memo(
+  ({ id, fullName, groups, isAttending, isPaid }: Readonly<Props>) => {
+    const theme = useAppTheme();
 
-export const StudentItem = memo(({ student }: Readonly<Props>) => {
-  const theme = useAppTheme();
-
-  const { fullName, groups, isAttending, isPaid } = student;
-
-  return (
-    <Card
-      mode='contained'
-      style={{ backgroundColor: theme.colors.surface }}
-    >
-      <Link
-        href={{
-          pathname: '/(tabs)/students/[id]',
-          params: { id: student.id }
-        }}
+    return (
+      <Card
+        mode='contained'
+        style={{ backgroundColor: theme.colors.surface }}
       >
-        <TouchableRipple
-          borderless
-          style={styles.touchable}
+        <Link
+          href={{
+            pathname: '/(tabs)/students/[id]',
+            params: { id }
+          }}
         >
-          <Card.Content>
-            <View style={styles.headerContainer}>
-              <Text variant='titleMedium'>{fullName}</Text>
-            </View>
+          <TouchableRipple
+            borderless
+            style={styles.touchable}
+          >
+            <Card.Content>
+              <View style={styles.headerContainer}>
+                <Text variant='titleMedium'>{fullName}</Text>
+              </View>
 
-            <Text variant='bodySmall'>{groups.join(' • ')}</Text>
+              <Text variant='bodySmall'>{groups.join(' • ')}</Text>
 
-            <Divider style={styles.divider} />
+              <Divider style={styles.divider} />
 
-            <View style={styles.statusContainer}>
-              <Chip
-                compact={true}
-                style={{
-                  borderRadius: 16,
-                  backgroundColor: isAttending
-                    ? theme.colors.green
-                    : theme.colors.tertiaryContainer
-                }}
-                textStyle={{
-                  color: isAttending
-                    ? theme.colors.onSecondaryContainer
-                    : theme.colors.onTertiaryContainer
-                }}
-              >
-                <Text>{isAttending ? 'Ходит' : 'Не ходит'}</Text>
-              </Chip>
-
-              {!isPaid && (
+              <View style={styles.statusContainer}>
                 <Chip
                   compact={true}
                   style={{
                     borderRadius: 16,
-                    backgroundColor: theme.colors.errorContainer
+                    backgroundColor: isAttending
+                      ? theme.colors.green
+                      : theme.colors.tertiaryContainer
                   }}
                   textStyle={{
-                    color: theme.colors.onErrorContainer
+                    color: isAttending
+                      ? theme.colors.onSecondaryContainer
+                      : theme.colors.onTertiaryContainer
                   }}
                 >
-                  <Text>Не оплатил</Text>
+                  <Text>{isAttending ? 'Ходит' : 'Не ходит'}</Text>
                 </Chip>
-              )}
-            </View>
-          </Card.Content>
-        </TouchableRipple>
-      </Link>
-    </Card>
-  );
-});
+
+                {!isPaid && (
+                  <Chip
+                    compact={true}
+                    style={{
+                      borderRadius: 16,
+                      backgroundColor: theme.colors.errorContainer
+                    }}
+                    textStyle={{
+                      color: theme.colors.onErrorContainer
+                    }}
+                  >
+                    <Text>Не оплатил</Text>
+                  </Chip>
+                )}
+              </View>
+            </Card.Content>
+          </TouchableRipple>
+        </Link>
+      </Card>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   touchable: {

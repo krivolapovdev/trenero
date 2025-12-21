@@ -53,13 +53,10 @@ export default function StudentsScreen() {
   const renderItem = useCallback(
     ({ item }: { item: StudentResponse }) => (
       <StudentItem
-        student={{
-          id: item.id,
-          fullName: item.fullName,
-          groups: ['OTG-1'],
-          isAttending: true,
-          isPaid: false
-        }}
+        {...item}
+        groups={['OTG-1']}
+        isAttending={true}
+        isPaid={true}
       />
     ),
     []
