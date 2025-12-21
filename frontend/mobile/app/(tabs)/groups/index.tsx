@@ -1,8 +1,10 @@
+import { useScrollToTop } from '@react-navigation/native';
 import {
   useCallback,
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from 'react';
 import { FlatList } from 'react-native';
@@ -21,6 +23,9 @@ export default function GroupsScreen() {
 
   const theme = useAppTheme();
   const deferredQuery = useDeferredValue(searchQuery);
+
+  const listRef = useRef<FlatList>(null);
+  useScrollToTop(listRef);
 
   const filteredGroups = useMemo(() => {
     const query = deferredQuery.trim().toLowerCase();
@@ -43,6 +48,11 @@ export default function GroupsScreen() {
     }
   }, []);
 
+  const renderItem = useCallback(
+    ({ item }: { item: GroupResponse }) => <GroupItem group={{ ...item }} />,
+    []
+  );
+
   const handleAddGroup = () => {
     console.log('Add group pressed');
   };
@@ -60,9 +70,15 @@ export default function GroupsScreen() {
       />
 
       <FlatList
+        ref={listRef}
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
         data={filteredGroups}
         keyExtractor={item => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={{ padding: 16, gap: 16 }}
+        showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={fetchGroups}
         ListHeaderComponent={
           <>
             <Searchbar
@@ -75,19 +91,6 @@ export default function GroupsScreen() {
             <OptionalErrorMessage error={error} />
           </>
         }
-        renderItem={({ item }) => (
-          <GroupItem
-            group={{
-              id: item.id,
-              name: item.name,
-              countOfStudents: 42
-            }}
-          />
-        )}
-        contentContainerStyle={{ padding: 16, gap: 16 }}
-        showsVerticalScrollIndicator={false}
-        refreshing={refreshing}
-        onRefresh={fetchGroups}
       />
     </>
   );
