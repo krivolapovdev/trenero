@@ -10,7 +10,17 @@ export const groupService = {
   },
 
   async getGroupById(id: string) {
-    const { data } = await api.get<GroupResponse>(`${baseURL}/${id}`);
+    const { data } = await api.get<{ groupResponse: GroupResponse }>(
+      `${baseURL}/${id}`
+    );
     return data;
+  },
+
+  async createGroup(name: string, defaultPrice?: number | null) {
+    const { data: id } = await api.post<string>(`${baseURL}`, {
+      name,
+      defaultPrice
+    });
+    return id;
   }
 };

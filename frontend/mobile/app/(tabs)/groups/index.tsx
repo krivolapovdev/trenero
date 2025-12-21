@@ -10,6 +10,7 @@ import {
 import { FlatList } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import { CustomAppbar } from '@/components/CustomAppbar';
+import { AddGroupDialog } from '@/components/dialogs';
 import { GroupItem } from '@/components/GroupItem';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -20,6 +21,7 @@ export default function GroupsScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAddGroupModal, setShowAddGroupModal] = useState<boolean>(false);
 
   const theme = useAppTheme();
   const deferredQuery = useDeferredValue(searchQuery);
@@ -53,9 +55,11 @@ export default function GroupsScreen() {
     []
   );
 
-  const handleAddGroup = () => {
-    console.log('Add group pressed');
-  };
+  const handleGroupAdded = useCallback((group: GroupResponse) => {
+    setGroups(prev => [group, ...prev]);
+    setShowAddGroupModal(false);
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, []);
 
   useEffect(() => {
     void fetchGroups();
@@ -66,7 +70,7 @@ export default function GroupsScreen() {
       <CustomAppbar
         title='Groups'
         badgeCount={filteredGroups.length}
-        onAddPress={handleAddGroup}
+        onAddPress={() => setShowAddGroupModal(true)}
       />
 
       <FlatList
@@ -91,6 +95,12 @@ export default function GroupsScreen() {
             <OptionalErrorMessage error={error} />
           </>
         }
+      />
+
+      <AddGroupDialog
+        visible={showAddGroupModal}
+        onDismiss={() => setShowAddGroupModal(false)}
+        onGroupAdded={handleGroupAdded}
       />
     </>
   );

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Divider, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollableDialog } from '@/components/ScrollableDialog';
+import { ScrollableDialog } from '@/components/dialogs';
 import { SocialButtonsGroup } from '@/components/SocialButtonsGroup';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
