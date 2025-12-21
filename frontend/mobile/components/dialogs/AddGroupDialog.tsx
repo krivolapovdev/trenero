@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { Text } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
@@ -53,12 +54,16 @@ export const AddGroupDialog = memo(
 
         <TextInput
           mode='outlined'
-          label='Group Name *'
           value={name}
           onChangeText={setName}
           maxLength={255}
           style={{ marginBottom: 16 }}
           right={<TextInput.Affix text={`${name.length}/255`} />}
+          label={
+            <Text>
+              Group Name <Text style={{ color: 'red' }}>*</Text>
+            </Text>
+          }
         />
 
         <TextInput
