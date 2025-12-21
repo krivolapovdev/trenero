@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -25,6 +26,7 @@ import org.hibernate.annotations.CreationTimestamp;
     uniqueConstraints = {@UniqueConstraint(columnNames = {"owner_id", "name"})})
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Group {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
