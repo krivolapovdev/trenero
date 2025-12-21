@@ -2,18 +2,11 @@ import { Link } from 'expo-router';
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Text, TouchableRipple, useTheme } from 'react-native-paper';
+import type { GroupResponse } from '@/services/group';
 
-type GroupResponse = {
-  id: string;
-  name: string;
-  countOfStudents: number;
-};
+type Props = GroupResponse & {};
 
-type Props = {
-  group: GroupResponse;
-};
-
-export const GroupItem = memo(({ group }: Readonly<Props>) => {
+export const GroupItem = memo(({ id, name }: Readonly<Props>) => {
   const theme = useTheme();
 
   return (
@@ -24,7 +17,7 @@ export const GroupItem = memo(({ group }: Readonly<Props>) => {
       <Link
         href={{
           pathname: '/(tabs)/groups/[id]',
-          params: { id: group.id }
+          params: { id }
         }}
       >
         <TouchableRipple
@@ -33,12 +26,12 @@ export const GroupItem = memo(({ group }: Readonly<Props>) => {
         >
           <View style={styles.row}>
             <View style={styles.info}>
-              <Text variant='titleMedium'>{group.name}</Text>
+              <Text variant='titleMedium'>{name}</Text>
               <Text
                 variant='bodySmall'
                 style={{ color: theme.colors.outline }}
               >
-                ID: {group.id}
+                {id}
               </Text>
             </View>
 
@@ -52,7 +45,7 @@ export const GroupItem = memo(({ group }: Readonly<Props>) => {
                 variant='labelMedium'
                 style={{ color: theme.colors.onSecondaryContainer }}
               >
-                {group.countOfStudents} Students
+                {42} Students
               </Text>
             </View>
           </View>

@@ -49,7 +49,7 @@ export default function GroupsScreen() {
   }, []);
 
   const renderItem = useCallback(
-    ({ item }: { item: GroupResponse }) => <GroupItem group={{ ...item }} />,
+    ({ item }: { item: GroupResponse }) => <GroupItem {...item} />,
     []
   );
 
