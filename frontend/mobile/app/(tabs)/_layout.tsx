@@ -52,6 +52,7 @@ export default function TabsLayout() {
           navigationState={state}
           safeAreaInsets={insets}
           shifting={true}
+          keyboardHidesNavigationBar={false}
           onTabPress={({ route, preventDefault }) => {
             const event = navigation.emit({
               type: 'tabPress',
@@ -61,12 +62,13 @@ export default function TabsLayout() {
 
             if (event.defaultPrevented) {
               preventDefault();
-            } else {
-              navigation.dispatch({
-                ...CommonActions.navigate(route.name, route.params),
-                target: state.key
-              });
+              return;
             }
+
+            navigation.dispatch({
+              ...CommonActions.navigate(route.name, route.params),
+              target: state.key
+            });
           }}
           renderIcon={({ route, focused, color }) => {
             const { options } = descriptors[route.key];
