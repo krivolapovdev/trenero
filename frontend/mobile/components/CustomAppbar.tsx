@@ -1,11 +1,7 @@
 import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { Appbar, Badge, Text } from 'react-native-paper';
-import { modeAppbarHeight } from 'react-native-paper/src/components/Appbar/utils';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/useAppTheme';
-
-const mode = 'center-aligned';
 
 type Props = {
   title: string;
@@ -23,20 +19,12 @@ export const CustomAppbar = ({
   onEditPress
 }: Readonly<Props>) => {
   const theme = useAppTheme();
-  const insets = useSafeAreaInsets();
   const router = useRouter();
 
   return (
-    <Appbar
-      safeAreaInsets={insets}
-      mode={mode}
-      style={{
-        backgroundColor: theme.colors.elevation.level2,
-        height: modeAppbarHeight[mode] + insets.top,
-        zIndex: 100
-      }}
-    >
+    <Appbar.Header mode='center-aligned'>
       {showBackButton && <Appbar.BackAction onPress={() => router.back()} />}
+
       <Appbar.Content
         title={
           <View>
@@ -57,6 +45,7 @@ export const CustomAppbar = ({
           </View>
         }
       />
+
       {onAddPress && (
         <Appbar.Action
           icon='plus'
@@ -70,7 +59,7 @@ export const CustomAppbar = ({
           onPress={onEditPress}
         />
       )}
-    </Appbar>
+    </Appbar.Header>
   );
 };
 
