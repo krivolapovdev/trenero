@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Divider, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollableDialog } from '@/components/dialogs';
+import { ConfirmDialog } from '@/components/dialogs';
 import { SocialButtonsGroup } from '@/components/SocialButtonsGroup';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
@@ -55,7 +55,7 @@ export default function LoginScreen() {
       </View>
 
       {isTermsDialogVisible && (
-        <ScrollableDialog
+        <ConfirmDialog
           visible={isTermsDialogVisible}
           title='Terms & Privacy Policy'
           onConfirm={() => setIsTermsDialogVisible(false)}
@@ -84,7 +84,7 @@ export default function LoginScreen() {
             are implemented to protect personal data from unauthorized access,
             use, or disclosure.
           </Text>
-        </ScrollableDialog>
+        </ConfirmDialog>
       )}
     </SafeAreaView>
   );
