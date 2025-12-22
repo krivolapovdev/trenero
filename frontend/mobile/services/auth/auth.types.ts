@@ -3,10 +3,7 @@ export type JwtTokenResponse = {
   refreshToken: string;
 };
 
-export type AuthResponse = {
-  user: {
-    id: string;
-    email: string;
-  };
-  jwtToken: JwtTokenResponse;
+export type AuthResponse = JwtTokenResponse & {
+  id: string;
+  email: string;
 };

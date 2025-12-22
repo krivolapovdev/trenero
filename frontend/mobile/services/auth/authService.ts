@@ -15,9 +15,9 @@ export const authService = {
       await useAuthStore
         .getState()
         .setAuth(
-          data.user,
-          data.jwtToken.accessToken,
-          data.jwtToken.refreshToken
+          { id: data.id, email: data.email },
+          data.accessToken,
+          data.refreshToken
         );
 
       return data;
