@@ -10,6 +10,7 @@ import {
 import { FlatList } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import { CustomAppbar } from '@/components/CustomAppbar';
+import { AddStudentDialog } from '@/components/dialogs/AddStudentDialog';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { StudentItem } from '@/components/StudentItem';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -20,6 +21,7 @@ export default function StudentsScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
   const theme = useAppTheme();
   const deferredQuery = useDeferredValue(searchQuery);
@@ -62,9 +64,11 @@ export default function StudentsScreen() {
     []
   );
 
-  const handleAddStudent = () => {
-    console.log('Add student pressed');
-  };
+  const handleStudentAdded = useCallback((student: StudentResponse) => {
+    setStudents(prev => [student, ...prev]);
+    setShowAddModal(false);
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, []);
 
   useEffect(() => {
     void fetchStudents();
@@ -75,7 +79,7 @@ export default function StudentsScreen() {
       <CustomAppbar
         title='Students'
         badgeCount={filteredStudents.length}
-        onAddPress={handleAddStudent}
+        onAddPress={() => setShowAddModal(true)}
       />
 
       <FlatList
@@ -100,6 +104,12 @@ export default function StudentsScreen() {
             <OptionalErrorMessage error={error} />
           </>
         }
+      />
+
+      <AddStudentDialog
+        visible={showAddModal}
+        onDismiss={() => setShowAddModal(false)}
+        onStudentAdded={handleStudentAdded}
       />
     </>
   );

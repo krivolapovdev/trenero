@@ -10,9 +10,7 @@ export const groupService = {
   },
 
   async getGroupById(id: string) {
-    const { data } = await api.get<{ groupResponse: GroupResponse }>(
-      `${baseURL}/${id}`
-    );
+    const { data } = await api.get<GroupResponse>(`${baseURL}/${id}`);
     return data;
   },
 

@@ -12,5 +12,20 @@ export const studentService = {
   async getStudentById(id: string) {
     const { data } = await api.get<StudentResponse>(`${baseURL}/${id}`);
     return data;
+  },
+
+  async createStudent(
+    fullName: string,
+    phone?: string | null,
+    birthDate?: Date | null,
+    note?: string | null
+  ) {
+    const { data: id } = await api.post<string>(`${baseURL}`, {
+      fullName,
+      phone,
+      birthDate,
+      note
+    });
+    return id;
   }
 };

@@ -21,7 +21,7 @@ export default function GroupsScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [showAddGroupModal, setShowAddGroupModal] = useState<boolean>(false);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
   const theme = useAppTheme();
   const deferredQuery = useDeferredValue(searchQuery);
@@ -57,7 +57,7 @@ export default function GroupsScreen() {
 
   const handleGroupAdded = useCallback((group: GroupResponse) => {
     setGroups(prev => [group, ...prev]);
-    setShowAddGroupModal(false);
+    setShowAddModal(false);
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, []);
 
@@ -70,7 +70,7 @@ export default function GroupsScreen() {
       <CustomAppbar
         title='Groups'
         badgeCount={filteredGroups.length}
-        onAddPress={() => setShowAddGroupModal(true)}
+        onAddPress={() => setShowAddModal(true)}
       />
 
       <FlatList
@@ -98,8 +98,8 @@ export default function GroupsScreen() {
       />
 
       <AddGroupDialog
-        visible={showAddGroupModal}
-        onDismiss={() => setShowAddGroupModal(false)}
+        visible={showAddModal}
+        onDismiss={() => setShowAddModal(false)}
         onGroupAdded={handleGroupAdded}
       />
     </>
