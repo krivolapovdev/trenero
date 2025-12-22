@@ -1,7 +1,7 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useState } from 'react';
-import { Appearance, Linking, ScrollView, useColorScheme } from 'react-native';
-import { Divider, List, Switch, Text, useTheme } from 'react-native-paper';
+import { Linking, ScrollView } from 'react-native';
+import { Divider, List, Text, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomAppbar } from '@/components/CustomAppbar';
 import { ConfirmDialog, LanguageDialog } from '@/components/dialogs';
@@ -13,7 +13,6 @@ export default function SettingsScreen() {
   const theme = useTheme();
   const logout = useAuthStore(state => state.logout);
 
-  const [isDarkMode, setIsDarkMode] = useState(useColorScheme() === 'dark');
   const [logoutDialogVisible, setLogoutDialogVisible] =
     useState<boolean>(false);
   const [language, setLanguage] = useState<'en' | 'ru'>('en');
@@ -21,13 +20,6 @@ export default function SettingsScreen() {
     useState<boolean>(false);
   const [contactDialogVisible, setContactDialogVisible] =
     useState<boolean>(false);
-
-  const toggleTheme = () => {
-    setIsDarkMode(prev => {
-      Appearance.setColorScheme(prev ? 'light' : 'dark');
-      return !prev;
-    });
-  };
 
   const confirmLogout = async () => {
     await logout();
@@ -44,19 +36,6 @@ export default function SettingsScreen() {
       >
         <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 0 }}>
           <SettingsSection title='APPEARANCE'>
-            <SettingsItem
-              title='Dark Mode'
-              icon='weather-sunset-down'
-              right={() => (
-                <Switch
-                  value={isDarkMode}
-                  onValueChange={toggleTheme}
-                />
-              )}
-            />
-
-            <Divider />
-
             <SettingsItem
               title='Language'
               icon='flag-outline'
