@@ -15,15 +15,19 @@ import { GroupItem } from '@/components/GroupItem';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { type GroupResponse, groupService } from '@/services/group';
+import { useAppStore } from '@/stores/appStore';
 
 export default function GroupsScreen() {
-  const [groups, setGroups] = useState<GroupResponse[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const theme = useAppTheme();
+
+  const groups = useAppStore(state => state.groups);
+  const setGroups = useAppStore(state => state.setGroups);
+
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
-  const theme = useAppTheme();
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const deferredQuery = useDeferredValue(searchQuery);
 
   const listRef = useRef<FlatList>(null);
@@ -48,18 +52,21 @@ export default function GroupsScreen() {
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [setGroups]);
 
   const renderItem = useCallback(
     ({ item }: { item: GroupResponse }) => <GroupItem {...item} />,
     []
   );
 
-  const handleGroupAdded = useCallback((group: GroupResponse) => {
-    setGroups(prev => [group, ...prev]);
-    setShowAddModal(false);
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, []);
+  const handleGroupAdded = useCallback(
+    (group: GroupResponse) => {
+      setGroups([group, ...groups]);
+      setShowAddModal(false);
+      listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    },
+    [groups, setGroups]
+  );
 
   useEffect(() => {
     void fetchGroups();
