@@ -2,6 +2,7 @@ package tech.trenero.backend.student.internal.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupSpi;
 import tech.trenero.backend.student.internal.entity.Student;
+import tech.trenero.backend.student.internal.input.CreateStudentInput;
 import tech.trenero.backend.student.internal.repository.StudentRepository;
-import tech.trenero.backend.student.internal.request.CreateStudentInput;
 
 @Service
 @RequiredArgsConstructor
@@ -26,15 +27,9 @@ public class StudentGraphQlService {
     return studentRepository.findAllByOwnerIdAndDeletedFalse(jwtUser.userId()).stream().toList();
   }
 
-  public Student getStudentById(UUID studentId, JwtUser jwtUser) {
+  public Optional<Student> getStudentById(UUID studentId, JwtUser jwtUser) {
     log.info("Getting student by id={} for ownerId={}", studentId, jwtUser.userId());
-
-    return studentRepository
-        .findByIdAndOwnerId(studentId, jwtUser.userId())
-        .orElseThrow(
-            () ->
-                new EntityNotFoundException(
-                    "Student not found with id: " + studentId + " for current user"));
+    return studentRepository.findByIdAndOwnerId(studentId, jwtUser.userId());
   }
 
   @Transactional
@@ -51,9 +46,7 @@ public class StudentGraphQlService {
             .groupId(input.groupId())
             .build();
 
-    Student savedStudent = saveStudent(student);
-
-    return savedStudent;
+    return saveStudent(student);
   }
 
   @Transactional

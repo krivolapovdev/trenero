@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -16,7 +17,10 @@ import lombok.NonNull;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "students", schema = "students_module")
+@Table(
+    name = "students",
+    schema = "students_module",
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"owner_id", "fullName"})})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

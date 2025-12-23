@@ -1,4 +1,4 @@
-package tech.trenero.backend.student.internal.request;
+package tech.trenero.backend.student.internal.input;
 
 import java.time.LocalDate;
 import java.util.UUID;
