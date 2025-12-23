@@ -35,6 +35,7 @@ type Group {
     name: String!
     createdAt: DateTime!
     defaultPrice: BigDecimal
+    students: [Student]
 }
 
 input CreateStudentInput {

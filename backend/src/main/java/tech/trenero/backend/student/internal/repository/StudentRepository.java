@@ -39,4 +39,14 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           ORDER BY s.fullName""")
   List<Student> findAllByIdInAndOwnerId(
       @Param("ids") List<UUID> ids, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+          SELECT DISTINCT s
+          FROM Student AS s
+          WHERE s.groupId = :groupId
+            AND s.ownerId = :ownerId
+          ORDER BY s.fullName""")
+  List<Student> findAllByGroupIdAndOwnerId(
+      @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
 }

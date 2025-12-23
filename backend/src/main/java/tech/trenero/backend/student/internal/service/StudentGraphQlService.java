@@ -65,4 +65,9 @@ public class StudentGraphQlService {
     student.setDeleted(true);
     return studentRepository.save(student);
   }
+
+  public List<Student> getStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
+    log.info("Getting students by groupId={} for ownerId={}", groupId, jwtUser.userId());
+    return studentRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId());
+  }
 }
