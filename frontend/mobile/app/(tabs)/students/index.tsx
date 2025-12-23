@@ -8,20 +8,28 @@ import {
   useState
 } from 'react';
 import { FlatList } from 'react-native';
-import { Searchbar } from 'react-native-paper';
 import { CustomAppbar } from '@/components/CustomAppbar';
 import { AddStudentDialog } from '@/components/dialogs/AddStudentDialog';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { StudentItem } from '@/components/StudentItem';
+import { StudentSearchbarWithFilter } from '@/components/StudentSearchbarWithFilter';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { type StudentResponse, studentService } from '@/services/student';
+import { useAppStore } from '@/stores/appStore';
 
 export default function StudentsScreen() {
-  const [students, setStudents] = useState<StudentResponse[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const students = useAppStore(state => state.students);
+  const setStudents = useAppStore(state => state.setStudents);
+
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
+
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedGroup, setSelectedGroup] = useState<string | null>('All');
+  const [selectedStatus, setSelectedStatus] = useState<
+    'All' | 'Attending' | 'Paid'
+  >('All');
 
   const theme = useAppTheme();
   const deferredQuery = useDeferredValue(searchQuery);
@@ -31,17 +39,36 @@ export default function StudentsScreen() {
 
   const filteredStudents = useMemo(() => {
     const query = deferredQuery.trim().toLowerCase();
-    return query
-      ? students.filter(student =>
-          student.fullName.toLowerCase().includes(query)
-        )
-      : students;
-  }, [students, deferredQuery]);
+
+    return students.filter(student => {
+      if (query && !student.fullName.toLowerCase().includes(query)) {
+        return false;
+      }
+
+      if (selectedGroup !== 'All' && student.group?.name !== selectedGroup) {
+        return false;
+      }
+
+      if (selectedStatus !== 'All') {
+        if (selectedStatus === 'Attending' && !student.isAttending) {
+          return false;
+        }
+
+        if (selectedStatus === 'Paid' && !student.isPaid) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [students, deferredQuery, selectedGroup, selectedStatus]);
 
   const fetchStudents = useCallback(async () => {
     try {
       setRefreshing(true);
       setError(null);
+      setSelectedGroup('All');
+      setSelectedStatus('All');
       const data = await studentService.getAllStudents();
       setStudents(data);
     } catch (error) {
@@ -50,25 +77,23 @@ export default function StudentsScreen() {
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [setStudents]);
 
   const renderItem = useCallback(
-    ({ item }: { item: StudentResponse }) => (
-      <StudentItem
-        {...item}
-        groups={['OTG-1']}
-        isAttending={true}
-        isPaid={true}
-      />
-    ),
+    ({ item }: { item: StudentResponse }) => <StudentItem {...item} />,
     []
   );
 
-  const handleStudentAdded = useCallback((student: StudentResponse) => {
-    setStudents(prev => [student, ...prev]);
-    setShowAddModal(false);
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, []);
+  const handleStudentAdded = useCallback(
+    (student: StudentResponse) => {
+      setStudents([student, ...students]);
+      setShowAddModal(false);
+      setSelectedGroup('All');
+      setSelectedStatus('All');
+      listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    },
+    [students, setStudents]
+  );
 
   useEffect(() => {
     void fetchStudents();
@@ -92,14 +117,17 @@ export default function StudentsScreen() {
         showsVerticalScrollIndicator={false}
         refreshing={refreshing}
         onRefresh={fetchStudents}
+        keyboardShouldPersistTaps='handled'
         ListHeaderComponent={
           <>
-            <Searchbar
-              placeholder='Search by name'
+            <StudentSearchbarWithFilter
               value={searchQuery}
-              onChangeText={setSearchQuery}
-              style={{ backgroundColor: theme.colors.surface }}
-              onClearIconPress={() => setSearchQuery('')}
+              onChange={setSearchQuery}
+              onClear={() => setSearchQuery('')}
+              onFilter={({ group, status }) => {
+                setSelectedGroup(group);
+                setSelectedStatus(status);
+              }}
             />
             <OptionalErrorMessage error={error} />
           </>

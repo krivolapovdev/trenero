@@ -1,12 +1,12 @@
 import { Link } from 'expo-router';
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Card, Text, TouchableRipple, useTheme } from 'react-native-paper';
+import { Card, Text, useTheme } from 'react-native-paper';
 import type { GroupResponse } from '@/services/group';
 
 type Props = GroupResponse & {};
 
-export const GroupItem = memo(({ id, name }: Readonly<Props>) => {
+export const GroupItem = memo(({ id, name, defaultPrice }: Readonly<Props>) => {
   const theme = useTheme();
 
   return (
@@ -20,10 +20,7 @@ export const GroupItem = memo(({ id, name }: Readonly<Props>) => {
           params: { id }
         }}
       >
-        <TouchableRipple
-          borderless
-          style={styles.touchable}
-        >
+        <Card.Content style={styles.cardContent}>
           <View style={styles.row}>
             <View style={styles.info}>
               <Text variant='titleMedium'>{name}</Text>
@@ -31,7 +28,7 @@ export const GroupItem = memo(({ id, name }: Readonly<Props>) => {
                 variant='bodySmall'
                 style={{ color: theme.colors.outline }}
               >
-                {id}
+                {defaultPrice}
               </Text>
             </View>
 
@@ -49,16 +46,17 @@ export const GroupItem = memo(({ id, name }: Readonly<Props>) => {
               </Text>
             </View>
           </View>
-        </TouchableRipple>
+        </Card.Content>
       </Link>
     </Card>
   );
 });
 
 const styles = StyleSheet.create({
-  touchable: {
+  cardContent: {
     borderRadius: 8,
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
     width: '100%'
   },
   row: {

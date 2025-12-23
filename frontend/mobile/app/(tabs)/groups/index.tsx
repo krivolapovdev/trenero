@@ -90,6 +90,7 @@ export default function GroupsScreen() {
         showsVerticalScrollIndicator={false}
         refreshing={refreshing}
         onRefresh={fetchGroups}
+        keyboardShouldPersistTaps='handled'
         ListHeaderComponent={
           <>
             <Searchbar
