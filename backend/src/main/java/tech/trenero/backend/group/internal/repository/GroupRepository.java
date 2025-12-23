@@ -7,10 +7,10 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
+import org.springframework.graphql.data.GraphQlRepository;
 import tech.trenero.backend.group.internal.entity.Group;
 
-@Repository
+@GraphQlRepository
 public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull UUID> {
   @Query(
       """
@@ -24,7 +24,6 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
       """
           SELECT g
           FROM Group AS g
-          LEFT JOIN FETCH g.studentIds
           WHERE g.id = :groupId
             AND g.ownerId = :ownerId""")
   Optional<Group> findByIdAndOwnerId(
@@ -44,9 +43,7 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
       """
         SELECT DISTINCT g
         FROM Group AS g
-        JOIN g.studentIds AS s
-        WHERE s = :studentId
-          AND g.ownerId = :ownerId
+        WHERE g.ownerId = :ownerId
         ORDER BY g.name""")
   List<Group> findAllByStudentIdsContainsAndOwnerId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);

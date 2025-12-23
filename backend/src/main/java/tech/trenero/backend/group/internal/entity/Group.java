@@ -1,22 +1,19 @@
 package tech.trenero.backend.group.internal.entity;
 
 import com.github.f4b6a3.uuid.UuidCreator;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
@@ -27,15 +24,19 @@ import org.hibernate.annotations.CreationTimestamp;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Group {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
+  @Builder.Default
   private UUID id = UuidCreator.getTimeOrderedEpoch();
 
   @Column(name = "owner_id", nullable = false, updatable = false)
+  @NonNull
   private UUID ownerId;
 
   @Column(name = "name", nullable = false)
+  @NonNull
   private String name;
 
   @Column(name = "default_price")
@@ -43,13 +44,9 @@ public class Group {
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
-  private LocalDateTime createdAt;
+  private OffsetDateTime createdAt;
 
-  @ElementCollection
-  @CollectionTable(
-      name = "group_students",
-      schema = "groups_module",
-      joinColumns = @JoinColumn(name = "group_id"))
-  @Column(name = "student_id")
-  private List<UUID> studentIds = new ArrayList<>();
+  @Column(name = "deleted")
+  @Builder.Default
+  private boolean deleted = false;
 }

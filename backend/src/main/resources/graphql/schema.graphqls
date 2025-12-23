@@ -6,16 +6,21 @@ scalar BigDecimal
 type Query {
     student(id: UUID!): Student
     students: [Student]
+
+    group(id: UUID!): Group
+    groups: [Group]
 }
 
 type Mutation {
     createStudent(input: CreateStudentInput!): Student!
     deleteStudent(id: UUID!): Student
+
+    createGroup(input: CreateGroupInput!): Group!
+    deleteGroup(id: UUID!): Group
 }
 
 type Student {
     id: UUID!
-    ownerId: UUID!
     fullName: String!
     createdAt: DateTime!
     birthDate: Date
@@ -27,7 +32,6 @@ type Student {
 
 type Group {
     id: UUID!
-    ownerId: UUID!
     name: String!
     createdAt: DateTime!
     defaultPrice: BigDecimal
@@ -41,3 +45,7 @@ input CreateStudentInput {
     groupId: UUID
 }
 
+input CreateGroupInput {
+    name: String!
+    defaultPrice: BigDecimal
+}

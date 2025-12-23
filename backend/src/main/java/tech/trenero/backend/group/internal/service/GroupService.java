@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.response.GroupResponse;
-import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.internal.entity.Group;
 import tech.trenero.backend.group.internal.mapper.GroupMapper;
@@ -44,8 +43,10 @@ public class GroupService {
   public GroupWithStudentsResponse getGroupWithStudentsById(UUID groupId, JwtUser jwtUser) {
     log.info("Getting group with students by id={} for ownerId={}", groupId, jwtUser.userId());
     Group group = findGroupOrThrow(groupId, jwtUser);
-    List<StudentResponse> students = studentSpi.getStudentsByIds(group.getStudentIds(), jwtUser);
-    return new GroupWithStudentsResponse(groupMapper.toGroupResponse(group), students);
+    //    List<StudentResponse> students = studentSpi.getStudentsByIds(group.getStudentIds(),
+    // jwtUser);
+    //    return new GroupWithStudentsResponse(groupMapper.toGroupResponse(group), students);
+    return null;
   }
 
   public List<GroupResponse> getGroupsByStudentId(UUID studentId, JwtUser jwtUser) {
@@ -84,7 +85,7 @@ public class GroupService {
 
     validateStudentById(request.studentId(), jwtUser);
 
-    group.getStudentIds().add(request.studentId());
+    //    group.getStudentIds().add(request.studentId());
 
     saveGroup(group);
   }
@@ -101,7 +102,7 @@ public class GroupService {
 
     List<Group> groups = groupRepository.findAllByIdInAndOwnerId(studentGroups, jwtUser.userId());
 
-    groups.forEach(group -> group.getStudentIds().add(studentId));
+    //    groups.forEach(group -> group.getStudentIds().add(studentId));
 
     groupRepository.saveAll(groups);
   }
@@ -116,7 +117,7 @@ public class GroupService {
 
     Group group = findGroupOrThrow(groupId, jwtUser);
 
-    group.getStudentIds().remove(request.studentId());
+    //    group.getStudentIds().remove(request.studentId());
 
     saveGroup(group);
   }
