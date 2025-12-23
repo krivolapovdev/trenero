@@ -26,7 +26,7 @@ type Student {
     birthDate: Date
     phone: String
     note: String
-    groupId: UUID
+    group: Group
     deleted: Boolean
 }
 
