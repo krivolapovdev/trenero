@@ -1,5 +1,5 @@
 import { api } from '@/services';
-import type { GroupResponse } from '@/services/group/group.types';
+import type { GroupResponse } from '@/types';
 
 const baseURL = '/api/v1/groups';
 

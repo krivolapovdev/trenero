@@ -14,8 +14,9 @@ import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { StudentItem } from '@/components/StudentItem';
 import { StudentSearchbarWithFilter } from '@/components/StudentSearchbarWithFilter';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { type StudentResponse, studentService } from '@/services/student';
+import { studentService } from '@/services/student';
 import { useAppStore } from '@/stores/appStore';
+import type { StudentResponse } from '@/types/student';
 
 export default function StudentsScreen() {
   const students = useAppStore(state => state.students);

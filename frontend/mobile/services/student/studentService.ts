@@ -1,5 +1,5 @@
 import { api } from '@/services';
-import type { StudentResponse } from '@/services/student/student.types';
+import type { StudentResponse } from '@/types';
 
 const baseURL = '/api/v1/students';
 

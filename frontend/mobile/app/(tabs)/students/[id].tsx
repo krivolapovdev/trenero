@@ -5,8 +5,8 @@ import { Text } from 'react-native-paper';
 import { CustomAppbar } from '@/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import type { StudentResponse } from '@/services/student';
 import { studentService } from '@/services/student/studentService';
+import type { StudentResponse } from '@/types/student';
 
 export default function StudentByIdScreen() {
   const [student, setStudent] = useState<StudentResponse | null>(null);

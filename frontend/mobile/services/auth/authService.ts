@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { api } from '@/services';
-import type { AuthResponse } from '@/services/auth/auth.types';
 import { useAuthStore } from '@/stores/authStore';
+import type { AuthResponse } from '@/types/auth';
 
 const baseURL = '/api/v1/oauth2';
 

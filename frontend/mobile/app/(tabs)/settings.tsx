@@ -1,16 +1,16 @@
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useState } from 'react';
 import { Linking, ScrollView } from 'react-native';
-import { Divider, List, Text, useTheme } from 'react-native-paper';
+import { Divider, List, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomAppbar } from '@/components/CustomAppbar';
 import { ConfirmDialog, LanguageDialog } from '@/components/dialogs';
 import { SettingsItem } from '@/components/SettingsItem';
 import { SettingsSection } from '@/components/SettingsSection';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function SettingsScreen() {
-  const theme = useTheme();
+  const theme = useAppTheme();
   const logout = useAuthStore(state => state.logout);
 
   const [logoutDialogVisible, setLogoutDialogVisible] =
@@ -23,7 +23,6 @@ export default function SettingsScreen() {
 
   const confirmLogout = async () => {
     await logout();
-    await GoogleSignin.signOut();
     setLogoutDialogVisible(false);
   };
 

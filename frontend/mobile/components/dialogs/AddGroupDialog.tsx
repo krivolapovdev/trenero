@@ -3,7 +3,8 @@ import { Text, View } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
-import { type GroupResponse, groupService } from '@/services/group';
+import { groupService } from '@/services/group';
+import type { GroupResponse } from '@/types/group';
 
 const INPUT_THEME = { roundness: 10 };
 

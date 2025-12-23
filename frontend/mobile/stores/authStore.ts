@@ -1,12 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-
-type User = {
-  id: string;
-  email: string;
-};
+import type { User } from '@/types';
 
 type AuthStore = {
   user: User | null;
@@ -34,6 +31,7 @@ export const useAuthStore = create<AuthStore>()(
       logout: async () => {
         set({ user: null, accessToken: null });
         await SecureStore.deleteItemAsync('refresh_token');
+        await GoogleSignin.signOut();
       },
 
       getRefreshToken: async () => {

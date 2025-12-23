@@ -1,5 +1,5 @@
 import { api } from '@/services';
-import type { JwtTokenResponse } from '@/services/auth/auth.types';
+import type { JwtTokenResponse } from '@/types';
 
 const baseURL = '/api/v1/tokens';
 

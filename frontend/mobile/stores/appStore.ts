@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import type { GroupResponse } from '@/services/group';
-import type { StudentResponse } from '@/services/student';
+import type { GroupResponse } from '@/types/group';
+import type { StudentResponse } from '@/types/student';
 
 type AppStore = {
   students: StudentResponse[];

@@ -14,8 +14,9 @@ import { AddGroupDialog } from '@/components/dialogs';
 import { GroupItem } from '@/components/GroupItem';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { type GroupResponse, groupService } from '@/services/group';
+import { groupService } from '@/services/group';
 import { useAppStore } from '@/stores/appStore';
+import type { GroupResponse } from '@/types/group';
 
 export default function GroupsScreen() {
   const theme = useAppTheme();

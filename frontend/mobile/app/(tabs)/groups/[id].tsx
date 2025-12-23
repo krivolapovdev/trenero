@@ -5,7 +5,8 @@ import { Text } from 'react-native-paper';
 import { CustomAppbar } from '@/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { type GroupResponse, groupService } from '@/services/group';
+import { groupService } from '@/services/group';
+import type { GroupResponse } from '@/types/group';
 
 export default function GroupByIdScreen() {
   const [group, setGroup] = useState<GroupResponse | null>(null);

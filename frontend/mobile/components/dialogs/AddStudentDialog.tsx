@@ -4,7 +4,8 @@ import DatePicker from 'react-native-date-picker';
 import { TextInput } from 'react-native-paper';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
-import { type StudentResponse, studentService } from '@/services/student';
+import { studentService } from '@/services/student';
+import type { StudentResponse } from '@/types/student';
 
 const INPUT_THEME = { roundness: 10 };
 
