@@ -3,57 +3,44 @@ package tech.trenero.backend.student.internal.controller;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import tech.trenero.backend.common.response.StudentResponse;
+import org.springframework.stereotype.Controller;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.student.internal.request.CreateStudentRequest;
-import tech.trenero.backend.student.internal.response.StudentWithGroupsResponse;
-import tech.trenero.backend.student.internal.service.StudentService;
+import tech.trenero.backend.student.internal.entity.Student;
+import tech.trenero.backend.student.internal.request.CreateStudentInput;
+import tech.trenero.backend.student.internal.service.StudentGraphQlService;
 
-@RestController
-@RequestMapping("/api/v1/students")
+@Controller
 @RequiredArgsConstructor
-@Validated
 public class StudentController {
-  private final StudentService studentService;
+  private final StudentGraphQlService studentService;
 
-  @GetMapping
+  @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public List<StudentResponse> getAllStudents(@AuthenticationPrincipal JwtUser jwtUser) {
+  public List<Student> students(@AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.getAllStudents(jwtUser);
   }
 
-  @GetMapping("/{studentId}")
+  @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public StudentWithGroupsResponse getStudentWithGroupsById(
-      @PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.getStudentWithGroupsById(studentId, jwtUser);
+  public Student student(@Argument UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.getStudentById(id, jwtUser);
   }
 
-  @PostMapping
+  @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  @ResponseStatus(HttpStatus.CREATED)
-  public UUID createStudent(
-      @RequestBody CreateStudentRequest request, @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.createStudent(request, jwtUser);
+  public Student createStudent(
+      @Argument CreateStudentInput input, @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.createStudent(input, jwtUser);
   }
 
-  @DeleteMapping("/{studentId}")
+  @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteStudent(
-      @PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
-    studentService.softDeleteStudent(studentId, jwtUser);
+  public Student deleteStudent(@Argument UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.softDeleteStudent(id, jwtUser);
   }
 }

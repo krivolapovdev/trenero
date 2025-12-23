@@ -6,11 +6,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
@@ -18,15 +20,19 @@ import org.hibernate.annotations.CreationTimestamp;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Student {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
+  @Builder.Default
   private UUID id = UuidCreator.getTimeOrderedEpoch();
 
   @Column(name = "owner_id", nullable = false)
+  @NonNull
   private UUID ownerId;
 
   @Column(name = "full_name", nullable = false)
+  @NonNull
   private String fullName;
 
   @Column(name = "birth_date")
@@ -38,10 +44,14 @@ public class Student {
   @Column(name = "note")
   private String note;
 
+  @Column(name = "group_id")
+  private UUID groupId;
+
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
-  private LocalDateTime createdAt;
+  private OffsetDateTime createdAt;
 
   @Column(name = "deleted")
+  @Builder.Default
   private boolean deleted = false;
 }

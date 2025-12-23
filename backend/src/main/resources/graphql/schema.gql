@@ -1,0 +1,43 @@
+scalar Date
+scalar DateTime
+scalar UUID
+scalar BigDecimal
+
+type Query {
+    student(id: UUID!): Student
+    students: [Student]
+}
+
+type Mutation {
+    createStudent(input: CreateStudentInput!): Student!
+    deleteStudent(id: UUID!): Student
+}
+
+type Student {
+    id: UUID!
+    ownerId: UUID!
+    fullName: String!
+    createdAt: DateTime!
+    birthDate: Date
+    phone: String
+    note: String
+    groupId: UUID
+    deleted: Boolean
+}
+
+type Group {
+    id: UUID!
+    ownerId: UUID!
+    name: String!
+    createdAt: DateTime!
+    defaultPrice: BigDecimal
+}
+
+input CreateStudentInput {
+    fullName: String!
+    birthDate: Date
+    phone: String
+    note: String
+    groupId: UUID
+}
+

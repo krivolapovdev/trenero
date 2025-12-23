@@ -7,10 +7,10 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
+import org.springframework.graphql.data.GraphQlRepository;
 import tech.trenero.backend.student.internal.entity.Student;
 
-@Repository
+@GraphQlRepository
 public interface StudentRepository extends JpaRepository<@NonNull Student, @NonNull UUID> {
   @Query(
       """

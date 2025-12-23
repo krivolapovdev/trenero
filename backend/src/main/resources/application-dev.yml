@@ -9,7 +9,10 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
+  graphql:
+    graphiql:
+      enabled: true
 springdoc:
   api-docs:
     enabled: true
