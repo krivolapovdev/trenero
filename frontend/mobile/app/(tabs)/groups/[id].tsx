@@ -33,6 +33,10 @@ export default function GroupByIdScreen() {
     console.log('Edit pressed');
   };
 
+  const handleDeletePress = () => {
+    console.log('Delete pressed');
+  };
+
   useEffect(() => {
     void fetchGroupById();
   }, [fetchGroupById]);
@@ -41,8 +45,9 @@ export default function GroupByIdScreen() {
     <>
       <CustomAppbar
         title='Group'
-        onEditPress={handleEditPress}
         showBackButton={true}
+        onEditPress={handleEditPress}
+        onDeletePress={handleDeletePress}
       />
 
       <ScrollView

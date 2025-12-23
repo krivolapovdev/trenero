@@ -34,6 +34,10 @@ export default function StudentByIdScreen() {
     console.log('Edit pressed');
   };
 
+  const handleDeletePress = () => {
+    console.log('Delete pressed');
+  };
+
   useEffect(() => {
     void fetchGroupById();
   }, [fetchGroupById]);
@@ -42,8 +46,9 @@ export default function StudentByIdScreen() {
     <>
       <CustomAppbar
         title='Student'
-        onEditPress={handleEditPress}
         showBackButton={true}
+        onEditPress={handleEditPress}
+        onDeletePress={handleDeletePress}
       />
 
       <ScrollView
