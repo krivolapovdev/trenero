@@ -1,7 +1,5 @@
 package tech.trenero.backend.student.internal.spi;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +23,6 @@ public class StudentSpiImpl implements StudentSpi {
 
   @Override
   public StudentResponse getStudentById(UUID studentId, JwtUser jwtUser) {
-    requireNonNull(studentId, "studentId must not be null");
-    requireNonNull(jwtUser, "jwtUser must not be null");
-    log.debug("Fetching student by id={} for user={}", studentId, jwtUser.userId());
     return studentService.getStudentById(studentId, jwtUser);
   }
 

@@ -4,6 +4,7 @@ import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
@@ -20,7 +21,10 @@ import org.hibernate.annotations.CreationTimestamp;
 @Table(
     name = "groups",
     schema = "groups_module",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"owner_id", "name"})})
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"owner_id", "name"})},
+    indexes = {
+      @Index(columnList = "owner_id, name"),
+    })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -46,7 +50,7 @@ public class Group {
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;
 
-  @Column(name = "deleted")
+  @Column(name = "deleted", nullable = false)
   @Builder.Default
   private boolean deleted = false;
 }

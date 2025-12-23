@@ -4,6 +4,7 @@ import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
@@ -20,7 +21,11 @@ import org.hibernate.annotations.CreationTimestamp;
 @Table(
     name = "students",
     schema = "students_module",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"owner_id", "fullName"})})
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"owner_id", "fullName"})},
+    indexes = {
+      @Index(columnList = "owner_id, full_name"),
+      @Index(columnList = "owner_id, group_id, full_name")
+    })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,7 +36,7 @@ public class Student {
   @Builder.Default
   private UUID id = UuidCreator.getTimeOrderedEpoch();
 
-  @Column(name = "owner_id", nullable = false)
+  @Column(name = "owner_id", nullable = false, updatable = false)
   @NonNull
   private UUID ownerId;
 
@@ -55,7 +60,7 @@ public class Student {
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;
 
-  @Column(name = "deleted")
+  @Column(name = "deleted", nullable = false)
   @Builder.Default
   private boolean deleted = false;
 }

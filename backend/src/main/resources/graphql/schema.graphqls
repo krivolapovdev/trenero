@@ -5,10 +5,12 @@ scalar BigDecimal
 
 type Query {
     student(id: UUID!): Student
-    students: [Student]
+    students: [Student]!
 
     group(id: UUID!): Group
-    groups: [Group]
+    groups: [Group]!
+
+    payment(id: UUID!): Payment
 }
 
 type Mutation {
@@ -17,6 +19,8 @@ type Mutation {
 
     createGroup(input: CreateGroupInput!): Group!
     deleteGroup(id: UUID!): Group
+
+    createPayment(input: CreatePaymentInput!): Payment!
 }
 
 type Student {
@@ -28,6 +32,7 @@ type Student {
     note: String
     group: Group
     deleted: Boolean
+    payments: [Payment!]!
 }
 
 type Group {
@@ -35,7 +40,14 @@ type Group {
     name: String!
     createdAt: DateTime!
     defaultPrice: BigDecimal
-    students: [Student]
+    students: [Student!]!
+}
+
+type Payment {
+    id: UUID!
+    studentId: UUID!
+    amount: BigDecimal!
+    createdAt: DateTime!
 }
 
 input CreateStudentInput {
@@ -49,4 +61,9 @@ input CreateStudentInput {
 input CreateGroupInput {
     name: String!
     defaultPrice: BigDecimal
+}
+
+input CreatePaymentInput {
+    studentId: UUID!
+    amount: BigDecimal!
 }

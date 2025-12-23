@@ -1,4 +1,4 @@
-@NamedInterface(name = "user-external")
+@NamedInterface("user-external")
 package tech.trenero.backend.user.external;
 
 import org.springframework.modulith.NamedInterface;

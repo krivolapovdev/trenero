@@ -17,7 +17,7 @@ public class GroupGraphQlResolver {
   @Lazy private final StudentSpi studentSpi;
 
   @SchemaMapping(typeName = "Group", field = "students")
-  public List<StudentDto> getStudents(Group group, @AuthenticationPrincipal JwtUser jwtUser) {
+  public List<StudentDto> students(Group group, @AuthenticationPrincipal JwtUser jwtUser) {
     return studentSpi.getStudentsByGroupId(group.getId(), jwtUser);
   }
 }

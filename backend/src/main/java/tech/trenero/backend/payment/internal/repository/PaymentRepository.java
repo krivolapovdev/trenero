@@ -1,6 +1,7 @@
 package tech.trenero.backend.payment.internal.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,8 +14,19 @@ import tech.trenero.backend.payment.internal.entity.Payment;
 public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonNull UUID> {
   @Query(
       """
-        SELECT DISTINCT p
-        FROM Payment AS p
-        WHERE p.studentId = :studentId""")
-  List<Payment> findAllByStudentId(@Param("studentId") UUID studentId);
+          SELECT DISTINCT p
+          FROM Payment AS p
+          WHERE p.studentId = :studentId
+            AND p.ownerId = :ownerId
+          ORDER BY p.createdAt DESC""")
+  List<Payment> findAllByStudentId(
+      @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+          SELECT p
+          FROM Payment AS p
+          WHERE p.id = :id
+            AND p.ownerId = :ownerId""")
+  Optional<Payment> findByIdAndOwnerId(@Param("id") UUID id, @Param("ownerId") UUID ownerId);
 }

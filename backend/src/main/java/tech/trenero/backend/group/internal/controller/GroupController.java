@@ -13,12 +13,12 @@ import org.springframework.stereotype.Controller;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.internal.entity.Group;
 import tech.trenero.backend.group.internal.input.CreateGroupInput;
-import tech.trenero.backend.group.internal.service.GroupGraphQlService;
+import tech.trenero.backend.group.internal.service.GroupService;
 
 @Controller
 @RequiredArgsConstructor
 public class GroupController {
-  private final GroupGraphQlService groupService;
+  private final GroupService groupService;
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")

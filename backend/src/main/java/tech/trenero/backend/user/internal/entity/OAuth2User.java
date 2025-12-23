@@ -7,6 +7,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +15,14 @@ import lombok.NoArgsConstructor;
 import tech.trenero.backend.common.enums.OAuth2Provider;
 
 @Entity
-@Table(name = "users", schema = "users_module")
+@Table(
+    name = "users",
+    schema = "users_module",
+    uniqueConstraints = {
+      @UniqueConstraint(
+          name = "uq_users_provider_id",
+          columnNames = {"provider", "provider_id"})
+    })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

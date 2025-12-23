@@ -1,7 +1,6 @@
 package tech.trenero.backend.student.internal.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,15 +27,5 @@ public class StudentService {
             () ->
                 new EntityNotFoundException(
                     "Student not found with id: " + studentId + " for current user"));
-  }
-
-  public List<StudentResponse> getStudentsByIds(List<UUID> studentIds, JwtUser jwtUser) {
-    log.info(
-        "Getting students by ids={} for ownerId={}",
-        studentIds != null ? studentIds.toString() : null,
-        jwtUser.userId());
-    return studentRepository.findAllByIdInAndOwnerId(studentIds, jwtUser.userId()).stream()
-        .map(studentMapper::toStudentResponse)
-        .toList();
   }
 }
