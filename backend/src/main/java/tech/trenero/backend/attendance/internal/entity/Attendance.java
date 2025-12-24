@@ -35,6 +35,10 @@ public class Attendance {
   @Builder.Default
   private UUID id = UuidCreator.getTimeOrderedEpoch();
 
+  @Column(name = "owner_id", nullable = false, updatable = false)
+  @NonNull
+  private UUID ownerId;
+
   @Column(name = "lesson_id", nullable = false, updatable = false)
   @NonNull
   private UUID lessonId;
@@ -42,10 +46,6 @@ public class Attendance {
   @Column(name = "student_id", nullable = false, updatable = false)
   @NonNull
   private UUID studentId;
-
-  @Column(name = "owner_id", nullable = false, updatable = false)
-  @NonNull
-  private UUID ownerId;
 
   @Column(name = "present", nullable = false)
   private boolean present;

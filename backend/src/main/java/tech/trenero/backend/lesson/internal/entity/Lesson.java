@@ -33,13 +33,13 @@ public class Lesson {
   @Builder.Default
   private UUID id = UuidCreator.getTimeOrderedEpoch();
 
-  @Column(name = "group_id", nullable = false, updatable = false)
-  @NonNull
-  private UUID groupId;
-
   @Column(name = "owner_id", nullable = false, updatable = false)
   @NonNull
   private UUID ownerId;
+
+  @Column(name = "group_id", nullable = false, updatable = false)
+  @NonNull
+  private UUID groupId;
 
   @Column(name = "start_date_time", nullable = false)
   @NonNull

@@ -18,11 +18,7 @@ import tech.trenero.backend.common.enums.OAuth2Provider;
 @Table(
     name = "users",
     schema = "users_module",
-    uniqueConstraints = {
-      @UniqueConstraint(
-          name = "uq_users_provider_id",
-          columnNames = {"provider", "provider_id"})
-    })
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"provider", "provider_id"})})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
