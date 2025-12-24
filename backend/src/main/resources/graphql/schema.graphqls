@@ -4,12 +4,19 @@ scalar UUID
 scalar BigDecimal
 
 type Query {
+    students: [Student!]!
     student(id: UUID!): Student
-    students: [Student]!
 
+    groups: [Group!]!
     group(id: UUID!): Group
-    groups: [Group]!
 
+    lessons: [Lesson!]!
+    lesson(id: UUID!): Lesson
+
+    attendances: [Attendance!]!
+    attendance(id: UUID!): Attendance
+
+    payments: [Payment!]!
     payment(id: UUID!): Payment
 }
 
@@ -20,7 +27,14 @@ type Mutation {
     createGroup(input: CreateGroupInput!): Group!
     deleteGroup(id: UUID!): Group
 
+    createLesson(input: CreateLessonInput!): Lesson!
+    deleteLesson(id: UUID!): Lesson
+
+    createAttendance(input: CreateAttendanceInput!): Attendance!
+    deleteAttendance(id: UUID!): Attendance
+
     createPayment(input: CreatePaymentInput!): Payment!
+    deletePayment(id: UUID!): Payment
 }
 
 type Student {
@@ -31,8 +45,9 @@ type Student {
     phone: String
     note: String
     group: Group
-    deleted: Boolean
+    deleted: Boolean!
     payments: [Payment!]!
+    attendances: [Attendance!]!
 }
 
 type Group {
@@ -40,7 +55,27 @@ type Group {
     name: String!
     createdAt: DateTime!
     defaultPrice: BigDecimal
+    deleted: Boolean!
     students: [Student!]!
+    lessons: [Lesson!]!
+}
+
+type Lesson {
+    id: UUID!
+    groupId: UUID!
+    startDateTime: DateTime!
+    createdAt: DateTime!
+    deleted: Boolean!
+    attendances: [Attendance!]!
+}
+
+type Attendance {
+    id: UUID!
+    lessonId: UUID!
+    studentId: UUID!
+    present: Boolean!
+    createdAt: DateTime!
+    deleted: Boolean!
 }
 
 type Payment {
@@ -48,6 +83,7 @@ type Payment {
     studentId: UUID!
     amount: BigDecimal!
     createdAt: DateTime!
+    deleted: Boolean!
 }
 
 input CreateStudentInput {
@@ -61,6 +97,17 @@ input CreateStudentInput {
 input CreateGroupInput {
     name: String!
     defaultPrice: BigDecimal
+}
+
+input CreateLessonInput {
+    groupId: UUID!
+    startDateTime: DateTime!
+}
+
+input CreateAttendanceInput {
+    lessonId: UUID!
+    studentId: UUID!
+    present: Boolean!
 }
 
 input CreatePaymentInput {
