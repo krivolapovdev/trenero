@@ -21,6 +21,10 @@ type Query {
 }
 
 type Mutation {
+    googleLogin(input: SocialLoginInput!): LoginPayload!
+    appleLogin(input: SocialLoginInput!): LoginPayload!
+    refreshTokens(input: RefreshTokenInput!): JwtTokens!
+
     createStudent(input: CreateStudentInput!): Student!
     deleteStudent(id: UUID!): Student
 
@@ -35,6 +39,21 @@ type Mutation {
 
     createPayment(input: CreatePaymentInput!): Payment!
     deletePayment(id: UUID!): Payment
+}
+
+type JwtTokens {
+    accessToken: String!
+    refreshToken: String!
+}
+
+type LoginPayload {
+    user: User!
+    jwtTokens: JwtTokens!
+}
+
+type User {
+    id: UUID!
+    email: String!
 }
 
 type Student {
@@ -84,6 +103,14 @@ type Payment {
     amount: BigDecimal!
     createdAt: DateTime!
     deleted: Boolean!
+}
+
+input SocialLoginInput {
+    idToken: String!
+}
+
+input RefreshTokenInput {
+    refreshToken: String!
 }
 
 input CreateStudentInput {
