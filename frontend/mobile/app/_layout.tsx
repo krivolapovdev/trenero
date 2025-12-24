@@ -1,9 +1,11 @@
+import { ApolloProvider } from '@apollo/client/react';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import ErrorBoundary from 'react-native-error-boundary';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
+import { client } from '@/graphql';
 import { logError } from '@/helpers/logError';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
@@ -12,23 +14,25 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary onError={logError}>
-      <GestureHandlerRootView>
-        <BottomSheetModalProvider>
-          <PaperProvider theme={theme}>
-            <StatusBar style='dark' />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen
-                name='(auth)'
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name='(tabs)'
-                options={{ headerShown: false }}
-              />
-            </Stack>
-          </PaperProvider>
-        </BottomSheetModalProvider>
-      </GestureHandlerRootView>
+      <ApolloProvider client={client}>
+        <GestureHandlerRootView>
+          <BottomSheetModalProvider>
+            <PaperProvider theme={theme}>
+              <StatusBar style='dark' />
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen
+                  name='(auth)'
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name='(tabs)'
+                  options={{ headerShown: false }}
+                />
+              </Stack>
+            </PaperProvider>
+          </BottomSheetModalProvider>
+        </GestureHandlerRootView>
+      </ApolloProvider>
     </ErrorBoundary>
   );
 }
