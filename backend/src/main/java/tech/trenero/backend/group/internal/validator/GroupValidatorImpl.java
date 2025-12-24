@@ -16,6 +16,10 @@ public class GroupValidatorImpl implements GroupValidator {
   @Override
   public void validateGroupIsPresentAndActive(UUID groupId, JwtUser jwtUser)
       throws EntityNotFoundException {
+    if (groupId == null) {
+      return;
+    }
+
     groupService
         .getGroupById(groupId, jwtUser)
         .orElseThrow(() -> new EntityNotFoundException("Group not found by id: " + groupId));

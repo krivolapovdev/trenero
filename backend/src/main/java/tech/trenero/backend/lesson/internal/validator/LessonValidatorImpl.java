@@ -16,6 +16,10 @@ public class LessonValidatorImpl implements LessonValidator {
   @Override
   public void validateLessonIsPresentAndActive(UUID lessonId, JwtUser jwtUser)
       throws EntityNotFoundException {
+    if (lessonId == null) {
+      return;
+    }
+
     lessonService
         .getLessonById(lessonId, jwtUser)
         .orElseThrow(() -> new EntityNotFoundException("Lesson not found by id: " + lessonId));

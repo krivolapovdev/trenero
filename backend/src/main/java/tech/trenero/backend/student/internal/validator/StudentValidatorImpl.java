@@ -16,6 +16,10 @@ public class StudentValidatorImpl implements StudentValidator {
   @Override
   public void validateStudentIsPresentAndActive(UUID studentId, JwtUser jwtUser)
       throws EntityNotFoundException {
+    if (studentId == null) {
+      return;
+    }
+
     studentService
         .getStudentById(studentId, jwtUser)
         .filter(student -> !student.deleted())
