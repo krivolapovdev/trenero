@@ -40,17 +40,13 @@ public class GroupService {
   @Transactional
   public Optional<Group> softDeleteGroup(UUID id, JwtUser jwtUser) {
     log.info("Deleting group: {}", id);
-
-    Optional<Group> optionalGroup = groupRepository.findByIdAndOwnerId(id, jwtUser.userId());
-
-    if (optionalGroup.isEmpty()) {
-      return Optional.empty();
-    }
-
-    Group group = optionalGroup.get();
-    group.setDeleted(true);
-
-    return Optional.of(saveGroup(group));
+    return groupRepository
+        .findByIdAndOwnerId(id, jwtUser.userId())
+        .map(
+            group -> {
+              group.setDeleted(true);
+              return saveGroup(group);
+            });
   }
 
   private Group saveGroup(Group group) {
