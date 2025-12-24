@@ -28,20 +28,21 @@ public class GroupController {
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Group> group(@Argument UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
+  public Optional<Group> group(@Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.getGroupById(id, jwtUser);
   }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
   public Group createGroup(
-      @Argument CreateGroupInput input, @AuthenticationPrincipal JwtUser jwtUser) {
+      @Argument("input") CreateGroupInput input, @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.createGroup(input, jwtUser);
   }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Group deleteGroup(@Argument UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
+  public Optional<Group> deleteGroup(
+      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.softDeleteGroup(id, jwtUser);
   }
 }

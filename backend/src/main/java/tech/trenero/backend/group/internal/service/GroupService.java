@@ -1,6 +1,5 @@
 package tech.trenero.backend.group.internal.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,20 +42,18 @@ public class GroupService {
   }
 
   @Transactional
-  public Group softDeleteGroup(UUID id, JwtUser jwtUser) {
+  public Optional<Group> softDeleteGroup(UUID id, JwtUser jwtUser) {
     log.info("Deleting group: {}", id);
-    Group group = findGroupOrThrow(id, jwtUser);
-    group.setDeleted(true);
-    return groupRepository.save(group);
-  }
 
-  private Group findGroupOrThrow(UUID groupId, JwtUser jwtUser) {
-    log.debug("Fetching group by id={} for ownerId={}", groupId, jwtUser.userId());
-    return groupRepository
-        .findByIdAndOwnerId(groupId, jwtUser.userId())
-        .orElseThrow(
-            () ->
-                new EntityNotFoundException(
-                    "Group not found with id=" + groupId + " and ownerId=" + jwtUser.userId()));
+    Optional<Group> optionalGroup = groupRepository.findByIdAndOwnerId(id, jwtUser.userId());
+
+    if (optionalGroup.isEmpty()) {
+      return Optional.empty();
+    }
+
+    Group group = optionalGroup.get();
+    group.setDeleted(true);
+
+    return Optional.of(saveGroup(group));
   }
 }
