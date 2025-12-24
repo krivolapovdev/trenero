@@ -13,12 +13,12 @@ import org.springframework.stereotype.Controller;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.student.internal.entity.Student;
 import tech.trenero.backend.student.internal.input.CreateStudentInput;
-import tech.trenero.backend.student.internal.service.StudentGraphQlService;
+import tech.trenero.backend.student.internal.service.StudentService;
 
 @Controller
 @RequiredArgsConstructor
 public class StudentController {
-  private final StudentGraphQlService studentService;
+  private final StudentService studentService;
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
@@ -42,7 +42,8 @@ public class StudentController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Student deleteStudent(@Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
+  public Optional<Student> deleteStudent(
+      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.softDeleteStudent(id, jwtUser);
   }
 }
