@@ -1,5 +1,6 @@
 package tech.trenero.backend.attendance.internal.controller;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,6 +11,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import tech.trenero.backend.attendance.internal.entity.Attendance;
 import tech.trenero.backend.attendance.internal.input.CreateAttendanceInput;
 import tech.trenero.backend.attendance.internal.service.AttendanceService;
@@ -17,6 +19,7 @@ import tech.trenero.backend.common.security.JwtUser;
 
 @Controller
 @RequiredArgsConstructor
+@Validated
 public class AttendanceController {
   private final AttendanceService attendanceService;
 
@@ -36,7 +39,8 @@ public class AttendanceController {
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
   public Attendance createAttendance(
-      @Argument("input") CreateAttendanceInput input, @AuthenticationPrincipal JwtUser jwtUser) {
+      @Argument("input") @Valid CreateAttendanceInput input,
+      @AuthenticationPrincipal JwtUser jwtUser) {
     return attendanceService.createAttendance(input, jwtUser);
   }
 
