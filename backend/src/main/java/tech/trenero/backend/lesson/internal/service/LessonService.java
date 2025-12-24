@@ -73,6 +73,13 @@ public class LessonService {
         .map(lessonMapper::toDto);
   }
 
+  public List<LessonDto> getLessonsByGroupId(UUID groupId, JwtUser jwtUser) {
+    log.info("Getting lessons by groupId={} for ownerId={}", groupId, jwtUser.userId());
+    return lessonRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
+        .map(lessonMapper::toDto)
+        .toList();
+  }
+
   private Lesson saveLesson(Lesson lesson) {
     log.info("Saving lesson: {}", lesson);
     return lessonRepository.save(lesson);

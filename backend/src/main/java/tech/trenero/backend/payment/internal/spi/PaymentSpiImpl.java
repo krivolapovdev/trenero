@@ -4,14 +4,14 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import tech.trenero.backend.common.dto.PaymentDto;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.payment.external.PaymentSpi;
 import tech.trenero.backend.payment.internal.mapper.PaymentMapper;
 import tech.trenero.backend.payment.internal.service.PaymentService;
 
-@Service
+@Component
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentSpiImpl implements PaymentSpi {

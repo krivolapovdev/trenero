@@ -28,4 +28,22 @@ public interface AttendanceRepository extends JpaRepository<@NonNull Attendance,
           AND a.ownerId = :ownerId""")
   Optional<Attendance> findByIdAndOwnerId(
       @Param("attendanceId") UUID attendanceId, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+        SELECT a
+        FROM Attendance AS a
+        WHERE a.studentId = :studentId
+          AND a.ownerId = :ownerId""")
+  List<Attendance> findAllByStudentIdAndOwnerId(
+      @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+        SELECT a
+        FROM Attendance AS a
+        WHERE a.lessonId = :lessonId
+          AND a.ownerId = :ownerId""")
+  List<Attendance> findAllByLessonIdAndOwnerId(
+      @Param("lessonId") UUID lessonId, @Param("ownerId") UUID ownerId);
 }

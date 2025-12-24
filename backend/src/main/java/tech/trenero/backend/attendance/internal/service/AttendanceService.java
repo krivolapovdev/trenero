@@ -82,6 +82,20 @@ public class AttendanceService {
         .map(attendanceMapper::toDto);
   }
 
+  public List<AttendanceDto> getAttendancesByStudentId(UUID studentId, JwtUser jwtUser) {
+    log.info("Getting attendances by studentId={} for ownerId={}", studentId, jwtUser.userId());
+    return attendanceRepository.findAllByStudentIdAndOwnerId(studentId, jwtUser.userId()).stream()
+        .map(attendanceMapper::toDto)
+        .toList();
+  }
+
+  public List<AttendanceDto> getAttendancesByLessonId(UUID lessonId, JwtUser jwtUser) {
+    log.info("Getting attendances by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
+    return attendanceRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId()).stream()
+        .map(attendanceMapper::toDto)
+        .toList();
+  }
+
   private Attendance saveAttendance(Attendance attendance) {
     log.info("Saving attendance: {}", attendance);
     return attendanceRepository.save(attendance);
