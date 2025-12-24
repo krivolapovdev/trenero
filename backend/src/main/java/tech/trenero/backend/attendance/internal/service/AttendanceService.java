@@ -1,50 +1,76 @@
 package tech.trenero.backend.attendance.internal.service;
 
-import jakarta.transaction.Transactional;
+import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import tech.trenero.backend.attendance.internal.entity.StudentAttendance;
-import tech.trenero.backend.attendance.internal.mapper.StudentAttendanceMapper;
-import tech.trenero.backend.attendance.internal.repository.StudentAttendanceRepository;
-import tech.trenero.backend.attendance.internal.request.LessonRequest;
+import org.springframework.transaction.annotation.Transactional;
+import tech.trenero.backend.attendance.internal.entity.Attendance;
+import tech.trenero.backend.attendance.internal.input.CreateAttendanceInput;
+import tech.trenero.backend.attendance.internal.repository.AttendanceRepository;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.group.external.GroupSpi;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class AttendanceService {
-  private final StudentAttendanceRepository attendanceRepository;
-  private final LessonService lessonService;
-  private final StudentAttendanceMapper studentAttendanceMapper;
-  @Lazy private final GroupSpi groupSpi;
+  private final AttendanceRepository attendanceRepository;
 
-  @Transactional
-  public UUID createLessonWithAttendance(LessonRequest lessonRequest, JwtUser jwtUser) {
-    log.info("Creating lesson with attendance={} and user={}", lessonRequest, jwtUser);
-
-    validateUserGroupAccess(lessonRequest.groupId(), jwtUser);
-
-    var lesson = lessonService.createLesson(lessonRequest);
-
-    List<StudentAttendance> studentAttendanceList =
-        lessonRequest.attendance().stream()
-            .filter(Objects::nonNull)
-            .map(attend -> studentAttendanceMapper.toStudentAttendance(attend, lesson))
-            .toList();
-
-    attendanceRepository.saveAll(studentAttendanceList);
-
-    return lesson.getId();
+  public List<Attendance> getAllAttendances(JwtUser jwtUser) {
+    log.info("Getting all attendances for ownerId={}", jwtUser.userId());
+    return attendanceRepository.findAllByOwnerId(jwtUser.userId()).stream().toList();
   }
 
-  private void validateUserGroupAccess(UUID groupId, JwtUser jwtUser) {
-    log.debug("Checking if user owns group by id={} for user={}", groupId, jwtUser.userId());
-    groupSpi.getGroupById(groupId, jwtUser);
+  public Optional<Attendance> getAttendanceById(UUID attendanceId, JwtUser jwtUser) {
+    log.info("Getting attendance by id={} for ownerId={}", attendanceId, jwtUser.userId());
+    return attendanceRepository.findByIdAndOwnerId(attendanceId, jwtUser.userId());
+  }
+
+  @Transactional
+  public Attendance createAttendance(CreateAttendanceInput input, JwtUser jwtUser) {
+    log.info(
+        "Creating attendance for lessonId='{}', studentId='{}', present={}, ownerId={}",
+        input.lessonId(),
+        input.studentId(),
+        input.present(),
+        jwtUser.userId());
+
+    Attendance attendance =
+        Attendance.builder()
+            .lessonId(input.lessonId())
+            .studentId(input.studentId())
+            .present(input.present())
+            .ownerId(jwtUser.userId())
+            .createdAt(OffsetDateTime.now())
+            .deleted(false)
+            .build();
+
+    return saveAttendance(attendance);
+  }
+
+  @Transactional
+  public Attendance saveAttendance(Attendance attendance) {
+    log.info("Saving attendance: {}", attendance);
+    return attendanceRepository.save(attendance);
+  }
+
+  @Transactional
+  public Optional<Attendance> softDeleteAttendance(UUID attendanceId, JwtUser jwtUser) {
+    log.info("Soft deleting attendance: {}", attendanceId);
+
+    Optional<Attendance> optionalAttendance =
+        attendanceRepository.findByIdAndOwnerId(attendanceId, jwtUser.userId());
+
+    if (optionalAttendance.isEmpty()) {
+      return Optional.empty();
+    }
+
+    Attendance attendance = optionalAttendance.get();
+    attendance.setDeleted(true);
+
+    return Optional.of(saveAttendance(attendance));
   }
 }

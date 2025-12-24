@@ -1,32 +1,49 @@
 package tech.trenero.backend.attendance.internal.controller;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import tech.trenero.backend.attendance.internal.request.LessonRequest;
+import org.springframework.stereotype.Controller;
+import tech.trenero.backend.attendance.internal.entity.Attendance;
+import tech.trenero.backend.attendance.internal.input.CreateAttendanceInput;
 import tech.trenero.backend.attendance.internal.service.AttendanceService;
 import tech.trenero.backend.common.security.JwtUser;
 
-@RestController
-@RequestMapping("/api/v1/attendance")
+@Controller
 @RequiredArgsConstructor
-@Validated
 public class AttendanceController {
   private final AttendanceService attendanceService;
 
-  @PostMapping("/lesson")
+  @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  @ResponseStatus(HttpStatus.CREATED)
-  public UUID createLessonWithAttendance(
-      @RequestBody LessonRequest lessonRequest, @AuthenticationPrincipal JwtUser jwtUser) {
-    return attendanceService.createLessonWithAttendance(lessonRequest, jwtUser);
+  public List<Attendance> attendances(@AuthenticationPrincipal JwtUser jwtUser) {
+    return attendanceService.getAllAttendances(jwtUser);
+  }
+
+  @QueryMapping
+  @PreAuthorize("isAuthenticated()")
+  public Optional<Attendance> attendance(
+      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
+    return attendanceService.getAttendanceById(id, jwtUser);
+  }
+
+  @MutationMapping
+  @PreAuthorize("isAuthenticated()")
+  public Attendance createAttendance(
+      @Argument("input") CreateAttendanceInput input, @AuthenticationPrincipal JwtUser jwtUser) {
+    return attendanceService.createAttendance(input, jwtUser);
+  }
+
+  @MutationMapping
+  @PreAuthorize("isAuthenticated()")
+  public Optional<Attendance> deleteAttendance(
+      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
+    return attendanceService.softDeleteAttendance(id, jwtUser);
   }
 }
