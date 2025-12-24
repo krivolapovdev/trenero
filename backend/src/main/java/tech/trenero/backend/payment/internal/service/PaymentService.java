@@ -1,61 +1,65 @@
 package tech.trenero.backend.payment.internal.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.payment.internal.entity.Payment;
-import tech.trenero.backend.payment.internal.mapper.PaymentMapper;
+import tech.trenero.backend.payment.internal.input.CreatePaymentInput;
 import tech.trenero.backend.payment.internal.repository.PaymentRepository;
-import tech.trenero.backend.payment.internal.request.PaymentRequest;
-import tech.trenero.backend.payment.internal.response.PaymentResponse;
-import tech.trenero.backend.student.external.StudentSpi;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentService {
   private final PaymentRepository paymentRepository;
-  private final PaymentMapper paymentMapper;
-  @Lazy private final StudentSpi studentSpi;
 
-  public PaymentResponse getPaymentById(UUID paymentId, JwtUser jwtUser) {
-    log.info("Get status of payment with id {}", paymentId);
+  public List<Payment> getAllPayments(JwtUser jwtUser) {
+    return paymentRepository.findAllByOwnerId(jwtUser.userId());
+  }
 
-    var payment =
-        paymentRepository
-            .findById(paymentId)
-            .orElseThrow(
-                () -> new EntityNotFoundException("Payment with id " + paymentId + " not found"));
+  public Optional<Payment> getPaymentById(UUID id, JwtUser jwtUser) {
+    log.info("Get status of payment with id {}", id);
+    return paymentRepository.findByIdAndOwnerId(id, jwtUser.userId());
+  }
 
-    validateUserStudentAccess(payment.getStudentId(), jwtUser);
-
-    return paymentMapper.toPaymentResponse(payment);
+  public List<Payment> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser) {
+    log.info("Getting payments by studentId={}", studentId);
+    return paymentRepository.findAllByStudentId(studentId, jwtUser.userId());
   }
 
   @Transactional
-  public UUID createPayment(PaymentRequest paymentRequest, JwtUser jwtUser) {
-    log.info("Creating payment request {}", paymentRequest);
+  public Payment createPayment(CreatePaymentInput input, JwtUser jwtUser) {
+    log.info("Creating payment {}", input);
 
-    validateUserStudentAccess(paymentRequest.studentId(), jwtUser);
+    Payment payment =
+        Payment.builder()
+            .studentId(input.studentId())
+            .amount(input.amount())
+            .ownerId(jwtUser.userId())
+            .build();
 
-    Payment payment = paymentMapper.toPayment(paymentRequest);
-
-    Payment savedPayment = savePayment(payment);
-
-    return savedPayment.getId();
+    return savePayment(payment);
   }
 
+  @Transactional
   public Payment savePayment(Payment payment) {
     log.info("Save payment: {}", payment);
     return paymentRepository.save(payment);
   }
 
-  private void validateUserStudentAccess(UUID studentId, JwtUser jwtUser) {
-    studentSpi.getStudentById(studentId, jwtUser);
+  @Transactional
+  public Optional<Payment> softDeletePayment(UUID id, JwtUser jwtUser) {
+    log.info("Deleting payment: {}", id);
+    return getPaymentById(id, jwtUser)
+        .map(
+            payment -> {
+              payment.setDeleted(true);
+              return savePayment(payment);
+            });
   }
 }

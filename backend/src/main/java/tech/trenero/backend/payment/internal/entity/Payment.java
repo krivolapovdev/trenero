@@ -46,4 +46,8 @@ public class Payment {
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;
+
+  @Column(name = "deleted", nullable = false)
+  @Builder.Default
+  private boolean deleted = false;
 }

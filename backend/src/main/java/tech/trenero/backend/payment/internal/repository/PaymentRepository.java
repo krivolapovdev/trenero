@@ -16,6 +16,15 @@ public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonN
       """
           SELECT DISTINCT p
           FROM Payment AS p
+          WHERE p.ownerId = :ownerId
+            AND p.deleted = false
+          ORDER BY p.createdAt DESC""")
+  List<Payment> findAllByOwnerId(@Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+          SELECT DISTINCT p
+          FROM Payment AS p
           WHERE p.studentId = :studentId
             AND p.ownerId = :ownerId
           ORDER BY p.createdAt DESC""")

@@ -9,18 +9,18 @@ import tech.trenero.backend.common.dto.PaymentDto;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.payment.external.PaymentSpi;
 import tech.trenero.backend.payment.internal.mapper.PaymentMapper;
-import tech.trenero.backend.payment.internal.service.PaymentGraphQlService;
+import tech.trenero.backend.payment.internal.service.PaymentService;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentSpiImpl implements PaymentSpi {
-  private final PaymentGraphQlService paymentGraphQlService;
+  private final PaymentService paymentService;
   private final PaymentMapper paymentMapper;
 
   @Override
   public List<PaymentDto> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser) {
-    return paymentGraphQlService.getPaymentsByStudentId(studentId, jwtUser).stream()
+    return paymentService.getPaymentsByStudentId(studentId, jwtUser).stream()
         .map(paymentMapper::toPaymentDto)
         .toList();
   }
