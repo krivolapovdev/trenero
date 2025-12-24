@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.attendance.internal.entity.Attendance;
 import tech.trenero.backend.attendance.internal.input.CreateAttendanceInput;
+import tech.trenero.backend.attendance.internal.mapper.AttendanceMapper;
 import tech.trenero.backend.attendance.internal.repository.AttendanceRepository;
+import tech.trenero.backend.common.dto.AttendanceDto;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.lesson.external.LessonValidator;
 import tech.trenero.backend.student.external.StudentValidator;
@@ -20,23 +22,28 @@ import tech.trenero.backend.student.external.StudentValidator;
 @RequiredArgsConstructor
 public class AttendanceService {
   private final AttendanceRepository attendanceRepository;
+  private final AttendanceMapper attendanceMapper;
   private final StudentValidator studentValidator;
   private final LessonValidator lessonValidator;
 
   @Transactional(readOnly = true)
-  public List<Attendance> getAllAttendances(JwtUser jwtUser) {
+  public List<AttendanceDto> getAllAttendances(JwtUser jwtUser) {
     log.info("Getting all attendances for ownerId={}", jwtUser.userId());
-    return attendanceRepository.findAllByOwnerId(jwtUser.userId()).stream().toList();
+    return attendanceRepository.findAllByOwnerId(jwtUser.userId()).stream()
+        .map(attendanceMapper::toDto)
+        .toList();
   }
 
   @Transactional(readOnly = true)
-  public Optional<Attendance> getAttendanceById(UUID attendanceId, JwtUser jwtUser) {
+  public Optional<AttendanceDto> getAttendanceById(UUID attendanceId, JwtUser jwtUser) {
     log.info("Getting attendance by id={} for ownerId={}", attendanceId, jwtUser.userId());
-    return attendanceRepository.findByIdAndOwnerId(attendanceId, jwtUser.userId());
+    return attendanceRepository
+        .findByIdAndOwnerId(attendanceId, jwtUser.userId())
+        .map(attendanceMapper::toDto);
   }
 
   @Transactional
-  public Attendance createAttendance(CreateAttendanceInput input, JwtUser jwtUser) {
+  public AttendanceDto createAttendance(CreateAttendanceInput input, JwtUser jwtUser) {
     log.info(
         "Creating attendance for lessonId='{}', studentId='{}', present={}, ownerId={}",
         input.lessonId(),
@@ -57,11 +64,13 @@ public class AttendanceService {
             .deleted(false)
             .build();
 
-    return saveAttendance(attendance);
+    Attendance savedAttendance = saveAttendance(attendance);
+
+    return attendanceMapper.toDto(savedAttendance);
   }
 
   @Transactional
-  public Optional<Attendance> softDeleteAttendance(UUID attendanceId, JwtUser jwtUser) {
+  public Optional<AttendanceDto> softDeleteAttendance(UUID attendanceId, JwtUser jwtUser) {
     log.info("Soft deleting attendance: {}", attendanceId);
     return attendanceRepository
         .findByIdAndOwnerId(attendanceId, jwtUser.userId())
@@ -69,7 +78,8 @@ public class AttendanceService {
             attendance -> {
               attendance.setDeleted(true);
               return saveAttendance(attendance);
-            });
+            })
+        .map(attendanceMapper::toDto);
   }
 
   private Attendance saveAttendance(Attendance attendance) {

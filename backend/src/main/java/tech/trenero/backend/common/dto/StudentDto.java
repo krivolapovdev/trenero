@@ -12,4 +12,4 @@ public record StudentDto(
     String phone,
     String note,
     UUID groupId,
-    Boolean deleted) {}
+    boolean deleted) {}

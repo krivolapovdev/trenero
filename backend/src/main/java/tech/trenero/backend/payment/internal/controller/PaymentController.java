@@ -12,8 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
+import tech.trenero.backend.common.dto.PaymentDto;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.payment.internal.entity.Payment;
 import tech.trenero.backend.payment.internal.input.CreatePaymentInput;
 import tech.trenero.backend.payment.internal.service.PaymentService;
 
@@ -25,20 +25,20 @@ public class PaymentController {
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public List<Payment> payments(@AuthenticationPrincipal JwtUser jwtUser) {
+  public List<PaymentDto> payments(@AuthenticationPrincipal JwtUser jwtUser) {
     return paymentService.getAllPayments(jwtUser);
   }
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Payment> payment(
+  public Optional<PaymentDto> payment(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return paymentService.getPaymentById(id, jwtUser);
   }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Payment createPayment(
+  public PaymentDto createPayment(
       @Argument("input") @Valid CreatePaymentInput input,
       @AuthenticationPrincipal JwtUser jwtUser) {
     return paymentService.createPayment(input, jwtUser);
@@ -46,7 +46,7 @@ public class PaymentController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Payment> deletePayment(
+  public Optional<PaymentDto> deletePayment(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return paymentService.softDeletePayment(id, jwtUser);
   }

@@ -7,9 +7,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.trenero.backend.common.dto.PaymentDto;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.payment.internal.entity.Payment;
 import tech.trenero.backend.payment.internal.input.CreatePaymentInput;
+import tech.trenero.backend.payment.internal.mapper.PaymentMapper;
 import tech.trenero.backend.payment.internal.repository.PaymentRepository;
 import tech.trenero.backend.student.external.StudentValidator;
 
@@ -18,27 +20,34 @@ import tech.trenero.backend.student.external.StudentValidator;
 @Slf4j
 public class PaymentService {
   private final PaymentRepository paymentRepository;
+  private final PaymentMapper paymentMapper;
   private final StudentValidator studentValidator;
 
   @Transactional(readOnly = true)
-  public List<Payment> getAllPayments(JwtUser jwtUser) {
-    return paymentRepository.findAllByOwnerId(jwtUser.userId());
+  public List<PaymentDto> getAllPayments(JwtUser jwtUser) {
+    return paymentRepository.findAllByOwnerId(jwtUser.userId()).stream()
+        .map(paymentMapper::toPaymentDto)
+        .toList();
   }
 
   @Transactional(readOnly = true)
-  public Optional<Payment> getPaymentById(UUID id, JwtUser jwtUser) {
+  public Optional<PaymentDto> getPaymentById(UUID id, JwtUser jwtUser) {
     log.info("Get status of payment with id {}", id);
-    return paymentRepository.findByIdAndOwnerId(id, jwtUser.userId());
+    return paymentRepository
+        .findByIdAndOwnerId(id, jwtUser.userId())
+        .map(paymentMapper::toPaymentDto);
   }
 
   @Transactional(readOnly = true)
-  public List<Payment> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser) {
+  public List<PaymentDto> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser) {
     log.info("Getting payments by studentId={}", studentId);
-    return paymentRepository.findAllByStudentId(studentId, jwtUser.userId());
+    return paymentRepository.findAllByStudentId(studentId, jwtUser.userId()).stream()
+        .map(paymentMapper::toPaymentDto)
+        .toList();
   }
 
   @Transactional
-  public Payment createPayment(CreatePaymentInput input, JwtUser jwtUser) {
+  public PaymentDto createPayment(CreatePaymentInput input, JwtUser jwtUser) {
     log.info("Creating payment {}", input);
 
     studentValidator.validateStudentIsPresentAndActive(input.studentId(), jwtUser);
@@ -50,11 +59,13 @@ public class PaymentService {
             .ownerId(jwtUser.userId())
             .build();
 
-    return savePayment(payment);
+    Payment savedPayment = savePayment(payment);
+
+    return paymentMapper.toPaymentDto(savedPayment);
   }
 
   @Transactional
-  public Optional<Payment> softDeletePayment(UUID id, JwtUser jwtUser) {
+  public Optional<PaymentDto> softDeletePayment(UUID id, JwtUser jwtUser) {
     log.info("Deleting payment: {}", id);
     return paymentRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
@@ -62,7 +73,8 @@ public class PaymentService {
             payment -> {
               payment.setDeleted(true);
               return savePayment(payment);
-            });
+            })
+        .map(paymentMapper::toPaymentDto);
   }
 
   private Payment savePayment(Payment payment) {

@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import tech.trenero.backend.common.dto.StudentDto;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.student.external.StudentSpi;
-import tech.trenero.backend.student.internal.mapper.StudentMapper;
 import tech.trenero.backend.student.internal.service.StudentService;
 
 @Service
@@ -16,12 +15,9 @@ import tech.trenero.backend.student.internal.service.StudentService;
 @Slf4j
 public class StudentSpiImpl implements StudentSpi {
   private final StudentService studentService;
-  private final StudentMapper studentMapper;
 
   @Override
   public List<StudentDto> getStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
-    return studentService.getStudentsByGroupId(groupId, jwtUser).stream()
-        .map(studentMapper::toStudentDto)
-        .toList();
+    return studentService.getStudentsByGroupId(groupId, jwtUser);
   }
 }

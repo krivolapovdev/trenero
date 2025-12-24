@@ -7,10 +7,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.trenero.backend.common.dto.LessonDto;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupValidator;
 import tech.trenero.backend.lesson.internal.entity.Lesson;
 import tech.trenero.backend.lesson.internal.input.CreateLessonInput;
+import tech.trenero.backend.lesson.internal.mapper.LessonMapper;
 import tech.trenero.backend.lesson.internal.repository.LessonRepository;
 
 @Service
@@ -18,22 +20,25 @@ import tech.trenero.backend.lesson.internal.repository.LessonRepository;
 @RequiredArgsConstructor
 public class LessonService {
   private final LessonRepository lessonRepository;
+  private final LessonMapper lessonMapper;
   private final GroupValidator groupValidator;
 
   @Transactional(readOnly = true)
-  public List<Lesson> getAllLessons(JwtUser jwtUser) {
+  public List<LessonDto> getAllLessons(JwtUser jwtUser) {
     log.info("Getting all lessons for ownerId={}", jwtUser.userId());
-    return lessonRepository.findAllByOwnerId(jwtUser.userId()).stream().toList();
+    return lessonRepository.findAllByOwnerId(jwtUser.userId()).stream()
+        .map(lessonMapper::toDto)
+        .toList();
   }
 
   @Transactional(readOnly = true)
-  public Optional<Lesson> getLessonById(UUID lessonId, JwtUser jwtUser) {
+  public Optional<LessonDto> getLessonById(UUID lessonId, JwtUser jwtUser) {
     log.info("Getting lesson by id={} for ownerId={}", lessonId, jwtUser.userId());
-    return lessonRepository.findByIdAndOwnerId(lessonId, jwtUser.userId());
+    return lessonRepository.findByIdAndOwnerId(lessonId, jwtUser.userId()).map(lessonMapper::toDto);
   }
 
   @Transactional
-  public Lesson createLesson(CreateLessonInput input, JwtUser jwtUser) {
+  public LessonDto createLesson(CreateLessonInput input, JwtUser jwtUser) {
     log.info(
         "Creating lesson for groupId='{}', startDateTime={}, ownerId={}",
         input.groupId(),
@@ -50,11 +55,13 @@ public class LessonService {
             .deleted(false)
             .build();
 
-    return saveLesson(lesson);
+    Lesson savedLesson = saveLesson(lesson);
+
+    return lessonMapper.toDto(savedLesson);
   }
 
   @Transactional
-  public Optional<Lesson> softDeleteLesson(UUID lessonId, JwtUser jwtUser) {
+  public Optional<LessonDto> softDeleteLesson(UUID lessonId, JwtUser jwtUser) {
     log.info("Soft deleting lesson: {}", lessonId);
     return lessonRepository
         .findByIdAndOwnerId(lessonId, jwtUser.userId())
@@ -62,7 +69,8 @@ public class LessonService {
             lesson -> {
               lesson.setDeleted(true);
               return saveLesson(lesson);
-            });
+            })
+        .map(lessonMapper::toDto);
   }
 
   private Lesson saveLesson(Lesson lesson) {

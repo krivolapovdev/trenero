@@ -12,8 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
+import tech.trenero.backend.common.dto.StudentDto;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.student.internal.entity.Student;
 import tech.trenero.backend.student.internal.input.CreateStudentInput;
 import tech.trenero.backend.student.internal.service.StudentService;
 
@@ -25,20 +25,20 @@ public class StudentController {
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public List<Student> students(@AuthenticationPrincipal JwtUser jwtUser) {
+  public List<StudentDto> students(@AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.getAllStudents(jwtUser);
   }
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Student> student(
+  public Optional<StudentDto> student(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.getStudentById(id, jwtUser);
   }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Student createStudent(
+  public StudentDto createStudent(
       @Argument("input") @Valid CreateStudentInput input,
       @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.createStudent(input, jwtUser);
@@ -46,7 +46,7 @@ public class StudentController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Student> deleteStudent(
+  public Optional<StudentDto> deleteStudent(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.softDeleteStudent(id, jwtUser);
   }

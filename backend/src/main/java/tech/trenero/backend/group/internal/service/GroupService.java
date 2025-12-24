@@ -7,9 +7,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.trenero.backend.common.dto.GroupDto;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.internal.entity.Group;
 import tech.trenero.backend.group.internal.input.CreateGroupInput;
+import tech.trenero.backend.group.internal.mapper.GroupMapper;
 import tech.trenero.backend.group.internal.repository.GroupRepository;
 
 @Service
@@ -17,28 +19,34 @@ import tech.trenero.backend.group.internal.repository.GroupRepository;
 @RequiredArgsConstructor
 public class GroupService {
   private final GroupRepository groupRepository;
+  private final GroupMapper groupMapper;
 
   @Transactional(readOnly = true)
-  public List<Group> getAllGroups(JwtUser jwtUser) {
+  public List<GroupDto> getAllGroups(JwtUser jwtUser) {
     log.info("Getting all groups for ownerId={}", jwtUser.userId());
-    return groupRepository.findAllByOwnerId(jwtUser.userId()).stream().toList();
+    return groupRepository.findAllByOwnerId(jwtUser.userId()).stream()
+        .map(groupMapper::toGroupDto)
+        .toList();
   }
 
   @Transactional(readOnly = true)
-  public Optional<Group> getGroupById(UUID groupId, JwtUser jwtUser) {
+  public Optional<GroupDto> getGroupById(UUID groupId, JwtUser jwtUser) {
     log.info("Getting group by id={} for ownerId={}", groupId, jwtUser.userId());
-    return groupRepository.findByIdAndOwnerId(groupId, jwtUser.userId());
+    return groupRepository
+        .findByIdAndOwnerId(groupId, jwtUser.userId())
+        .map(groupMapper::toGroupDto);
   }
 
   @Transactional
-  public Group createGroup(CreateGroupInput input, JwtUser jwtUser) {
+  public GroupDto createGroup(CreateGroupInput input, JwtUser jwtUser) {
     log.info("Creating group: name='{}', ownerId={}", input.name(), jwtUser.userId());
     Group group = Group.builder().ownerId(jwtUser.userId()).name(input.name()).build();
-    return saveGroup(group);
+    Group saveGroup = saveGroup(group);
+    return groupMapper.toGroupDto(saveGroup);
   }
 
   @Transactional
-  public Optional<Group> softDeleteGroup(UUID id, JwtUser jwtUser) {
+  public Optional<GroupDto> softDeleteGroup(UUID id, JwtUser jwtUser) {
     log.info("Deleting group: {}", id);
     return groupRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
@@ -46,7 +54,8 @@ public class GroupService {
             group -> {
               group.setDeleted(true);
               return saveGroup(group);
-            });
+            })
+        .map(groupMapper::toGroupDto);
   }
 
   private Group saveGroup(Group group) {

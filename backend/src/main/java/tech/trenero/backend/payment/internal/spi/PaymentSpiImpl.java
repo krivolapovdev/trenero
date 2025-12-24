@@ -20,8 +20,6 @@ public class PaymentSpiImpl implements PaymentSpi {
 
   @Override
   public List<PaymentDto> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser) {
-    return paymentService.getPaymentsByStudentId(studentId, jwtUser).stream()
-        .map(paymentMapper::toPaymentDto)
-        .toList();
+    return paymentService.getPaymentsByStudentId(studentId, jwtUser);
   }
 }

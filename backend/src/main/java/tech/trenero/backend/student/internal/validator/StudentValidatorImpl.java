@@ -18,7 +18,7 @@ public class StudentValidatorImpl implements StudentValidator {
       throws EntityNotFoundException {
     studentService
         .getStudentById(studentId, jwtUser)
-        .filter(student -> !student.isDeleted())
+        .filter(student -> !student.deleted())
         .orElseThrow(() -> new EntityNotFoundException("Student not found by id: " + studentId));
   }
 }
