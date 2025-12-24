@@ -52,6 +52,11 @@ public class GlobalExceptionHandler {
   }
 
   @GraphQlExceptionHandler
+  public GraphQLError handleIllegalArgument(IllegalArgumentException ex) {
+    return buildError(ex);
+  }
+
+  @GraphQlExceptionHandler
   public GraphQLError handleUnexpectedException(Exception ex) {
     log.error("Unexpected GraphQL error", ex);
     return buildError(ex);
