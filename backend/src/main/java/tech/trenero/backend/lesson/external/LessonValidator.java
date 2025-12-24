@@ -5,5 +5,6 @@ import java.util.UUID;
 import tech.trenero.backend.common.security.JwtUser;
 
 public interface LessonValidator {
-  void validateLesson(UUID lessonId, JwtUser jwtUser) throws EntityNotFoundException;
+  void validateLessonIsPresentAndActive(UUID lessonId, JwtUser jwtUser)
+      throws EntityNotFoundException;
 }

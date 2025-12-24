@@ -38,7 +38,7 @@ public class PaymentService {
   public Payment createPayment(CreatePaymentInput input, JwtUser jwtUser) {
     log.info("Creating payment {}", input);
 
-    studentValidator.validateStudent(input.studentId(), jwtUser);
+    studentValidator.validateStudentIsPresentAndActive(input.studentId(), jwtUser);
 
     Payment payment =
         Payment.builder()

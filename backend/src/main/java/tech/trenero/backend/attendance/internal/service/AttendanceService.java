@@ -42,8 +42,8 @@ public class AttendanceService {
         input.present(),
         jwtUser.userId());
 
-    studentValidator.validateStudent(input.studentId(), jwtUser);
-    lessonValidator.validateLesson(input.lessonId(), jwtUser);
+    studentValidator.validateStudentIsPresentAndActive(input.studentId(), jwtUser);
+    lessonValidator.validateLessonIsPresentAndActive(input.lessonId(), jwtUser);
 
     Attendance attendance =
         Attendance.builder()

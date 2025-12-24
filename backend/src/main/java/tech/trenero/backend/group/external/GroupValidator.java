@@ -5,5 +5,6 @@ import java.util.UUID;
 import tech.trenero.backend.common.security.JwtUser;
 
 public interface GroupValidator {
-  void validateGroup(UUID groupId, JwtUser jwtUser) throws EntityNotFoundException;
+  void validateGroupIsPresentAndActive(UUID groupId, JwtUser jwtUser)
+      throws EntityNotFoundException;
 }

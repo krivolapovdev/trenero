@@ -38,7 +38,7 @@ public class LessonService {
         input.startDateTime(),
         jwtUser.userId());
 
-    groupValidator.validateGroup(input.groupId(), jwtUser);
+    groupValidator.validateGroupIsPresentAndActive(input.groupId(), jwtUser);
 
     Lesson lesson =
         Lesson.builder()

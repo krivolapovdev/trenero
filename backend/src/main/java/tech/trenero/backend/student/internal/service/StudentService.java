@@ -34,7 +34,7 @@ public class StudentService {
   public Student createStudent(CreateStudentInput input, JwtUser jwtUser) {
     log.info("Creating student: {}", input);
 
-    groupValidator.validateGroup(input.groupId(), jwtUser);
+    groupValidator.validateGroupIsPresentAndActive(input.groupId(), jwtUser);
 
     Student student =
         Student.builder()
