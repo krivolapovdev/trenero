@@ -3,16 +3,12 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { User } from '@/types';
+import type { LoginPayload, User } from '@/graphql/types';
 
 type AuthStore = {
   user: User | null;
   accessToken: string | null;
-  setAuth: (
-    user: User,
-    accessToken: string,
-    refreshToken: string
-  ) => Promise<void>;
+  setAuth: (payload: LoginPayload) => Promise<void>;
   logout: () => Promise<void>;
   getRefreshToken: () => Promise<string | null>;
 };
@@ -23,9 +19,12 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       accessToken: null,
 
-      setAuth: async (user, accessToken, refreshToken) => {
-        set({ user, accessToken });
-        await SecureStore.setItemAsync('refresh_token', refreshToken);
+      setAuth: async payload => {
+        set({ user: payload.user, accessToken: payload.jwtTokens.accessToken });
+        await SecureStore.setItemAsync(
+          'refresh_token',
+          payload.jwtTokens.refreshToken
+        );
       },
 
       logout: async () => {
