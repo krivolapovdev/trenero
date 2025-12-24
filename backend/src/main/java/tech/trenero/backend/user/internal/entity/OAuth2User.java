@@ -10,8 +10,10 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import tech.trenero.backend.common.enums.OAuth2Provider;
 
 @Entity
@@ -22,24 +24,23 @@ import tech.trenero.backend.common.enums.OAuth2Provider;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class OAuth2User {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
+  @Builder.Default
   private UUID id = UuidCreator.getTimeOrderedEpoch();
 
-  @Column(name = "email", nullable = false)
-  private String email;
-
   @Enumerated(EnumType.STRING)
-  @Column(name = "provider", nullable = false)
+  @Column(name = "provider", nullable = false, updatable = false)
+  @NonNull
   private OAuth2Provider provider;
 
-  @Column(name = "provider_id", nullable = false)
+  @Column(name = "provider_id", nullable = false, updatable = false)
+  @NonNull
   private String providerId;
 
-  public OAuth2User(String email, OAuth2Provider provider, String providerId) {
-    this.email = email;
-    this.provider = provider;
-    this.providerId = providerId;
-  }
+  @Column(name = "email", nullable = false)
+  @NonNull
+  private String email;
 }

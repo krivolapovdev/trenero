@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.trenero.backend.common.dto.UserDto;
 import tech.trenero.backend.common.enums.OAuth2Provider;
-import tech.trenero.backend.common.response.UserResponse;
 import tech.trenero.backend.user.internal.entity.OAuth2User;
 import tech.trenero.backend.user.internal.mapper.UserMapper;
 import tech.trenero.backend.user.internal.repository.UserRepository;
@@ -18,8 +18,8 @@ public class UserService {
   private final UserMapper userMapper;
 
   @Transactional
-  public UserResponse getOrCreateUserFromOAuth2(
-      String email, OAuth2Provider provider, String providerId) {
+  public UserDto getOrCreateUserFromOAuth2(
+      OAuth2Provider provider, String providerId, String email) {
     log.info(
         "Getting or creating user from OAuth2: email={}, provider={}, providerId={}",
         email,
@@ -29,16 +29,16 @@ public class UserService {
     return userRepository
         .findByProviderAndProviderId(provider, providerId)
         .map(userMapper::toUserResponse)
-        .orElseGet(() -> createNewUser(email, provider, providerId));
+        .orElseGet(() -> createNewUser(provider, providerId, email));
   }
 
-  private UserResponse createNewUser(String email, OAuth2Provider provider, String providerId) {
+  private UserDto createNewUser(OAuth2Provider provider, String providerId, String email) {
     log.info("User not found. Creating new user for email: {}", email);
 
-    OAuth2User newUser = new OAuth2User(email, provider, providerId);
+    OAuth2User newUser =
+        OAuth2User.builder().provider(provider).providerId(providerId).email(email).build();
     OAuth2User savedUser = saveUser(newUser);
 
-    log.info("New user created: {}", savedUser.getEmail());
     return userMapper.toUserResponse(savedUser);
   }
 

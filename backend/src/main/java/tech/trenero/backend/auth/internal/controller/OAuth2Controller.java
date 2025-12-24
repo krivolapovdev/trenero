@@ -1,29 +1,28 @@
 package tech.trenero.backend.auth.internal.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import tech.trenero.backend.auth.internal.request.OAuth2IdTokenRequest;
-import tech.trenero.backend.auth.internal.response.AuthResponse;
+import tech.trenero.backend.auth.internal.dto.LoginPayload;
+import tech.trenero.backend.auth.internal.input.SocialLoginInput;
 import tech.trenero.backend.auth.internal.service.OAuth2Service;
 
-@RestController
-@RequestMapping("/api/v1/oauth2")
+@Controller
 @RequiredArgsConstructor
 @Validated
 public class OAuth2Controller {
   private final OAuth2Service oAuth2Service;
 
-  @PostMapping("/google")
-  public AuthResponse googleLogin(@RequestBody OAuth2IdTokenRequest request) {
-    return oAuth2Service.googleLogin(request);
+  @MutationMapping
+  public LoginPayload googleLogin(@Argument("input") @Valid SocialLoginInput input) {
+    return oAuth2Service.googleLogin(input);
   }
 
-  @PostMapping("/apple")
-  public AuthResponse appleLogin(@RequestBody OAuth2IdTokenRequest request) {
-    return oAuth2Service.appleLogin(request);
+  @MutationMapping
+  public LoginPayload appleLogin(@Argument("input") @Valid SocialLoginInput input) {
+    return oAuth2Service.appleLogin(input);
   }
 }

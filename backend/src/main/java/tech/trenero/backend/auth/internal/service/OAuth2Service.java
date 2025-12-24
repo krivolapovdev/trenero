@@ -8,9 +8,10 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import tech.trenero.backend.auth.internal.request.OAuth2IdTokenRequest;
-import tech.trenero.backend.auth.internal.response.AuthResponse;
-import tech.trenero.backend.common.response.UserResponse;
+import tech.trenero.backend.auth.internal.dto.JwtTokens;
+import tech.trenero.backend.auth.internal.dto.LoginPayload;
+import tech.trenero.backend.auth.internal.input.SocialLoginInput;
+import tech.trenero.backend.common.dto.UserDto;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.user.external.UserSpi;
 
@@ -23,7 +24,7 @@ public class OAuth2Service {
   @Lazy private final UserSpi userSpi;
 
   @SneakyThrows
-  public AuthResponse googleLogin(OAuth2IdTokenRequest request) {
+  public LoginPayload googleLogin(SocialLoginInput request) {
     log.info("Google login request: {}", request);
 
     GoogleIdToken googleIdToken = googleAuthService.verifyIdToken(request.idToken());
@@ -36,15 +37,15 @@ public class OAuth2Service {
     String providerId = payload.getSubject();
     String email = payload.getEmail();
 
-    UserResponse userResponse = userSpi.getOrCreateUserFromOAuth2(email, GOOGLE, providerId);
+    UserDto user = userSpi.getOrCreateUserFromOAuth2(GOOGLE, providerId, email);
 
-    var jwtUser = new JwtUser(userResponse.id(), email);
-    var accessTokenResponse = jwtTokenService.createAccessAndRefreshTokens(jwtUser);
+    JwtUser jwtUser = new JwtUser(user.id(), email);
+    JwtTokens tokens = jwtTokenService.createAccessAndRefreshTokens(jwtUser);
 
-    return new AuthResponse(userResponse, accessTokenResponse);
+    return new LoginPayload(user, tokens);
   }
 
-  public AuthResponse appleLogin(OAuth2IdTokenRequest request) {
+  public LoginPayload appleLogin(SocialLoginInput request) {
     log.info("Apple login request: {}", request);
     return null;
   }
