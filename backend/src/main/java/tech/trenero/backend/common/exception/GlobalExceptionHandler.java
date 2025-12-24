@@ -1,63 +1,64 @@
 package tech.trenero.backend.common.exception;
 
+import graphql.GraphQLError;
+import graphql.GraphqlErrorBuilder;
 import io.jsonwebtoken.JwtException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.graphql.data.method.annotation.GraphQlExceptionHandler;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingRequestCookieException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 
-@RestControllerAdvice
+@ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-  @ExceptionHandler({
-    IllegalArgumentException.class,
-    MethodArgumentNotValidException.class,
-    ConstraintViolationException.class,
-    MissingRequestCookieException.class
-  })
-  public ResponseStatusException handleBadRequestExceptions(Exception e) {
-    return buildResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+  @GraphQlExceptionHandler
+  public GraphQLError handleConstraintViolation(ConstraintViolationException ex) {
+    return buildError(ex);
   }
 
-  @ExceptionHandler(JwtException.class)
-  public ResponseStatusException handleUnauthorizedException(JwtException e) {
-    return buildResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
+  @GraphQlExceptionHandler
+  public GraphQLError handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+    return buildError(ex);
   }
 
-  @ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
-  public ResponseStatusException handleForbiddenException(AuthorizationDeniedException e) {
-    return buildResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage(), e);
+  @GraphQlExceptionHandler
+  public GraphQLError handleJwtException(JwtException ex) {
+    return buildError(ex);
   }
 
-  @ExceptionHandler({EntityNotFoundException.class, NoResourceFoundException.class})
-  public ResponseStatusException handleNotFoundException(RuntimeException e) {
-    return buildResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+  @GraphQlExceptionHandler
+  public GraphQLError handleAuthorizationDenied(AuthorizationDeniedException ex) {
+    return buildError(ex);
   }
 
-  @ExceptionHandler(DataIntegrityViolationException.class)
-  public ResponseStatusException handleConflictException(DataIntegrityViolationException e) {
-    return buildResponseStatusException(HttpStatus.CONFLICT, e.getMessage(), e);
+  @GraphQlExceptionHandler
+  public GraphQLError handleAccessDenied(AccessDeniedException ex) {
+    return buildError(ex);
   }
 
-  @ExceptionHandler(Exception.class)
-  public ResponseStatusException handleInternalServerError(Exception e) {
-    log.error("Unexpected error occurred", e);
-    return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
+  @GraphQlExceptionHandler
+  public GraphQLError handleEntityNotFound(EntityNotFoundException ex) {
+    return buildError(ex);
   }
 
-  private ResponseStatusException buildResponseStatusException(
-      HttpStatusCode httpStatusCode, String message, Throwable cause) {
-    log.warn("{} Occurred: {}", cause.getClass().getSimpleName(), message);
-    return new ResponseStatusException(httpStatusCode, message, cause);
+  @GraphQlExceptionHandler
+  public GraphQLError handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+    return buildError(ex);
+  }
+
+  @GraphQlExceptionHandler
+  public GraphQLError handleUnexpectedException(Exception ex) {
+    log.error("Unexpected GraphQL error", ex);
+    return buildError(ex);
+  }
+
+  private GraphQLError buildError(Throwable cause) {
+    log.warn("{} Occurred: {}", cause.getClass().getSimpleName(), cause.getMessage());
+    return GraphqlErrorBuilder.newError().message(cause.getMessage()).build();
   }
 }
