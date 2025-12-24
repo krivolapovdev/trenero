@@ -20,11 +20,13 @@ public class LessonService {
   private final LessonRepository lessonRepository;
   private final GroupValidator groupValidator;
 
+  @Transactional(readOnly = true)
   public List<Lesson> getAllLessons(JwtUser jwtUser) {
     log.info("Getting all lessons for ownerId={}", jwtUser.userId());
     return lessonRepository.findAllByOwnerId(jwtUser.userId()).stream().toList();
   }
 
+  @Transactional(readOnly = true)
   public Optional<Lesson> getLessonById(UUID lessonId, JwtUser jwtUser) {
     log.info("Getting lesson by id={} for ownerId={}", lessonId, jwtUser.userId());
     return lessonRepository.findByIdAndOwnerId(lessonId, jwtUser.userId());
@@ -52,12 +54,6 @@ public class LessonService {
   }
 
   @Transactional
-  public Lesson saveLesson(Lesson lesson) {
-    log.info("Saving lesson: {}", lesson);
-    return lessonRepository.save(lesson);
-  }
-
-  @Transactional
   public Optional<Lesson> softDeleteLesson(UUID lessonId, JwtUser jwtUser) {
     log.info("Soft deleting lesson: {}", lessonId);
     return lessonRepository
@@ -67,5 +63,10 @@ public class LessonService {
               lesson.setDeleted(true);
               return saveLesson(lesson);
             });
+  }
+
+  private Lesson saveLesson(Lesson lesson) {
+    log.info("Saving lesson: {}", lesson);
+    return lessonRepository.save(lesson);
   }
 }

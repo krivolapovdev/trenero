@@ -1,10 +1,9 @@
 package tech.trenero.backend.user.internal.service;
 
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.enums.OAuth2Provider;
 import tech.trenero.backend.common.response.UserResponse;
 import tech.trenero.backend.user.internal.entity.OAuth2User;
@@ -18,14 +17,7 @@ public class UserService {
   private final UserRepository userRepository;
   private final UserMapper userMapper;
 
-  public UserResponse getUserById(UUID id) {
-    log.info("Getting user by id: {}", id);
-    return userRepository
-        .findById(id)
-        .map(userMapper::toUserResponse)
-        .orElseThrow(() -> new UsernameNotFoundException("User not found by id: " + id));
-  }
-
+  @Transactional
   public UserResponse getOrCreateUserFromOAuth2(
       String email, OAuth2Provider provider, String providerId) {
     log.info(
@@ -37,16 +29,20 @@ public class UserService {
     return userRepository
         .findByProviderAndProviderId(provider, providerId)
         .map(userMapper::toUserResponse)
-        .orElseGet(
-            () -> {
-              log.info("User does not exist. Creating new user for email: {}", email);
-              OAuth2User user = new OAuth2User(email, provider, providerId);
-              OAuth2User saveUser = saveUser(user);
-              return userMapper.toUserResponse(saveUser);
-            });
+        .orElseGet(() -> createNewUser(email, provider, providerId));
   }
 
-  public OAuth2User saveUser(OAuth2User user) {
+  private UserResponse createNewUser(String email, OAuth2Provider provider, String providerId) {
+    log.info("User not found. Creating new user for email: {}", email);
+
+    OAuth2User newUser = new OAuth2User(email, provider, providerId);
+    OAuth2User savedUser = saveUser(newUser);
+
+    log.info("New user created: {}", savedUser.getEmail());
+    return userMapper.toUserResponse(savedUser);
+  }
+
+  private OAuth2User saveUser(OAuth2User user) {
     log.info("Saving user: {}", user);
     return userRepository.save(user);
   }

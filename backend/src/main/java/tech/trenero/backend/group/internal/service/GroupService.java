@@ -18,11 +18,13 @@ import tech.trenero.backend.group.internal.repository.GroupRepository;
 public class GroupService {
   private final GroupRepository groupRepository;
 
+  @Transactional(readOnly = true)
   public List<Group> getAllGroups(JwtUser jwtUser) {
     log.info("Getting all groups for ownerId={}", jwtUser.userId());
     return groupRepository.findAllByOwnerId(jwtUser.userId()).stream().toList();
   }
 
+  @Transactional(readOnly = true)
   public Optional<Group> getGroupById(UUID groupId, JwtUser jwtUser) {
     log.info("Getting group by id={} for ownerId={}", groupId, jwtUser.userId());
     return groupRepository.findByIdAndOwnerId(groupId, jwtUser.userId());
@@ -33,12 +35,6 @@ public class GroupService {
     log.info("Creating group: name='{}', ownerId={}", input.name(), jwtUser.userId());
     Group group = Group.builder().ownerId(jwtUser.userId()).name(input.name()).build();
     return saveGroup(group);
-  }
-
-  @Transactional
-  public Group saveGroup(Group group) {
-    log.info("Saving group: {}", group);
-    return groupRepository.save(group);
   }
 
   @Transactional
@@ -55,5 +51,10 @@ public class GroupService {
     group.setDeleted(true);
 
     return Optional.of(saveGroup(group));
+  }
+
+  private Group saveGroup(Group group) {
+    log.info("Saving group: {}", group);
+    return groupRepository.save(group);
   }
 }

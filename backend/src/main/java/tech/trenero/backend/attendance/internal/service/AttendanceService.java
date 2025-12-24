@@ -23,11 +23,13 @@ public class AttendanceService {
   private final StudentValidator studentValidator;
   private final LessonValidator lessonValidator;
 
+  @Transactional(readOnly = true)
   public List<Attendance> getAllAttendances(JwtUser jwtUser) {
     log.info("Getting all attendances for ownerId={}", jwtUser.userId());
     return attendanceRepository.findAllByOwnerId(jwtUser.userId()).stream().toList();
   }
 
+  @Transactional(readOnly = true)
   public Optional<Attendance> getAttendanceById(UUID attendanceId, JwtUser jwtUser) {
     log.info("Getting attendance by id={} for ownerId={}", attendanceId, jwtUser.userId());
     return attendanceRepository.findByIdAndOwnerId(attendanceId, jwtUser.userId());
@@ -59,12 +61,6 @@ public class AttendanceService {
   }
 
   @Transactional
-  public Attendance saveAttendance(Attendance attendance) {
-    log.info("Saving attendance: {}", attendance);
-    return attendanceRepository.save(attendance);
-  }
-
-  @Transactional
   public Optional<Attendance> softDeleteAttendance(UUID attendanceId, JwtUser jwtUser) {
     log.info("Soft deleting attendance: {}", attendanceId);
     return attendanceRepository
@@ -74,5 +70,10 @@ public class AttendanceService {
               attendance.setDeleted(true);
               return saveAttendance(attendance);
             });
+  }
+
+  private Attendance saveAttendance(Attendance attendance) {
+    log.info("Saving attendance: {}", attendance);
+    return attendanceRepository.save(attendance);
   }
 }

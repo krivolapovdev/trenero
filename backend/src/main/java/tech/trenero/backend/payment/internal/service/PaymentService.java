@@ -20,15 +20,18 @@ public class PaymentService {
   private final PaymentRepository paymentRepository;
   private final StudentValidator studentValidator;
 
+  @Transactional(readOnly = true)
   public List<Payment> getAllPayments(JwtUser jwtUser) {
     return paymentRepository.findAllByOwnerId(jwtUser.userId());
   }
 
+  @Transactional(readOnly = true)
   public Optional<Payment> getPaymentById(UUID id, JwtUser jwtUser) {
     log.info("Get status of payment with id {}", id);
     return paymentRepository.findByIdAndOwnerId(id, jwtUser.userId());
   }
 
+  @Transactional(readOnly = true)
   public List<Payment> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser) {
     log.info("Getting payments by studentId={}", studentId);
     return paymentRepository.findAllByStudentId(studentId, jwtUser.userId());
@@ -51,19 +54,19 @@ public class PaymentService {
   }
 
   @Transactional
-  public Payment savePayment(Payment payment) {
-    log.info("Save payment: {}", payment);
-    return paymentRepository.save(payment);
-  }
-
-  @Transactional
   public Optional<Payment> softDeletePayment(UUID id, JwtUser jwtUser) {
     log.info("Deleting payment: {}", id);
-    return getPaymentById(id, jwtUser)
+    return paymentRepository
+        .findByIdAndOwnerId(id, jwtUser.userId())
         .map(
             payment -> {
               payment.setDeleted(true);
               return savePayment(payment);
             });
+  }
+
+  private Payment savePayment(Payment payment) {
+    log.info("Save payment: {}", payment);
+    return paymentRepository.save(payment);
   }
 }

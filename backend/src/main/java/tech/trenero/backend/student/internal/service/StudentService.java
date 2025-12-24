@@ -20,11 +20,13 @@ public class StudentService {
   private final StudentRepository studentRepository;
   private final GroupValidator groupValidator;
 
+  @Transactional(readOnly = true)
   public List<Student> getAllStudents(JwtUser jwtUser) {
     log.info("Getting all students for ownerId={}", jwtUser.userId());
-    return studentRepository.findAllByOwnerIdAndDeletedFalse(jwtUser.userId()).stream().toList();
+    return studentRepository.findAllByOwnerIdAndDeletedFalse(jwtUser.userId());
   }
 
+  @Transactional(readOnly = true)
   public Optional<Student> getStudentById(UUID studentId, JwtUser jwtUser) {
     log.info("Getting student by id={} for ownerId={}", studentId, jwtUser.userId());
     return studentRepository.findByIdAndOwnerId(studentId, jwtUser.userId());
@@ -50,12 +52,6 @@ public class StudentService {
   }
 
   @Transactional
-  public Student saveStudent(Student student) {
-    log.info("Saving student: {}", student);
-    return studentRepository.save(student);
-  }
-
-  @Transactional
   public Optional<Student> softDeleteStudent(UUID id, JwtUser jwtUser) {
     log.info("Deleting student: {}", id);
     return studentRepository
@@ -67,8 +63,14 @@ public class StudentService {
             });
   }
 
+  @Transactional(readOnly = true)
   public List<Student> getStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
     log.info("Getting students by groupId={} for ownerId={}", groupId, jwtUser.userId());
     return studentRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId());
+  }
+
+  private Student saveStudent(Student student) {
+    log.info("Saving student: {}", student);
+    return studentRepository.save(student);
   }
 }
