@@ -11,12 +11,14 @@ import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.payment.internal.entity.Payment;
 import tech.trenero.backend.payment.internal.input.CreatePaymentInput;
 import tech.trenero.backend.payment.internal.repository.PaymentRepository;
+import tech.trenero.backend.student.external.StudentValidator;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentService {
   private final PaymentRepository paymentRepository;
+  private final StudentValidator studentValidator;
 
   public List<Payment> getAllPayments(JwtUser jwtUser) {
     return paymentRepository.findAllByOwnerId(jwtUser.userId());
@@ -35,6 +37,8 @@ public class PaymentService {
   @Transactional
   public Payment createPayment(CreatePaymentInput input, JwtUser jwtUser) {
     log.info("Creating payment {}", input);
+
+    studentValidator.validateStudent(input.studentId(), jwtUser);
 
     Payment payment =
         Payment.builder()

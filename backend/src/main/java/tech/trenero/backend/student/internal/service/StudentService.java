@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.group.external.GroupValidator;
 import tech.trenero.backend.student.internal.entity.Student;
 import tech.trenero.backend.student.internal.input.CreateStudentInput;
 import tech.trenero.backend.student.internal.repository.StudentRepository;
@@ -17,6 +18,7 @@ import tech.trenero.backend.student.internal.repository.StudentRepository;
 @Slf4j
 public class StudentService {
   private final StudentRepository studentRepository;
+  private final GroupValidator groupValidator;
 
   public List<Student> getAllStudents(JwtUser jwtUser) {
     log.info("Getting all students for ownerId={}", jwtUser.userId());
@@ -31,6 +33,8 @@ public class StudentService {
   @Transactional
   public Student createStudent(CreateStudentInput input, JwtUser jwtUser) {
     log.info("Creating student: {}", input);
+
+    groupValidator.validateGroup(input.groupId(), jwtUser);
 
     Student student =
         Student.builder()

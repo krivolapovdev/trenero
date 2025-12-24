@@ -12,12 +12,16 @@ import tech.trenero.backend.attendance.internal.entity.Attendance;
 import tech.trenero.backend.attendance.internal.input.CreateAttendanceInput;
 import tech.trenero.backend.attendance.internal.repository.AttendanceRepository;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.lesson.external.LessonValidator;
+import tech.trenero.backend.student.external.StudentValidator;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AttendanceService {
   private final AttendanceRepository attendanceRepository;
+  private final StudentValidator studentValidator;
+  private final LessonValidator lessonValidator;
 
   public List<Attendance> getAllAttendances(JwtUser jwtUser) {
     log.info("Getting all attendances for ownerId={}", jwtUser.userId());
@@ -37,6 +41,9 @@ public class AttendanceService {
         input.studentId(),
         input.present(),
         jwtUser.userId());
+
+    studentValidator.validateStudent(input.studentId(), jwtUser);
+    lessonValidator.validateLesson(input.lessonId(), jwtUser);
 
     Attendance attendance =
         Attendance.builder()
@@ -60,17 +67,12 @@ public class AttendanceService {
   @Transactional
   public Optional<Attendance> softDeleteAttendance(UUID attendanceId, JwtUser jwtUser) {
     log.info("Soft deleting attendance: {}", attendanceId);
-
-    Optional<Attendance> optionalAttendance =
-        attendanceRepository.findByIdAndOwnerId(attendanceId, jwtUser.userId());
-
-    if (optionalAttendance.isEmpty()) {
-      return Optional.empty();
-    }
-
-    Attendance attendance = optionalAttendance.get();
-    attendance.setDeleted(true);
-
-    return Optional.of(saveAttendance(attendance));
+    return attendanceRepository
+        .findByIdAndOwnerId(attendanceId, jwtUser.userId())
+        .map(
+            attendance -> {
+              attendance.setDeleted(true);
+              return saveAttendance(attendance);
+            });
   }
 }
