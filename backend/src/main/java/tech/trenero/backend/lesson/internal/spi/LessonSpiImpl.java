@@ -16,6 +16,10 @@ public class LessonSpiImpl implements LessonSpi {
 
   @Override
   public List<LessonDto> getLessonsByGroupId(UUID groupId, JwtUser jwtUser) {
+    if (groupId == null || jwtUser == null) {
+      return List.of();
+    }
+
     return lessonService.getLessonsByGroupId(groupId, jwtUser);
   }
 }

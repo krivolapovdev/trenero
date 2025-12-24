@@ -16,6 +16,10 @@ public class StudentSpiImpl implements StudentSpi {
 
   @Override
   public List<StudentDto> getStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
+    if (groupId == null || jwtUser == null) {
+      return List.of();
+    }
+
     return studentService.getStudentsByGroupId(groupId, jwtUser);
   }
 }

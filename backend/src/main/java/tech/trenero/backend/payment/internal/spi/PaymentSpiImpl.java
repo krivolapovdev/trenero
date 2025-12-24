@@ -20,6 +20,10 @@ public class PaymentSpiImpl implements PaymentSpi {
 
   @Override
   public List<PaymentDto> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser) {
+    if (studentId == null || jwtUser == null) {
+      return List.of();
+    }
+
     return paymentService.getPaymentsByStudentId(studentId, jwtUser);
   }
 }

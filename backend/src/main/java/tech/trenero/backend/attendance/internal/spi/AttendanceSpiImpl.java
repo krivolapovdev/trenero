@@ -16,11 +16,19 @@ public class AttendanceSpiImpl implements AttendanceSpi {
 
   @Override
   public List<AttendanceDto> getAttendancesByStudentId(UUID studentId, JwtUser jwtUser) {
+    if (studentId == null || jwtUser == null) {
+      return List.of();
+    }
+
     return attendanceService.getAttendancesByStudentId(studentId, jwtUser);
   }
 
   @Override
   public List<AttendanceDto> getAttendancesByLessonId(UUID lessonId, JwtUser jwtUser) {
+    if (lessonId == null || jwtUser == null) {
+      return List.of();
+    }
+
     return attendanceService.getAttendancesByLessonId(lessonId, jwtUser);
   }
 }

@@ -16,6 +16,10 @@ public class GroupSpiImpl implements GroupSpi {
 
   @Override
   public Optional<GroupDto> getGroupById(UUID groupId, JwtUser jwtUser) {
+    if (groupId == null || jwtUser == null) {
+      return Optional.empty();
+    }
+
     return groupService.getGroupById(groupId, jwtUser);
   }
 }
