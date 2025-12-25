@@ -1,18 +1,32 @@
+import { gql } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import { memo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import { TextInput } from 'react-native-paper';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
-import { studentService } from '@/services/student';
-import type { StudentResponse } from '@/types/student';
+import type { CreateStudentInput } from '@/graphql/inputs';
+import type { Student } from '@/graphql/types';
 
 const INPUT_THEME = { roundness: 10 };
+
+const QUERY = gql`
+    mutation ($input: CreateStudentInput!) {
+        createStudent(input: $input) {
+            id
+            fullName
+            phone
+            note
+            birthDate
+        }
+    }
+`;
 
 type Props = {
   visible: boolean;
   onDismiss: () => void;
-  onStudentAdded: (student: StudentResponse) => void;
+  onStudentAdded: (student: Student) => void;
 };
 
 export const AddStudentDialog = memo(
@@ -23,8 +37,11 @@ export const AddStudentDialog = memo(
     const [birthDate, setBirthDate] = useState<Date | null>(null);
 
     const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+
+    const [createStudent, { loading, error }] = useMutation<
+      { createStudent: Student },
+      { input: CreateStudentInput }
+    >(QUERY);
 
     const handleSubmit = async () => {
       const trimmedFullName = fullName.trim();
@@ -33,35 +50,25 @@ export const AddStudentDialog = memo(
         return;
       }
 
-      setLoading(true);
-      setError(null);
+      const input: CreateStudentInput = {
+        fullName: trimmedFullName,
+        phone: phoneNumber?.trim() || undefined,
+        note: note?.trim() || undefined,
+        birthDate: birthDate?.toISOString().split('T')[0]
+      };
 
-      const trimmedPhoneNumber = phoneNumber.trim() || null;
-      const trimmedNote = note.trim() || null;
+      const { data } = await createStudent({ variables: { input } });
 
-      try {
-        const studentId = await studentService.createStudent(
-          trimmedFullName,
-          trimmedPhoneNumber,
-          birthDate,
-          trimmedNote
-        );
-
-        const createdStudent = await studentService.getStudentById(studentId);
-
-        onStudentAdded(createdStudent);
-
-        setFullName('');
-        setPhoneNumber('');
-        setNote('');
-        setBirthDate(null);
-        setError(null);
-      } catch (err) {
-        console.log(err);
-        setError('Failed to create group');
-      } finally {
-        setLoading(false);
+      if (!data) {
+        throw new Error('Failed to create student');
       }
+
+      onStudentAdded(data.createStudent);
+
+      setFullName('');
+      setPhoneNumber('');
+      setNote('');
+      setBirthDate(null);
     };
 
     return (
@@ -74,7 +81,7 @@ export const AddStudentDialog = memo(
         loading={loading}
       >
         <View style={{ gap: 10 }}>
-          <OptionalErrorMessage error={error} />
+          <OptionalErrorMessage error={error?.message} />
 
           <TextInput
             mode='outlined'
