@@ -46,14 +46,14 @@ type JwtTokens {
     refreshToken: String!
 }
 
-type LoginPayload {
-    user: User!
-    jwtTokens: JwtTokens!
-}
-
 type User {
     id: UUID!
     email: String!
+}
+
+type LoginPayload {
+    user: User!
+    jwtTokens: JwtTokens!
 }
 
 type Student {
