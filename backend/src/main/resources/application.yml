@@ -1,6 +1,9 @@
 server:
   port: 8080
 spring:
+  threads:
+    virtual:
+      enabled: true
   jpa:
     open-in-view: false
     properties:
