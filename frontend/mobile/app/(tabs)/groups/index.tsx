@@ -25,6 +25,9 @@ const QUERY = gql`
             id
             name
             defaultPrice
+            students {
+                id
+            }
         }
     }
 `;
