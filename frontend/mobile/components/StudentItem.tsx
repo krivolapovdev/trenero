@@ -2,74 +2,75 @@ import { Link } from 'expo-router';
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Chip, Divider, Text } from 'react-native-paper';
+import type { Student } from '@/graphql/types';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import type { StudentResponse } from '@/services/student';
 
-type Props = StudentResponse & {};
+type Props = Student & {};
 
-export const StudentItem = memo(
-  ({ id, fullName, group, isAttending, isPaid }: Readonly<Props>) => {
-    const theme = useAppTheme();
+export const StudentItem = memo(({ id, fullName, group }: Readonly<Props>) => {
+  const theme = useAppTheme();
 
-    return (
-      <Card
-        mode='contained'
-        style={{ backgroundColor: theme.colors.surface }}
+  const isAttending = true;
+  const isPaid = true;
+
+  return (
+    <Card
+      mode='contained'
+      style={{ backgroundColor: theme.colors.surface }}
+    >
+      <Link
+        href={{
+          pathname: '/(tabs)/students/[id]',
+          params: { id }
+        }}
       >
-        <Link
-          href={{
-            pathname: '/(tabs)/students/[id]',
-            params: { id }
-          }}
-        >
-          <Card.Content style={styles.cardContent}>
-            <View style={styles.headerContainer}>
-              <Text variant='titleMedium'>{fullName}</Text>
-            </View>
+        <Card.Content style={styles.cardContent}>
+          <View style={styles.headerContainer}>
+            <Text variant='titleMedium'>{fullName}</Text>
+          </View>
 
-            <Text variant='bodySmall'>{group?.name}</Text>
+          <Text variant='bodySmall'>{group?.name}</Text>
 
-            <Divider style={styles.divider} />
+          <Divider style={styles.divider} />
 
-            <View style={styles.statusContainer}>
+          <View style={styles.statusContainer}>
+            <Chip
+              compact={true}
+              style={{
+                borderRadius: 16,
+                backgroundColor: isAttending
+                  ? theme.colors.green
+                  : theme.colors.tertiaryContainer
+              }}
+              textStyle={{
+                color: isAttending
+                  ? theme.colors.onSecondaryContainer
+                  : theme.colors.onTertiaryContainer
+              }}
+            >
+              <Text>{isAttending ? 'Ходит' : 'Не ходит'}</Text>
+            </Chip>
+
+            {!isPaid && (
               <Chip
                 compact={true}
                 style={{
                   borderRadius: 16,
-                  backgroundColor: isAttending
-                    ? theme.colors.green
-                    : theme.colors.tertiaryContainer
+                  backgroundColor: theme.colors.errorContainer
                 }}
                 textStyle={{
-                  color: isAttending
-                    ? theme.colors.onSecondaryContainer
-                    : theme.colors.onTertiaryContainer
+                  color: theme.colors.onErrorContainer
                 }}
               >
-                <Text>{isAttending ? 'Ходит' : 'Не ходит'}</Text>
+                <Text>Не оплатил</Text>
               </Chip>
-
-              {!isPaid && (
-                <Chip
-                  compact={true}
-                  style={{
-                    borderRadius: 16,
-                    backgroundColor: theme.colors.errorContainer
-                  }}
-                  textStyle={{
-                    color: theme.colors.onErrorContainer
-                  }}
-                >
-                  <Text>Не оплатил</Text>
-                </Chip>
-              )}
-            </View>
-          </Card.Content>
-        </Link>
-      </Card>
-    );
-  }
-);
+            )}
+          </View>
+        </Card.Content>
+      </Link>
+    </Card>
+  );
+});
 
 const styles = StyleSheet.create({
   cardContent: {

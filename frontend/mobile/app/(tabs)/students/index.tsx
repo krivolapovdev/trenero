@@ -1,3 +1,5 @@
+import { gql } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client/react';
 import { useScrollToTop } from '@react-navigation/native';
 import {
   useCallback,
@@ -13,17 +15,27 @@ import { AddStudentDialog } from '@/components/dialogs/AddStudentDialog';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { StudentItem } from '@/components/StudentItem';
 import { StudentSearchbarWithFilter } from '@/components/StudentSearchbarWithFilter';
+import type { Student } from '@/graphql/types';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { studentService } from '@/services/student';
 import { useAppStore } from '@/stores/appStore';
-import type { StudentResponse } from '@/types/student';
+
+const QUERY = gql`
+    query {
+        students {
+            id
+            fullName
+            group {
+                id
+                name
+            }
+        }
+    }
+`;
 
 export default function StudentsScreen() {
   const students = useAppStore(state => state.students);
   const setStudents = useAppStore(state => state.setStudents);
 
-  const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -31,12 +43,19 @@ export default function StudentsScreen() {
   const [selectedStatus, setSelectedStatus] = useState<
     'All' | 'Attending' | 'Paid'
   >('All');
+  const [filterKey, setFilterKey] = useState<number>(0);
 
   const theme = useAppTheme();
   const deferredQuery = useDeferredValue(searchQuery);
 
   const listRef = useRef<FlatList>(null);
   useScrollToTop(listRef);
+
+  const [loadStudents, { loading, data, error }] = useLazyQuery<{
+    students: Student[];
+  }>(QUERY, {
+    fetchPolicy: 'network-only'
+  });
 
   const filteredStudents = useMemo(() => {
     const query = deferredQuery.trim().toLowerCase();
@@ -50,44 +69,36 @@ export default function StudentsScreen() {
         return false;
       }
 
-      if (selectedStatus !== 'All') {
-        if (selectedStatus === 'Attending' && !student.isAttending) {
-          return false;
-        }
-
-        if (selectedStatus === 'Paid' && !student.isPaid) {
-          return false;
-        }
-      }
+      // if (selectedStatus !== 'All') {
+      //   if (selectedStatus === 'Attending' && !student.isAttending) {
+      //     return false;
+      //   }
+      //
+      //   if (selectedStatus === 'Paid' && !student.isPaid) {
+      //     return false;
+      //   }
+      // }
 
       return true;
     });
-  }, [students, deferredQuery, selectedGroup, selectedStatus]);
-
-  const fetchStudents = useCallback(async () => {
-    try {
-      setRefreshing(true);
-      setError(null);
-      setSelectedGroup('All');
-      setSelectedStatus('All');
-      const data = await studentService.getAllStudents();
-      setStudents(data);
-    } catch (error) {
-      console.error(error);
-      setError('Failed to load students');
-    } finally {
-      setRefreshing(false);
-    }
-  }, [setStudents]);
+  }, [students, deferredQuery, selectedGroup]);
 
   const renderItem = useCallback(
-    ({ item }: { item: StudentResponse }) => <StudentItem {...item} />,
+    ({ item }: { item: Student }) => <StudentItem {...item} />,
     []
   );
 
+  const fetchStudents = useCallback(() => {
+    setSearchQuery('');
+    setSelectedGroup('All');
+    setSelectedStatus('All');
+    setFilterKey(key => key + 1);
+    loadStudents();
+  }, [loadStudents]);
+
   const handleStudentAdded = useCallback(
-    (student: StudentResponse) => {
-      setStudents([student, ...students]);
+    (newStudent: Student) => {
+      setStudents([newStudent, ...students]);
       setShowAddModal(false);
       setSelectedGroup('All');
       setSelectedStatus('All');
@@ -97,8 +108,14 @@ export default function StudentsScreen() {
   );
 
   useEffect(() => {
-    void fetchStudents();
-  }, [fetchStudents]);
+    if (data?.students) {
+      setStudents(data.students);
+    }
+
+    if (error) {
+      console.error(error);
+    }
+  }, [data, error, setStudents]);
 
   return (
     <>
@@ -116,21 +133,22 @@ export default function StudentsScreen() {
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
-        refreshing={refreshing}
+        refreshing={loading}
         onRefresh={fetchStudents}
         keyboardShouldPersistTaps='handled'
         ListHeaderComponent={
           <>
             <StudentSearchbarWithFilter
+              key={filterKey}
               value={searchQuery}
               onChange={setSearchQuery}
-              onClear={() => setSearchQuery('')}
+              onClearIconPress={() => setSearchQuery('')}
               onFilter={({ group, status }) => {
                 setSelectedGroup(group);
                 setSelectedStatus(status);
               }}
             />
-            <OptionalErrorMessage error={error} />
+            <OptionalErrorMessage error={error?.message} />
           </>
         }
       />

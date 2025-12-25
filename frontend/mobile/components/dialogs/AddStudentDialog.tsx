@@ -26,7 +26,7 @@ const QUERY = gql`
 type Props = {
   visible: boolean;
   onDismiss: () => void;
-  onStudentAdded: (student: Student) => void;
+  onStudentAdded: (newStudent: Student) => void;
 };
 
 export const AddStudentDialog = memo(
@@ -52,15 +52,15 @@ export const AddStudentDialog = memo(
 
       const input: CreateStudentInput = {
         fullName: trimmedFullName,
-        phone: phoneNumber?.trim() || undefined,
-        note: note?.trim() || undefined,
+        phone: phoneNumber?.trim() || null,
+        note: note?.trim() || null,
         birthDate: birthDate?.toISOString().split('T')[0]
       };
 
       const { data } = await createStudent({ variables: { input } });
 
-      if (!data) {
-        throw new Error('Failed to create student');
+      if (!data?.createStudent) {
+        return;
       }
 
       onStudentAdded(data.createStudent);

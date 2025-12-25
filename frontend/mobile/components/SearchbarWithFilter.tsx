@@ -8,12 +8,17 @@ const ELEMENT_SIZE = 56;
 type SearchBarWithFilterProps = {
   value: string;
   onChange: (query: string) => void;
-  onClear: () => void;
+  onClearIconPress: () => void;
   onFilterPress: () => void;
 };
 
 export const SearchbarWithFilter = memo(
-  ({ value, onChange, onClear, onFilterPress }: SearchBarWithFilterProps) => {
+  ({
+    value,
+    onChange,
+    onClearIconPress,
+    onFilterPress
+  }: SearchBarWithFilterProps) => {
     const theme = useAppTheme();
 
     return (
@@ -22,7 +27,7 @@ export const SearchbarWithFilter = memo(
           placeholder='Search by name'
           value={value}
           onChangeText={onChange}
-          onClearIconPress={onClear}
+          onClearIconPress={onClearIconPress}
           style={[styles.searchbar, { backgroundColor: theme.colors.surface }]}
         />
 

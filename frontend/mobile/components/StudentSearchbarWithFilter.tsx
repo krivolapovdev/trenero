@@ -4,7 +4,7 @@ import {
   BottomSheetModal,
   BottomSheetScrollView
 } from '@gorhom/bottom-sheet';
-import { memo, useCallback, useRef, useState } from 'react';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import { FilterAccordion } from '@/components/FilterAccordion';
@@ -12,36 +12,65 @@ import { SearchbarWithFilter } from '@/components/SearchbarWithFilter';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAppStore } from '@/stores/appStore';
 
+type ExpandedAccordion = 'group' | 'status' | null;
+
 const STATUSES = ['All', 'Attending', 'Paid'] as const;
 type Status = (typeof STATUSES)[number];
 
 type Props = {
   value: string;
   onChange: (query: string) => void;
-  onClear: () => void;
+  onClearIconPress: () => void;
   onFilter: (filters: { group: string; status: Status }) => void;
 };
 
 export const StudentSearchbarWithFilter = memo(
-  ({ value, onChange, onClear, onFilter }: Readonly<Props>) => {
+  ({ value, onChange, onClearIconPress, onFilter }: Readonly<Props>) => {
     const theme = useAppTheme();
     const groups = useAppStore(state => state.groups);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-    const [showGroupAccordion, setShowGroupAccordion] = useState(false);
-    const [selectedGroup, setSelectedGroup] = useState<string>('All');
+    const [expandedAccordion, setExpandedAccordion] =
+      useState<ExpandedAccordion>(null);
 
-    const [showStatusAccordion, setShowStatusAccordion] = useState(false);
+    const [appliedGroup, setAppliedGroup] = useState<string>('All');
+    const [appliedStatus, setAppliedStatus] = useState<Status>('All');
+
+    const [selectedGroup, setSelectedGroup] = useState<string>('All');
     const [selectedStatus, setSelectedStatus] = useState<Status>('All');
 
+    const groupItems = useMemo(
+      () => ['All', ...groups.map(group => group.name)],
+      [groups]
+    );
+
+    const handleOpenModal = useCallback(() => {
+      setSelectedGroup(appliedGroup);
+      setSelectedStatus(appliedStatus);
+      bottomSheetModalRef.current?.present();
+    }, [appliedGroup, appliedStatus]);
+
     const handleDismiss = useCallback(() => {
-      setShowGroupAccordion(false);
-      setShowStatusAccordion(false);
+      setExpandedAccordion(null);
     }, []);
 
+    const toggleAccordion = useCallback(
+      (key: ExpandedAccordion) =>
+        setExpandedAccordion(prev => (prev === key ? null : key)),
+      []
+    );
+
     const handleCloseModal = useCallback(() => {
+      setExpandedAccordion(null);
       bottomSheetModalRef.current?.dismiss();
     }, []);
+
+    const handleApply = useCallback(() => {
+      setAppliedGroup(selectedGroup);
+      setAppliedStatus(selectedStatus);
+      onFilter({ group: selectedGroup, status: selectedStatus });
+      handleCloseModal();
+    }, [onFilter, selectedGroup, selectedStatus, handleCloseModal]);
 
     const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (
@@ -59,8 +88,8 @@ export const StudentSearchbarWithFilter = memo(
         <SearchbarWithFilter
           value={value}
           onChange={onChange}
-          onClear={onClear}
-          onFilterPress={() => bottomSheetModalRef.current?.present()}
+          onClearIconPress={onClearIconPress}
+          onFilterPress={handleOpenModal}
         />
 
         <BottomSheetModal
@@ -75,13 +104,13 @@ export const StudentSearchbarWithFilter = memo(
           >
             <Text variant='titleLarge'>Filter</Text>
 
-            <View style={{ gap: 12 }}>
+            <View style={styles.filter}>
               <FilterAccordion
                 title='Group'
-                items={['All', ...groups.map(g => g.name)]}
+                items={groupItems}
                 selectedItem={selectedGroup}
-                expanded={showGroupAccordion}
-                onPress={() => setShowGroupAccordion(prev => !prev)}
+                expanded={expandedAccordion === 'group'}
+                onPress={() => toggleAccordion('group')}
                 onSelect={setSelectedGroup}
               />
 
@@ -89,8 +118,8 @@ export const StudentSearchbarWithFilter = memo(
                 title='Status'
                 items={STATUSES}
                 selectedItem={selectedStatus}
-                expanded={showStatusAccordion}
-                onPress={() => setShowStatusAccordion(prev => !prev)}
+                expanded={expandedAccordion === 'status'}
+                onPress={() => toggleAccordion('status')}
                 onSelect={setSelectedStatus}
               />
             </View>
@@ -100,19 +129,7 @@ export const StudentSearchbarWithFilter = memo(
                 mode='contained-tonal'
                 buttonColor={theme.colors.surface}
                 textColor={theme.colors.onSurface}
-                onPress={handleCloseModal}
-              >
-                Clear
-              </Button>
-
-              <Button
-                mode='contained-tonal'
-                buttonColor={theme.colors.surface}
-                textColor={theme.colors.onSurface}
-                onPress={() => {
-                  onFilter({ group: selectedGroup, status: selectedStatus });
-                  handleCloseModal();
-                }}
+                onPress={handleApply}
               >
                 Apply
               </Button>
@@ -132,7 +149,9 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 12,
-    marginVertical: 8
+    gap: 12
+  },
+  filter: {
+    gap: 12
   }
 });
