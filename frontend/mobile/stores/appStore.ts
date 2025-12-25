@@ -1,12 +1,11 @@
 import { create } from 'zustand';
-import type { GroupResponse } from '@/types/group';
-import type { StudentResponse } from '@/types/student';
+import type { Group, Student } from '@/graphql/types';
 
 type AppStore = {
-  students: StudentResponse[];
-  groups: GroupResponse[];
-  setStudents: (students: StudentResponse[]) => void;
-  setGroups: (groups: GroupResponse[]) => void;
+  students: Student[];
+  groups: Group[];
+  setStudents: (students: Student[]) => void;
+  setGroups: (groups: Group[]) => void;
 };
 
 export const useAppStore = create<AppStore>(set => ({

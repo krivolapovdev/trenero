@@ -1,6 +1,8 @@
 import { CommonActions } from '@react-navigation/native';
 import { Redirect, Tabs } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
 import { BottomNavigation, Icon } from 'react-native-paper';
+import { useInitApp } from '@/hooks/useInitApp';
 import { useAuthStore } from '@/stores/authStore';
 
 const TAB_CONFIG = [
@@ -32,9 +34,22 @@ const TAB_CONFIG = [
 
 export default function TabsLayout() {
   const user = useAuthStore(state => state.user);
+  const { loading } = useInitApp();
 
   if (!user) {
     return <Redirect href='/(auth)' />;
+  }
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator
+          animating={true}
+          size='large'
+          color='black'
+        />
+      </View>
+    );
   }
 
   return (
