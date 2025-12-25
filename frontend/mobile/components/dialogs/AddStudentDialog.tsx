@@ -11,7 +11,7 @@ import type { Student } from '@/graphql/types';
 
 const INPUT_THEME = { roundness: 10 };
 
-const QUERY = gql`
+const MUTATION = gql`
     mutation ($input: CreateStudentInput!) {
         createStudent(input: $input) {
             id
@@ -41,7 +41,7 @@ export const AddStudentDialog = memo(
     const [createStudent, { loading, error }] = useMutation<
       { createStudent: Student },
       { input: CreateStudentInput }
-    >(QUERY);
+    >(MUTATION);
 
     const handleSubmit = async () => {
       const trimmedFullName = fullName.trim();

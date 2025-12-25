@@ -10,7 +10,7 @@ import type { Group } from '@/graphql/types';
 
 const INPUT_THEME = { roundness: 10 };
 
-const QUERY = gql`
+const MUTATION = gql`
     mutation ($input: CreateGroupInput!) {
         createGroup(input: $input) {
             id
@@ -34,7 +34,7 @@ export const AddGroupDialog = memo(
     const [createGroup, { loading, error }] = useMutation<
       { createGroup: Group },
       { input: CreateGroupInput }
-    >(QUERY);
+    >(MUTATION);
 
     const handlePriceChange = (text: string) => {
       const cleaned = text.replaceAll(/[^0-9.]/g, '');
