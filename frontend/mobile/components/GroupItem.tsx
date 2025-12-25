@@ -2,9 +2,9 @@ import { Link } from 'expo-router';
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
-import type { GroupResponse } from '@/types/group';
+import type { Group } from '@/graphql/types';
 
-type Props = GroupResponse;
+type Props = Group;
 
 export const GroupItem = memo(({ id, name, defaultPrice }: Readonly<Props>) => {
   const theme = useTheme();

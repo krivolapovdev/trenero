@@ -1,25 +1,40 @@
+import { gql } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import { memo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
-import { groupService } from '@/services/group';
-import type { GroupResponse } from '@/types/group';
+import type { CreateGroupInput } from '@/graphql/inputs';
+import type { Group } from '@/graphql/types';
 
 const INPUT_THEME = { roundness: 10 };
+
+const QUERY = gql`
+    mutation ($input: CreateGroupInput!) {
+        createGroup(input: $input) {
+            id
+            name
+            defaultPrice
+        }
+    }
+`;
 
 type Props = {
   visible: boolean;
   onDismiss: () => void;
-  onGroupAdded: (group: GroupResponse) => void;
+  onGroupAdded: (newGroup: Group) => void;
 };
 
 export const AddGroupDialog = memo(
   ({ visible, onDismiss, onGroupAdded }: Readonly<Props>) => {
     const [name, setName] = useState<string>('');
     const [defaultPrice, setDefaultPrice] = useState<string>('');
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+
+    const [createGroup, { loading, error }] = useMutation<
+      { createGroup: Group },
+      { input: CreateGroupInput }
+    >(QUERY);
 
     const handlePriceChange = (text: string) => {
       const cleaned = text.replaceAll(/[^0-9.]/g, '');
@@ -38,29 +53,23 @@ export const AddGroupDialog = memo(
         return;
       }
 
-      setLoading(true);
-      setError(null);
+      const input: CreateGroupInput = {
+        name: trimmedName,
+        defaultPrice: Number.isNaN(Number(defaultPrice?.trim()))
+          ? null
+          : Number(defaultPrice.trim()).toString()
+      };
 
-      const trimmedPrice = defaultPrice.trim();
-      const price =
-        trimmedPrice && !Number.isNaN(Number(trimmedPrice))
-          ? Number(trimmedPrice)
-          : null;
+      const { data } = await createGroup({ variables: { input } });
 
-      try {
-        const id = await groupService.createGroup(name.trim(), price);
-        const createdGroup = await groupService.getGroupById(id);
-
-        onGroupAdded(createdGroup);
-
-        setName('');
-        setDefaultPrice('');
-      } catch (err) {
-        console.log(err);
-        setError('Failed to create group');
-      } finally {
-        setLoading(false);
+      if (!data?.createGroup) {
+        return;
       }
+
+      onGroupAdded(data.createGroup);
+
+      setName('');
+      setDefaultPrice('');
     };
 
     return (
@@ -73,7 +82,7 @@ export const AddGroupDialog = memo(
         loading={loading}
       >
         <View style={{ gap: 16 }}>
-          <OptionalErrorMessage error={error} />
+          <OptionalErrorMessage error={error?.message} />
 
           <TextInput
             mode='outlined'
