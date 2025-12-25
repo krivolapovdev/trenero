@@ -1,38 +1,38 @@
 import type { BigDecimal, GqlDate, GqlDateTime, UUID } from './types';
 
-export interface SocialLoginInput {
+export type SocialLoginInput = {
   idToken: string;
-}
+};
 
-export interface RefreshTokenInput {
+export type RefreshTokenInput = {
   refreshToken: string;
-}
+};
 
-export interface CreateStudentInput {
+export type CreateStudentInput = {
   fullName: string;
   birthDate?: GqlDate | null;
   phone?: string | null;
   note?: string | null;
   groupId?: UUID | null;
-}
+};
 
-export interface CreateGroupInput {
+export type CreateGroupInput = {
   name: string;
   defaultPrice?: BigDecimal | null;
-}
+};
 
-export interface CreateLessonInput {
+export type CreateLessonInput = {
   groupId: UUID;
   startDateTime: GqlDateTime;
-}
+};
 
-export interface CreateAttendanceInput {
+export type CreateAttendanceInput = {
   lessonId: UUID;
   studentId: UUID;
   present: boolean;
-}
+};
 
-export interface CreatePaymentInput {
+export type CreatePaymentInput = {
   studentId: UUID;
   amount: BigDecimal;
-}
+};
