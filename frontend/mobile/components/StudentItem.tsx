@@ -1,98 +1,37 @@
-import { Link } from 'expo-router';
-import { memo } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Card, Chip, Divider, Text } from 'react-native-paper';
+import { nanoid } from 'nanoid/non-secure';
+import { EntityCard } from '@/components/EntityCard';
 import type { Student } from '@/graphql/types';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
-type Props = Student & {};
+type Props = Student;
 
-export const StudentItem = memo(({ id, fullName, group }: Readonly<Props>) => {
+export const StudentItem = ({ id, fullName, group }: Readonly<Props>) => {
   const theme = useAppTheme();
 
-  const isAttending = true;
   const isPaid = true;
 
+  const badges = [
+    {
+      id: nanoid(),
+      label: 'Ходит',
+      backgroundColor: theme.colors.green,
+      textColor: theme.colors.onSecondaryContainer
+    },
+    {
+      id: nanoid(),
+      label: 'Не оплатил',
+      backgroundColor: theme.colors.errorContainer,
+      textColor: theme.colors.onErrorContainer,
+      isVisible: !isPaid
+    }
+  ];
+
   return (
-    <Card
-      mode='contained'
-      style={{ backgroundColor: theme.colors.surface }}
-    >
-      <Link
-        href={{
-          pathname: '/(tabs)/students/[id]',
-          params: { id }
-        }}
-      >
-        <Card.Content style={styles.cardContent}>
-          <View style={styles.headerContainer}>
-            <Text variant='titleMedium'>{fullName}</Text>
-          </View>
-
-          <Text variant='bodySmall'>{group?.name}</Text>
-
-          <Divider style={styles.divider} />
-
-          <View style={styles.statusContainer}>
-            <Chip
-              compact={true}
-              style={{
-                borderRadius: 16,
-                backgroundColor: isAttending
-                  ? theme.colors.green
-                  : theme.colors.tertiaryContainer
-              }}
-              textStyle={{
-                color: isAttending
-                  ? theme.colors.onSecondaryContainer
-                  : theme.colors.onTertiaryContainer
-              }}
-            >
-              <Text>{isAttending ? 'Ходит' : 'Не ходит'}</Text>
-            </Chip>
-
-            {!isPaid && (
-              <Chip
-                compact={true}
-                style={{
-                  borderRadius: 16,
-                  backgroundColor: theme.colors.errorContainer
-                }}
-                textStyle={{
-                  color: theme.colors.onErrorContainer
-                }}
-              >
-                <Text>Не оплатил</Text>
-              </Chip>
-            )}
-          </View>
-        </Card.Content>
-      </Link>
-    </Card>
+    <EntityCard
+      title={fullName}
+      subtitle={group?.name ?? 'Unassigned'}
+      href={`/(tabs)/students/${id}`}
+      badges={badges}
+    />
   );
-});
-
-const styles = StyleSheet.create({
-  cardContent: {
-    borderRadius: 8,
-    padding: 16,
-    paddingHorizontal: 32,
-    width: '100%'
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4
-  },
-  divider: {
-    marginVertical: 10,
-    height: 1
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 4
-  }
-});
+};

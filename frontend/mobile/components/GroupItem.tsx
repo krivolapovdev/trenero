@@ -1,75 +1,33 @@
-import { Link } from 'expo-router';
-import { memo } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Card, Text, useTheme } from 'react-native-paper';
+import { nanoid } from 'nanoid/non-secure';
+import { EntityCard } from '@/components/EntityCard';
 import type { Group } from '@/graphql/types';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 type Props = Group;
 
-export const GroupItem = memo(({ id, name, defaultPrice }: Readonly<Props>) => {
-  const theme = useTheme();
+export const GroupItem = ({
+  id,
+  name,
+  defaultPrice,
+  students
+}: Readonly<Props>) => {
+  const theme = useAppTheme();
+
+  const badges = [
+    {
+      id: nanoid(),
+      label: `${students.length} студентов`,
+      backgroundColor: theme.colors.secondaryContainer,
+      textColor: theme.colors.onSecondaryContainer
+    }
+  ];
 
   return (
-    <Card
-      mode='contained'
-      style={{ backgroundColor: theme.colors.surface }}
-    >
-      <Link
-        href={{
-          pathname: '/(tabs)/groups/[id]',
-          params: { id }
-        }}
-      >
-        <Card.Content style={styles.cardContent}>
-          <View style={styles.row}>
-            <View style={styles.info}>
-              <Text variant='titleMedium'>{name}</Text>
-              <Text
-                variant='bodySmall'
-                style={{ color: theme.colors.outline }}
-              >
-                {defaultPrice}
-              </Text>
-            </View>
-
-            <View
-              style={[
-                styles.countBadge,
-                { backgroundColor: theme.colors.secondaryContainer }
-              ]}
-            >
-              <Text
-                variant='labelMedium'
-                style={{ color: theme.colors.onSecondaryContainer }}
-              >
-                {42} Students
-              </Text>
-            </View>
-          </View>
-        </Card.Content>
-      </Link>
-    </Card>
+    <EntityCard
+      title={name}
+      subtitle={defaultPrice}
+      href={`/(tabs)/groups/${id}`}
+      badges={badges}
+    />
   );
-});
-
-const styles = StyleSheet.create({
-  cardContent: {
-    borderRadius: 8,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    width: '100%'
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between'
-  },
-  info: {
-    flex: 1
-  },
-  countBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16
-  }
-});
+};
