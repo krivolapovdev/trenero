@@ -40,7 +40,7 @@ public class GroupService {
   @Transactional
   public GroupDto createGroup(CreateGroupInput input, JwtUser jwtUser) {
     log.info("Creating group: name='{}', ownerId={}", input.name(), jwtUser.userId());
-    Group group = Group.builder().ownerId(jwtUser.userId()).name(input.name()).build();
+    Group group = groupMapper.toGroup(input, jwtUser.userId());
     Group saveGroup = saveGroup(group);
     return groupMapper.toGroupDto(saveGroup);
   }
