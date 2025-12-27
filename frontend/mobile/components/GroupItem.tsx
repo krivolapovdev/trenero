@@ -16,7 +16,7 @@ export const GroupItem = ({
   const badges = [
     {
       id: nanoid(),
-      label: `${students.length} студентов`,
+      label: `${students?.length ?? 0} студентов`,
       backgroundColor: theme.colors.secondaryContainer,
       textColor: theme.colors.onSecondaryContainer
     }

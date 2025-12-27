@@ -6,6 +6,7 @@ import { TextInput } from 'react-native-paper';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import type { CreateGroupInput } from '@/graphql/inputs';
+import { GET_GROUPS } from '@/graphql/quries';
 import type { Group } from '@/graphql/types';
 
 const INPUT_THEME = { roundness: 10 };
@@ -16,6 +17,9 @@ const MUTATION = gql`
             id
             name
             defaultPrice
+            students {
+                id
+            }
         }
     }
 `;
@@ -23,7 +27,7 @@ const MUTATION = gql`
 type Props = {
   visible: boolean;
   onDismiss: () => void;
-  onGroupAdded: (newGroup: Group) => void;
+  onGroupAdded: () => void;
 };
 
 export const AddGroupDialog = memo(
@@ -34,7 +38,26 @@ export const AddGroupDialog = memo(
     const [createGroup, { loading, error }] = useMutation<
       { createGroup: Group },
       { input: CreateGroupInput }
-    >(MUTATION);
+    >(MUTATION, {
+      update(cache, { data }) {
+        const newGroup = data?.createGroup;
+
+        const existingData = cache.readQuery<{ groups: Group[] }>({
+          query: GET_GROUPS
+        });
+
+        if (!newGroup || !existingData) {
+          return;
+        }
+
+        cache.writeQuery({
+          query: GET_GROUPS,
+          data: {
+            groups: [newGroup, ...existingData.groups]
+          }
+        });
+      }
+    });
 
     const handlePriceChange = (text: string) => {
       const cleaned = text.replaceAll(/[^0-9.]/g, '');
@@ -66,7 +89,7 @@ export const AddGroupDialog = memo(
         return;
       }
 
-      onGroupAdded(data.createGroup);
+      onGroupAdded();
 
       setName('');
       setDefaultPrice('');

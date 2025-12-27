@@ -1,34 +1,40 @@
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
 import { CustomAppbar } from '@/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
+import type { Group } from '@/graphql/types';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { groupService } from '@/services/group';
-import type { GroupResponse } from '@/types/group';
+
+const QUERY = gql`
+    query ($id: UUID!) {
+        group(id: $id) {
+            id
+            name
+            defaultPrice
+            students {
+                id
+                fullName
+            }
+            lessons {
+                id
+                startDateTime
+            }
+        }
+    }
+`;
 
 export default function GroupByIdScreen() {
-  const [group, setGroup] = useState<GroupResponse | null>(null);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
   const { id } = useLocalSearchParams();
   const theme = useAppTheme();
 
-  const fetchGroupById = useCallback(async () => {
-    try {
-      setRefreshing(true);
-      setError(null);
-      const data = await groupService.getGroupById(id as string);
-      setGroup(data);
-    } catch (err) {
-      console.error(err);
-      setError(`Failed to load group: ${id}`);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [id]);
+  const { data, loading, error, refetch } = useQuery<{ group: Group }>(QUERY, {
+    variables: { id },
+    fetchPolicy: 'cache-and-network'
+  });
+  const group = data?.group;
 
   const handleEditPress = () => {
     console.log('Edit pressed');
@@ -37,10 +43,6 @@ export default function GroupByIdScreen() {
   const handleDeletePress = () => {
     console.log('Delete pressed');
   };
-
-  useEffect(() => {
-    void fetchGroupById();
-  }, [fetchGroupById]);
 
   return (
     <>
@@ -60,12 +62,12 @@ export default function GroupByIdScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={fetchGroupById}
+            refreshing={loading}
+            onRefresh={refetch}
           />
         }
       >
-        <OptionalErrorMessage error={error} />
+        <OptionalErrorMessage error={error?.message} />
         <Text>{id}</Text>
         <Text>{JSON.stringify(group, null, 2)}</Text>
       </ScrollView>

@@ -7,6 +7,7 @@ import { TextInput } from 'react-native-paper';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import type { CreateStudentInput } from '@/graphql/inputs';
+import { GET_STUDENTS } from '@/graphql/quries';
 import type { Student } from '@/graphql/types';
 
 const INPUT_THEME = { roundness: 10 };
@@ -19,6 +20,9 @@ const MUTATION = gql`
             phone
             note
             birthDate
+            group {
+                id
+            }
         }
     }
 `;
@@ -26,7 +30,7 @@ const MUTATION = gql`
 type Props = {
   visible: boolean;
   onDismiss: () => void;
-  onStudentAdded: (newStudent: Student) => void;
+  onStudentAdded: () => void;
 };
 
 export const AddStudentDialog = memo(
@@ -41,7 +45,26 @@ export const AddStudentDialog = memo(
     const [createStudent, { loading, error }] = useMutation<
       { createStudent: Student },
       { input: CreateStudentInput }
-    >(MUTATION);
+    >(MUTATION, {
+      update(cache, { data }) {
+        const newStudent = data?.createStudent;
+
+        const existingData = cache.readQuery<{ students: Student[] }>({
+          query: GET_STUDENTS
+        });
+
+        if (!newStudent || !existingData) {
+          return;
+        }
+
+        cache.writeQuery({
+          query: GET_STUDENTS,
+          data: {
+            students: [newStudent, ...existingData.students]
+          }
+        });
+      }
+    });
 
     const handleSubmit = async () => {
       const trimmedFullName = fullName.trim();
@@ -63,7 +86,7 @@ export const AddStudentDialog = memo(
         return;
       }
 
-      onStudentAdded(data.createStudent);
+      onStudentAdded();
 
       setFullName('');
       setPhoneNumber('');

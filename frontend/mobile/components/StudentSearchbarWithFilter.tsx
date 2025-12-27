@@ -1,3 +1,4 @@
+import { useQuery } from '@apollo/client/react';
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
@@ -9,8 +10,9 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import { FilterAccordion } from '@/components/FilterAccordion';
 import { SearchbarWithFilter } from '@/components/SearchbarWithFilter';
+import { GET_GROUPS } from '@/graphql/quries';
+import type { Group } from '@/graphql/types';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { useAppStore } from '@/stores/appStore';
 
 type ExpandedAccordion = 'group' | 'status' | null;
 
@@ -27,7 +29,6 @@ type Props = {
 export const StudentSearchbarWithFilter = memo(
   ({ value, onChange, onClearIconPress, onFilter }: Readonly<Props>) => {
     const theme = useAppTheme();
-    const groups = useAppStore(state => state.groups);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
     const [expandedAccordion, setExpandedAccordion] =
@@ -38,6 +39,12 @@ export const StudentSearchbarWithFilter = memo(
 
     const [selectedGroup, setSelectedGroup] = useState<string>('All');
     const [selectedStatus, setSelectedStatus] = useState<Status>('All');
+
+    const { data } = useQuery<{ groups: Group[] }>(GET_GROUPS, {
+      fetchPolicy: 'cache-first'
+    });
+
+    const groups = data?.groups ?? [];
 
     const groupItems = useMemo(
       () => ['All', ...groups.map(group => group.name)],

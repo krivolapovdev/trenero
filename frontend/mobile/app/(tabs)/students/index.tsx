@@ -1,10 +1,8 @@
-import { gql } from '@apollo/client';
-import { useLazyQuery } from '@apollo/client/react';
+import { useQuery } from '@apollo/client/react';
 import { useScrollToTop } from '@react-navigation/native';
 import {
   useCallback,
   useDeferredValue,
-  useEffect,
   useMemo,
   useRef,
   useState
@@ -15,52 +13,40 @@ import { AddStudentDialog } from '@/components/dialogs/AddStudentDialog';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
 import { StudentItem } from '@/components/StudentItem';
 import { StudentSearchbarWithFilter } from '@/components/StudentSearchbarWithFilter';
+import { GET_STUDENTS } from '@/graphql/quries';
 import type { Student } from '@/graphql/types';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { useAppStore } from '@/stores/appStore';
-
-const QUERY = gql`
-    query {
-        students {
-            id
-            fullName
-            group {
-                id
-                name
-            }
-        }
-    }
-`;
 
 export default function StudentsScreen() {
-  const students = useAppStore(state => state.students);
-  const setStudents = useAppStore(state => state.setStudents);
-
-  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const theme = useAppTheme();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
+
   const [selectedGroup, setSelectedGroup] = useState<string | null>('All');
   const [selectedStatus, setSelectedStatus] = useState<
     'All' | 'Attending' | 'Paid'
   >('All');
   const [filterKey, setFilterKey] = useState<number>(0);
-
-  const theme = useAppTheme();
   const deferredQuery = useDeferredValue(searchQuery);
+
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
   const listRef = useRef<FlatList>(null);
   useScrollToTop(listRef);
 
-  const [loadStudents, { loading, data, error }] = useLazyQuery<{
-    students: Student[];
-  }>(QUERY, {
-    fetchPolicy: 'network-only'
-  });
+  const { data, loading, error, refetch } = useQuery<{ students: Student[] }>(
+    GET_STUDENTS,
+    {
+      fetchPolicy: 'cache-first'
+    }
+  );
+
+  const allStudents = data?.students ?? [];
 
   const filteredStudents = useMemo(() => {
     const query = deferredQuery.trim().toLowerCase();
 
-    return students.filter(student => {
+    return allStudents.filter(student => {
       if (query && !student.fullName.toLowerCase().includes(query)) {
         return false;
       }
@@ -81,7 +67,7 @@ export default function StudentsScreen() {
 
       return true;
     });
-  }, [students, deferredQuery, selectedGroup]);
+  }, [allStudents, deferredQuery, selectedGroup]);
 
   const renderItem = useCallback(
     ({ item }: { item: Student }) => <StudentItem {...item} />,
@@ -93,29 +79,15 @@ export default function StudentsScreen() {
     setSelectedGroup('All');
     setSelectedStatus('All');
     setFilterKey(key => key + 1);
-    loadStudents();
-  }, [loadStudents]);
+    refetch();
+  }, [refetch]);
 
-  const handleStudentAdded = useCallback(
-    (newStudent: Student) => {
-      setStudents([newStudent, ...students]);
-      setShowAddModal(false);
-      setSelectedGroup('All');
-      setSelectedStatus('All');
-      listRef.current?.scrollToOffset({ offset: 0, animated: true });
-    },
-    [students, setStudents]
-  );
-
-  useEffect(() => {
-    if (data?.students) {
-      setStudents(data.students);
-    }
-
-    if (error) {
-      console.error(error);
-    }
-  }, [data, error, setStudents]);
+  const handleStudentAdded = useCallback(() => {
+    setShowAddModal(false);
+    setSelectedGroup('All');
+    setSelectedStatus('All');
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, []);
 
   return (
     <>

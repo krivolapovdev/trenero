@@ -1,34 +1,52 @@
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
 import { CustomAppbar } from '@/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
+import type { Student } from '@/graphql/types';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { studentService } from '@/services/student/studentService';
-import type { StudentResponse } from '@/types/student';
+
+const QUERY = gql`
+    query ($id: UUID!) {
+        student(id: $id) {
+            id
+            fullName
+            phone
+            birthDate
+            note
+            group {
+                id
+                name
+            }
+            attendances {
+                id
+                present
+                createdAt
+            }
+            payments {
+                id
+                amount
+                createdAt
+            }
+        }
+    }
+`;
 
 export default function StudentByIdScreen() {
-  const [student, setStudent] = useState<StudentResponse | null>(null);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
   const { id } = useLocalSearchParams();
   const theme = useAppTheme();
 
-  const fetchGroupById = useCallback(async () => {
-    try {
-      setRefreshing(true);
-      setError(null);
-      const data = await studentService.getStudentById(id as string);
-      setStudent(data);
-    } catch (err) {
-      console.error(err);
-      setError(`Failed to load student: ${id}`);
-    } finally {
-      setRefreshing(false);
+  const { data, loading, error, refetch } = useQuery<{ student: Student }>(
+    QUERY,
+    {
+      variables: { id },
+      fetchPolicy: 'cache-and-network'
     }
-  }, [id]);
+  );
+
+  const student = data?.student;
 
   const handleEditPress = () => {
     console.log('Edit pressed');
@@ -37,10 +55,6 @@ export default function StudentByIdScreen() {
   const handleDeletePress = () => {
     console.log('Delete pressed');
   };
-
-  useEffect(() => {
-    void fetchGroupById();
-  }, [fetchGroupById]);
 
   return (
     <>
@@ -60,12 +74,12 @@ export default function StudentByIdScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={fetchGroupById}
+            refreshing={loading}
+            onRefresh={refetch}
           />
         }
       >
-        <OptionalErrorMessage error={error} />
+        <OptionalErrorMessage error={error?.message} />
         <Text>{id}</Text>
         <Text>{JSON.stringify(student, null, 2)}</Text>
       </ScrollView>

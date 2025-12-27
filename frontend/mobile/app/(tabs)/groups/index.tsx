@@ -1,10 +1,8 @@
-import { gql } from '@apollo/client';
-import { useLazyQuery } from '@apollo/client/react';
+import { useQuery } from '@apollo/client/react';
 import { useScrollToTop } from '@react-navigation/native';
 import {
   useCallback,
   useDeferredValue,
-  useEffect,
   useMemo,
   useRef,
   useState
@@ -15,28 +13,12 @@ import { CustomAppbar } from '@/components/CustomAppbar';
 import { AddGroupDialog } from '@/components/dialogs';
 import { GroupItem } from '@/components/GroupItem';
 import { OptionalErrorMessage } from '@/components/OptionalErrorMessage';
+import { GET_GROUPS } from '@/graphql/quries';
 import type { Group } from '@/graphql/types';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { useAppStore } from '@/stores/appStore';
-
-const QUERY = gql`
-    query {
-        groups {
-            id
-            name
-            defaultPrice
-            students {
-                id
-            }
-        }
-    }
-`;
 
 export default function GroupsScreen() {
   const theme = useAppTheme();
-
-  const groups = useAppStore(state => state.groups);
-  const setGroups = useAppStore(state => state.setGroups);
 
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
@@ -46,47 +28,34 @@ export default function GroupsScreen() {
   const listRef = useRef<FlatList>(null);
   useScrollToTop(listRef);
 
-  const [loadGroups, { loading, data, error }] = useLazyQuery<{
+  const { loading, data, error, refetch } = useQuery<{
     groups: Group[];
-  }>(QUERY, {
-    fetchPolicy: 'network-only'
+  }>(GET_GROUPS, {
+    fetchPolicy: 'cache-first'
   });
+  const allGroups = data?.groups ?? [];
 
   const filteredGroups = useMemo(() => {
     const query = deferredQuery.trim().toLowerCase();
     return query
-      ? groups.filter(group => group.name.toLowerCase().includes(query))
-      : groups;
-  }, [groups, deferredQuery]);
+      ? allGroups.filter(group => group.name.toLowerCase().includes(query))
+      : allGroups;
+  }, [allGroups, deferredQuery]);
 
   const fetchGroups = useCallback(() => {
     setSearchQuery('');
-    loadGroups();
-  }, [loadGroups]);
+    refetch();
+  }, [refetch]);
 
   const renderItem = useCallback(
     ({ item }: { item: Group }) => <GroupItem {...item} />,
     []
   );
 
-  const handleGroupAdded = useCallback(
-    (newGroup: Group) => {
-      setGroups([newGroup, ...groups]);
-      setShowAddModal(false);
-      listRef.current?.scrollToOffset({ offset: 0, animated: true });
-    },
-    [setGroups, groups]
-  );
-
-  useEffect(() => {
-    if (data?.groups) {
-      setGroups(data.groups);
-    }
-
-    if (error) {
-      console.error(error);
-    }
-  }, [data, error, setGroups]);
+  const handleGroupAdded = useCallback(() => {
+    setShowAddModal(false);
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, []);
 
   return (
     <>
