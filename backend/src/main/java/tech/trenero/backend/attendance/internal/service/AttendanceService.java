@@ -89,6 +89,13 @@ public class AttendanceService {
         .toList();
   }
 
+  public Optional<AttendanceDto> getAttendanceByLessonId(
+      UUID lessonId, UUID studentId, JwtUser jwtUser) {
+    return attendanceRepository
+        .findByLessonIdAndStudentIdAndOwnerId(lessonId, studentId, jwtUser.userId())
+        .map(attendanceMapper::toDto);
+  }
+
   public List<AttendanceDto> getAttendancesByLessonId(UUID lessonId, JwtUser jwtUser) {
     log.info("Getting attendances by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
     return attendanceRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId()).stream()

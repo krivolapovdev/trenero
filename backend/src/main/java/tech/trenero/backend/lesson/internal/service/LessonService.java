@@ -80,6 +80,11 @@ public class LessonService {
         .toList();
   }
 
+  public Optional<LessonDto> getLastLessonByGroupId(UUID groupId, JwtUser jwtUser) {
+    log.info("Getting last lesson by groupId={} for ownerId={}", groupId, jwtUser.userId());
+    return lessonRepository.findLastLesson(groupId, jwtUser.userId());
+  }
+
   private Lesson saveLesson(Lesson lesson) {
     log.info("Saving lesson: {}", lesson);
     return lessonRepository.save(lesson);

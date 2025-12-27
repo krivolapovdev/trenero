@@ -28,6 +28,12 @@ public class StudentGraphQlResolver {
     return groupSpi.getGroupById(student.groupId(), jwtUser);
   }
 
+  @SchemaMapping(typeName = "Student", field = "lastAttendance")
+  public Optional<AttendanceDto> lastAttendance(
+      StudentDto student, @AuthenticationPrincipal JwtUser jwtUser) {
+    return attendanceSpi.getLastStudentAttendance(student.id(), student.groupId(), jwtUser);
+  }
+
   @SchemaMapping(typeName = "Student", field = "payments")
   public List<PaymentDto> payments(StudentDto student, @AuthenticationPrincipal JwtUser jwtUser) {
     return paymentSpi.getPaymentsByStudentId(student.id(), jwtUser);

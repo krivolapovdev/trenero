@@ -64,6 +64,7 @@ type Student {
     phone: String
     note: String
     group: Group
+    lastAttendance: Attendance
     deleted: Boolean!
     payments: [Payment!]!
     attendances: [Attendance!]!

@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,9 @@ import org.hibernate.annotations.CreationTimestamp;
 @Table(
     name = "lessons",
     schema = "lessons_module",
+    uniqueConstraints = {
+      @UniqueConstraint(columnNames = {"owner_id", "group_id", "start_date_time"})
+    },
     indexes = {
       @Index(columnList = "owner_id, group_id"),
       @Index(columnList = "owner_id, created_at"),

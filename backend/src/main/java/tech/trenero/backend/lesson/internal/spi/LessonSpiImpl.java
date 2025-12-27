@@ -1,6 +1,7 @@
 package tech.trenero.backend.lesson.internal.spi;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,5 +22,10 @@ public class LessonSpiImpl implements LessonSpi {
     }
 
     return lessonService.getLessonsByGroupId(groupId, jwtUser);
+  }
+
+  @Override
+  public Optional<LessonDto> getLastLessonByGroupId(UUID groupId, JwtUser jwtUser) {
+    return lessonService.getLastLessonByGroupId(groupId, jwtUser);
   }
 }
