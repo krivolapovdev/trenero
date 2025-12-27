@@ -20,7 +20,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @Table(
     name = "attendance",
     schema = "attendance_module",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"lesson_id", "student_id"})},
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"owner_id", "lesson_id", "student_id"})},
     indexes = {
       @Index(columnList = "owner_id, student_id"),
       @Index(columnList = "owner_id, lesson_id, student_id")
