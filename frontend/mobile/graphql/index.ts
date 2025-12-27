@@ -1,12 +1,10 @@
-import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
-import { authLink } from '@/graphql/authLink';
-import { errorLink } from '@/graphql/errorLink';
-
-const httpLink = new HttpLink({
-  uri: 'http://192.168.1.4:8080/graphql'
-});
+import { ApolloClient, ApolloLink, InMemoryCache } from '@apollo/client';
+import { authLink } from '@/graphql/links/authLink';
+import { errorLink } from '@/graphql/links/errorLink';
+import { httpLink } from '@/graphql/links/httpLink';
+import { timeoutLink } from '@/graphql/links/timeoutLink';
 
 export const client = new ApolloClient({
-  link: errorLink.concat(authLink).concat(httpLink),
+  link: ApolloLink.from([timeoutLink, errorLink, authLink, httpLink]),
   cache: new InMemoryCache()
 });

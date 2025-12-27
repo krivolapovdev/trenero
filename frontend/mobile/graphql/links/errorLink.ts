@@ -37,7 +37,7 @@ export const errorLink = new ErrorLink(({ error, operation, forward }) => {
           return;
         }
 
-        const { client } = await import('./index');
+        const { client } = await import('../index');
 
         const { data } = await client.mutate<
           { refreshTokens: JwtTokens },
