@@ -45,15 +45,7 @@ public class StudentService {
 
     groupValidator.validateGroupIsPresentAndActive(input.groupId(), jwtUser);
 
-    Student student =
-        Student.builder()
-            .fullName(input.fullName())
-            .ownerId(jwtUser.userId())
-            .birthDate(input.birthDate())
-            .phone(input.phone())
-            .note(input.note())
-            .groupId(input.groupId())
-            .build();
+    Student student = studentMapper.toStudent(input, jwtUser.userId());
 
     Student savedStudent = saveStudent(student);
 
