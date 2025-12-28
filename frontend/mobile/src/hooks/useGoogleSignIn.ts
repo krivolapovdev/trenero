@@ -46,7 +46,6 @@ export function useGoogleSignIn(
   setErrorMessage: (message: string | null) => void
 ) {
   const setAuth = useAuthStore(state => state.setAuth);
-
   const [googleLoginMutation, { loading }] = useMutation(GOOGLE_LOGIN);
 
   const signIn = async () => {
@@ -61,12 +60,14 @@ export function useGoogleSignIn(
       const response = await GoogleSignin.signIn();
 
       if (!isSuccessResponse(response)) {
-        throw new Error('Google Sign In failed');
+        setErrorMessage('Google Sign In failed');
+        return;
       }
 
       const { idToken } = response.data;
       if (!idToken) {
-        throw new Error('Failed to retrieve Google ID token');
+        setErrorMessage('Failed to retrieve Google ID token');
+        return;
       }
 
       const { data } = await googleLoginMutation({
@@ -75,7 +76,8 @@ export function useGoogleSignIn(
 
       const payload = data?.googleLogin;
       if (!payload) {
-        throw new Error('Login failed: no data returned');
+        setErrorMessage('Login failed: no data returned');
+        return;
       }
 
       await setAuth(payload);
