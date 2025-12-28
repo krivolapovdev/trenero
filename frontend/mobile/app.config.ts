@@ -6,7 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'trenero',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/images/icon.png',
+  icon: './src/assets/images/icon.png',
   scheme: 'mobile',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
@@ -17,8 +17,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     adaptiveIcon: {
       backgroundColor: '#E6F4FE',
-      foregroundImage: './assets/images/icon.png',
-      monochromeImage: './assets/images/icon-monochrome.png'
+      foregroundImage: './src/assets/images/icon.png',
+      monochromeImage: './src/assets/images/icon-monochrome.png'
     },
     predictiveBackGestureEnabled: false,
     package: 'tech.trenero'
@@ -28,7 +28,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        image: './assets/images/icon.png',
+        image: './src/assets/images/icon.png',
         imageWidth: 200,
         resizeMode: 'contain',
         backgroundColor: '#ffffff',
