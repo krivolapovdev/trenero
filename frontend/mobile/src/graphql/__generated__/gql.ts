@@ -20,7 +20,7 @@ type Documents = {
   '\n    mutation CreateGroup($input: CreateGroupInput!) {\n        createGroup(input: $input) {\n            id\n            name\n            defaultPrice\n            students {\n                id\n            }\n        }\n    }\n': typeof types.CreateGroupDocument;
   '\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            id\n            fullName\n            phone\n            note\n            birthDate\n            group {\n                id\n            }\n        }\n    }\n': typeof types.CreateStudentDocument;
   '\n    fragment GroupFields on Group {\n        id\n        name\n        defaultPrice\n        students {\n            id\n            fullName\n        }\n    }\n': typeof types.GroupFieldsFragmentDoc;
-  '\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n    }\n': typeof types.StudentFieldsFragmentDoc;
+  '\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        lastAttendance {\n            present\n        }\n    }\n': typeof types.StudentFieldsFragmentDoc;
   '\n    mutation RefreshTokens($input: RefreshTokenInput!) {\n        refreshTokens(input: $input) {\n            accessToken\n            refreshToken\n        }\n    }\n': typeof types.RefreshTokensDocument;
   '\n    query GetGroups {\n        groups {\n            ...GroupFields\n        }\n    }\n': typeof types.GetGroupsDocument;
   '\n    query GetStudents {\n        students {\n            ...StudentFields\n        }\n    }\n': typeof types.GetStudentsDocument;
@@ -38,7 +38,7 @@ const documents: Documents = {
     types.CreateStudentDocument,
   '\n    fragment GroupFields on Group {\n        id\n        name\n        defaultPrice\n        students {\n            id\n            fullName\n        }\n    }\n':
     types.GroupFieldsFragmentDoc,
-  '\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n    }\n':
+  '\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        lastAttendance {\n            present\n        }\n    }\n':
     types.StudentFieldsFragmentDoc,
   '\n    mutation RefreshTokens($input: RefreshTokenInput!) {\n        refreshTokens(input: $input) {\n            accessToken\n            refreshToken\n        }\n    }\n':
     types.RefreshTokensDocument,
@@ -100,8 +100,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n    }\n'
-): (typeof documents)['\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n    }\n'];
+  source: '\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        lastAttendance {\n            present\n        }\n    }\n'
+): (typeof documents)['\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        lastAttendance {\n            present\n        }\n    }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

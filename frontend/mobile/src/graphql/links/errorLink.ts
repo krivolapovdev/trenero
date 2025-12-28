@@ -1,4 +1,4 @@
-import { CombinedGraphQLErrors, gql, Observable } from '@apollo/client';
+import { CombinedGraphQLErrors, Observable } from '@apollo/client';
 import { ErrorLink } from '@apollo/client/link/error';
 import { graphql } from '@/src/graphql/__generated__';
 import { useAuthStore } from '@/src/stores/authStore';

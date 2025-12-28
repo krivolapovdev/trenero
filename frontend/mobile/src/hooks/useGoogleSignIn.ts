@@ -1,4 +1,3 @@
-import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import {
   GoogleSignin,
@@ -6,11 +5,10 @@ import {
   isSuccessResponse,
   statusCodes
 } from '@react-native-google-signin/google-signin';
-import type { SocialLoginInput } from '@/src/graphql/inputs';
-import type { LoginPayload } from '@/src/graphql/types';
+import { graphql } from '@/src/graphql/__generated__';
 import { useAuthStore } from '@/src/stores/authStore';
 
-const GOOGLE_LOGIN = gql`
+const GOOGLE_LOGIN = graphql(`
     mutation GoogleLogin($input: SocialLoginInput!) {
         googleLogin(input: $input) {
             user {
@@ -23,7 +21,7 @@ const GOOGLE_LOGIN = gql`
             }
         }
     }
-`;
+`);
 
 const getGoogleErrorMessage = (error: unknown): string => {
   if (isErrorWithCode(error)) {
@@ -49,10 +47,7 @@ export function useGoogleSignIn(
 ) {
   const setAuth = useAuthStore(state => state.setAuth);
 
-  const [googleLoginMutation, { loading }] = useMutation<
-    { googleLogin: LoginPayload },
-    { input: SocialLoginInput }
-  >(GOOGLE_LOGIN);
+  const [googleLoginMutation, { loading }] = useMutation(GOOGLE_LOGIN);
 
   const signIn = async () => {
     if (loading) {

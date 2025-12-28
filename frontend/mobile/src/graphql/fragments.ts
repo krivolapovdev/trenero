@@ -20,5 +20,8 @@ export const STUDENT_FIELDS = graphql(`
             id
             name
         }
+        lastAttendance {
+            present
+        }
     }
 `);

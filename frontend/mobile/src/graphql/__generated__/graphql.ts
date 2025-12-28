@@ -340,14 +340,15 @@ export type GroupFieldsFragment = {
   name: string;
   defaultPrice?: string | null;
   students: Array<{ __typename?: 'Student'; id: string; fullName: string }>;
-} & { ' $fragmentName'?: 'GroupFieldsFragment' };
+};
 
 export type StudentFieldsFragment = {
   __typename?: 'Student';
   id: string;
   fullName: string;
   group?: { __typename?: 'Group'; id: string; name: string } | null;
-} & { ' $fragmentName'?: 'StudentFieldsFragment' };
+  lastAttendance?: { __typename?: 'Attendance'; present: boolean } | null;
+};
 
 export type RefreshTokensMutationVariables = Exact<{
   input: RefreshTokenInput;
@@ -366,22 +367,26 @@ export type GetGroupsQueryVariables = Exact<{ [key: string]: never }>;
 
 export type GetGroupsQuery = {
   __typename?: 'Query';
-  groups: Array<
-    { __typename?: 'Group' } & {
-      ' $fragmentRefs'?: { GroupFieldsFragment: GroupFieldsFragment };
-    }
-  >;
+  groups: Array<{
+    __typename?: 'Group';
+    id: string;
+    name: string;
+    defaultPrice?: string | null;
+    students: Array<{ __typename?: 'Student'; id: string; fullName: string }>;
+  }>;
 };
 
 export type GetStudentsQueryVariables = Exact<{ [key: string]: never }>;
 
 export type GetStudentsQuery = {
   __typename?: 'Query';
-  students: Array<
-    { __typename?: 'Student' } & {
-      ' $fragmentRefs'?: { StudentFieldsFragment: StudentFieldsFragment };
-    }
-  >;
+  students: Array<{
+    __typename?: 'Student';
+    id: string;
+    fullName: string;
+    group?: { __typename?: 'Group'; id: string; name: string } | null;
+    lastAttendance?: { __typename?: 'Attendance'; present: boolean } | null;
+  }>;
 };
 
 export type GoogleLoginMutationVariables = Exact<{
@@ -405,16 +410,20 @@ export type GetInitialDataQueryVariables = Exact<{ [key: string]: never }>;
 
 export type GetInitialDataQuery = {
   __typename?: 'Query';
-  groups: Array<
-    { __typename?: 'Group' } & {
-      ' $fragmentRefs'?: { GroupFieldsFragment: GroupFieldsFragment };
-    }
-  >;
-  students: Array<
-    { __typename?: 'Student' } & {
-      ' $fragmentRefs'?: { StudentFieldsFragment: StudentFieldsFragment };
-    }
-  >;
+  groups: Array<{
+    __typename?: 'Group';
+    id: string;
+    name: string;
+    defaultPrice?: string | null;
+    students: Array<{ __typename?: 'Student'; id: string; fullName: string }>;
+  }>;
+  students: Array<{
+    __typename?: 'Student';
+    id: string;
+    fullName: string;
+    group?: { __typename?: 'Group'; id: string; name: string } | null;
+    lastAttendance?: { __typename?: 'Attendance'; present: boolean } | null;
+  }>;
 };
 
 export const GroupFieldsFragmentDoc = {
@@ -484,6 +493,16 @@ export const StudentFieldsFragmentDoc = {
                   name: { kind: 'Name', value: 'id' }
                 },
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastAttendance' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'present' } }
               ]
             }
           }
@@ -1006,6 +1025,16 @@ export const GetStudentsDocument = {
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } }
               ]
             }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastAttendance' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'present' } }
+              ]
+            }
           }
         ]
       }
@@ -1191,6 +1220,16 @@ export const GetInitialDataDocument = {
                   name: { kind: 'Name', value: 'id' }
                 },
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastAttendance' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'present' } }
               ]
             }
           }

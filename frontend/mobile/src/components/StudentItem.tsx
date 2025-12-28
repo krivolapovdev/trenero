@@ -1,28 +1,45 @@
 import { nanoid } from 'nanoid/non-secure';
 import { EntityCard } from '@/src/components/EntityCard';
-import type { Student } from '@/src/graphql/types';
+import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
-type Props = Student;
+type Props = GetStudentsQuery['students'][number];
 
-export const StudentItem = ({ id, fullName, group }: Readonly<Props>) => {
+export const StudentItem = ({
+  id,
+  fullName,
+  group,
+  lastAttendance
+}: Readonly<Props>) => {
   const theme = useAppTheme();
 
-  const isPaid = true;
-
   const badges = [
-    {
-      id: nanoid(),
-      label: 'Ходит',
-      backgroundColor: theme.colors.green,
-      textColor: theme.colors.onSecondaryContainer
-    },
+    ...(lastAttendance
+      ? [
+          {
+            id: nanoid(),
+            label: lastAttendance.present ? 'Present' : 'Missing',
+            backgroundColor: lastAttendance.present
+              ? theme.colors.green
+              : theme.colors.error,
+            textColor: lastAttendance.present
+              ? theme.colors.inversePrimary
+              : theme.colors.onPrimaryContainer
+          }
+        ]
+      : [
+          {
+            id: nanoid(),
+            label: 'No Activity',
+            backgroundColor: theme.colors.secondaryContainer,
+            textColor: theme.colors.onSecondaryContainer
+          }
+        ]),
     {
       id: nanoid(),
       label: 'Не оплатил',
       backgroundColor: theme.colors.errorContainer,
-      textColor: theme.colors.onErrorContainer,
-      isVisible: !isPaid
+      textColor: theme.colors.onErrorContainer
     }
   ];
 
