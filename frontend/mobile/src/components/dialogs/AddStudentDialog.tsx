@@ -21,6 +21,10 @@ const CREATE_STUDENT = graphql(`
             birthDate
             group {
                 id
+                name
+            }
+            lastAttendance {
+                present
             }
         }
     }

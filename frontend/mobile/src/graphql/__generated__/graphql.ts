@@ -330,7 +330,8 @@ export type CreateStudentMutation = {
     phone?: string | null;
     note?: string | null;
     birthDate?: string | null;
-    group?: { __typename?: 'Group'; id: string } | null;
+    group?: { __typename?: 'Group'; id: string; name: string } | null;
+    lastAttendance?: { __typename?: 'Attendance'; present: boolean } | null;
   };
 };
 
@@ -837,7 +838,24 @@ export const CreateStudentDocument = {
                   selectionSet: {
                     kind: 'SelectionSet',
                     selections: [
-                      { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'id' }
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'name' } }
+                    ]
+                  }
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'lastAttendance' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'present' }
+                      }
                     ]
                   }
                 }
