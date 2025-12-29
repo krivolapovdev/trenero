@@ -1,33 +1,46 @@
-import { useRouter } from 'expo-router';
+import { nanoid } from 'nanoid/non-secure';
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Appbar, Badge, Text } from 'react-native-paper';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
+export type AppbarAction = {
+  icon: string;
+  onPress: () => void;
+  color?: string;
+  disabled?: boolean;
+};
+
 type Props = {
   title: string;
   badgeCount?: number;
-  showBackButton?: boolean;
-  onAddPress?: () => void;
-  onEditPress?: () => void;
-  onDeletePress?: () => void;
+  leftActions?: AppbarAction[];
+  rightActions?: AppbarAction[];
 };
 
 export const CustomAppbar = memo(
   ({
     title,
     badgeCount,
-    showBackButton,
-    onAddPress,
-    onEditPress,
-    onDeletePress
+    leftActions = [],
+    rightActions = []
   }: Readonly<Props>) => {
     const theme = useAppTheme();
-    const router = useRouter();
+
+    const renderActions = (actions: AppbarAction[]) =>
+      actions.map(action => (
+        <Appbar.Action
+          key={nanoid()}
+          icon={action.icon}
+          onPress={action.onPress}
+          color={action.color}
+          disabled={action.disabled}
+        />
+      ));
 
     return (
       <Appbar.Header mode='center-aligned'>
-        {showBackButton && <Appbar.BackAction onPress={() => router.back()} />}
+        {renderActions(leftActions)}
 
         <Appbar.Content
           title={
@@ -50,26 +63,7 @@ export const CustomAppbar = memo(
           }
         />
 
-        {onAddPress && (
-          <Appbar.Action
-            icon='plus'
-            onPress={onAddPress}
-          />
-        )}
-
-        {onEditPress && (
-          <Appbar.Action
-            icon='pencil'
-            onPress={onEditPress}
-          />
-        )}
-
-        {onDeletePress && (
-          <Appbar.Action
-            icon='trash-can'
-            onPress={onEditPress}
-          />
-        )}
+        {renderActions(rightActions)}
       </Appbar.Header>
     );
   }

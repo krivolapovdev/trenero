@@ -11,6 +11,14 @@ export default function GroupsLayout() {
         name='index'
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name='[id]'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='add-group'
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }

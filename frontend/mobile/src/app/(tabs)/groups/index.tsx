@@ -1,5 +1,6 @@
 import { useQuery } from '@apollo/client/react';
 import { useScrollToTop } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import {
   useCallback,
   useDeferredValue,
@@ -18,6 +19,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export default function GroupsScreen() {
   const theme = useAppTheme();
+  const router = useRouter();
 
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
@@ -59,7 +61,12 @@ export default function GroupsScreen() {
       <CustomAppbar
         title='Groups'
         badgeCount={filteredGroups.length}
-        onAddPress={() => setShowAddModal(true)}
+        rightActions={[
+          {
+            icon: 'pencil-plus',
+            onPress: () => router.navigate('/(tabs)/groups/add-student')
+          }
+        ]}
       />
 
       <FlatList

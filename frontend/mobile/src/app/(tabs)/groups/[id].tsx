@@ -1,5 +1,5 @@
 import { useQuery } from '@apollo/client/react';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { RefreshControl, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
@@ -28,6 +28,7 @@ const GET_GROUP = graphql(`
 export default function GroupByIdScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useAppTheme();
+  const router = useRouter();
 
   const { data, loading, error, refetch } = useQuery(GET_GROUP, {
     variables: { id },
@@ -47,9 +48,11 @@ export default function GroupByIdScreen() {
     <>
       <CustomAppbar
         title='Group'
-        showBackButton={true}
-        onEditPress={handleEditPress}
-        onDeletePress={handleDeletePress}
+        leftActions={[{ icon: 'arrow-left', onPress: () => router.back() }]}
+        rightActions={[
+          { icon: 'account-edit', onPress: () => handleEditPress() },
+          { icon: 'trash-can', onPress: () => handleDeletePress() }
+        ]}
       />
 
       <ScrollView

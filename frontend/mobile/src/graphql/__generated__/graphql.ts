@@ -13,9 +13,7 @@ export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
   [SubKey in K]: Maybe<T[SubKey]>;
 };
 export type MakeEmpty<
-  T extends {
-    [key: string]: unknown;
-  },
+  T extends { [key: string]: unknown },
   K extends keyof T
 > = { [_ in K]?: never };
 export type Incremental<T> =
@@ -302,6 +300,21 @@ export type GetStudentQuery = {
   } | null;
 };
 
+export type CreateStudentMutationVariables = Exact<{
+  input: CreateStudentInput;
+}>;
+
+export type CreateStudentMutation = {
+  __typename?: 'Mutation';
+  createStudent: {
+    __typename?: 'Student';
+    id: string;
+    fullName: string;
+    group?: { __typename?: 'Group'; id: string; name: string } | null;
+    lastAttendance?: { __typename?: 'Attendance'; present: boolean } | null;
+  };
+};
+
 export type CreateGroupMutationVariables = Exact<{
   input: CreateGroupInput;
 }>;
@@ -314,24 +327,6 @@ export type CreateGroupMutation = {
     name: string;
     defaultPrice?: string | null;
     students: Array<{ __typename?: 'Student'; id: string }>;
-  };
-};
-
-export type CreateStudentMutationVariables = Exact<{
-  input: CreateStudentInput;
-}>;
-
-export type CreateStudentMutation = {
-  __typename?: 'Mutation';
-  createStudent: {
-    __typename?: 'Student';
-    id: string;
-    fullName: string;
-    phone?: string | null;
-    note?: string | null;
-    birthDate?: string | null;
-    group?: { __typename?: 'Group'; id: string; name: string } | null;
-    lastAttendance?: { __typename?: 'Attendance'; present: boolean } | null;
   };
 };
 
@@ -441,10 +436,7 @@ export const GroupFieldsFragmentDoc = {
         kind: 'SelectionSet',
         selections: [
           { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'name' }
-          },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
           { kind: 'Field', name: { kind: 'Name', value: 'defaultPrice' } },
           {
             kind: 'Field',
@@ -452,10 +444,7 @@ export const GroupFieldsFragmentDoc = {
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'fullName' } }
               ]
             }
@@ -479,20 +468,14 @@ export const StudentFieldsFragmentDoc = {
         kind: 'SelectionSet',
         selections: [
           { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'fullName' }
-          },
+          { kind: 'Field', name: { kind: 'Name', value: 'fullName' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'group' },
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } }
               ]
             }
@@ -545,10 +528,7 @@ export const GetGroupDocument = {
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } },
                 {
                   kind: 'Field',
@@ -560,10 +540,7 @@ export const GetGroupDocument = {
                   selectionSet: {
                     kind: 'SelectionSet',
                     selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                       {
                         kind: 'Field',
                         name: { kind: 'Name', value: 'fullName' }
@@ -577,10 +554,7 @@ export const GetGroupDocument = {
                   selectionSet: {
                     kind: 'SelectionSet',
                     selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                       {
                         kind: 'Field',
                         name: { kind: 'Name', value: 'startDateTime' }
@@ -629,30 +603,18 @@ export const GetStudentDocument = {
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'fullName' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'phone' }
-                },
+                { kind: 'Field', name: { kind: 'Name', value: 'phone' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'birthDate' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'note' }
-                },
+                { kind: 'Field', name: { kind: 'Name', value: 'note' } },
                 {
                   kind: 'Field',
                   name: { kind: 'Name', value: 'group' },
                   selectionSet: {
                     kind: 'SelectionSet',
                     selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                       { kind: 'Field', name: { kind: 'Name', value: 'name' } }
                     ]
                   }
@@ -663,10 +625,7 @@ export const GetStudentDocument = {
                   selectionSet: {
                     kind: 'SelectionSet',
                     selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                       {
                         kind: 'Field',
                         name: { kind: 'Name', value: 'present' }
@@ -684,10 +643,7 @@ export const GetStudentDocument = {
                   selectionSet: {
                     kind: 'SelectionSet',
                     selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                       {
                         kind: 'Field',
                         name: { kind: 'Name', value: 'amount' }
@@ -707,75 +663,6 @@ export const GetStudentDocument = {
     }
   ]
 } as unknown as DocumentNode<GetStudentQuery, GetStudentQueryVariables>;
-export const CreateGroupDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'mutation',
-      name: { kind: 'Name', value: 'CreateGroup' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: {
-            kind: 'Variable',
-            name: { kind: 'Name', value: 'input' }
-          },
-          type: {
-            kind: 'NonNullType',
-            type: {
-              kind: 'NamedType',
-              name: { kind: 'Name', value: 'CreateGroupInput' }
-            }
-          }
-        }
-      ],
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'createGroup' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'input' },
-                value: {
-                  kind: 'Variable',
-                  name: { kind: 'Name', value: 'input' }
-                }
-              }
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'defaultPrice' }
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'students' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      { kind: 'Field', name: { kind: 'Name', value: 'id' } }
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    }
-  ]
-} as unknown as DocumentNode<CreateGroupMutation, CreateGroupMutationVariables>;
 export const CreateStudentDocument = {
   kind: 'Document',
   definitions: [
@@ -819,46 +706,45 @@ export const CreateStudentDocument = {
               kind: 'SelectionSet',
               selections: [
                 {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'fullName' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'phone' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'note' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'birthDate' }
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'group' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
-                      { kind: 'Field', name: { kind: 'Name', value: 'name' } }
-                    ]
-                  }
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'lastAttendance' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'present' }
-                      }
-                    ]
-                  }
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'StudentFields' }
                 }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'StudentFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'Student' }
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'fullName' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'group' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastAttendance' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'present' } }
               ]
             }
           }
@@ -870,6 +756,72 @@ export const CreateStudentDocument = {
   CreateStudentMutation,
   CreateStudentMutationVariables
 >;
+export const CreateGroupDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'CreateGroup' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'input' }
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'CreateGroupInput' }
+            }
+          }
+        }
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'createGroup' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'input' }
+                }
+              }
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'defaultPrice' }
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'students' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+} as unknown as DocumentNode<CreateGroupMutation, CreateGroupMutationVariables>;
 export const RefreshTokensDocument = {
   kind: 'Document',
   definitions: [
@@ -912,10 +864,7 @@ export const RefreshTokensDocument = {
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'accessToken' }
-                },
+                { kind: 'Field', name: { kind: 'Name', value: 'accessToken' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'refreshToken' } }
               ]
             }
@@ -965,10 +914,7 @@ export const GetGroupsDocument = {
         kind: 'SelectionSet',
         selections: [
           { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'name' }
-          },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
           { kind: 'Field', name: { kind: 'Name', value: 'defaultPrice' } },
           {
             kind: 'Field',
@@ -976,10 +922,7 @@ export const GetGroupsDocument = {
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'fullName' } }
               ]
             }
@@ -1026,20 +969,14 @@ export const GetStudentsDocument = {
         kind: 'SelectionSet',
         selections: [
           { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'fullName' }
-          },
+          { kind: 'Field', name: { kind: 'Name', value: 'fullName' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'group' },
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } }
               ]
             }
@@ -1107,10 +1044,7 @@ export const GoogleLoginDocument = {
                   selectionSet: {
                     kind: 'SelectionSet',
                     selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                       { kind: 'Field', name: { kind: 'Name', value: 'email' } }
                     ]
                   }
@@ -1190,10 +1124,7 @@ export const GetInitialDataDocument = {
         kind: 'SelectionSet',
         selections: [
           { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'name' }
-          },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
           { kind: 'Field', name: { kind: 'Name', value: 'defaultPrice' } },
           {
             kind: 'Field',
@@ -1201,10 +1132,7 @@ export const GetInitialDataDocument = {
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'fullName' } }
               ]
             }
@@ -1223,20 +1151,14 @@ export const GetInitialDataDocument = {
         kind: 'SelectionSet',
         selections: [
           { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'fullName' }
-          },
+          { kind: 'Field', name: { kind: 'Name', value: 'fullName' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'group' },
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } }
               ]
             }

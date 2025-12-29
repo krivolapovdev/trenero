@@ -1,5 +1,6 @@
 import { useQuery } from '@apollo/client/react';
 import { useScrollToTop } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import {
   useCallback,
   useDeferredValue,
@@ -9,7 +10,6 @@ import {
 } from 'react';
 import { FlatList } from 'react-native';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { AddStudentDialog } from '@/src/components/dialogs/AddStudentDialog';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentItem } from '@/src/components/StudentItem';
 import { StudentSearchbarWithFilter } from '@/src/components/StudentSearchbarWithFilter';
@@ -18,6 +18,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export default function StudentsScreen() {
   const theme = useAppTheme();
+  const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -27,8 +28,6 @@ export default function StudentsScreen() {
   >('All');
   const [filterKey, setFilterKey] = useState<number>(0);
   const deferredQuery = useDeferredValue(searchQuery);
-
-  const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
   const listRef = useRef<FlatList>(null);
   useScrollToTop(listRef);
@@ -80,19 +79,17 @@ export default function StudentsScreen() {
     refetch();
   }, [refetch]);
 
-  const handleStudentAdded = useCallback(() => {
-    setShowAddModal(false);
-    setSelectedGroup('All');
-    setSelectedStatus('All');
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, []);
-
   return (
     <>
       <CustomAppbar
         title='Students'
         badgeCount={filteredStudents.length}
-        onAddPress={() => setShowAddModal(true)}
+        rightActions={[
+          {
+            icon: 'pencil-plus',
+            onPress: () => router.navigate('/(tabs)/students/add-student')
+          }
+        ]}
       />
 
       <FlatList
@@ -121,12 +118,6 @@ export default function StudentsScreen() {
             <OptionalErrorMessage error={error?.message} />
           </>
         }
-      />
-
-      <AddStudentDialog
-        visible={showAddModal}
-        onDismiss={() => setShowAddModal(false)}
-        onStudentAdded={handleStudentAdded}
       />
     </>
   );

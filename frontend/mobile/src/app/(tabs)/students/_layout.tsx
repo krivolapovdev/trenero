@@ -15,6 +15,10 @@ export default function StudentsLayout() {
         name='[id]'
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name='add-student'
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }
