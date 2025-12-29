@@ -3,7 +3,7 @@ import { ErrorLink } from '@apollo/client/link/error';
 import { graphql } from '@/src/graphql/__generated__';
 import { useAuthStore } from '@/src/stores/authStore';
 
-const REFRESH_TOKEN = graphql(`
+const REFRESH_TOKENS = graphql(`
     mutation RefreshTokens($input: RefreshTokenInput!) {
         refreshTokens(input: $input) {
             accessToken
@@ -13,22 +13,22 @@ const REFRESH_TOKEN = graphql(`
 `);
 
 export const errorLink = new ErrorLink(({ error, operation, forward }) => {
-  if (
+  const isUnauthenticatedGraphql =
     CombinedGraphQLErrors.is(error) &&
-    error.errors.some(err => err.extensions?.code === 'UNAUTHENTICATED')
-  ) {
-    return;
-  }
+    error.errors.some(err => err.extensions?.code === 'UNAUTHENTICATED');
 
-  if (
+  const isUnauthorizedHttp =
     error instanceof Error &&
     'statusCode' in error &&
-    (error.statusCode === 401 || error.statusCode === 403)
-  ) {
+    (error.statusCode === 401 || error.statusCode === 403);
+
+  if (!isUnauthenticatedGraphql && !isUnauthorizedHttp) {
     return;
   }
 
   return new Observable(observer => {
+    let subscription: { unsubscribe: () => void } | null = null;
+
     (async () => {
       try {
         const state = useAuthStore.getState();
@@ -44,7 +44,7 @@ export const errorLink = new ErrorLink(({ error, operation, forward }) => {
         const { client } = await import('@/src/graphql');
 
         const { data } = await client.mutate({
-          mutation: REFRESH_TOKEN,
+          mutation: REFRESH_TOKENS,
           variables: {
             input: { refreshToken }
           },
@@ -67,17 +67,13 @@ export const errorLink = new ErrorLink(({ error, operation, forward }) => {
           }
         }));
 
-        const subscription = forward(operation).subscribe({
-          next: observer.next.bind(observer),
-          error: observer.error.bind(observer),
-          complete: observer.complete.bind(observer)
-        });
-
-        return () => subscription.unsubscribe();
+        subscription = forward(operation).subscribe(observer);
       } catch (err) {
         await useAuthStore.getState().logout();
         observer.error(err);
       }
     })();
+
+    return () => subscription?.unsubscribe();
   });
 });
