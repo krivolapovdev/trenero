@@ -13,13 +13,18 @@ const REFRESH_TOKEN = graphql(`
 `);
 
 export const errorLink = new ErrorLink(({ error, operation, forward }) => {
-  const isAuthError =
-    (CombinedGraphQLErrors.is(error) &&
-      error.errors.some(err => err.extensions?.code === 'UNAUTHENTICATED')) ||
-    (error as any)?.statusCode === 401 ||
-    (error as any)?.statusCode === 403;
+  if (
+    CombinedGraphQLErrors.is(error) &&
+    error.errors.some(err => err.extensions?.code === 'UNAUTHENTICATED')
+  ) {
+    return;
+  }
 
-  if (!isAuthError) {
+  if (
+    error instanceof Error &&
+    'statusCode' in error &&
+    (error.statusCode === 401 || error.statusCode === 403)
+  ) {
     return;
   }
 

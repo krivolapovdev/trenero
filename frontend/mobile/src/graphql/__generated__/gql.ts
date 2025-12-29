@@ -17,7 +17,7 @@ import * as types from './graphql';
 type Documents = {
   '\n    query GetGroup($id: UUID!) {\n        group(id: $id) {\n            id\n            name\n            defaultPrice\n            students {\n                id\n                fullName\n            }\n            lessons {\n                id\n                startDateTime\n            }\n        }\n    }\n': typeof types.GetGroupDocument;
   '\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            id\n            fullName\n            phone\n            birthDate\n            note\n            group {\n                id\n                name\n            }\n            attendances {\n                id\n                present\n                createdAt\n            }\n            payments {\n                id\n                amount\n                createdAt\n            }\n        }\n    }\n': typeof types.GetStudentDocument;
-  '\n  mutation CreateStudent($input: CreateStudentInput!) {\n    createStudent(input: $input) {\n      ...StudentFields\n    }\n  }\n': typeof types.CreateStudentDocument;
+  '\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n': typeof types.CreateStudentDocument;
   '\n    mutation CreateGroup($input: CreateGroupInput!) {\n        createGroup(input: $input) {\n            id\n            name\n            defaultPrice\n            students {\n                id\n            }\n        }\n    }\n': typeof types.CreateGroupDocument;
   '\n    fragment GroupFields on Group {\n        id\n        name\n        defaultPrice\n        students {\n            id\n            fullName\n        }\n    }\n': typeof types.GroupFieldsFragmentDoc;
   '\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        lastAttendance {\n            present\n        }\n    }\n': typeof types.StudentFieldsFragmentDoc;
@@ -32,7 +32,7 @@ const documents: Documents = {
     types.GetGroupDocument,
   '\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            id\n            fullName\n            phone\n            birthDate\n            note\n            group {\n                id\n                name\n            }\n            attendances {\n                id\n                present\n                createdAt\n            }\n            payments {\n                id\n                amount\n                createdAt\n            }\n        }\n    }\n':
     types.GetStudentDocument,
-  '\n  mutation CreateStudent($input: CreateStudentInput!) {\n    createStudent(input: $input) {\n      ...StudentFields\n    }\n  }\n':
+  '\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n':
     types.CreateStudentDocument,
   '\n    mutation CreateGroup($input: CreateGroupInput!) {\n        createGroup(input: $input) {\n            id\n            name\n            defaultPrice\n            students {\n                id\n            }\n        }\n    }\n':
     types.CreateGroupDocument,
@@ -82,8 +82,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  mutation CreateStudent($input: CreateStudentInput!) {\n    createStudent(input: $input) {\n      ...StudentFields\n    }\n  }\n'
-): (typeof documents)['\n  mutation CreateStudent($input: CreateStudentInput!) {\n    createStudent(input: $input) {\n      ...StudentFields\n    }\n  }\n'];
+  source: '\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n'
+): (typeof documents)['\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
