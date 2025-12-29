@@ -3,15 +3,15 @@ import { useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Divider, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ConfirmDialog } from '@/src/components/dialogs';
+import { AppBottomSheet } from '@/src/components/AppBottomSheet';
 import { SocialButtonsGroup } from '@/src/components/SocialButtonsGroup';
+import { TermsContent } from '@/src/components/TermsContent';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export default function LoginScreen() {
-  const [isTermsDialogVisible, setIsTermsDialogVisible] = useState(false);
-
-  const { width, height } = useWindowDimensions();
   const theme = useAppTheme();
+  const { width, height } = useWindowDimensions();
+  const [isTermsVisible, setIsTermsVisible] = useState(false);
 
   return (
     <SafeAreaView
@@ -46,7 +46,7 @@ export default function LoginScreen() {
             By continuing, you agree to our{' '}
             <Text
               variant='bodySmall'
-              onPress={() => setIsTermsDialogVisible(true)}
+              onPress={() => setIsTermsVisible(true)}
             >
               Terms & Privacy Policy
             </Text>
@@ -54,38 +54,12 @@ export default function LoginScreen() {
         </View>
       </View>
 
-      {isTermsDialogVisible && (
-        <ConfirmDialog
-          visible={isTermsDialogVisible}
-          title='Terms & Privacy Policy'
-          onConfirm={() => setIsTermsDialogVisible(false)}
-          onDismiss={() => setIsTermsDialogVisible(false)}
-        >
-          <Text
-            variant='bodyMedium'
-            style={{ textAlign: 'justify' }}
-          >
-            Terms of Service
-            {'\n\n'}
-            By accessing or using this application, you acknowledge that you
-            have read, understood, and agree to be bound by these Terms of
-            Service. The application is provided on an “as is” and “as
-            available” basis, without warranties of any kind, whether express,
-            implied, or statutory, including but not limited to implied
-            warranties of merchantability, fitness for a particular purpose, and
-            non-infringement.
-            {'\n\n'}
-            Privacy Policy
-            {'\n\n'}
-            We collect and process only the information necessary to provide and
-            maintain the application. Personal data is not sold, rented, or
-            otherwise disclosed to third parties except as required by law.
-            Reasonable administrative, technical, and organizational measures
-            are implemented to protect personal data from unauthorized access,
-            use, or disclosure.
-          </Text>
-        </ConfirmDialog>
-      )}
+      <AppBottomSheet
+        visible={isTermsVisible}
+        onDismiss={() => setIsTermsVisible(false)}
+      >
+        <TermsContent />
+      </AppBottomSheet>
     </SafeAreaView>
   );
 }
