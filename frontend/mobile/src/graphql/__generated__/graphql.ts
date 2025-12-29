@@ -1,43 +1,32 @@
 /* eslint-disable */
-import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+import {TypedDocumentNode as DocumentNode} from '@graphql-typed-document-node/core';
 
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = T | null | undefined;
-export type Exact<T extends { [key: string]: unknown }> = {
-  [K in keyof T]: T[K];
-};
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]?: Maybe<T[SubKey]>;
-};
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]: Maybe<T[SubKey]>;
-};
-export type MakeEmpty<
-  T extends {
-    [key: string]: unknown;
-  },
-  K extends keyof T
-> = { [_ in K]?: never };
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends {
+  [key: string]: unknown
+}, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> =
-  | T
-  | {
-      [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
-    };
+    T
+    | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string };
-  String: { input: string; output: string };
-  Boolean: { input: boolean; output: boolean };
-  Int: { input: number; output: number };
-  Float: { input: number; output: number };
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
   /** An arbitrary precision signed decimal */
-  BigDecimal: { input: string; output: string };
+  BigDecimal: { input: string; output: string; }
   /** An RFC-3339 compliant Full Date Scalar */
-  Date: { input: string; output: string };
+  Date: { input: string; output: string; }
   /** A slightly refined version of RFC-3339 compliant DateTime Scalar */
-  DateTime: { input: string; output: string };
+  DateTime: { input: string; output: string; }
   /** A universally unique identifier compliant UUID Scalar */
-  UUID: { input: string; output: string };
+  UUID: { input: string; output: string; }
 };
 
 export type Attendance = {
@@ -129,53 +118,66 @@ export type Mutation = {
   refreshTokens: JwtTokens;
 };
 
+
 export type MutationAppleLoginArgs = {
   input: SocialLoginInput;
 };
+
 
 export type MutationCreateAttendanceArgs = {
   input: CreateAttendanceInput;
 };
 
+
 export type MutationCreateGroupArgs = {
   input: CreateGroupInput;
 };
+
 
 export type MutationCreateLessonArgs = {
   input: CreateLessonInput;
 };
 
+
 export type MutationCreatePaymentArgs = {
   input: CreatePaymentInput;
 };
+
 
 export type MutationCreateStudentArgs = {
   input: CreateStudentInput;
 };
 
+
 export type MutationDeleteAttendanceArgs = {
   id: Scalars['UUID']['input'];
 };
+
 
 export type MutationDeleteGroupArgs = {
   id: Scalars['UUID']['input'];
 };
 
+
 export type MutationDeleteLessonArgs = {
   id: Scalars['UUID']['input'];
 };
+
 
 export type MutationDeletePaymentArgs = {
   id: Scalars['UUID']['input'];
 };
 
+
 export type MutationDeleteStudentArgs = {
   id: Scalars['UUID']['input'];
 };
 
+
 export type MutationGoogleLoginArgs = {
   input: SocialLoginInput;
 };
+
 
 export type MutationRefreshTokensArgs = {
   input: RefreshTokenInput;
@@ -204,21 +206,26 @@ export type Query = {
   students: Array<Student>;
 };
 
+
 export type QueryAttendanceArgs = {
   id: Scalars['UUID']['input'];
 };
+
 
 export type QueryGroupArgs = {
   id: Scalars['UUID']['input'];
 };
 
+
 export type QueryLessonArgs = {
   id: Scalars['UUID']['input'];
 };
 
+
 export type QueryPaymentArgs = {
   id: Scalars['UUID']['input'];
 };
+
 
 export type QueryStudentArgs = {
   id: Scalars['UUID']['input'];
@@ -257,1004 +264,719 @@ export type GetGroupQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
+
 export type GetGroupQuery = {
-  __typename?: 'Query';
+  __typename?: 'Query',
   group?: {
-    __typename?: 'Group';
-    id: string;
-    name: string;
-    defaultPrice?: string | null;
-    students: Array<{ __typename?: 'Student'; id: string; fullName: string }>;
-    lessons: Array<{
-      __typename?: 'Lesson';
-      id: string;
-      startDateTime: string;
-    }>;
-  } | null;
+    __typename?: 'Group',
+    id: string,
+    name: string,
+    defaultPrice?: string | null,
+    students: Array<{ __typename?: 'Student', id: string, fullName: string }>,
+    lessons: Array<{ __typename?: 'Lesson', id: string, startDateTime: string }>
+  } | null
 };
 
 export type GetStudentQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
+
 export type GetStudentQuery = {
-  __typename?: 'Query';
+  __typename?: 'Query',
   student?: {
-    __typename?: 'Student';
-    id: string;
-    fullName: string;
-    phone?: string | null;
-    birthDate?: string | null;
-    note?: string | null;
-    group?: { __typename?: 'Group'; id: string; name: string } | null;
+    __typename?: 'Student',
+    id: string,
+    fullName: string,
+    phone?: string | null,
+    birthDate?: string | null,
+    note?: string | null,
+    group?: { __typename?: 'Group', id: string, name: string } | null,
     attendances: Array<{
-      __typename?: 'Attendance';
-      id: string;
-      present: boolean;
-      createdAt: string;
-    }>;
-    payments: Array<{
-      __typename?: 'Payment';
-      id: string;
-      amount: string;
-      createdAt: string;
-    }>;
-  } | null;
+      __typename?: 'Attendance',
+      id: string,
+      present: boolean,
+      createdAt: string
+    }>,
+    payments: Array<{ __typename?: 'Payment', id: string, amount: string, createdAt: string }>
+  } | null
 };
 
 export type CreateStudentMutationVariables = Exact<{
   input: CreateStudentInput;
 }>;
 
+
 export type CreateStudentMutation = {
-  __typename?: 'Mutation';
+  __typename?: 'Mutation',
   createStudent: {
-    __typename?: 'Student';
-    id: string;
-    fullName: string;
-    group?: { __typename?: 'Group'; id: string; name: string } | null;
-    lastAttendance?: { __typename?: 'Attendance'; present: boolean } | null;
-  };
+    __typename?: 'Student',
+    id: string,
+    fullName: string,
+    group?: { __typename?: 'Group', id: string, name: string } | null,
+    lastAttendance?: { __typename?: 'Attendance', present: boolean } | null
+  }
 };
 
 export type CreateGroupMutationVariables = Exact<{
   input: CreateGroupInput;
 }>;
 
+
 export type CreateGroupMutation = {
-  __typename?: 'Mutation';
+  __typename?: 'Mutation',
   createGroup: {
-    __typename?: 'Group';
-    id: string;
-    name: string;
-    defaultPrice?: string | null;
-    students: Array<{ __typename?: 'Student'; id: string }>;
-  };
+    __typename?: 'Group',
+    id: string,
+    name: string,
+    defaultPrice?: string | null,
+    students: Array<{ __typename?: 'Student', id: string }>
+  }
 };
 
 export type GroupFieldsFragment = {
-  __typename?: 'Group';
-  id: string;
-  name: string;
-  defaultPrice?: string | null;
-  students: Array<{ __typename?: 'Student'; id: string; fullName: string }>;
+  __typename?: 'Group',
+  id: string,
+  name: string,
+  defaultPrice?: string | null,
+  students: Array<{ __typename?: 'Student', id: string, fullName: string }>
 };
 
 export type StudentFieldsFragment = {
-  __typename?: 'Student';
-  id: string;
-  fullName: string;
-  group?: { __typename?: 'Group'; id: string; name: string } | null;
-  lastAttendance?: { __typename?: 'Attendance'; present: boolean } | null;
+  __typename?: 'Student',
+  id: string,
+  fullName: string,
+  group?: { __typename?: 'Group', id: string, name: string } | null,
+  lastAttendance?: { __typename?: 'Attendance', present: boolean } | null
 };
 
 export type RefreshTokensMutationVariables = Exact<{
   input: RefreshTokenInput;
 }>;
 
+
 export type RefreshTokensMutation = {
-  __typename?: 'Mutation';
-  refreshTokens: {
-    __typename?: 'JwtTokens';
-    accessToken: string;
-    refreshToken: string;
-  };
+  __typename?: 'Mutation',
+  refreshTokens: { __typename?: 'JwtTokens', accessToken: string, refreshToken: string }
 };
 
-export type GetGroupsQueryVariables = Exact<{ [key: string]: never }>;
+export type GetGroupsQueryVariables = Exact<{ [key: string]: never; }>;
+
 
 export type GetGroupsQuery = {
-  __typename?: 'Query';
+  __typename?: 'Query',
   groups: Array<{
-    __typename?: 'Group';
-    id: string;
-    name: string;
-    defaultPrice?: string | null;
-    students: Array<{ __typename?: 'Student'; id: string; fullName: string }>;
-  }>;
+    __typename?: 'Group',
+    id: string,
+    name: string,
+    defaultPrice?: string | null,
+    students: Array<{ __typename?: 'Student', id: string, fullName: string }>
+  }>
 };
 
-export type GetStudentsQueryVariables = Exact<{ [key: string]: never }>;
+export type GetStudentsQueryVariables = Exact<{ [key: string]: never; }>;
+
 
 export type GetStudentsQuery = {
-  __typename?: 'Query';
+  __typename?: 'Query',
   students: Array<{
-    __typename?: 'Student';
-    id: string;
-    fullName: string;
-    group?: { __typename?: 'Group'; id: string; name: string } | null;
-    lastAttendance?: { __typename?: 'Attendance'; present: boolean } | null;
-  }>;
+    __typename?: 'Student',
+    id: string,
+    fullName: string,
+    group?: { __typename?: 'Group', id: string, name: string } | null,
+    lastAttendance?: { __typename?: 'Attendance', present: boolean } | null
+  }>
 };
 
 export type GoogleLoginMutationVariables = Exact<{
   input: SocialLoginInput;
 }>;
 
+
 export type GoogleLoginMutation = {
-  __typename?: 'Mutation';
+  __typename?: 'Mutation',
   googleLogin: {
-    __typename?: 'LoginPayload';
-    user: { __typename?: 'User'; id: string; email: string };
-    jwtTokens: {
-      __typename?: 'JwtTokens';
-      accessToken: string;
-      refreshToken: string;
-    };
-  };
+    __typename?: 'LoginPayload',
+    user: { __typename?: 'User', id: string, email: string },
+    jwtTokens: { __typename?: 'JwtTokens', accessToken: string, refreshToken: string }
+  }
 };
 
-export type GetInitialDataQueryVariables = Exact<{ [key: string]: never }>;
+export type GetInitialDataQueryVariables = Exact<{ [key: string]: never; }>;
+
 
 export type GetInitialDataQuery = {
-  __typename?: 'Query';
+  __typename?: 'Query',
   groups: Array<{
-    __typename?: 'Group';
-    id: string;
-    name: string;
-    defaultPrice?: string | null;
-    students: Array<{ __typename?: 'Student'; id: string; fullName: string }>;
-  }>;
+    __typename?: 'Group',
+    id: string,
+    name: string,
+    defaultPrice?: string | null,
+    students: Array<{ __typename?: 'Student', id: string, fullName: string }>
+  }>,
   students: Array<{
-    __typename?: 'Student';
-    id: string;
-    fullName: string;
-    group?: { __typename?: 'Group'; id: string; name: string } | null;
-    lastAttendance?: { __typename?: 'Attendance'; present: boolean } | null;
-  }>;
+    __typename?: 'Student',
+    id: string,
+    fullName: string,
+    group?: { __typename?: 'Group', id: string, name: string } | null,
+    lastAttendance?: { __typename?: 'Attendance', present: boolean } | null
+  }>
 };
 
 export const GroupFieldsFragmentDoc = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'FragmentDefinition',
-      name: { kind: 'Name', value: 'GroupFields' },
-      typeCondition: {
-        kind: 'NamedType',
-        name: { kind: 'Name', value: 'Group' }
-      },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'name' }
-          },
-          { kind: 'Field', name: { kind: 'Name', value: 'defaultPrice' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'students' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'fullName' } }
-              ]
-            }
-          }
-        ]
-      }
+  "kind": "Document",
+  "definitions": [{
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "GroupFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Group"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "name"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "defaultPrice"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "students"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "fullName"}}]
+        }
+      }]
     }
-  ]
+  }]
 } as unknown as DocumentNode<GroupFieldsFragment, unknown>;
 export const StudentFieldsFragmentDoc = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'FragmentDefinition',
-      name: { kind: 'Name', value: 'StudentFields' },
-      typeCondition: {
-        kind: 'NamedType',
-        name: { kind: 'Name', value: 'Student' }
-      },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'fullName' }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'group' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'name' } }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'lastAttendance' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'present' } }
-              ]
-            }
-          }
-        ]
-      }
+  "kind": "Document",
+  "definitions": [{
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "StudentFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Student"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "fullName"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "group"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}]
+        }
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "lastAttendance"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "present"}}]
+        }
+      }]
     }
-  ]
+  }]
 } as unknown as DocumentNode<StudentFieldsFragment, unknown>;
 export const GetGroupDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: { kind: 'Name', value: 'GetGroup' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
-          type: {
-            kind: 'NonNullType',
-            type: { kind: 'NamedType', name: { kind: 'Name', value: 'UUID' } }
-          }
-        }
-      ],
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'group' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'id' },
-                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } }
-              }
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'defaultPrice' }
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'students' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'fullName' }
-                      }
-                    ]
-                  }
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'lessons' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'startDateTime' }
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        ]
+  "kind": "Document", "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "query",
+    "name": {"kind": "Name", "value": "GetGroup"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UUID"}}
       }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "group"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "id"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "defaultPrice"}
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "students"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {"kind": "Field", "name": {"kind": "Name", "value": "fullName"}}]
+            }
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "lessons"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {"kind": "Field", "name": {"kind": "Name", "value": "startDateTime"}}]
+            }
+          }]
+        }
+      }]
     }
-  ]
+  }]
 } as unknown as DocumentNode<GetGroupQuery, GetGroupQueryVariables>;
 export const GetStudentDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: { kind: 'Name', value: 'GetStudent' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
-          type: {
-            kind: 'NonNullType',
-            type: { kind: 'NamedType', name: { kind: 'Name', value: 'UUID' } }
-          }
-        }
-      ],
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'student' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'id' },
-                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } }
-              }
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'fullName' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'phone' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'birthDate' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'note' }
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'group' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
-                      { kind: 'Field', name: { kind: 'Name', value: 'name' } }
-                    ]
-                  }
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'attendances' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'present' }
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'createdAt' }
-                      }
-                    ]
-                  }
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'payments' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'amount' }
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'createdAt' }
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        ]
+  "kind": "Document", "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "query",
+    "name": {"kind": "Name", "value": "GetStudent"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UUID"}}
       }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet", "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "student"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "id"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "fullName"}}, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "phone"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "birthDate"}}, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "note"}
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "group"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}]
+            }
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "attendances"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {"kind": "Field", "name": {"kind": "Name", "value": "present"}}, {
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "createdAt"}
+              }]
+            }
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "payments"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {"kind": "Field", "name": {"kind": "Name", "value": "amount"}}, {
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "createdAt"}
+              }]
+            }
+          }]
+        }
+      }]
     }
-  ]
+  }]
 } as unknown as DocumentNode<GetStudentQuery, GetStudentQueryVariables>;
 export const CreateStudentDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'mutation',
-      name: { kind: 'Name', value: 'CreateStudent' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: {
-            kind: 'Variable',
-            name: { kind: 'Name', value: 'input' }
-          },
-          type: {
-            kind: 'NonNullType',
-            type: {
-              kind: 'NamedType',
-              name: { kind: 'Name', value: 'CreateStudentInput' }
-            }
-          }
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "CreateStudent"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "CreateStudentInput"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "createStudent"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "input"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "StudentFields"}
+          }]
         }
-      ],
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'createStudent' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'input' },
-                value: {
-                  kind: 'Variable',
-                  name: { kind: 'Name', value: 'input' }
-                }
-              }
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'FragmentSpread',
-                  name: { kind: 'Name', value: 'StudentFields' }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      kind: 'FragmentDefinition',
-      name: { kind: 'Name', value: 'StudentFields' },
-      typeCondition: {
-        kind: 'NamedType',
-        name: { kind: 'Name', value: 'Student' }
-      },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'fullName' }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'group' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'name' } }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'lastAttendance' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'present' } }
-              ]
-            }
-          }
-        ]
-      }
+      }]
     }
-  ]
-} as unknown as DocumentNode<
-  CreateStudentMutation,
-  CreateStudentMutationVariables
->;
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "StudentFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Student"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "fullName"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "group"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}]
+        }
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "lastAttendance"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "present"}}]
+        }
+      }]
+    }
+  }]
+} as unknown as DocumentNode<CreateStudentMutation, CreateStudentMutationVariables>;
 export const CreateGroupDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'mutation',
-      name: { kind: 'Name', value: 'CreateGroup' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: {
-            kind: 'Variable',
-            name: { kind: 'Name', value: 'input' }
-          },
-          type: {
-            kind: 'NonNullType',
-            type: {
-              kind: 'NamedType',
-              name: { kind: 'Name', value: 'CreateGroupInput' }
-            }
-          }
-        }
-      ],
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'createGroup' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'input' },
-                value: {
-                  kind: 'Variable',
-                  name: { kind: 'Name', value: 'input' }
-                }
-              }
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'defaultPrice' }
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'students' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      { kind: 'Field', name: { kind: 'Name', value: 'id' } }
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        ]
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "CreateGroup"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "CreateGroupInput"}}
       }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "createGroup"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "input"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "defaultPrice"}
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "students"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+            }
+          }]
+        }
+      }]
     }
-  ]
+  }]
 } as unknown as DocumentNode<CreateGroupMutation, CreateGroupMutationVariables>;
 export const RefreshTokensDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'mutation',
-      name: { kind: 'Name', value: 'RefreshTokens' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: {
-            kind: 'Variable',
-            name: { kind: 'Name', value: 'input' }
-          },
-          type: {
-            kind: 'NonNullType',
-            type: {
-              kind: 'NamedType',
-              name: { kind: 'Name', value: 'RefreshTokenInput' }
-            }
-          }
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "RefreshTokens"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "RefreshTokenInput"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "refreshTokens"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "input"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "accessToken"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "refreshToken"}}]
         }
-      ],
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'refreshTokens' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'input' },
-                value: {
-                  kind: 'Variable',
-                  name: { kind: 'Name', value: 'input' }
-                }
-              }
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'accessToken' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'refreshToken' } }
-              ]
-            }
-          }
-        ]
-      }
+      }]
     }
-  ]
-} as unknown as DocumentNode<
-  RefreshTokensMutation,
-  RefreshTokensMutationVariables
->;
+  }]
+} as unknown as DocumentNode<RefreshTokensMutation, RefreshTokensMutationVariables>;
 export const GetGroupsDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: { kind: 'Name', value: 'GetGroups' },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'groups' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'FragmentSpread',
-                  name: { kind: 'Name', value: 'GroupFields' }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      kind: 'FragmentDefinition',
-      name: { kind: 'Name', value: 'GroupFields' },
-      typeCondition: {
-        kind: 'NamedType',
-        name: { kind: 'Name', value: 'Group' }
-      },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'name' }
-          },
-          { kind: 'Field', name: { kind: 'Name', value: 'defaultPrice' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'students' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'fullName' } }
-              ]
-            }
-          }
-        ]
-      }
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "query",
+    "name": {"kind": "Name", "value": "GetGroups"},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "groups"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "GroupFields"}
+          }]
+        }
+      }]
     }
-  ]
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "GroupFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Group"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "name"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "defaultPrice"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "students"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "fullName"}}]
+        }
+      }]
+    }
+  }]
 } as unknown as DocumentNode<GetGroupsQuery, GetGroupsQueryVariables>;
 export const GetStudentsDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: { kind: 'Name', value: 'GetStudents' },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'students' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'FragmentSpread',
-                  name: { kind: 'Name', value: 'StudentFields' }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      kind: 'FragmentDefinition',
-      name: { kind: 'Name', value: 'StudentFields' },
-      typeCondition: {
-        kind: 'NamedType',
-        name: { kind: 'Name', value: 'Student' }
-      },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'fullName' }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'group' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'name' } }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'lastAttendance' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'present' } }
-              ]
-            }
-          }
-        ]
-      }
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "query",
+    "name": {"kind": "Name", "value": "GetStudents"},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "students"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "StudentFields"}
+          }]
+        }
+      }]
     }
-  ]
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "StudentFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Student"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "fullName"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "group"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}]
+        }
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "lastAttendance"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "present"}}]
+        }
+      }]
+    }
+  }]
 } as unknown as DocumentNode<GetStudentsQuery, GetStudentsQueryVariables>;
 export const GoogleLoginDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'mutation',
-      name: { kind: 'Name', value: 'GoogleLogin' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: {
-            kind: 'Variable',
-            name: { kind: 'Name', value: 'input' }
-          },
-          type: {
-            kind: 'NonNullType',
-            type: {
-              kind: 'NamedType',
-              name: { kind: 'Name', value: 'SocialLoginInput' }
-            }
-          }
-        }
-      ],
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'googleLogin' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'input' },
-                value: {
-                  kind: 'Variable',
-                  name: { kind: 'Name', value: 'input' }
-                }
-              }
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'user' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'id' }
-                      },
-                      { kind: 'Field', name: { kind: 'Name', value: 'email' } }
-                    ]
-                  }
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'jwtTokens' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'accessToken' }
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'refreshToken' }
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        ]
+  "kind": "Document", "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "GoogleLogin"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "SocialLoginInput"}}
       }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "googleLogin"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "input"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "user"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {"kind": "Field", "name": {"kind": "Name", "value": "email"}}]
+            }
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "jwtTokens"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "accessToken"}
+              }, {"kind": "Field", "name": {"kind": "Name", "value": "refreshToken"}}]
+            }
+          }]
+        }
+      }]
     }
-  ]
+  }]
 } as unknown as DocumentNode<GoogleLoginMutation, GoogleLoginMutationVariables>;
 export const GetInitialDataDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: { kind: 'Name', value: 'GetInitialData' },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'groups' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'FragmentSpread',
-                  name: { kind: 'Name', value: 'GroupFields' }
-                }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'students' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'FragmentSpread',
-                  name: { kind: 'Name', value: 'StudentFields' }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      kind: 'FragmentDefinition',
-      name: { kind: 'Name', value: 'GroupFields' },
-      typeCondition: {
-        kind: 'NamedType',
-        name: { kind: 'Name', value: 'Group' }
-      },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'name' }
-          },
-          { kind: 'Field', name: { kind: 'Name', value: 'defaultPrice' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'students' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'fullName' } }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      kind: 'FragmentDefinition',
-      name: { kind: 'Name', value: 'StudentFields' },
-      typeCondition: {
-        kind: 'NamedType',
-        name: { kind: 'Name', value: 'Student' }
-      },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'fullName' }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'group' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'id' }
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'name' } }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'lastAttendance' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'present' } }
-              ]
-            }
-          }
-        ]
-      }
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "query",
+    "name": {"kind": "Name", "value": "GetInitialData"},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "groups"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "GroupFields"}
+          }]
+        }
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "students"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "StudentFields"}
+          }]
+        }
+      }]
     }
-  ]
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "GroupFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Group"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "name"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "defaultPrice"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "students"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "fullName"}}]
+        }
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "StudentFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Student"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "fullName"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "group"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}]
+        }
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "lastAttendance"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "present"}}]
+        }
+      }]
+    }
+  }]
 } as unknown as DocumentNode<GetInitialDataQuery, GetInitialDataQueryVariables>;
