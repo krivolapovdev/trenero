@@ -1,16 +1,9 @@
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SocialAuthButton } from '@/src/components/SocialAuthButton';
 import { useAppleSignIn } from '@/src/hooks/useAppleSignIn';
 import { useGoogleSignIn } from '@/src/hooks/useGoogleSignIn';
-
-GoogleSignin.configure({
-  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  scopes: ['profile', 'email']
-});
 
 export function SocialButtonsGroup() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

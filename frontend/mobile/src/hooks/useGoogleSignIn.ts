@@ -8,6 +8,12 @@ import {
 import { graphql } from '@/src/graphql/__generated__';
 import { useAuthStore } from '@/src/stores/authStore';
 
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  scopes: ['profile', 'email']
+});
+
 const GOOGLE_LOGIN = graphql(`
     mutation GoogleLogin($input: SocialLoginInput!) {
         googleLogin(input: $input) {
