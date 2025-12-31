@@ -64,7 +64,7 @@ export default function GroupsScreen() {
         rightActions={[
           {
             icon: 'pencil-plus',
-            onPress: () => router.navigate('/(tabs)/groups/add-student')
+            onPress: () => router.navigate('/(tabs)/groups/add-group')
           }
         ]}
       />
