@@ -13,12 +13,7 @@ const INPUT_THEME = { roundness: 10 };
 const CREATE_GROUP = graphql(`
     mutation CreateGroup($input: CreateGroupInput!) {
         createGroup(input: $input) {
-            id
-            name
-            defaultPrice
-            students {
-                id
-            }
+            ...GroupFields
         }
     }
 `);
