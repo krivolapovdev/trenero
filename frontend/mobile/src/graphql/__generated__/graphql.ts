@@ -330,7 +330,7 @@ export type CreateGroupMutation = {
     id: string,
     name: string,
     defaultPrice?: string | null,
-    students: Array<{ __typename?: 'Student', id: string }>
+    students: Array<{ __typename?: 'Student', id: string, fullName: string }>
   }
 };
 
@@ -702,19 +702,30 @@ export const CreateGroupDocument = {
         "selectionSet": {
           "kind": "SelectionSet",
           "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "GroupFields"}
+          }]
+        }
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "GroupFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Group"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "name"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "defaultPrice"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "students"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
             "kind": "Field",
             "name": {"kind": "Name", "value": "id"}
-          }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}, {
-            "kind": "Field",
-            "name": {"kind": "Name", "value": "defaultPrice"}
-          }, {
-            "kind": "Field",
-            "name": {"kind": "Name", "value": "students"},
-            "selectionSet": {
-              "kind": "SelectionSet",
-              "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
-            }
-          }]
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "fullName"}}]
         }
       }]
     }

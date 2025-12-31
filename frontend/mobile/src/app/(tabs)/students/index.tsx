@@ -1,13 +1,7 @@
 import { useQuery } from '@apollo/client/react';
 import { useScrollToTop } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import {
-  useCallback,
-  useDeferredValue,
-  useMemo,
-  useRef,
-  useState
-} from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { FlatList } from 'react-native';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
@@ -15,54 +9,31 @@ import { StudentItem } from '@/src/components/StudentItem';
 import { StudentSearchbarWithFilter } from '@/src/components/StudentSearchbarWithFilter';
 import { GET_STUDENTS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useFilteredStudents } from '@/src/hooks/useFilteredStudents';
+import type { Status } from '@/src/types/student';
 
 export default function StudentsScreen() {
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [filterKey, setFilterKey] = useState<number>(0);
+  const [filterGroup, setFilterGroup] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<Status | null>(null);
+
   const theme = useAppTheme();
   const router = useRouter();
-
-  const [searchQuery, setSearchQuery] = useState<string>('');
-
-  const [selectedGroup, setSelectedGroup] = useState<string | null>('All');
-  const [selectedStatus, setSelectedStatus] = useState<
-    'All' | 'Attending' | 'Paid'
-  >('All');
-  const [filterKey, setFilterKey] = useState<number>(0);
-  const deferredQuery = useDeferredValue(searchQuery);
-
   const listRef = useRef<FlatList>(null);
   useScrollToTop(listRef);
 
   const { data, loading, error, refetch } = useQuery(GET_STUDENTS, {
     fetchPolicy: 'cache-first'
   });
-
   const allStudents = data?.students ?? [];
 
-  const filteredStudents = useMemo(() => {
-    const query = deferredQuery.trim().toLowerCase();
-
-    return allStudents.filter(student => {
-      if (query && !student.fullName.toLowerCase().includes(query)) {
-        return false;
-      }
-
-      if (selectedGroup !== 'All' && student.group?.name !== selectedGroup) {
-        return false;
-      }
-
-      // if (selectedStatus !== 'All') {
-      //   if (selectedStatus === 'Attending' && !student.isAttending) {
-      //     return false;
-      //   }
-      //
-      //   if (selectedStatus === 'Paid' && !student.isPaid) {
-      //     return false;
-      //   }
-      // }
-
-      return true;
-    });
-  }, [allStudents, deferredQuery, selectedGroup]);
+  const filteredStudents = useFilteredStudents(
+    allStudents,
+    searchQuery,
+    filterGroup,
+    filterStatus
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: (typeof allStudents)[number] }) => (
@@ -73,8 +44,8 @@ export default function StudentsScreen() {
 
   const fetchStudents = useCallback(() => {
     setSearchQuery('');
-    setSelectedGroup('All');
-    setSelectedStatus('All');
+    setFilterGroup(null);
+    setFilterStatus(null);
     setFilterKey(key => key + 1);
     refetch();
   }, [refetch]);
@@ -110,10 +81,10 @@ export default function StudentsScreen() {
               value={searchQuery}
               onChange={setSearchQuery}
               onClearIconPress={() => setSearchQuery('')}
-              onFilter={({ group, status }) => {
-                setSelectedGroup(group);
-                setSelectedStatus(status);
-              }}
+              filterGroup={filterGroup}
+              setFilterGroup={setFilterGroup}
+              filterStatus={filterStatus}
+              setFilterStatus={setFilterStatus}
             />
             <OptionalErrorMessage error={error?.message} />
           </>
