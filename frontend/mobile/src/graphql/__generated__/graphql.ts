@@ -277,6 +277,22 @@ export type GetGroupQuery = {
   } | null
 };
 
+export type CreateGroupMutationVariables = Exact<{
+  input: CreateGroupInput;
+}>;
+
+
+export type CreateGroupMutation = {
+  __typename?: 'Mutation',
+  createGroup: {
+    __typename?: 'Group',
+    id: string,
+    name: string,
+    defaultPrice?: string | null,
+    students: Array<{ __typename?: 'Student', id: string, fullName: string }>
+  }
+};
+
 export type GetStudentQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -315,22 +331,6 @@ export type CreateStudentMutation = {
     fullName: string,
     group?: { __typename?: 'Group', id: string, name: string } | null,
     lastAttendance?: { __typename?: 'Attendance', present: boolean } | null
-  }
-};
-
-export type CreateGroupMutationVariables = Exact<{
-  input: CreateGroupInput;
-}>;
-
-
-export type CreateGroupMutation = {
-  __typename?: 'Mutation',
-  createGroup: {
-    __typename?: 'Group',
-    id: string,
-    name: string,
-    defaultPrice?: string | null,
-    students: Array<{ __typename?: 'Student', id: string, fullName: string }>
   }
 };
 
@@ -537,6 +537,62 @@ export const GetGroupDocument = {
     }
   }]
 } as unknown as DocumentNode<GetGroupQuery, GetGroupQueryVariables>;
+export const CreateGroupDocument = {
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "CreateGroup"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "CreateGroupInput"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "createGroup"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "input"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "GroupFields"}
+          }]
+        }
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "GroupFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Group"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "name"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "defaultPrice"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "students"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "fullName"}}]
+        }
+      }]
+    }
+  }]
+} as unknown as DocumentNode<CreateGroupMutation, CreateGroupMutationVariables>;
 export const GetStudentDocument = {
   "kind": "Document", "definitions": [{
     "kind": "OperationDefinition",
@@ -675,62 +731,6 @@ export const CreateStudentDocument = {
     }
   }]
 } as unknown as DocumentNode<CreateStudentMutation, CreateStudentMutationVariables>;
-export const CreateGroupDocument = {
-  "kind": "Document",
-  "definitions": [{
-    "kind": "OperationDefinition",
-    "operation": "mutation",
-    "name": {"kind": "Name", "value": "CreateGroup"},
-    "variableDefinitions": [{
-      "kind": "VariableDefinition",
-      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
-      "type": {
-        "kind": "NonNullType",
-        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "CreateGroupInput"}}
-      }
-    }],
-    "selectionSet": {
-      "kind": "SelectionSet",
-      "selections": [{
-        "kind": "Field",
-        "name": {"kind": "Name", "value": "createGroup"},
-        "arguments": [{
-          "kind": "Argument",
-          "name": {"kind": "Name", "value": "input"},
-          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
-        }],
-        "selectionSet": {
-          "kind": "SelectionSet",
-          "selections": [{
-            "kind": "FragmentSpread",
-            "name": {"kind": "Name", "value": "GroupFields"}
-          }]
-        }
-      }]
-    }
-  }, {
-    "kind": "FragmentDefinition",
-    "name": {"kind": "Name", "value": "GroupFields"},
-    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Group"}},
-    "selectionSet": {
-      "kind": "SelectionSet",
-      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
-        "kind": "Field",
-        "name": {"kind": "Name", "value": "name"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "defaultPrice"}}, {
-        "kind": "Field",
-        "name": {"kind": "Name", "value": "students"},
-        "selectionSet": {
-          "kind": "SelectionSet",
-          "selections": [{
-            "kind": "Field",
-            "name": {"kind": "Name", "value": "id"}
-          }, {"kind": "Field", "name": {"kind": "Name", "value": "fullName"}}]
-        }
-      }]
-    }
-  }]
-} as unknown as DocumentNode<CreateGroupMutation, CreateGroupMutationVariables>;
 export const RefreshTokensDocument = {
   "kind": "Document",
   "definitions": [{

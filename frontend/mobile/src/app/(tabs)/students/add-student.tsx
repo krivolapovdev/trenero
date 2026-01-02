@@ -1,16 +1,26 @@
-import { useMutation } from '@apollo/client/react';
+import { useMutation, useQuery } from '@apollo/client/react';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { Text, TextInput } from 'react-native-paper';
+import { TextInput } from 'react-native-paper';
+import { PaperSelect } from 'react-native-paper-select';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { CustomTextInput } from '@/src/components/CustomTextInput';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { graphql } from '@/src/graphql/__generated__';
 import type { CreateStudentInput } from '@/src/graphql/__generated__/graphql';
-import { GET_STUDENTS } from '@/src/graphql/queries';
+import { GET_GROUPS, GET_STUDENTS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
-const INPUT_THEME = { roundness: 10 };
+const formatDateInput = (value: string) => {
+  const digits = value.replaceAll(/\D/g, '').slice(0, 8);
+
+  const day = digits.slice(0, 2);
+  const month = digits.slice(2, 4);
+  const year = digits.slice(4, 8);
+
+  return [day, month, year].filter(Boolean).join('/');
+};
 
 const parseDate = (value: string): Date | null => {
   const [day, month, year] = value.split('/').map(Number);
@@ -56,6 +66,20 @@ export default function AddStudentScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [note, setNote] = useState('');
   const [birthdate, setBirthdate] = useState('');
+  const [groupId, setGroupId] = useState('');
+
+  const { data } = useQuery(GET_GROUPS, {
+    fetchPolicy: 'cache-first'
+  });
+
+  const groupItems = useMemo(
+    () =>
+      data?.groups?.map(group => ({
+        _id: group.id,
+        value: group.name
+      })) ?? [],
+    [data]
+  );
 
   const [createStudent, { loading, error }] = useMutation(CREATE_STUDENT, {
     update(cache, { data }) {
@@ -85,7 +109,8 @@ export default function AddStudentScreen() {
       fullName: trimmedFullName,
       phone: phoneNumber?.trim() || null,
       note: note?.trim() || null,
-      birthDate: parseDate(birthdate)?.toISOString().split('T')[0] || null
+      birthDate: parseDate(birthdate)?.toISOString().split('T')[0] || null,
+      groupId: groupId || null
     };
 
     const { data } = await createStudent({ variables: { input } });
@@ -95,25 +120,21 @@ export default function AddStudentScreen() {
     }
   };
 
-  const formatDateInput = (value: string) => {
-    const digits = value.replaceAll(/\D/g, '').slice(0, 8);
-
-    const day = digits.slice(0, 2);
-    const month = digits.slice(2, 4);
-    const year = digits.slice(4, 8);
-
-    return [day, month, year].filter(Boolean).join('/');
-  };
-
   return (
     <>
       <CustomAppbar
         title='Add Student'
-        leftActions={[{ icon: 'arrow-left', onPress: () => router.back() }]}
+        leftActions={[
+          {
+            icon: 'arrow-left',
+            onPress: () => router.back(),
+            disabled: loading
+          }
+        ]}
         rightActions={[
           {
             icon: 'content-save',
-            disabled: !fullName || loading,
+            disabled: !fullName.trim() || loading,
             onPress: () => {
               void handleSubmit();
             }
@@ -130,52 +151,63 @@ export default function AddStudentScreen() {
       >
         <OptionalErrorMessage error={error?.message} />
 
-        <TextInput
-          mode='outlined'
+        <CustomTextInput
+          label='Full name *'
           value={fullName}
-          theme={INPUT_THEME}
           onChangeText={setFullName}
           maxLength={255}
-          label={
-            <Text>
-              Full Name <Text style={{ color: 'red' }}>*</Text>
-            </Text>
-          }
           right={<TextInput.Affix text={`${fullName.length}/255`} />}
         />
 
-        <TextInput
-          mode='outlined'
+        <CustomTextInput
           label='Phone number'
           value={phoneNumber}
-          theme={INPUT_THEME}
-          keyboardType='numeric'
-          left={<TextInput.Affix text='+' />}
-          maxLength={15}
+          placeholder='88005553535'
           onChangeText={text => setPhoneNumber(text.replaceAll(/\D/g, ''))}
+          maxLength={15}
+          keyboardType='numeric'
         />
 
-        <TextInput
-          mode='outlined'
+        <CustomTextInput
           label='Note'
           value={note}
-          theme={INPUT_THEME}
           onChangeText={setNote}
           maxLength={1023}
           multiline
           right={<TextInput.Affix text={`${note.length}/1023`} />}
         />
 
-        <TextInput
-          mode='outlined'
+        <CustomTextInput
           label='Birthday'
-          placeholder='31/12/2000'
-          value={birthdate}
-          theme={INPUT_THEME}
+          placeholder='31/12/1999'
           keyboardType='numeric'
           maxLength={10}
+          value={birthdate}
           onChangeText={text => setBirthdate(formatDateInput(text))}
         />
+
+        {groupItems.length > 0 && (
+          <PaperSelect
+            label={'Group'}
+            textInputMode={'outlined'}
+            value={groupItems.find(g => g._id === groupId)?.value ?? ''}
+            arrayList={groupItems}
+            textInputOutlineStyle={{ borderRadius: 10, borderWidth: 0 }}
+            selectedArrayList={[
+              {
+                _id: groupId,
+                value: groupItems.find(g => g._id === groupId)?.value ?? ''
+              }
+            ]}
+            searchText={'Search'}
+            multiEnable={false}
+            onSelection={value => {
+              if (value?.selectedList?.length > 0) {
+                setGroupId(value.selectedList[0]._id);
+              }
+            }}
+          />
+        )}
       </ScrollView>
     </>
   );
