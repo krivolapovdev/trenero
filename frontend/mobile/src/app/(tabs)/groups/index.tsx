@@ -1,45 +1,33 @@
 import { useQuery } from '@apollo/client/react';
+import { LegendList, type LegendListRef } from '@legendapp/list';
 import { useScrollToTop } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import {
-  useCallback,
-  useDeferredValue,
-  useMemo,
-  useRef,
-  useState
-} from 'react';
-import { FlatList } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
 import { Searchbar } from 'react-native-paper';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { AddGroupDialog } from '@/src/components/dialogs';
 import { GroupItem } from '@/src/components/GroupItem';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
+import type { GetGroupsQuery } from '@/src/graphql/__generated__/graphql';
 import { GET_GROUPS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useFilteredGroups } from '@/src/hooks/useFilteredGroups';
 
 export default function GroupsScreen() {
   const theme = useAppTheme();
   const router = useRouter();
 
-  const [showAddModal, setShowAddModal] = useState<boolean>(false);
-
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const deferredQuery = useDeferredValue(searchQuery);
 
-  const listRef = useRef<FlatList>(null);
+  const listRef = useRef<LegendListRef | null>(null);
   useScrollToTop(listRef);
 
   const { loading, data, error, refetch } = useQuery(GET_GROUPS, {
     fetchPolicy: 'cache-first'
   });
+
   const allGroups = data?.groups ?? [];
 
-  const filteredGroups = useMemo(() => {
-    const query = deferredQuery.trim().toLowerCase();
-    return query
-      ? allGroups.filter(group => group.name.toLowerCase().includes(query))
-      : allGroups;
-  }, [allGroups, deferredQuery]);
+  const filteredGroups = useFilteredGroups(allGroups, searchQuery);
 
   const fetchGroups = useCallback(() => {
     setSearchQuery('');
@@ -47,14 +35,11 @@ export default function GroupsScreen() {
   }, [refetch]);
 
   const renderItem = useCallback(
-    ({ item }: { item: (typeof allGroups)[number] }) => <GroupItem {...item} />,
+    ({ item }: { item: GetGroupsQuery['groups'][number] }) => (
+      <GroupItem {...item} />
+    ),
     []
   );
-
-  const handleGroupAdded = useCallback(() => {
-    setShowAddModal(false);
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, []);
 
   return (
     <>
@@ -69,17 +54,20 @@ export default function GroupsScreen() {
         ]}
       />
 
-      <FlatList
+      <LegendList
         ref={listRef}
-        style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
         data={filteredGroups}
         keyExtractor={item => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
         refreshing={loading}
         onRefresh={fetchGroups}
         keyboardShouldPersistTaps='handled'
+        style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
+        contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
+        columnWrapperStyle={{ gap: 16 }}
+        recycleItems={true}
+        maintainVisibleContentPosition={true}
         ListHeaderComponent={
           <>
             <Searchbar
@@ -92,12 +80,6 @@ export default function GroupsScreen() {
             <OptionalErrorMessage error={error?.message} />
           </>
         }
-      />
-
-      <AddGroupDialog
-        visible={showAddModal}
-        onDismiss={() => setShowAddModal(false)}
-        onGroupAdded={handleGroupAdded}
       />
     </>
   );

@@ -1,12 +1,13 @@
 import { useQuery } from '@apollo/client/react';
+import { LegendList, type LegendListRef } from '@legendapp/list';
 import { useScrollToTop } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { FlatList } from 'react-native';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentItem } from '@/src/components/StudentItem';
 import { StudentSearchbarWithFilter } from '@/src/components/StudentSearchbarWithFilter';
+import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
 import { GET_STUDENTS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useFilteredStudents } from '@/src/hooks/useFilteredStudents';
@@ -20,7 +21,7 @@ export default function StudentsScreen() {
 
   const theme = useAppTheme();
   const router = useRouter();
-  const listRef = useRef<FlatList>(null);
+  const listRef = useRef<LegendListRef | null>(null);
   useScrollToTop(listRef);
 
   const { data, loading, error, refetch } = useQuery(GET_STUDENTS, {
@@ -36,7 +37,7 @@ export default function StudentsScreen() {
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: (typeof allStudents)[number] }) => (
+    ({ item }: { item: GetStudentsQuery['students'][number] }) => (
       <StudentItem {...item} />
     ),
     []
@@ -63,17 +64,20 @@ export default function StudentsScreen() {
         ]}
       />
 
-      <FlatList
+      <LegendList
         ref={listRef}
-        style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
         data={filteredStudents}
         keyExtractor={item => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
         refreshing={loading}
         onRefresh={fetchStudents}
         keyboardShouldPersistTaps='handled'
+        style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
+        contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
+        columnWrapperStyle={{ gap: 16 }}
+        recycleItems={true}
+        maintainVisibleContentPosition={true}
         ListHeaderComponent={
           <>
             <StudentSearchbarWithFilter

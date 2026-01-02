@@ -21,7 +21,7 @@ export function useFilteredStudents(
   filterStatus: Status | null
 ) {
   const deferredQuery = useDeferredValue(searchQuery).trim().toLowerCase();
-  const allStudents = students ?? [];
+  const allStudents = students;
 
   return useMemo(
     () =>
