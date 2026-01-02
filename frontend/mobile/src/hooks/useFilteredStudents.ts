@@ -33,15 +33,11 @@ export function useFilteredStudents(
           return false;
         }
 
-        if (filterGroup && student.group?.name !== filterGroup) {
+        if (filterGroup && student.group?.id !== filterGroup) {
           return false;
         }
 
-        if (filterStatus && !statusChecks[filterStatus](student)) {
-          return false;
-        }
-
-        return true;
+        return !(filterStatus && !statusChecks[filterStatus](student));
       }),
     [allStudents, deferredQuery, filterGroup, filterStatus]
   );
