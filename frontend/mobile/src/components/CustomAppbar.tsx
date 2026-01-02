@@ -4,7 +4,18 @@ import { StyleSheet, View } from 'react-native';
 import { Appbar, Badge, Text } from 'react-native-paper';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
-export type AppbarAction = {
+const renderActions = (actions: AppbarAction[]) =>
+  actions.map(action => (
+    <Appbar.Action
+      key={nanoid()}
+      icon={action.icon}
+      onPress={action.onPress}
+      color={action.color}
+      disabled={action.disabled}
+    />
+  ));
+
+type AppbarAction = {
   icon: string;
   onPress: () => void;
   color?: string;
@@ -27,19 +38,11 @@ export const CustomAppbar = memo(
   }: Readonly<Props>) => {
     const theme = useAppTheme();
 
-    const renderActions = (actions: AppbarAction[]) =>
-      actions.map(action => (
-        <Appbar.Action
-          key={nanoid()}
-          icon={action.icon}
-          onPress={action.onPress}
-          color={action.color}
-          disabled={action.disabled}
-        />
-      ));
-
     return (
-      <Appbar.Header mode='center-aligned'>
+      <Appbar.Header
+        mode='center-aligned'
+        style={styles.appbar}
+      >
         {renderActions(leftActions)}
 
         <Appbar.Content
@@ -70,6 +73,9 @@ export const CustomAppbar = memo(
 );
 
 const styles = StyleSheet.create({
+  appbar: {
+    zIndex: 9999
+  },
   badge: {
     position: 'absolute',
     top: -8,
