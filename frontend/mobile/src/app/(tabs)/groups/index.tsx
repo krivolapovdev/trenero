@@ -65,7 +65,7 @@ export default function GroupsScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
         columnWrapperStyle={{ gap: 16 }}
         recycleItems={true}
-        maintainVisibleContentPosition={true}
+        maintainVisibleContentPosition={false}
         ListHeaderComponent={
           <>
             <Searchbar
