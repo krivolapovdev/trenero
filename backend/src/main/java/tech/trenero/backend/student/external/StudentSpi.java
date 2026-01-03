@@ -7,4 +7,6 @@ import tech.trenero.backend.common.security.JwtUser;
 
 public interface StudentSpi {
   List<StudentDto> getStudentsByGroupId(UUID groupId, JwtUser jwtUser);
+
+  void setGroupIdToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser);
 }

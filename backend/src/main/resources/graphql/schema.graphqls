@@ -125,6 +125,7 @@ input CreateStudentInput {
 input CreateGroupInput {
     name: String!
     defaultPrice: BigDecimal
+    studentIds: [UUID!]
 }
 
 input CreateLessonInput {

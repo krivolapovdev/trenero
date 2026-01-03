@@ -22,4 +22,13 @@ public class StudentSpiImpl implements StudentSpi {
 
     return studentService.getStudentsByGroupId(groupId, jwtUser);
   }
+
+  @Override
+  public void setGroupIdToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
+    if (groupId == null || studentIds == null || studentIds.isEmpty() || jwtUser == null) {
+      return;
+    }
+
+    studentService.setGroupIdToStudents(groupId, studentIds, jwtUser);
+  }
 }

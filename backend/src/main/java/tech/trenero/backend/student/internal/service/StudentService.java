@@ -73,6 +73,19 @@ public class StudentService {
         .toList();
   }
 
+  @Transactional
+  public void setGroupIdToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
+    log.info(
+        "Setting groupId={} to students={} for ownerId={}", groupId, studentIds, jwtUser.userId());
+
+    groupValidator.validateGroupIsPresentAndActive(groupId, jwtUser);
+
+    int updatedCount =
+        studentRepository.setGroupIdForStudents(groupId, studentIds, jwtUser.userId());
+
+    log.info("Updated {} students with new groupId={}", updatedCount, groupId);
+  }
+
   private Student saveStudent(Student student) {
     log.info("Saving student: {}", student);
     return studentRepository.save(student);

@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.dto.GroupDto;
@@ -13,6 +14,7 @@ import tech.trenero.backend.group.internal.entity.Group;
 import tech.trenero.backend.group.internal.input.CreateGroupInput;
 import tech.trenero.backend.group.internal.mapper.GroupMapper;
 import tech.trenero.backend.group.internal.repository.GroupRepository;
+import tech.trenero.backend.student.external.StudentSpi;
 
 @Service
 @Slf4j
@@ -20,6 +22,7 @@ import tech.trenero.backend.group.internal.repository.GroupRepository;
 public class GroupService {
   private final GroupRepository groupRepository;
   private final GroupMapper groupMapper;
+  @Lazy private final StudentSpi studentSpi;
 
   @Transactional(readOnly = true)
   public List<GroupDto> getAllGroups(JwtUser jwtUser) {
@@ -40,8 +43,12 @@ public class GroupService {
   @Transactional
   public GroupDto createGroup(CreateGroupInput input, JwtUser jwtUser) {
     log.info("Creating group: name='{}', ownerId={}", input.name(), jwtUser.userId());
+
     Group group = groupMapper.toGroup(input, jwtUser.userId());
     Group saveGroup = saveGroup(group);
+
+    studentSpi.setGroupIdToStudents(saveGroup.getId(), input.studentIds(), jwtUser);
+
     return groupMapper.toGroupDto(saveGroup);
   }
 
