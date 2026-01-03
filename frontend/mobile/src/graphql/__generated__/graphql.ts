@@ -48,6 +48,7 @@ export type CreateAttendanceInput = {
 export type CreateGroupInput = {
   defaultPrice?: InputMaybe<Scalars['BigDecimal']['input']>;
   name: Scalars['String']['input'];
+  studentIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
 };
 
 export type CreateLessonInput = {
