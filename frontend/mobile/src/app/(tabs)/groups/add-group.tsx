@@ -10,7 +10,7 @@ import { CustomTextInput } from '@/src/components/CustomTextInput';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { graphql } from '@/src/graphql/__generated__';
 import type { CreateGroupInput } from '@/src/graphql/__generated__/graphql';
-import { GET_STUDENTS } from '@/src/graphql/queries';
+import { GET_GROUPS, GET_STUDENTS } from '@/src/graphql/queries';
 import { formatPrice } from '@/src/helpers/formatPrice';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
@@ -52,14 +52,18 @@ export default function AddGroupScreen() {
   const [createGroup, { loading, error }] = useMutation(CREATE_GROUP, {
     update(cache, { data }) {
       const newGroup = data?.createGroup;
+      const existingData = cache.readQuery({
+        query: GET_GROUPS
+      });
 
-      if (!newGroup) {
+      if (!newGroup || !existingData) {
         return;
       }
 
-      cache.modify({
-        fields: {
-          groups: (existing = []) => [newGroup, ...existing]
+      cache.writeQuery({
+        query: GET_GROUPS,
+        data: {
+          groups: [newGroup, ...existingData.groups]
         }
       });
 

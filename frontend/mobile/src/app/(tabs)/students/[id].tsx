@@ -5,7 +5,6 @@ import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentItem } from '@/src/components/StudentItem';
 import { graphql } from '@/src/graphql/__generated__';
-import { GET_STUDENTS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 const GET_STUDENT = graphql(`
@@ -59,23 +58,12 @@ export default function StudentByIdScreen() {
     variables: { id },
 
     update(cache, { data }) {
-      const deletedStudent = data?.deleteStudent;
-
-      const existingData = cache.readQuery({ query: GET_STUDENTS });
-
-      if (!deletedStudent || !existingData) {
+      if (!data?.deleteStudent) {
         return;
       }
 
-      cache.writeQuery({
-        query: GET_STUDENTS,
-        data: {
-          ...existingData,
-          students: existingData.students.filter(
-            s => s.id !== deletedStudent.id
-          )
-        }
-      });
+      cache.evict({ id: cache.identify(data.deleteStudent) });
+      cache.gc();
     },
 
     onCompleted: () => {

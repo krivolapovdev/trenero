@@ -5,7 +5,6 @@ import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { GroupItem } from '@/src/components/GroupItem';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { graphql } from '@/src/graphql/__generated__';
-import { GET_GROUPS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 const GET_GROUP = graphql(`
@@ -48,21 +47,12 @@ export default function GroupByIdScreen() {
     variables: { id },
 
     update(cache, { data }) {
-      const deletedGroup = data?.deleteGroup;
-
-      const existingData = cache.readQuery({ query: GET_GROUPS });
-
-      if (!deletedGroup || !existingData) {
+      if (!data?.deleteGroup) {
         return;
       }
 
-      cache.writeQuery({
-        query: GET_GROUPS,
-        data: {
-          ...existingData,
-          groups: existingData.groups.filter(s => s.id !== deletedGroup.id)
-        }
-      });
+      cache.evict({ id: cache.identify(data.deleteGroup) });
+      cache.gc();
     },
 
     onCompleted: () => {
