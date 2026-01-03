@@ -110,6 +110,7 @@ export default function AddGroupScreen() {
 
         <CustomTextInput
           label='Default price'
+          placeholder={'123.45'}
           value={defaultPrice}
           onChangeText={text => setDefaultPrice(formatPrice(text))}
           keyboardType='decimal-pad'

@@ -25,9 +25,7 @@ export default function GroupsScreen() {
     fetchPolicy: 'cache-first'
   });
 
-  const allGroups = data?.groups ?? [];
-
-  const filteredGroups = useFilteredGroups(allGroups, searchQuery);
+  const filteredGroups = useFilteredGroups(data?.groups ?? [], searchQuery);
 
   const fetchGroups = useCallback(() => {
     setSearchQuery('');
