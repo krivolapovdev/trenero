@@ -17,6 +17,7 @@ public interface AttendanceRepository extends JpaRepository<@NonNull Attendance,
         SELECT a
         FROM Attendance AS a
         WHERE a.ownerId = :ownerId
+          AND a.deleted = false
         ORDER BY a.createdAt DESC""")
   List<Attendance> findAllByOwnerId(@Param("ownerId") UUID ownerId);
 

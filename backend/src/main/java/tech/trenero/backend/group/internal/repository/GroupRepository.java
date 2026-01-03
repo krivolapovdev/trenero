@@ -17,6 +17,7 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
         SELECT DISTINCT g
         FROM Group AS g
         WHERE g.ownerId = :ownerId
+          AND g.deleted = false
         ORDER BY g.name""")
   List<Group> findAllByOwnerId(@Param("ownerId") UUID ownerId);
 
