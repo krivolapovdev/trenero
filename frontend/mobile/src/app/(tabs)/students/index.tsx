@@ -27,10 +27,9 @@ export default function StudentsScreen() {
   const { data, loading, error, refetch } = useQuery(GET_STUDENTS, {
     fetchPolicy: 'cache-first'
   });
-  const allStudents = data?.students ?? [];
 
   const filteredStudents = useFilteredStudents(
-    allStudents,
+    data?.students ?? [],
     searchQuery,
     filterGroup,
     filterStatus

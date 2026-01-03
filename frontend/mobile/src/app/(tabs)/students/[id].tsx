@@ -1,10 +1,11 @@
-import { useQuery } from '@apollo/client/react';
+import { useMutation, useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { RefreshControl, ScrollView } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
+import { StudentItem } from '@/src/components/StudentItem';
 import { graphql } from '@/src/graphql/__generated__';
+import { GET_STUDENTS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 const GET_STUDENT = graphql(`
@@ -18,6 +19,9 @@ const GET_STUDENT = graphql(`
             group {
                 id
                 name
+            }
+            lastAttendance {
+                present
             }
             attendances {
                 id
@@ -33,6 +37,14 @@ const GET_STUDENT = graphql(`
     }
 `);
 
+const DELETE_STUDENT = graphql(`
+    mutation DeleteStudent($id: UUID!) {
+        deleteStudent(id: $id) {
+            id
+        }
+    }
+`);
+
 export default function StudentByIdScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useAppTheme();
@@ -43,29 +55,86 @@ export default function StudentByIdScreen() {
     fetchPolicy: 'cache-and-network'
   });
 
-  const student = data?.student;
+  const [deleteStudent, resultDeleteStudent] = useMutation(DELETE_STUDENT, {
+    update(cache, { data }) {
+      const deletedStudent = data?.deleteStudent;
+
+      const existingData = cache.readQuery({ query: GET_STUDENTS });
+
+      if (!deletedStudent || !existingData) {
+        return;
+      }
+
+      cache.writeQuery({
+        query: GET_STUDENTS,
+        data: {
+          ...existingData,
+          students: existingData.students.filter(
+            s => s.id !== deletedStudent.id
+          )
+        }
+      });
+    },
+
+    onCompleted: () => {
+      router.back();
+    },
+
+    onError: err => {
+      Alert.alert('Error', err.message);
+    }
+  });
 
   const handleEditPress = () => {
     console.log('Edit pressed');
   };
 
   const handleDeletePress = () => {
-    console.log('Delete pressed');
+    Alert.alert(
+      'Delete student',
+      'Are you sure you want to delete this student?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            void deleteStudent({ variables: { id } });
+          }
+        }
+      ]
+    );
   };
+
+  const student = data?.student;
 
   return (
     <>
       <CustomAppbar
         title='Student'
-        leftActions={[{ icon: 'arrow-left', onPress: () => router.back() }]}
+        leftActions={[
+          {
+            icon: 'arrow-left',
+            onPress: () => router.back(),
+            disabled: resultDeleteStudent.loading
+          }
+        ]}
         rightActions={[
-          { icon: 'account-edit', onPress: () => handleEditPress() },
-          { icon: 'trash-can', onPress: () => handleDeletePress() }
+          {
+            icon: 'account-edit',
+            onPress: () => handleEditPress(),
+            disabled: resultDeleteStudent.loading
+          },
+          {
+            icon: 'trash-can',
+            onPress: () => handleDeletePress(),
+            disabled: resultDeleteStudent.loading
+          }
         ]}
       />
 
       <ScrollView
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
         style={{
           flex: 1,
@@ -79,8 +148,15 @@ export default function StudentByIdScreen() {
         }
       >
         <OptionalErrorMessage error={error?.message} />
-        <Text>{id}</Text>
-        <Text>{JSON.stringify(student, null, 2)}</Text>
+
+        {student && (
+          <StudentItem
+            id={student.id}
+            fullName={student.fullName}
+            group={student.group}
+            lastAttendance={student.lastAttendance}
+          />
+        )}
       </ScrollView>
     </>
   );

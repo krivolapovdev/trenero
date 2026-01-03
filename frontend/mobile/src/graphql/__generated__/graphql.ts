@@ -308,6 +308,7 @@ export type GetStudentQuery = {
     birthDate?: string | null,
     note?: string | null,
     group?: { __typename?: 'Group', id: string, name: string } | null,
+    lastAttendance?: { __typename?: 'Attendance', present: boolean } | null,
     attendances: Array<{
       __typename?: 'Attendance',
       id: string,
@@ -316,6 +317,16 @@ export type GetStudentQuery = {
     }>,
     payments: Array<{ __typename?: 'Payment', id: string, amount: string, createdAt: string }>
   } | null
+};
+
+export type DeleteStudentMutationVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type DeleteStudentMutation = {
+  __typename?: 'Mutation',
+  deleteStudent?: { __typename?: 'Student', id: string } | null
 };
 
 export type CreateStudentMutationVariables = Exact<{
@@ -638,6 +649,13 @@ export const GetStudentDocument = {
             }
           }, {
             "kind": "Field",
+            "name": {"kind": "Name", "value": "lastAttendance"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "present"}}]
+            }
+          }, {
+            "kind": "Field",
             "name": {"kind": "Name", "value": "attendances"},
             "selectionSet": {
               "kind": "SelectionSet",
@@ -668,6 +686,38 @@ export const GetStudentDocument = {
     }
   }]
 } as unknown as DocumentNode<GetStudentQuery, GetStudentQueryVariables>;
+export const DeleteStudentDocument = {
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "DeleteStudent"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UUID"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "deleteStudent"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "id"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }]
+    }
+  }]
+} as unknown as DocumentNode<DeleteStudentMutation, DeleteStudentMutationVariables>;
 export const CreateStudentDocument = {
   "kind": "Document",
   "definitions": [{

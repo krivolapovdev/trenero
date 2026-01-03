@@ -1,12 +1,11 @@
 import { useMutation, useQuery } from '@apollo/client/react';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { PaperSelect } from 'react-native-paper-select';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
-import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { graphql } from '@/src/graphql/__generated__';
 import type { CreateStudentInput } from '@/src/graphql/__generated__/graphql';
 import { GET_GROUPS, GET_STUDENTS } from '@/src/graphql/queries';
@@ -81,7 +80,7 @@ export default function AddStudentScreen() {
     [data]
   );
 
-  const [createStudent, { loading, error }] = useMutation(CREATE_STUDENT, {
+  const [createStudent, { loading }] = useMutation(CREATE_STUDENT, {
     update(cache, { data }) {
       const newStudent = data?.createStudent;
       const existingData = cache.readQuery({ query: GET_STUDENTS });
@@ -96,28 +95,31 @@ export default function AddStudentScreen() {
           students: [newStudent, ...existingData.students]
         }
       });
+    },
+
+    onCompleted: data => {
+      router.replace(`/(tabs)/students/${data.createStudent.id}`);
+    },
+
+    onError: err => {
+      Alert.alert('Error', err.message);
     }
   });
 
-  const handleSubmit = async () => {
-    const trimmedFullName = fullName.trim();
-    if (!trimmedFullName || loading) {
+  const handleSubmit = () => {
+    if (!fullName.trim() || loading) {
       return;
     }
 
     const input: CreateStudentInput = {
-      fullName: trimmedFullName,
+      fullName: fullName.trim(),
       phone: phoneNumber?.trim() || null,
       note: note?.trim() || null,
       birthDate: parseDate(birthdate)?.toISOString().split('T')[0] || null,
       groupId: groupId || null
     };
 
-    const { data } = await createStudent({ variables: { input } });
-
-    if (data?.createStudent) {
-      router.replace(`/(tabs)/students/${data.createStudent.id}`);
-    }
+    void createStudent({ variables: { input } });
   };
 
   return (
@@ -135,9 +137,7 @@ export default function AddStudentScreen() {
           {
             icon: 'content-save',
             disabled: !fullName.trim() || loading,
-            onPress: () => {
-              void handleSubmit();
-            }
+            onPress: handleSubmit
           }
         ]}
       />
@@ -149,8 +149,6 @@ export default function AddStudentScreen() {
         ]}
         keyboardShouldPersistTaps='handled'
       >
-        <OptionalErrorMessage error={error?.message} />
-
         <CustomTextInput
           label='Full name *'
           value={fullName}
