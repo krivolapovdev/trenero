@@ -1,7 +1,7 @@
 import { useMutation } from '@apollo/client/react';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
@@ -45,10 +45,18 @@ export default function AddGroupScreen() {
           groups: [newGroup, ...existingData.groups]
         }
       });
+    },
+
+    onCompleted: data => {
+      router.replace(`/(tabs)/groups/${data.createGroup.id}`);
+    },
+
+    onError: err => {
+      Alert.alert('Error', err.message);
     }
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     const trimmedName = name.trim();
 
     if (!trimmedName || loading) {
@@ -62,11 +70,7 @@ export default function AddGroupScreen() {
         : Number(defaultPrice.trim()).toString()
     };
 
-    const { data } = await createGroup({ variables: { input } });
-
-    if (data?.createGroup) {
-      router.replace(`/(tabs)/groups/${data.createGroup.id}`);
-    }
+    void createGroup({ variables: { input } });
   };
 
   return (
@@ -84,9 +88,7 @@ export default function AddGroupScreen() {
           {
             icon: 'content-save',
             disabled: !name.trim() || loading,
-            onPress: () => {
-              void handleSubmit();
-            }
+            onPress: handleSubmit
           }
         ]}
       />

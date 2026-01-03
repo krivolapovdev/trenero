@@ -56,6 +56,8 @@ export default function StudentByIdScreen() {
   });
 
   const [deleteStudent, resultDeleteStudent] = useMutation(DELETE_STUDENT, {
+    variables: { id },
+
     update(cache, { data }) {
       const deletedStudent = data?.deleteStudent;
 
@@ -99,7 +101,7 @@ export default function StudentByIdScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            void deleteStudent({ variables: { id } });
+            void deleteStudent();
           }
         }
       ]
@@ -123,12 +125,12 @@ export default function StudentByIdScreen() {
           {
             icon: 'account-edit',
             onPress: () => handleEditPress(),
-            disabled: resultDeleteStudent.loading
+            disabled: loading || resultDeleteStudent.loading
           },
           {
             icon: 'trash-can',
             onPress: () => handleDeletePress(),
-            disabled: resultDeleteStudent.loading
+            disabled: loading || resultDeleteStudent.loading
           }
         ]}
       />
@@ -149,14 +151,7 @@ export default function StudentByIdScreen() {
       >
         <OptionalErrorMessage error={error?.message} />
 
-        {student && (
-          <StudentItem
-            id={student.id}
-            fullName={student.fullName}
-            group={student.group}
-            lastAttendance={student.lastAttendance}
-          />
-        )}
+        {student && <StudentItem {...student} />}
       </ScrollView>
     </>
   );

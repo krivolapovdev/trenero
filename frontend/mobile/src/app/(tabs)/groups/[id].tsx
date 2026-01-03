@@ -1,10 +1,11 @@
-import { useQuery } from '@apollo/client/react';
+import { useMutation, useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { RefreshControl, ScrollView } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { GroupItem } from '@/src/components/GroupItem';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { graphql } from '@/src/graphql/__generated__';
+import { GET_GROUPS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 const GET_GROUP = graphql(`
@@ -25,6 +26,14 @@ const GET_GROUP = graphql(`
     }
 `);
 
+const DELETE_GROUP = graphql(`
+    mutation DeleteGroup($id: UUID!) {
+        deleteGroup(id: $id) {
+            id
+        }
+    }
+`);
+
 export default function GroupByIdScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useAppTheme();
@@ -34,24 +43,82 @@ export default function GroupByIdScreen() {
     variables: { id },
     fetchPolicy: 'cache-and-network'
   });
-  const group = data?.group;
+
+  const [deleteGroup, resultDeleteGroup] = useMutation(DELETE_GROUP, {
+    variables: { id },
+
+    update(cache, { data }) {
+      const deletedGroup = data?.deleteGroup;
+
+      const existingData = cache.readQuery({ query: GET_GROUPS });
+
+      if (!deletedGroup || !existingData) {
+        return;
+      }
+
+      cache.writeQuery({
+        query: GET_GROUPS,
+        data: {
+          ...existingData,
+          groups: existingData.groups.filter(s => s.id !== deletedGroup.id)
+        }
+      });
+    },
+
+    onCompleted: () => {
+      router.back();
+    },
+
+    onError: err => {
+      Alert.alert('Error', err.message);
+    }
+  });
 
   const handleEditPress = () => {
     console.log('Edit pressed');
   };
 
   const handleDeletePress = () => {
-    console.log('Delete pressed');
+    Alert.alert(
+      'Delete Group',
+      `Are you sure you want to delete ${group?.name || 'this group'}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            void deleteGroup();
+          }
+        }
+      ]
+    );
   };
+
+  const group = data?.group;
 
   return (
     <>
       <CustomAppbar
         title='Group'
-        leftActions={[{ icon: 'arrow-left', onPress: () => router.back() }]}
+        leftActions={[
+          {
+            icon: 'arrow-left',
+            onPress: () => router.back(),
+            disabled: resultDeleteGroup.loading
+          }
+        ]}
         rightActions={[
-          { icon: 'account-edit', onPress: () => handleEditPress() },
-          { icon: 'trash-can', onPress: () => handleDeletePress() }
+          {
+            icon: 'account-edit',
+            onPress: () => handleEditPress(),
+            disabled: loading || resultDeleteGroup.loading
+          },
+          {
+            icon: 'trash-can',
+            onPress: () => handleDeletePress(),
+            disabled: loading || resultDeleteGroup.loading
+          }
         ]}
       />
 
@@ -70,8 +137,8 @@ export default function GroupByIdScreen() {
         }
       >
         <OptionalErrorMessage error={error?.message} />
-        <Text>{id}</Text>
-        <Text>{JSON.stringify(group, null, 2)}</Text>
+
+        {group && <GroupItem {...group} />}
       </ScrollView>
     </>
   );

@@ -277,6 +277,16 @@ export type GetGroupQuery = {
   } | null
 };
 
+export type DeleteGroupMutationVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type DeleteGroupMutation = {
+  __typename?: 'Mutation',
+  deleteGroup?: { __typename?: 'Group', id: string } | null
+};
+
 export type CreateGroupMutationVariables = Exact<{
   input: CreateGroupInput;
 }>;
@@ -548,6 +558,38 @@ export const GetGroupDocument = {
     }
   }]
 } as unknown as DocumentNode<GetGroupQuery, GetGroupQueryVariables>;
+export const DeleteGroupDocument = {
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "DeleteGroup"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UUID"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "deleteGroup"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "id"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }]
+    }
+  }]
+} as unknown as DocumentNode<DeleteGroupMutation, DeleteGroupMutationVariables>;
 export const CreateGroupDocument = {
   "kind": "Document",
   "definitions": [{
