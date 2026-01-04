@@ -25,6 +25,7 @@ type AppbarAction = {
 type Props = {
   title: string;
   badgeCount?: number;
+  mode?: 'small' | 'medium' | 'large' | 'center-aligned';
   leftActions?: AppbarAction[];
   rightActions?: AppbarAction[];
 };
@@ -33,6 +34,7 @@ export const CustomAppbar = memo(
   ({
     title,
     badgeCount,
+    mode = 'center-aligned',
     leftActions = [],
     rightActions = []
   }: Readonly<Props>) => {
@@ -40,7 +42,7 @@ export const CustomAppbar = memo(
 
     return (
       <Appbar.Header
-        mode='center-aligned'
+        mode={mode}
         style={styles.appbar}
       >
         {renderActions(leftActions)}

@@ -7,6 +7,7 @@ import { CreatePaymentSheet } from '@/src/components/CreatePaymentSheet';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentItem } from '@/src/components/StudentItem';
+import { StudentPaymentsTable } from '@/src/components/StudentPaymentsTable';
 import { graphql } from '@/src/graphql/__generated__';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
@@ -93,9 +94,7 @@ export default function StudentByIdScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            void deleteStudent();
-          }
+          onPress: () => void deleteStudent()
         }
       ]
     );
@@ -107,6 +106,7 @@ export default function StudentByIdScreen() {
     <>
       <CustomAppbar
         title='Student'
+        mode='small'
         leftActions={[
           {
             icon: 'arrow-left',
@@ -163,6 +163,8 @@ export default function StudentByIdScreen() {
               studentId={student.id}
               defaultPrice={student.group?.defaultPrice}
             />
+
+            <StudentPaymentsTable payments={student.payments} />
           </>
         )}
       </ScrollView>

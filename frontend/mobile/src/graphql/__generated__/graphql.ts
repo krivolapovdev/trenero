@@ -255,6 +255,12 @@ export type Student = {
   phone?: Maybe<Scalars['String']['output']>;
 };
 
+
+export type StudentPaymentsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type User = {
   __typename?: 'User';
   email: Scalars['String']['output'];
