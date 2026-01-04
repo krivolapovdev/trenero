@@ -65,7 +65,6 @@ type Student {
     note: String
     group: Group
     lastAttendance: Attendance
-    deleted: Boolean!
     payments: [Payment!]!
     attendances: [Attendance!]!
 }
@@ -75,7 +74,6 @@ type Group {
     name: String!
     createdAt: DateTime!
     defaultPrice: BigDecimal
-    deleted: Boolean!
     students: [Student!]!
     lessons: [Lesson!]!
 }
@@ -85,7 +83,6 @@ type Lesson {
     groupId: UUID!
     startDateTime: DateTime!
     createdAt: DateTime!
-    deleted: Boolean!
     attendances: [Attendance!]!
 }
 
@@ -95,7 +92,6 @@ type Attendance {
     studentId: UUID!
     present: Boolean!
     createdAt: DateTime!
-    deleted: Boolean!
 }
 
 type Payment {
@@ -103,7 +99,6 @@ type Payment {
     studentId: UUID!
     amount: BigDecimal!
     createdAt: DateTime!
-    deleted: Boolean!
 }
 
 input SocialLoginInput {
