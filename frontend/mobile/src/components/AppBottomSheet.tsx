@@ -45,7 +45,10 @@ export const AppBottomSheet = ({ visible, onDismiss, children }: Props) => {
       backgroundStyle={{ backgroundColor: theme.colors.surfaceVariant }}
       onDismiss={onDismiss}
     >
-      <BottomSheetScrollView contentContainerStyle={styles.contentContainer}>
+      <BottomSheetScrollView
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps='handled'
+      >
         {children}
       </BottomSheetScrollView>
     </BottomSheetModal>
