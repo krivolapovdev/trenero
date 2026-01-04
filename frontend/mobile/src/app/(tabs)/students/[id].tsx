@@ -1,6 +1,9 @@
 import { useMutation, useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
+import { Button } from 'react-native-paper';
+import { CreatePaymentSheet } from '@/src/components/CreatePaymentSheet';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentItem } from '@/src/components/StudentItem';
@@ -18,6 +21,7 @@ const GET_STUDENT = graphql(`
             group {
                 id
                 name
+                defaultPrice
             }
             lastAttendance {
                 present
@@ -48,6 +52,7 @@ export default function StudentByIdScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useAppTheme();
   const router = useRouter();
+  const [paymentSheetVisible, setPaymentSheetVisible] = useState(false);
 
   const { data, loading, error, refetch } = useQuery(GET_STUDENT, {
     variables: { id },
@@ -136,10 +141,30 @@ export default function StudentByIdScreen() {
             onRefresh={refetch}
           />
         }
+        keyboardShouldPersistTaps='handled'
       >
         <OptionalErrorMessage error={error?.message} />
 
-        {student && <StudentItem {...student} />}
+        {student && (
+          <>
+            <StudentItem {...student} />
+
+            <Button
+              mode='contained'
+              icon='cash-plus'
+              onPress={() => setPaymentSheetVisible(true)}
+            >
+              Add payment
+            </Button>
+
+            <CreatePaymentSheet
+              visible={paymentSheetVisible}
+              onDismiss={() => setPaymentSheetVisible(false)}
+              studentId={student.id}
+              defaultPrice={student.group?.defaultPrice}
+            />
+          </>
+        )}
       </ScrollView>
     </>
   );

@@ -48,7 +48,7 @@ const CREATE_STUDENT = graphql(`
     }
 `);
 
-export default function AddStudentScreen() {
+export default function CreateStudentScreen() {
   const theme = useAppTheme();
   const router = useRouter();
 

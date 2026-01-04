@@ -58,7 +58,7 @@ export default function StudentsScreen() {
         rightActions={[
           {
             icon: 'pencil-plus',
-            onPress: () => router.navigate('/(tabs)/students/add-student')
+            onPress: () => router.navigate('/(tabs)/students/create')
           }
         ]}
       />

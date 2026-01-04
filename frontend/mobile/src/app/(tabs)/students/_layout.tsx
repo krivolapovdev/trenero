@@ -16,7 +16,7 @@ export default function StudentsLayout() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name='add-student'
+        name='create'
         options={{ headerShown: false }}
       />
     </Stack>

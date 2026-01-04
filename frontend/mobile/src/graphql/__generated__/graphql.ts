@@ -318,7 +318,7 @@ export type GetStudentQuery = {
     phone?: string | null,
     birthDate?: string | null,
     note?: string | null,
-    group?: { __typename?: 'Group', id: string, name: string } | null,
+    group?: { __typename?: 'Group', id: string, name: string, defaultPrice?: string | null } | null,
     lastAttendance?: { __typename?: 'Attendance', present: boolean } | null,
     attendances: Array<{
       __typename?: 'Attendance',
@@ -354,6 +354,16 @@ export type CreateStudentMutation = {
     group?: { __typename?: 'Group', id: string, name: string } | null,
     lastAttendance?: { __typename?: 'Attendance', present: boolean } | null
   }
+};
+
+export type CreatePaymentMutationVariables = Exact<{
+  input: CreatePaymentInput;
+}>;
+
+
+export type CreatePaymentMutation = {
+  __typename?: 'Mutation',
+  createPayment: { __typename?: 'Payment', id: string, amount: string, createdAt: string }
 };
 
 export type GroupFieldsFragment = {
@@ -688,7 +698,10 @@ export const GetStudentDocument = {
               "selections": [{
                 "kind": "Field",
                 "name": {"kind": "Name", "value": "id"}
-              }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}]
+              }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}, {
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "defaultPrice"}
+              }]
             }
           }, {
             "kind": "Field",
@@ -824,6 +837,44 @@ export const CreateStudentDocument = {
     }
   }]
 } as unknown as DocumentNode<CreateStudentMutation, CreateStudentMutationVariables>;
+export const CreatePaymentDocument = {
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "CreatePayment"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "CreatePaymentInput"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "createPayment"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "input"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "amount"}}, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "createdAt"}
+          }]
+        }
+      }]
+    }
+  }]
+} as unknown as DocumentNode<CreatePaymentMutation, CreatePaymentMutationVariables>;
 export const RefreshTokensDocument = {
   "kind": "Document",
   "definitions": [{
