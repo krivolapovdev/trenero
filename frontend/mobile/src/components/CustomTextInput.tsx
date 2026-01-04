@@ -17,12 +17,12 @@ export const CustomTextInput = memo(
         theme={{
           roundness: 10
         }}
-        value={value}
+        value={value?.toString() ?? ''}
         label={
           <Text
             style={{
               color:
-                (value && value.length > 0) || isFocused
+                value?.length || isFocused
                   ? theme.colors.primary
                   : theme.colors.secondary
             }}
