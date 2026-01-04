@@ -25,6 +25,7 @@ public class PaymentService {
 
   @Transactional(readOnly = true)
   public List<PaymentDto> getAllPayments(JwtUser jwtUser) {
+    log.info("Get payments for user {}", jwtUser.userId());
     return paymentRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(paymentMapper::toPaymentDto)
         .toList();
@@ -52,12 +53,7 @@ public class PaymentService {
 
     studentValidator.validateStudentIsPresentAndActive(input.studentId(), jwtUser);
 
-    Payment payment =
-        Payment.builder()
-            .studentId(input.studentId())
-            .amount(input.amount())
-            .ownerId(jwtUser.userId())
-            .build();
+    Payment payment = paymentMapper.toPayment(input, jwtUser.userId());
 
     Payment savedPayment = savePayment(payment);
 
@@ -79,6 +75,6 @@ public class PaymentService {
 
   private Payment savePayment(Payment payment) {
     log.info("Save payment: {}", payment);
-    return paymentRepository.save(payment);
+    return paymentRepository.saveAndFlush(payment);
   }
 }
