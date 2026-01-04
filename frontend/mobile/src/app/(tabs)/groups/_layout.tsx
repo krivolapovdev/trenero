@@ -16,7 +16,7 @@ export default function GroupsLayout() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name='add-group'
+        name='create'
         options={{ headerShown: false }}
       />
     </Stack>

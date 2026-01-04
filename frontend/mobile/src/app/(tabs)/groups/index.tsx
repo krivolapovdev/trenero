@@ -47,7 +47,7 @@ export default function GroupsScreen() {
         rightActions={[
           {
             icon: 'pencil-plus',
-            onPress: () => router.navigate('/(tabs)/groups/add-group')
+            onPress: () => router.navigate('/(tabs)/groups/create')
           }
         ]}
       />

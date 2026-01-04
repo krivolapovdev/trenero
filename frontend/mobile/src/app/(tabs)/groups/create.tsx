@@ -22,7 +22,7 @@ const CREATE_GROUP = graphql(`
     }
 `);
 
-export default function AddGroupScreen() {
+export default function CreateGroupScreen() {
   const router = useRouter();
   const theme = useAppTheme();
 
