@@ -26,9 +26,7 @@ type Props = {
 
 export const CreatePaymentSheet = memo(
   ({ visible, onDismiss, studentId, defaultPrice }: Readonly<Props>) => {
-    const [amount, setAmount] = useState(
-      defaultPrice == null ? '' : defaultPrice
-    );
+    const [amount, setAmount] = useState(defaultPrice ?? '');
 
     const [createPayment, { loading }] = useMutation(CREATE_PAYMENT, {
       update(cache, { data }) {

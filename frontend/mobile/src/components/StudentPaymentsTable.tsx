@@ -34,6 +34,10 @@ export const StudentPaymentsTable = memo(
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, payments.length);
 
+    if (!sortedPayments.length) {
+      return null;
+    }
+
     return (
       <View style={{ borderRadius: 16, backgroundColor: theme.colors.surface }}>
         <DataTable>
@@ -41,12 +45,12 @@ export const StudentPaymentsTable = memo(
             <DataTable.Title
               sortDirection={sortAscending ? 'ascending' : 'descending'}
               onPress={() => setSortAscending(prev => !prev)}
-              textStyle={{ fontSize: 14 }}
+              textStyle={{ fontSize: 15 }}
             >
-              Date
+              Payments
             </DataTable.Title>
             <DataTable.Title
-              textStyle={{ fontSize: 14 }}
+              textStyle={{ fontSize: 15 }}
               numeric
             >
               Amount

@@ -1,15 +1,28 @@
 import { useMutation, useQuery } from '@apollo/client/react';
+import dayjs from 'dayjs';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
-import { Button } from 'react-native-paper';
+import { AttendanceCalendar } from '@/src/components/AttendanceCalendar';
 import { CreatePaymentSheet } from '@/src/components/CreatePaymentSheet';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentItem } from '@/src/components/StudentItem';
 import { StudentPaymentsTable } from '@/src/components/StudentPaymentsTable';
 import { graphql } from '@/src/graphql/__generated__';
+import type { GetStudentQuery } from '@/src/graphql/__generated__/graphql';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+
+const buildSubtitle = (student: NonNullable<GetStudentQuery['student']>) =>
+  [
+    `Group: ${student.group?.name ?? 'Unassigned'}`,
+    student.phone && `Phone: ${student.phone}`,
+    student.birthDate &&
+      `Birthdate: ${dayjs(student.birthDate).format('DD/MM/YYYY')}`,
+    student.note && `Note: ${student.note}`
+  ]
+    .filter(Boolean)
+    .join('\n\n');
 
 const GET_STUDENT = graphql(`
     query GetStudent($id: UUID!) {
@@ -72,13 +85,9 @@ export default function StudentByIdScreen() {
       cache.gc();
     },
 
-    onCompleted: () => {
-      router.back();
-    },
+    onCompleted: router.back,
 
-    onError: err => {
-      Alert.alert('Error', err.message);
-    }
+    onError: err => Alert.alert('Error', err.message)
   });
 
   const handleEditPress = () => {
@@ -116,6 +125,11 @@ export default function StudentByIdScreen() {
         ]}
         rightActions={[
           {
+            icon: 'account-cash',
+            onPress: () => setPaymentSheetVisible(true),
+            disabled: loading || resultDeleteStudent.loading
+          },
+          {
             icon: 'account-edit',
             onPress: () => handleEditPress(),
             disabled: loading || resultDeleteStudent.loading
@@ -147,15 +161,10 @@ export default function StudentByIdScreen() {
 
         {student && (
           <>
-            <StudentItem {...student} />
-
-            <Button
-              mode='contained'
-              icon='cash-plus'
-              onPress={() => setPaymentSheetVisible(true)}
-            >
-              Add payment
-            </Button>
+            <StudentItem
+              subtitle={buildSubtitle(student)}
+              {...student}
+            />
 
             <CreatePaymentSheet
               visible={paymentSheetVisible}
@@ -165,6 +174,8 @@ export default function StudentByIdScreen() {
             />
 
             <StudentPaymentsTable payments={student.payments} />
+
+            <AttendanceCalendar attendances={student.attendances} />
           </>
         )}
       </ScrollView>

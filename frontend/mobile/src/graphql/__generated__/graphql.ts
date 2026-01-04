@@ -32,7 +32,6 @@ export type Scalars = {
 export type Attendance = {
   __typename?: 'Attendance';
   createdAt: Scalars['DateTime']['output'];
-  deleted: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
   lessonId: Scalars['UUID']['output'];
   present: Scalars['Boolean']['output'];
@@ -73,7 +72,6 @@ export type Group = {
   __typename?: 'Group';
   createdAt: Scalars['DateTime']['output'];
   defaultPrice?: Maybe<Scalars['BigDecimal']['output']>;
-  deleted: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
   lessons: Array<Lesson>;
   name: Scalars['String']['output'];
@@ -90,7 +88,6 @@ export type Lesson = {
   __typename?: 'Lesson';
   attendances: Array<Attendance>;
   createdAt: Scalars['DateTime']['output'];
-  deleted: Scalars['Boolean']['output'];
   groupId: Scalars['UUID']['output'];
   id: Scalars['UUID']['output'];
   startDateTime: Scalars['DateTime']['output'];
@@ -188,7 +185,6 @@ export type Payment = {
   __typename?: 'Payment';
   amount: Scalars['BigDecimal']['output'];
   createdAt: Scalars['DateTime']['output'];
-  deleted: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
   studentId: Scalars['UUID']['output'];
 };
@@ -245,7 +241,6 @@ export type Student = {
   attendances: Array<Attendance>;
   birthDate?: Maybe<Scalars['Date']['output']>;
   createdAt: Scalars['DateTime']['output'];
-  deleted: Scalars['Boolean']['output'];
   fullName: Scalars['String']['output'];
   group?: Maybe<Group>;
   id: Scalars['UUID']['output'];
@@ -253,12 +248,6 @@ export type Student = {
   note?: Maybe<Scalars['String']['output']>;
   payments: Array<Payment>;
   phone?: Maybe<Scalars['String']['output']>;
-};
-
-
-export type StudentPaymentsArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type User = {

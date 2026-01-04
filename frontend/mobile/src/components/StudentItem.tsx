@@ -3,13 +3,15 @@ import { EntityCard } from '@/src/components/EntityCard';
 import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
-type Props = GetStudentsQuery['students'][number];
+type Props = GetStudentsQuery['students'][number] & {
+  subtitle: string;
+};
 
 export const StudentItem = ({
   id,
   fullName,
-  group,
-  lastAttendance
+  lastAttendance,
+  subtitle
 }: Readonly<Props>) => {
   const theme = useAppTheme();
 
@@ -46,7 +48,7 @@ export const StudentItem = ({
   return (
     <EntityCard
       title={fullName}
-      subtitle={group?.name ?? 'Unassigned'}
+      subtitle={subtitle}
       href={`/(tabs)/students/${id}`}
       badges={badges}
     />

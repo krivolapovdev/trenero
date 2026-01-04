@@ -37,7 +37,10 @@ export default function StudentsScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: GetStudentsQuery['students'][number] }) => (
-      <StudentItem {...item} />
+      <StudentItem
+        subtitle={item.group ? item.group.name : 'Unassigned'}
+        {...item}
+      />
     ),
     []
   );
