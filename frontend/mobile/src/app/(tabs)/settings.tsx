@@ -4,8 +4,8 @@ import { Divider, List, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { ConfirmDialog, LanguageDialog } from '@/src/components/Dialog';
+import { LabeledSection } from '@/src/components/LabeledSection';
 import { SettingsItem } from '@/src/components/SettingsItem';
-import { SettingsSection } from '@/src/components/SettingsSection';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAuthStore } from '@/src/stores/authStore';
 
@@ -34,25 +34,25 @@ export default function SettingsScreen() {
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
       >
         <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 0 }}>
-          <SettingsSection title='APPEARANCE'>
+          <LabeledSection title='APPEARANCE'>
             <SettingsItem
               title='Language'
               icon='flag-outline'
               right={() => <List.Icon icon='chevron-right' />}
               onPress={() => setLanguageMenuVisible(true)}
             />
-          </SettingsSection>
+          </LabeledSection>
 
-          <SettingsSection title='ACCOUNT'>
+          <LabeledSection title='ACCOUNT'>
             <SettingsItem
               title='Logout'
               icon='logout'
               right={() => <List.Icon icon='chevron-right' />}
               onPress={() => setLogoutDialogVisible(true)}
             />
-          </SettingsSection>
+          </LabeledSection>
 
-          <SettingsSection title='OTHER'>
+          <LabeledSection title='OTHER'>
             <SettingsItem
               title='Version'
               icon='application-brackets-outline'
@@ -67,7 +67,7 @@ export default function SettingsScreen() {
               right={() => <List.Icon icon='chevron-right' />}
               onPress={() => setContactDialogVisible(true)}
             />
-          </SettingsSection>
+          </LabeledSection>
         </ScrollView>
 
         <LanguageDialog

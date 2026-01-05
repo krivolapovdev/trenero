@@ -4,8 +4,8 @@ import { useScrollToTop } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Searchbar } from 'react-native-paper';
+import { GroupCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { GroupItem } from '@/src/components/GroupItem';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import type { GetGroupsQuery } from '@/src/graphql/__generated__/graphql';
 import { GET_GROUPS } from '@/src/graphql/queries';
@@ -34,7 +34,10 @@ export default function GroupsScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: GetGroupsQuery['groups'][number] }) => (
-      <GroupItem {...item} />
+      <GroupCard
+        subtitle={item.defaultPrice ?? ''}
+        {...item}
+      />
     ),
     []
   );
@@ -43,6 +46,7 @@ export default function GroupsScreen() {
     <>
       <CustomAppbar
         title='Groups'
+        mode={'center-aligned'}
         badgeCount={filteredGroups.length}
         rightActions={[
           {

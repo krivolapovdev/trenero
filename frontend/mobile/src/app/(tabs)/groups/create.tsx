@@ -46,6 +46,7 @@ export default function CreateGroupScreen() {
 
   const [name, setName] = useState('');
   const [defaultPrice, setDefaultPrice] = useState('');
+  const [note, setNote] = useState('');
   const [students, setStudents] = useState({
     value: '',
     list: studentItems,
@@ -105,7 +106,8 @@ export default function CreateGroupScreen() {
       studentIds:
         students.selectedList.length > 0
           ? students.selectedList.map(s => s._id)
-          : null
+          : [],
+      note: note?.trim() || null
     };
 
     void createGroup({ variables: { input } });
@@ -154,6 +156,15 @@ export default function CreateGroupScreen() {
           value={defaultPrice}
           onChangeText={text => setDefaultPrice(formatPrice(text))}
           keyboardType='decimal-pad'
+        />
+
+        <CustomTextInput
+          label='Note'
+          value={note}
+          onChangeText={setNote}
+          maxLength={1023}
+          multiline={true}
+          right={<TextInput.Affix text={`${note.length}/1023`} />}
         />
 
         {studentItems.length > 0 && (

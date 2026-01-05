@@ -35,15 +35,21 @@ export const CreatePaymentSheet = memo(
           return;
         }
 
+        const newPaymentRef = cache.writeFragment({
+          data: newPayment,
+          fragment: PaymentFieldsFragmentDoc
+        });
+
         cache.modify({
+          id: cache.identify({
+            __typename: 'Student',
+            id: studentId
+          }),
           fields: {
-            payments(existingPayments = []) {
-              const newPaymentRef = cache.writeFragment({
-                data: newPayment,
-                fragment: PaymentFieldsFragmentDoc
-              });
-              return [newPaymentRef, ...existingPayments];
-            }
+            payments: (existingPayments = []) => [
+              newPaymentRef,
+              ...existingPayments
+            ]
           }
         });
       },

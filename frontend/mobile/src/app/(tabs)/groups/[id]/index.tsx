@@ -1,29 +1,23 @@
 import { useMutation, useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, RefreshControl, ScrollView } from 'react-native';
+import { Alert, RefreshControl, ScrollView, View } from 'react-native';
+import { Divider, List, Text } from 'react-native-paper';
+import { LessonsCalendar } from '@/src/components/Calendar';
+import { GroupCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { GroupItem } from '@/src/components/GroupItem';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { graphql } from '@/src/graphql/__generated__';
+import type { GetGroupQuery } from '@/src/graphql/__generated__/graphql';
+import { GET_GROUP } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
-const GET_GROUP = graphql(`
-    query GetGroup($id: UUID!) {
-        group(id: $id) {
-            id
-            name
-            defaultPrice
-            students {
-                id
-                fullName
-            }
-            lessons {
-                id
-                startDateTime
-            }
-        }
-    }
-`);
+const buildSubtitle = (group: NonNullable<GetGroupQuery['group']>) =>
+  [
+    group.defaultPrice && `Default price: ${group.defaultPrice}`,
+    group.note && `Note: ${group.note}`
+  ]
+    .filter(Boolean)
+    .join('\n\n');
 
 const DELETE_GROUP = graphql(`
     mutation DeleteGroup($id: UUID!) {
@@ -100,6 +94,11 @@ export default function GroupByIdScreen() {
         ]}
         rightActions={[
           {
+            icon: 'calendar-plus',
+            onPress: () => router.push(`/groups/${id}/lessons/create`),
+            disabled: loading || resultDeleteGroup.loading
+          },
+          {
             icon: 'account-edit',
             onPress: () => handleEditPress(),
             disabled: loading || resultDeleteGroup.loading
@@ -113,7 +112,7 @@ export default function GroupByIdScreen() {
       />
 
       <ScrollView
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, gap: 16 }}
         showsVerticalScrollIndicator={false}
         style={{
           flex: 1,
@@ -128,7 +127,43 @@ export default function GroupByIdScreen() {
       >
         <OptionalErrorMessage error={error?.message} />
 
-        {group && <GroupItem {...group} />}
+        {group && (
+          <>
+            <GroupCard
+              subtitle={buildSubtitle(group)}
+              {...group}
+            />
+
+            <LessonsCalendar lessons={group.lessons} />
+
+            {group.students.length > 0 && (
+              <List.Section
+                style={{
+                  borderRadius: 16,
+                  backgroundColor: theme.colors.surface
+                }}
+              >
+                <List.Subheader>
+                  <Text
+                    variant='bodyLarge'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Students
+                  </Text>
+                </List.Subheader>
+
+                <Divider />
+
+                {group.students.map(student => (
+                  <View key={student.fullName}>
+                    <List.Item title={student.fullName} />
+                    <Divider />
+                  </View>
+                ))}
+              </List.Section>
+            )}
+          </>
+        )}
       </ScrollView>
     </>
   );

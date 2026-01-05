@@ -47,12 +47,14 @@ export type CreateAttendanceInput = {
 export type CreateGroupInput = {
   defaultPrice?: InputMaybe<Scalars['BigDecimal']['input']>;
   name: Scalars['String']['input'];
-  studentIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
+  note?: InputMaybe<Scalars['String']['input']>;
+  studentIds: Array<Scalars['UUID']['input']>;
 };
 
 export type CreateLessonInput = {
   groupId: Scalars['UUID']['input'];
   startDateTime: Scalars['DateTime']['input'];
+  students: Array<LessonStudentInput>;
 };
 
 export type CreatePaymentInput = {
@@ -75,6 +77,7 @@ export type Group = {
   id: Scalars['UUID']['output'];
   lessons: Array<Lesson>;
   name: Scalars['String']['output'];
+  note?: Maybe<Scalars['String']['output']>;
   students: Array<Student>;
 };
 
@@ -91,6 +94,11 @@ export type Lesson = {
   groupId: Scalars['UUID']['output'];
   id: Scalars['UUID']['output'];
   startDateTime: Scalars['DateTime']['output'];
+};
+
+export type LessonStudentInput = {
+  present: Scalars['Boolean']['input'];
+  studentId: Scalars['UUID']['input'];
 };
 
 export type LoginPayload = {
@@ -256,23 +264,6 @@ export type User = {
   id: Scalars['UUID']['output'];
 };
 
-export type GetGroupQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetGroupQuery = {
-  __typename?: 'Query',
-  group?: {
-    __typename?: 'Group',
-    id: string,
-    name: string,
-    defaultPrice?: string | null,
-    students: Array<{ __typename?: 'Student', id: string, fullName: string }>,
-    lessons: Array<{ __typename?: 'Lesson', id: string, startDateTime: string }>
-  } | null
-};
-
 export type DeleteGroupMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -281,6 +272,16 @@ export type DeleteGroupMutationVariables = Exact<{
 export type DeleteGroupMutation = {
   __typename?: 'Mutation',
   deleteGroup?: { __typename?: 'Group', id: string } | null
+};
+
+export type CreateLessonMutationVariables = Exact<{
+  input: CreateLessonInput;
+}>;
+
+
+export type CreateLessonMutation = {
+  __typename?: 'Mutation',
+  createLesson: { __typename?: 'Lesson', id: string, groupId: string, startDateTime: string }
 };
 
 export type CreateGroupMutationVariables = Exact<{
@@ -416,6 +417,24 @@ export type GetGroupsQuery = {
   }>
 };
 
+export type GetGroupQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetGroupQuery = {
+  __typename?: 'Query',
+  group?: {
+    __typename?: 'Group',
+    id: string,
+    name: string,
+    defaultPrice?: string | null,
+    note?: string | null,
+    students: Array<{ __typename?: 'Student', id: string, fullName: string }>,
+    lessons: Array<{ __typename?: 'Lesson', id: string, startDateTime: string }>
+  } | null
+};
+
 export type GetStudentsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -538,63 +557,6 @@ export const PaymentFieldsFragmentDoc = {
     }
   }]
 } as unknown as DocumentNode<PaymentFieldsFragment, unknown>;
-export const GetGroupDocument = {
-  "kind": "Document", "definitions": [{
-    "kind": "OperationDefinition",
-    "operation": "query",
-    "name": {"kind": "Name", "value": "GetGroup"},
-    "variableDefinitions": [{
-      "kind": "VariableDefinition",
-      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}},
-      "type": {
-        "kind": "NonNullType",
-        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UUID"}}
-      }
-    }],
-    "selectionSet": {
-      "kind": "SelectionSet",
-      "selections": [{
-        "kind": "Field",
-        "name": {"kind": "Name", "value": "group"},
-        "arguments": [{
-          "kind": "Argument",
-          "name": {"kind": "Name", "value": "id"},
-          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}}
-        }],
-        "selectionSet": {
-          "kind": "SelectionSet",
-          "selections": [{
-            "kind": "Field",
-            "name": {"kind": "Name", "value": "id"}
-          }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}, {
-            "kind": "Field",
-            "name": {"kind": "Name", "value": "defaultPrice"}
-          }, {
-            "kind": "Field",
-            "name": {"kind": "Name", "value": "students"},
-            "selectionSet": {
-              "kind": "SelectionSet",
-              "selections": [{
-                "kind": "Field",
-                "name": {"kind": "Name", "value": "id"}
-              }, {"kind": "Field", "name": {"kind": "Name", "value": "fullName"}}]
-            }
-          }, {
-            "kind": "Field",
-            "name": {"kind": "Name", "value": "lessons"},
-            "selectionSet": {
-              "kind": "SelectionSet",
-              "selections": [{
-                "kind": "Field",
-                "name": {"kind": "Name", "value": "id"}
-              }, {"kind": "Field", "name": {"kind": "Name", "value": "startDateTime"}}]
-            }
-          }]
-        }
-      }]
-    }
-  }]
-} as unknown as DocumentNode<GetGroupQuery, GetGroupQueryVariables>;
 export const DeleteGroupDocument = {
   "kind": "Document",
   "definitions": [{
@@ -627,6 +589,44 @@ export const DeleteGroupDocument = {
     }
   }]
 } as unknown as DocumentNode<DeleteGroupMutation, DeleteGroupMutationVariables>;
+export const CreateLessonDocument = {
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "CreateLesson"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "CreateLessonInput"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "createLesson"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "input"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "groupId"}}, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "startDateTime"}
+          }]
+        }
+      }]
+    }
+  }]
+} as unknown as DocumentNode<CreateLessonMutation, CreateLessonMutationVariables>;
 export const CreateGroupDocument = {
   "kind": "Document",
   "definitions": [{
@@ -1020,6 +1020,63 @@ export const GetGroupsDocument = {
     }
   }]
 } as unknown as DocumentNode<GetGroupsQuery, GetGroupsQueryVariables>;
+export const GetGroupDocument = {
+  "kind": "Document", "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "query",
+    "name": {"kind": "Name", "value": "GetGroup"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UUID"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "group"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "id"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "id"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "name"}}, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "defaultPrice"}
+          }, {"kind": "Field", "name": {"kind": "Name", "value": "note"}}, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "students"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {"kind": "Field", "name": {"kind": "Name", "value": "fullName"}}]
+            }
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "lessons"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {"kind": "Field", "name": {"kind": "Name", "value": "startDateTime"}}]
+            }
+          }]
+        }
+      }]
+    }
+  }]
+} as unknown as DocumentNode<GetGroupQuery, GetGroupQueryVariables>;
 export const GetStudentsDocument = {
   "kind": "Document",
   "definitions": [{

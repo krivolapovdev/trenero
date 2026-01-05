@@ -4,7 +4,7 @@ import { List, Text, useTheme } from 'react-native-paper';
 
 type Props = { title: string; children: ReactNode };
 
-export function SettingsSection({ title, children }: Readonly<Props>) {
+export function LabeledSection({ title, children }: Readonly<Props>) {
   const theme = useTheme();
 
   return (

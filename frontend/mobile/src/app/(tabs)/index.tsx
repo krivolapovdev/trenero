@@ -78,6 +78,7 @@ export default function StatisticsScreen() {
           </Text>
 
           <Text variant={'bodyLarge'}>
+            +
             {monthlyData.find(m => m.date.isSame(selectedBar, 'month'))
               ?.value || 0}
           </Text>

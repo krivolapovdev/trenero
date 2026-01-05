@@ -3,29 +3,33 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { IconButton } from 'react-native-paper';
-import type { GetStudentQuery } from '@/src/graphql/__generated__/graphql';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
-type Props = {
-  attendances: NonNullable<GetStudentQuery['student']>['attendances'];
+type MarkedDay = {
+  date: dayjs.Dayjs;
+  color?: string;
 };
 
-export const AttendanceCalendar = memo(({ attendances }: Readonly<Props>) => {
+type Props = {
+  items: MarkedDay[];
+};
+
+export const CustomCalendar = memo(({ items }: Readonly<Props>) => {
   const theme = useAppTheme();
   const [currentMonth, setCurrentMonth] = useState(dayjs());
 
   const markedDates = useMemo(
     () =>
       Object.fromEntries(
-        attendances.map(attendance => [
-          dayjs(attendance.createdAt).format('YYYY-MM-DD'),
+        items.map(item => [
+          item.date.format('YYYY-MM-DD'),
           {
             selected: true,
-            selectedColor: attendance.present ? '#fc975c' : '#00adf5'
+            selectedColor: item.color ?? '#00adf5'
           }
         ])
       ),
-    [attendances]
+    [items]
   );
 
   const goPrevMonth = useCallback(() => {
@@ -69,7 +73,7 @@ export const AttendanceCalendar = memo(({ attendances }: Readonly<Props>) => {
 
         <IconButton
           icon='chevron-right'
-          disabled={currentMonth.isSame(new Date(), 'month')}
+          disabled={currentMonth.isSame(dayjs(), 'month')}
           onPress={goNextMonth}
         />
       </View>

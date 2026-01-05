@@ -3,10 +3,10 @@ import { LegendList, type LegendListRef } from '@legendapp/list';
 import { useScrollToTop } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
+import { StudentCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentSearchbarWithFilter } from '@/src/components/Searchbar';
-import { StudentItem } from '@/src/components/StudentItem';
 import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
 import { GET_STUDENTS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -37,7 +37,7 @@ export default function StudentsScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: GetStudentsQuery['students'][number] }) => (
-      <StudentItem
+      <StudentCard
         subtitle={item.group ? item.group.name : 'Unassigned'}
         {...item}
       />
@@ -57,6 +57,7 @@ export default function StudentsScreen() {
     <>
       <CustomAppbar
         title='Students'
+        mode={'center-aligned'}
         badgeCount={filteredStudents.length}
         rightActions={[
           {

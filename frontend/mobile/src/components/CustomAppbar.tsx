@@ -34,7 +34,7 @@ export const CustomAppbar = memo(
   ({
     title,
     badgeCount,
-    mode = 'center-aligned',
+    mode,
     leftActions = [],
     rightActions = []
   }: Readonly<Props>) => {

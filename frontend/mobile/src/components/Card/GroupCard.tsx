@@ -1,15 +1,17 @@
 import { nanoid } from 'nanoid/non-secure';
-import { EntityCard } from '@/src/components/EntityCard';
 import type { GetGroupsQuery } from '@/src/graphql/__generated__/graphql';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { EntityCard } from './EntityCard';
 
-type Props = GetGroupsQuery['groups'][number];
+type Props = GetGroupsQuery['groups'][number] & {
+  subtitle: string;
+};
 
-export const GroupItem = ({
+export const GroupCard = ({
   id,
   name,
-  defaultPrice,
-  students
+  students,
+  subtitle
 }: Readonly<Props>) => {
   const theme = useAppTheme();
 
@@ -25,7 +27,7 @@ export const GroupItem = ({
   return (
     <EntityCard
       title={name}
-      subtitle={defaultPrice}
+      subtitle={subtitle}
       href={`/(tabs)/groups/${id}`}
       badges={badges}
     />

@@ -82,15 +82,17 @@ export default function CreateStudentScreen() {
         return;
       }
 
+      const newStudentRef = cache.writeFragment({
+        data: newStudent,
+        fragment: StudentFieldsFragmentDoc
+      });
+
       cache.modify({
         fields: {
-          students(existingStudents = []) {
-            const newStudentRef = cache.writeFragment({
-              data: newStudent,
-              fragment: StudentFieldsFragmentDoc
-            });
-            return [newStudentRef, ...existingStudents];
-          }
+          students: (existingStudents = []) => [
+            newStudentRef,
+            ...existingStudents
+          ]
         }
       });
     },

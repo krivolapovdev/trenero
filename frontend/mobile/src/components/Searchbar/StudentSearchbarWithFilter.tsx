@@ -3,11 +3,11 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import { CustomBottomSheet } from '@/src/components/BottomSheet/CustomBottomSheet';
-import { FilterAccordion } from '@/src/components/FilterAccordion';
 import { SearchbarWithFilter } from '@/src/components/Searchbar/SearchbarWithFilter';
 import { GET_GROUPS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { STATUS_LIST, type Status } from '@/src/types/student';
+import { FilterAccordion } from './FilterAccordion';
 
 const ALL_ITEM = { id: 'All', name: 'All' };
 
