@@ -5,9 +5,12 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.trenero.backend.attendance.external.AttendanceSpi;
 import tech.trenero.backend.common.dto.LessonDto;
+import tech.trenero.backend.common.input.CreateAttendanceInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupValidator;
 import tech.trenero.backend.lesson.internal.entity.Lesson;
@@ -22,6 +25,7 @@ public class LessonService {
   private final LessonRepository lessonRepository;
   private final LessonMapper lessonMapper;
   private final GroupValidator groupValidator;
+  @Lazy private final AttendanceSpi attendanceSpi;
 
   @Transactional(readOnly = true)
   public List<LessonDto> getAllLessons(JwtUser jwtUser) {
@@ -47,15 +51,19 @@ public class LessonService {
 
     groupValidator.validateGroupIsPresentAndActive(input.groupId(), jwtUser);
 
-    Lesson lesson =
-        Lesson.builder()
-            .groupId(input.groupId())
-            .startDateTime(input.startDateTime())
-            .ownerId(jwtUser.userId())
-            .deleted(false)
-            .build();
-
+    Lesson lesson = lessonMapper.toLesson(input, jwtUser.userId());
     Lesson savedLesson = saveLesson(lesson);
+
+    List<CreateAttendanceInput> attendanceInputList =
+        input.students().stream()
+            .map(
+                status ->
+                    new CreateAttendanceInput(
+                        savedLesson.getId(), status.studentId(), status.present()))
+            .toList();
+
+    attendanceSpi.createAttendances(
+        savedLesson.getId(), input.groupId(), attendanceInputList, jwtUser);
 
     return lessonMapper.toDto(savedLesson);
   }

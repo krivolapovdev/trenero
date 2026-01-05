@@ -86,6 +86,13 @@ public class StudentService {
     log.info("Updated {} students with new groupId={}", updatedCount, groupId);
   }
 
+  public List<StudentDto> getStudentListByIds(List<UUID> studentIds, JwtUser jwtUser) {
+    log.info("Getting students by ids={} for ownerId={}", studentIds, jwtUser.userId());
+    return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
+        .map(studentMapper::toStudentDto)
+        .toList();
+  }
+
   private Student saveStudent(Student student) {
     log.info("Saving student: {}", student);
     return studentRepository.save(student);

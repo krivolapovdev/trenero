@@ -122,12 +122,18 @@ input CreateGroupInput {
     name: String!
     defaultPrice: BigDecimal
     note: String
-    studentIds: [UUID!]
+    studentIds: [UUID!]!
 }
 
 input CreateLessonInput {
     groupId: UUID!
     startDateTime: DateTime!
+    students: [LessonStudentInput!]!
+}
+
+input LessonStudentInput {
+    studentId: UUID!
+    present: Boolean!
 }
 
 input CreateAttendanceInput {

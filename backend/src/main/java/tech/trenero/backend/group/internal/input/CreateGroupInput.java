@@ -11,8 +11,4 @@ public record CreateGroupInput(
     @NotNull @NotBlank @Size(max = 255) String name,
     BigDecimal defaultPrice,
     @Size(max = 1023) String note,
-    List<UUID> studentIds) {
-  public CreateGroupInput {
-    studentIds = studentIds == null ? List.of() : studentIds;
-  }
-}
+    @NotNull List<UUID> studentIds) {}

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import tech.trenero.backend.common.dto.AttendanceDto;
+import tech.trenero.backend.common.input.CreateAttendanceInput;
 import tech.trenero.backend.common.security.JwtUser;
 
 public interface AttendanceSpi {
@@ -12,4 +13,10 @@ public interface AttendanceSpi {
   List<AttendanceDto> getAttendancesByStudentId(UUID studentId, JwtUser jwtUser);
 
   List<AttendanceDto> getAttendancesByLessonId(UUID lessonId, JwtUser jwtUser);
+
+  void createAttendances(
+      UUID lessonId,
+      UUID groupId,
+      List<CreateAttendanceInput> attendanceInputList,
+      JwtUser jwtUser);
 }

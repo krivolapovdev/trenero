@@ -9,10 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.attendance.internal.entity.Attendance;
-import tech.trenero.backend.attendance.internal.input.CreateAttendanceInput;
 import tech.trenero.backend.attendance.internal.mapper.AttendanceMapper;
 import tech.trenero.backend.attendance.internal.repository.AttendanceRepository;
 import tech.trenero.backend.common.dto.AttendanceDto;
+import tech.trenero.backend.common.input.CreateAttendanceInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.lesson.external.LessonValidator;
 import tech.trenero.backend.student.external.StudentValidator;
@@ -105,6 +105,12 @@ public class AttendanceService {
 
   private Attendance saveAttendance(Attendance attendance) {
     log.info("Saving attendance: {}", attendance);
-    return attendanceRepository.save(attendance);
+    return attendanceRepository.saveAndFlush(attendance);
+  }
+
+  @Transactional
+  public void saveAttendanceList(List<Attendance> attendanceList) {
+    log.info("Saving attendance list: {}", attendanceList);
+    attendanceRepository.saveAllAndFlush(attendanceList);
   }
 }

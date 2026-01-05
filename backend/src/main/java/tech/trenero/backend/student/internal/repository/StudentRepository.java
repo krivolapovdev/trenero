@@ -42,6 +42,16 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
   List<Student> findAllByGroupIdAndOwnerId(
       @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
 
+  @Query(
+      """
+          SELECT s
+          FROM Student AS s
+          WHERE s.id IN :studentIds
+            AND s.ownerId = :ownerId
+            AND s.deleted = false""")
+  List<Student> findAllByIdsAndOwnerId(
+      @Param("studentIds") List<UUID> studentIds, @Param("ownerId") UUID ownerId);
+
   @Modifying
   @Transactional
   @Query(

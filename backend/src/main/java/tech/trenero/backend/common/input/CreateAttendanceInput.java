@@ -1,4 +1,4 @@
-package tech.trenero.backend.attendance.internal.input;
+package tech.trenero.backend.common.input;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
