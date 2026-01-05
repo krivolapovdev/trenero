@@ -5,4 +5,9 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record GroupDto(
-    UUID id, String name, OffsetDateTime createdAt, BigDecimal defaultPrice, boolean deleted) {}
+    UUID id,
+    String name,
+    String note,
+    OffsetDateTime createdAt,
+    BigDecimal defaultPrice,
+    boolean deleted) {}

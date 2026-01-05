@@ -59,7 +59,6 @@ type LoginPayload {
 type Student {
     id: UUID!
     fullName: String!
-    createdAt: DateTime!
     birthDate: Date
     phone: String
     note: String
@@ -67,23 +66,25 @@ type Student {
     lastAttendance: Attendance
     payments: [Payment!]!
     attendances: [Attendance!]!
+    createdAt: DateTime!
 }
 
 type Group {
     id: UUID!
     name: String!
-    createdAt: DateTime!
     defaultPrice: BigDecimal
+    note: String
     students: [Student!]!
     lessons: [Lesson!]!
+    createdAt: DateTime!
 }
 
 type Lesson {
     id: UUID!
     groupId: UUID!
     startDateTime: DateTime!
-    createdAt: DateTime!
     attendances: [Attendance!]!
+    createdAt: DateTime!
 }
 
 type Attendance {
@@ -120,6 +121,7 @@ input CreateStudentInput {
 input CreateGroupInput {
     name: String!
     defaultPrice: BigDecimal
+    note: String
     studentIds: [UUID!]
 }
 

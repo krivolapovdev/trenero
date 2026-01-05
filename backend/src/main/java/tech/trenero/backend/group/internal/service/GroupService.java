@@ -67,6 +67,6 @@ public class GroupService {
 
   private Group saveGroup(Group group) {
     log.info("Saving group: {}", group);
-    return groupRepository.save(group);
+    return groupRepository.saveAndFlush(group);
   }
 }

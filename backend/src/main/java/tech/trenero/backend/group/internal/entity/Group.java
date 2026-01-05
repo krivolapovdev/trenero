@@ -46,6 +46,9 @@ public class Group {
   @Column(name = "default_price")
   private BigDecimal defaultPrice;
 
+  @Column(name = "note")
+  private String note;
+
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;
