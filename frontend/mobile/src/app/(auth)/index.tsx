@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Divider, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppBottomSheet } from '@/src/components/AppBottomSheet';
+import { CustomBottomSheet } from '@/src/components/BottomSheet/CustomBottomSheet';
 import { SocialButtonsGroup } from '@/src/components/SocialButtonsGroup';
 import { TermsContent } from '@/src/components/TermsContent';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -54,12 +54,12 @@ export default function LoginScreen() {
         </View>
       </View>
 
-      <AppBottomSheet
+      <CustomBottomSheet
         visible={isTermsVisible}
         onDismiss={() => setIsTermsVisible(false)}
       >
         <TermsContent />
-      </AppBottomSheet>
+      </CustomBottomSheet>
     </SafeAreaView>
   );
 }

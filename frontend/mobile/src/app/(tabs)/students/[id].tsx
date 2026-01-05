@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { AttendanceCalendar } from '@/src/components/AttendanceCalendar';
-import { CreatePaymentSheet } from '@/src/components/CreatePaymentSheet';
+import { CreatePaymentSheet } from '@/src/components/BottomSheet';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentItem } from '@/src/components/StudentItem';

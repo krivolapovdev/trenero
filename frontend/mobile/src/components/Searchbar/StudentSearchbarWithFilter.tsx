@@ -2,9 +2,9 @@ import { useQuery } from '@apollo/client/react';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
-import { AppBottomSheet } from '@/src/components/AppBottomSheet';
+import { CustomBottomSheet } from '@/src/components/BottomSheet/CustomBottomSheet';
 import { FilterAccordion } from '@/src/components/FilterAccordion';
-import { SearchbarWithFilter } from '@/src/components/SearchbarWithFilter';
+import { SearchbarWithFilter } from '@/src/components/Searchbar/SearchbarWithFilter';
 import { GET_GROUPS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { STATUS_LIST, type Status } from '@/src/types/student';
@@ -110,7 +110,7 @@ export const StudentSearchbarWithFilter = memo(
           hasActiveFilters={!!filterGroup || !!filterStatus}
         />
 
-        <AppBottomSheet
+        <CustomBottomSheet
           visible={visible}
           onDismiss={handleDismiss}
         >
@@ -155,7 +155,7 @@ export const StudentSearchbarWithFilter = memo(
               Apply
             </Button>
           </View>
-        </AppBottomSheet>
+        </CustomBottomSheet>
       </>
     );
   }

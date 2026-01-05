@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import { SocialAuthButton } from '@/src/components/SocialAuthButton';
+import { SocialAuthButton } from '@/src/components/SocialButtonsGroup/SocialAuthButton';
 import { useAppleSignIn } from '@/src/hooks/useAppleSignIn';
 import { useGoogleSignIn } from '@/src/hooks/useGoogleSignIn';
 

@@ -14,7 +14,11 @@ type Props = {
   children: ReactNode;
 };
 
-export const AppBottomSheet = ({ visible, onDismiss, children }: Props) => {
+export const CustomBottomSheet = ({
+  visible,
+  onDismiss,
+  children
+}: Readonly<Props>) => {
   const theme = useAppTheme();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 

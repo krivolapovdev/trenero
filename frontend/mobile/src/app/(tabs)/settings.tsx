@@ -3,7 +3,7 @@ import { Linking, ScrollView } from 'react-native';
 import { Divider, List, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { ConfirmDialog, LanguageDialog } from '@/src/components/dialogs';
+import { ConfirmDialog, LanguageDialog } from '@/src/components/Dialog';
 import { SettingsItem } from '@/src/components/SettingsItem';
 import { SettingsSection } from '@/src/components/SettingsSection';
 import { useAppTheme } from '@/src/hooks/useAppTheme';

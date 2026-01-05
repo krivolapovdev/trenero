@@ -2,7 +2,7 @@ import { useMutation } from '@apollo/client/react';
 import { memo, useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { Button } from 'react-native-paper';
-import { AppBottomSheet } from '@/src/components/AppBottomSheet';
+import { CustomBottomSheet } from '@/src/components/BottomSheet/CustomBottomSheet';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
 import { graphql } from '@/src/graphql/__generated__';
 import { PaymentFieldsFragmentDoc } from '@/src/graphql/__generated__/graphql';
@@ -76,7 +76,7 @@ export const CreatePaymentSheet = memo(
     };
 
     return (
-      <AppBottomSheet
+      <CustomBottomSheet
         visible={visible}
         onDismiss={onDismiss}
       >
@@ -98,7 +98,7 @@ export const CreatePaymentSheet = memo(
             Add payment
           </Button>
         </View>
-      </AppBottomSheet>
+      </CustomBottomSheet>
     );
   }
 );
