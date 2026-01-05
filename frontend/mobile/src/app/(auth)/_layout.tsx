@@ -6,7 +6,7 @@ export default function AuthLayout() {
   const user = useAuthStore(state => state.user);
 
   if (user) {
-    return <Redirect href='/(tabs)/(statistics)' />;
+    return <Redirect href='/(tabs)' />;
   }
 
   return (

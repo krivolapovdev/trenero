@@ -1,18 +1,17 @@
 import { useMutation } from '@apollo/client/react';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { Button } from 'react-native-paper';
 import { AppBottomSheet } from '@/src/components/AppBottomSheet';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
 import { graphql } from '@/src/graphql/__generated__';
+import { PaymentFieldsFragmentDoc } from '@/src/graphql/__generated__/graphql';
 import { formatPrice } from '@/src/helpers/formatPrice';
 
 const CREATE_PAYMENT = graphql(`
     mutation CreatePayment($input: CreatePaymentInput!) {
         createPayment(input: $input) {
-            id
-            amount
-            createdAt
+            ...PaymentFields
         }
     }
 `);
@@ -32,20 +31,17 @@ export const CreatePaymentSheet = memo(
       update(cache, { data }) {
         const newPayment = data?.createPayment;
 
-        const studentCacheId = cache.identify({
-          __typename: 'Student',
-          id: studentId
-        });
-
-        if (!newPayment || !studentCacheId) {
+        if (!newPayment) {
           return;
         }
 
         cache.modify({
-          id: studentCacheId,
           fields: {
-            payments(existingPayments = [], { toReference }) {
-              const newPaymentRef = toReference(newPayment, true);
+            payments(existingPayments = []) {
+              const newPaymentRef = cache.writeFragment({
+                data: newPayment,
+                fragment: PaymentFieldsFragmentDoc
+              });
               return [newPaymentRef, ...existingPayments];
             }
           }
@@ -61,6 +57,12 @@ export const CreatePaymentSheet = memo(
         Alert.alert('Error', err.message);
       }
     });
+
+    useEffect(() => {
+      if (visible) {
+        setAmount(defaultPrice ?? '');
+      }
+    }, [defaultPrice, visible]);
 
     const handleSubmit = () => {
       void createPayment({

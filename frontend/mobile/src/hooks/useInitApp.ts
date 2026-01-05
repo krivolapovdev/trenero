@@ -10,6 +10,9 @@ const GET_INIT_DATA = graphql(`
         students {
             ...StudentFields
         }
+        payments {
+            ...PaymentFields
+        }
     }
 `);
 

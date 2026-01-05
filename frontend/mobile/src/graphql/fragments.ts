@@ -25,3 +25,11 @@ export const STUDENT_FIELDS = graphql(`
         }
     }
 `);
+
+export const PAYMENT_FIELDS = graphql(`
+    fragment PaymentFields on Payment {
+        id
+        amount
+        createdAt
+    }
+`);

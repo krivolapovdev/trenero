@@ -299,6 +299,14 @@ export type CreateGroupMutation = {
   }
 };
 
+export type GetPaymentsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetPaymentsQuery = {
+  __typename?: 'Query',
+  payments: Array<{ __typename?: 'Payment', id: string, amount: string, createdAt: string }>
+};
+
 export type GetStudentQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -377,6 +385,13 @@ export type StudentFieldsFragment = {
   lastAttendance?: { __typename?: 'Attendance', present: boolean } | null
 };
 
+export type PaymentFieldsFragment = {
+  __typename?: 'Payment',
+  id: string,
+  amount: string,
+  createdAt: string
+};
+
 export type RefreshTokensMutationVariables = Exact<{
   input: RefreshTokenInput;
 }>;
@@ -447,7 +462,8 @@ export type GetInitialDataQuery = {
     fullName: string,
     group?: { __typename?: 'Group', id: string, name: string } | null,
     lastAttendance?: { __typename?: 'Attendance', present: boolean } | null
-  }>
+  }>,
+  payments: Array<{ __typename?: 'Payment', id: string, amount: string, createdAt: string }>
 };
 
 export const GroupFieldsFragmentDoc = {
@@ -507,6 +523,21 @@ export const StudentFieldsFragmentDoc = {
     }
   }]
 } as unknown as DocumentNode<StudentFieldsFragment, unknown>;
+export const PaymentFieldsFragmentDoc = {
+  "kind": "Document",
+  "definitions": [{
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "PaymentFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Payment"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "amount"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "createdAt"}}]
+    }
+  }]
+} as unknown as DocumentNode<PaymentFieldsFragment, unknown>;
 export const GetGroupDocument = {
   "kind": "Document", "definitions": [{
     "kind": "OperationDefinition",
@@ -652,6 +683,39 @@ export const CreateGroupDocument = {
     }
   }]
 } as unknown as DocumentNode<CreateGroupMutation, CreateGroupMutationVariables>;
+export const GetPaymentsDocument = {
+  "kind": "Document",
+  "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "query",
+    "name": {"kind": "Name", "value": "GetPayments"},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "payments"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "PaymentFields"}
+          }]
+        }
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "PaymentFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Payment"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "amount"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "createdAt"}}]
+    }
+  }]
+} as unknown as DocumentNode<GetPaymentsQuery, GetPaymentsQueryVariables>;
 export const GetStudentDocument = {
   "kind": "Document", "definitions": [{
     "kind": "OperationDefinition",
@@ -859,14 +923,22 @@ export const CreatePaymentDocument = {
         "selectionSet": {
           "kind": "SelectionSet",
           "selections": [{
-            "kind": "Field",
-            "name": {"kind": "Name", "value": "id"}
-          }, {"kind": "Field", "name": {"kind": "Name", "value": "amount"}}, {
-            "kind": "Field",
-            "name": {"kind": "Name", "value": "createdAt"}
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "PaymentFields"}
           }]
         }
       }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "PaymentFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Payment"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "amount"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "createdAt"}}]
     }
   }]
 } as unknown as DocumentNode<CreatePaymentMutation, CreatePaymentMutationVariables>;
@@ -1077,6 +1149,16 @@ export const GetInitialDataDocument = {
             "name": {"kind": "Name", "value": "StudentFields"}
           }]
         }
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "payments"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "PaymentFields"}
+          }]
+        }
       }]
     }
   }, {
@@ -1127,6 +1209,17 @@ export const GetInitialDataDocument = {
           "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "present"}}]
         }
       }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "PaymentFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Payment"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "amount"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "createdAt"}}]
     }
   }]
 } as unknown as DocumentNode<GetInitialDataQuery, GetInitialDataQueryVariables>;

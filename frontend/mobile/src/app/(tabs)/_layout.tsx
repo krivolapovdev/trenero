@@ -7,7 +7,7 @@ import { useAuthStore } from '@/src/stores/authStore';
 
 const TAB_CONFIG = [
   {
-    name: '(statistics)',
+    name: 'index',
     title: 'Statistics',
     icon: 'chart-box',
     iconOutline: 'chart-box-outline'

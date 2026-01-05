@@ -7,8 +7,11 @@ import { PaperSelect } from 'react-native-paper-select';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
 import { graphql } from '@/src/graphql/__generated__';
-import type { CreateStudentInput } from '@/src/graphql/__generated__/graphql';
-import { GET_GROUPS, GET_STUDENTS } from '@/src/graphql/queries';
+import {
+  type CreateStudentInput,
+  StudentFieldsFragmentDoc
+} from '@/src/graphql/__generated__/graphql';
+import { GET_GROUPS } from '@/src/graphql/queries';
 import { formatDate } from '@/src/helpers/formatDate';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
@@ -74,16 +77,20 @@ export default function CreateStudentScreen() {
   const [createStudent, { loading }] = useMutation(CREATE_STUDENT, {
     update(cache, { data }) {
       const newStudent = data?.createStudent;
-      const existingData = cache.readQuery({ query: GET_STUDENTS });
 
-      if (!newStudent || !existingData) {
+      if (!newStudent) {
         return;
       }
 
-      cache.writeQuery({
-        query: GET_STUDENTS,
-        data: {
-          students: [newStudent, ...existingData.students]
+      cache.modify({
+        fields: {
+          students(existingStudents = []) {
+            const newStudentRef = cache.writeFragment({
+              data: newStudent,
+              fragment: StudentFieldsFragmentDoc
+            });
+            return [newStudentRef, ...existingStudents];
+          }
         }
       });
     },
