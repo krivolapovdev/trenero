@@ -1,10 +1,10 @@
-import {nanoid} from 'nanoid/non-secure';
-import {useMemo} from 'react';
-import type {GetStudentsQuery} from '@/src/graphql/__generated__/graphql';
-import {getStudentStatuses} from '@/src/helpers/getStudentStatuses';
-import {useAppTheme} from '@/src/hooks/useAppTheme';
-import {STUDENT_STATUS_LABEL} from '@/src/types/student';
-import {EntityCard} from './EntityCard';
+import { nanoid } from 'nanoid/non-secure';
+import { useMemo } from 'react';
+import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
+import { getStudentStatuses } from '@/src/helpers/getStudentStatuses';
+import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { STUDENT_STATUS_LABEL } from '@/src/types/student';
+import { EntityCard } from './EntityCard';
 
 type Props = GetStudentsQuery['students'][number] & {
   subtitle: string;
@@ -13,11 +13,11 @@ type Props = GetStudentsQuery['students'][number] & {
 export const StudentCard = ({
   id,
   fullName,
-                              subtitle,
-                              ...student
+  subtitle,
+  ...student
 }: Readonly<Props>) => {
   const theme = useAppTheme();
-  const statuses = useMemo(() => getStudentStatuses(student), [student]);
+  const statuses = getStudentStatuses(student);
 
   const badges = useMemo(() => {
     const result = [];
@@ -25,7 +25,7 @@ export const StudentCard = ({
     if (statuses.has('no_activity')) {
       result.push({
         id: nanoid(),
-        label: STUDENT_STATUS_LABEL['no_activity'],
+        label: STUDENT_STATUS_LABEL.no_activity,
         backgroundColor: theme.colors.primary,
         textColor: theme.colors.onPrimary
       });
@@ -35,7 +35,7 @@ export const StudentCard = ({
     if (statuses.has('present')) {
       result.push({
         id: nanoid(),
-        label: STUDENT_STATUS_LABEL['present'],
+        label: STUDENT_STATUS_LABEL.present,
         backgroundColor: theme.colors.secondaryContainer,
         textColor: theme.colors.onSecondaryContainer
       });
@@ -44,7 +44,7 @@ export const StudentCard = ({
     if (statuses.has('missing')) {
       result.push({
         id: nanoid(),
-        label: STUDENT_STATUS_LABEL['missing'],
+        label: STUDENT_STATUS_LABEL.missing,
         backgroundColor: theme.colors.errorContainer,
         textColor: theme.colors.onErrorContainer
       });
@@ -53,7 +53,7 @@ export const StudentCard = ({
     if (statuses.has('paid')) {
       result.push({
         id: nanoid(),
-        label: STUDENT_STATUS_LABEL['paid'],
+        label: STUDENT_STATUS_LABEL.paid,
         backgroundColor: theme.colors.secondaryContainer,
         textColor: theme.colors.onSecondaryContainer
       });
@@ -62,7 +62,7 @@ export const StudentCard = ({
     if (statuses.has('unpaid')) {
       result.push({
         id: nanoid(),
-        label: STUDENT_STATUS_LABEL['unpaid'],
+        label: STUDENT_STATUS_LABEL.unpaid,
         backgroundColor: theme.colors.tertiary,
         textColor: theme.colors.onTertiary
       });
