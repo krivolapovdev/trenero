@@ -1,22 +1,27 @@
-import type {Reference} from '@apollo/client';
-import {useMutation, useQuery} from '@apollo/client/react';
+import type { Reference } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client/react';
 import dayjs from 'dayjs';
-import {useLocalSearchParams, useRouter} from 'expo-router';
-import {useMemo, useState} from 'react';
-import {Alert, ScrollView} from 'react-native';
-import {Text} from 'react-native-paper';
-import {DatePickerModal, registerTranslation, ru, TimePickerModal} from 'react-native-paper-dates';
-import {CustomAppbar} from '@/src/components/CustomAppbar';
-import {StudentAttendancePicker} from '@/src/components/StudentAttendancePicker';
-import {SurfaceCard} from '@/src/components/SurfaceCard';
-import {graphql} from '@/src/graphql/__generated__';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { Alert, ScrollView } from 'react-native';
+import { Text } from 'react-native-paper';
+import {
+  DatePickerModal,
+  registerTranslation,
+  ru,
+  TimePickerModal
+} from 'react-native-paper-dates';
+import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { StudentAttendancePicker } from '@/src/components/StudentAttendancePicker';
+import { SurfaceCard } from '@/src/components/SurfaceCard';
+import { graphql } from '@/src/graphql/__generated__';
 import {
   AttendanceFieldsFragmentDoc,
   type CreateLessonInput,
   LessonFieldsFragmentDoc
 } from '@/src/graphql/__generated__/graphql';
-import {GET_GROUP} from '@/src/graphql/queries';
-import {useAppTheme} from '@/src/hooks/useAppTheme';
+import { GET_GROUP } from '@/src/graphql/queries';
+import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 registerTranslation('ru', ru);
 

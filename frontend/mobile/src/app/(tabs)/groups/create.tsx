@@ -1,18 +1,21 @@
-import {useMutation, useQuery} from '@apollo/client/react';
-import {useRouter} from 'expo-router';
-import {useMemo, useState} from 'react';
-import {Alert, ScrollView, StyleSheet} from 'react-native';
-import {TextInput} from 'react-native-paper';
-import {PaperSelect} from 'react-native-paper-select';
-import type {ListItem} from 'react-native-paper-select/src/interface/paperSelect.interface';
-import {CustomAppbar} from '@/src/components/CustomAppbar';
-import {CustomTextInput} from '@/src/components/CustomTextInput';
-import {OptionalErrorMessage} from '@/src/components/OptionalErrorMessage';
-import {graphql} from '@/src/graphql/__generated__';
-import {type CreateGroupInput, GroupFieldsFragmentDoc} from '@/src/graphql/__generated__/graphql';
-import {GET_STUDENTS} from '@/src/graphql/queries';
-import {formatPriceInput} from '@/src/helpers/formatPriceInput';
-import {useAppTheme} from '@/src/hooks/useAppTheme';
+import { useMutation, useQuery } from '@apollo/client/react';
+import { useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { TextInput } from 'react-native-paper';
+import { PaperSelect } from 'react-native-paper-select';
+import type { ListItem } from 'react-native-paper-select/src/interface/paperSelect.interface';
+import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { CustomTextInput } from '@/src/components/CustomTextInput';
+import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
+import { graphql } from '@/src/graphql/__generated__';
+import {
+  type CreateGroupInput,
+  GroupFieldsFragmentDoc
+} from '@/src/graphql/__generated__/graphql';
+import { GET_STUDENTS } from '@/src/graphql/queries';
+import { formatPriceInput } from '@/src/helpers/formatPriceInput';
+import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 const CREATE_GROUP = graphql(`
     mutation CreateGroup($input: CreateGroupInput!) {
