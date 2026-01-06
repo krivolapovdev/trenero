@@ -63,7 +63,6 @@ type Student {
     phone: String
     note: String
     group: Group
-    lastAttendance: Attendance
     payments: [Payment!]!
     attendances: [Attendance!]!
     createdAt: DateTime!
@@ -89,16 +88,18 @@ type Lesson {
 
 type Attendance {
     id: UUID!
-    lessonId: UUID!
     studentId: UUID!
     present: Boolean!
     createdAt: DateTime!
+    lesson: Lesson!
 }
 
 type Payment {
     id: UUID!
     studentId: UUID!
     amount: BigDecimal!
+    lessonsPerPayment: Int!
+    date: Date!
     createdAt: DateTime!
 }
 
@@ -145,4 +146,6 @@ input CreateAttendanceInput {
 input CreatePaymentInput {
     studentId: UUID!
     amount: BigDecimal!
+    lessonsPerPayment: Int!
+    date: Date!
 }

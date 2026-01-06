@@ -1,24 +1,24 @@
-package tech.trenero.backend.lesson.internal.resolver;
+package tech.trenero.backend.attendance.internal.resolver;
 
-import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import tech.trenero.backend.attendance.external.AttendanceSpi;
 import tech.trenero.backend.common.dto.AttendanceDto;
 import tech.trenero.backend.common.dto.LessonDto;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.lesson.external.LessonSpi;
 
 @Controller
 @RequiredArgsConstructor
-public class LessonGraphQlResolver {
-  @Lazy private final AttendanceSpi attendanceSpi;
+public class AttendanceGraphQlResolver {
+  @Lazy private final LessonSpi lessonSpi;
 
-  @SchemaMapping(typeName = "Lesson", field = "attendances")
-  public List<AttendanceDto> attendances(
-      LessonDto lesson, @AuthenticationPrincipal JwtUser jwtUser) {
-    return attendanceSpi.getAttendancesByLessonId(lesson.id(), jwtUser);
+  @SchemaMapping(typeName = "Attendance", field = "lesson")
+  public Optional<LessonDto> attendances(
+      AttendanceDto attendance, @AuthenticationPrincipal JwtUser jwtUser) {
+    return lessonSpi.getLessonById(attendance.lessonId(), jwtUser);
   }
 }

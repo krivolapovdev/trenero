@@ -10,4 +10,6 @@ public interface LessonSpi {
   List<LessonDto> getLessonsByGroupId(UUID groupId, JwtUser jwtUser);
 
   Optional<LessonDto> getLastLessonByGroupId(UUID groupId, JwtUser jwtUser);
+
+  Optional<LessonDto> getLessonById(UUID lessonId, JwtUser jwtUser);
 }

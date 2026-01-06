@@ -10,5 +10,5 @@ public record CreateLessonInput(
     @NotNull UUID groupId,
     @NotNull @PastOrPresent OffsetDateTime startDateTime,
     @NotNull List<StudentStatus> students) {
-  public record StudentStatus(@NotNull UUID studentId, boolean present) {}
+  public record StudentStatus(@NotNull UUID studentId, @NotNull Boolean present) {}
 }

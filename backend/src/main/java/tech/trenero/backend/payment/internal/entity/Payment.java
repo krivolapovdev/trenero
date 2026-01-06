@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -42,6 +43,14 @@ public class Payment {
   @Column(name = "amount", nullable = false)
   @NonNull
   private BigDecimal amount;
+
+  @Column(name = "lessons_per_payment", nullable = false)
+  @NonNull
+  private Integer lessonsPerPayment;
+
+  @Column(name = "date", nullable = false)
+  @NonNull
+  private LocalDate date;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)

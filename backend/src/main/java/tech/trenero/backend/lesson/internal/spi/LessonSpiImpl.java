@@ -26,6 +26,19 @@ public class LessonSpiImpl implements LessonSpi {
 
   @Override
   public Optional<LessonDto> getLastLessonByGroupId(UUID groupId, JwtUser jwtUser) {
+    if (groupId == null || jwtUser == null) {
+      return Optional.empty();
+    }
+
     return lessonService.getLastLessonByGroupId(groupId, jwtUser);
+  }
+
+  @Override
+  public Optional<LessonDto> getLessonById(UUID lessonId, JwtUser jwtUser) {
+    if (lessonId == null || jwtUser == null) {
+      return Optional.empty();
+    }
+
+    return lessonService.getLessonById(lessonId, jwtUser);
   }
 }
