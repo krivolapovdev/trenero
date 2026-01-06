@@ -1,4 +1,4 @@
-export const formatPrice = (text: string) => {
+export const formatPriceInput = (text: string) => {
   const cleaned = text.replaceAll(/[^0-9.]/g, '');
 
   const [integerPart, decimalPart] = cleaned.split('.');

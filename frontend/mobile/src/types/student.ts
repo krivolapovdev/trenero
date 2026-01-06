@@ -1,9 +1,14 @@
-export const STATUS_LIST = [
-  'No activity',
-  'Present',
-  'Missing',
-  'Paid',
-  'Unpaid'
-] as const;
+export type StudentStatus =
+    | 'no_activity'
+    | 'present'
+    | 'missing'
+    | 'paid'
+    | 'unpaid';
 
-export type Status = (typeof STATUS_LIST)[number];
+export const STUDENT_STATUS_LABEL: Record<StudentStatus, string> = {
+  no_activity: 'No activity',
+  present: 'Present',
+  missing: 'Missing',
+  paid: 'Paid',
+  unpaid: 'Unpaid'
+};

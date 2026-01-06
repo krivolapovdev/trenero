@@ -1,23 +1,23 @@
-import { useQuery } from '@apollo/client/react';
-import { LegendList, type LegendListRef } from '@legendapp/list';
-import { useScrollToTop } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
-import { StudentCard } from '@/src/components/Card';
-import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
-import { StudentSearchbarWithFilter } from '@/src/components/Searchbar';
-import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
-import { GET_STUDENTS } from '@/src/graphql/queries';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { useFilteredStudents } from '@/src/hooks/useFilteredStudents';
-import type { Status } from '@/src/types/student';
+import {useQuery} from '@apollo/client/react';
+import {LegendList, type LegendListRef} from '@legendapp/list';
+import {useScrollToTop} from '@react-navigation/native';
+import {useRouter} from 'expo-router';
+import {useCallback, useRef, useState} from 'react';
+import {StudentCard} from '@/src/components/Card';
+import {CustomAppbar} from '@/src/components/CustomAppbar';
+import {OptionalErrorMessage} from '@/src/components/OptionalErrorMessage';
+import {StudentSearchbarWithFilter} from '@/src/components/Searchbar';
+import type {GetStudentsQuery} from '@/src/graphql/__generated__/graphql';
+import {GET_STUDENTS} from '@/src/graphql/queries';
+import {useAppTheme} from '@/src/hooks/useAppTheme';
+import {useFilteredStudents} from '@/src/hooks/useFilteredStudents';
+import type {StudentStatus} from '@/src/types/student';
 
 export default function StudentsScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterKey, setFilterKey] = useState<number>(0);
   const [filterGroup, setFilterGroup] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<Status | null>(null);
+  const [filterStatus, setFilterStatus] = useState<StudentStatus | null>(null);
 
   const theme = useAppTheme();
   const router = useRouter();

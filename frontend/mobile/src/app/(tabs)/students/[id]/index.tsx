@@ -1,17 +1,16 @@
-import { useMutation, useQuery } from '@apollo/client/react';
+import {useMutation, useQuery} from '@apollo/client/react';
 import dayjs from 'dayjs';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, RefreshControl, ScrollView } from 'react-native';
-import { CreatePaymentSheet } from '@/src/components/BottomSheet';
-import { AttendanceCalendar } from '@/src/components/Calendar';
-import { StudentCard } from '@/src/components/Card';
-import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
-import { StudentPaymentsTable } from '@/src/components/StudentPaymentsTable';
-import { graphql } from '@/src/graphql/__generated__';
-import type { GetStudentQuery } from '@/src/graphql/__generated__/graphql';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
+import {useLocalSearchParams, useRouter} from 'expo-router';
+import {Alert, RefreshControl, ScrollView} from 'react-native';
+import {AttendanceCalendar} from '@/src/components/Calendar';
+import {StudentCard} from '@/src/components/Card';
+import {CustomAppbar} from '@/src/components/CustomAppbar';
+import {OptionalErrorMessage} from '@/src/components/OptionalErrorMessage';
+import {StudentPaymentsTable} from '@/src/components/StudentPaymentsTable';
+import {graphql} from '@/src/graphql/__generated__';
+import type {GetStudentQuery} from '@/src/graphql/__generated__/graphql';
+import {GET_STUDENT} from '@/src/graphql/queries';
+import {useAppTheme} from '@/src/hooks/useAppTheme';
 
 const buildSubtitle = (student: NonNullable<GetStudentQuery['student']>) =>
   [
@@ -23,36 +22,6 @@ const buildSubtitle = (student: NonNullable<GetStudentQuery['student']>) =>
   ]
     .filter(Boolean)
     .join('\n\n');
-
-const GET_STUDENT = graphql(`
-    query GetStudent($id: UUID!) {
-        student(id: $id) {
-            id
-            fullName
-            phone
-            birthDate
-            note
-            group {
-                id
-                name
-                defaultPrice
-            }
-            lastAttendance {
-                present
-            }
-            attendances {
-                id
-                present
-                createdAt
-            }
-            payments {
-                id
-                amount
-                createdAt
-            }
-        }
-    }
-`);
 
 const DELETE_STUDENT = graphql(`
     mutation DeleteStudent($id: UUID!) {
@@ -66,11 +35,10 @@ export default function StudentByIdScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useAppTheme();
   const router = useRouter();
-  const [paymentSheetVisible, setPaymentSheetVisible] = useState(false);
 
   const { data, loading, error, refetch } = useQuery(GET_STUDENT, {
     variables: { id },
-    fetchPolicy: 'cache-and-network'
+    fetchPolicy: 'cache-first'
   });
 
   const [deleteStudent, resultDeleteStudent] = useMutation(DELETE_STUDENT, {
@@ -126,7 +94,8 @@ export default function StudentByIdScreen() {
         rightActions={[
           {
             icon: 'account-cash',
-            onPress: () => setPaymentSheetVisible(true),
+            onPress: () =>
+                router.push(`/(tabs)/students/${id}/payments/create`),
             disabled: loading || resultDeleteStudent.loading
           },
           {
@@ -164,13 +133,6 @@ export default function StudentByIdScreen() {
             <StudentCard
               subtitle={buildSubtitle(student)}
               {...student}
-            />
-
-            <CreatePaymentSheet
-              visible={paymentSheetVisible}
-              onDismiss={() => setPaymentSheetVisible(false)}
-              studentId={student.id}
-              defaultPrice={student.group?.defaultPrice}
             />
 
             <StudentPaymentsTable payments={student.payments} />

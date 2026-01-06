@@ -1,31 +1,19 @@
-import { useDeferredValue, useMemo } from 'react';
-import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
-import type { Status } from '@/src/types/student';
-
-export const statusChecks: Record<
-  Status,
-  (student: GetStudentsQuery['students'][number]) => boolean
-> = {
-  'No activity': student => !student.lastAttendance,
-  Present: student => !!student.lastAttendance?.present,
-  Missing: student =>
-    !!student.lastAttendance && !student.lastAttendance.present,
-  Paid: () => true,
-  Unpaid: () => true
-};
+import {useDeferredValue, useMemo} from 'react';
+import type {GetStudentsQuery} from '@/src/graphql/__generated__/graphql';
+import {getStudentStatuses} from '@/src/helpers/getStudentStatuses';
+import type {StudentStatus} from '@/src/types/student';
 
 export function useFilteredStudents(
   students: GetStudentsQuery['students'],
   searchQuery: string,
   filterGroup: string | null,
-  filterStatus: Status | null
+  filterStatus: StudentStatus | null
 ) {
   const deferredQuery = useDeferredValue(searchQuery).trim().toLowerCase();
-  const allStudents = students;
 
   return useMemo(
     () =>
-      allStudents.filter(student => {
+        students.filter(student => {
         if (
           deferredQuery &&
           !student.fullName.toLowerCase().includes(deferredQuery)
@@ -37,8 +25,16 @@ export function useFilteredStudents(
           return false;
         }
 
-        return !(filterStatus && !statusChecks[filterStatus](student));
+          if (filterStatus) {
+            const statuses = getStudentStatuses(student);
+
+            if (!statuses.has(filterStatus)) {
+              return false;
+            }
+          }
+
+          return true;
       }),
-    [allStudents, deferredQuery, filterGroup, filterStatus]
+      [students, deferredQuery, filterGroup, filterStatus]
   );
 }

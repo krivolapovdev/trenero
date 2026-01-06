@@ -1,16 +1,16 @@
-import { useQuery } from '@apollo/client/react';
-import { LegendList, type LegendListRef } from '@legendapp/list';
-import { useScrollToTop } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
-import { Searchbar } from 'react-native-paper';
-import { GroupCard } from '@/src/components/Card';
-import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
-import type { GetGroupsQuery } from '@/src/graphql/__generated__/graphql';
-import { GET_GROUPS } from '@/src/graphql/queries';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { useFilteredGroups } from '@/src/hooks/useFilteredGroups';
+import {useQuery} from '@apollo/client/react';
+import {LegendList, type LegendListRef} from '@legendapp/list';
+import {useScrollToTop} from '@react-navigation/native';
+import {useRouter} from 'expo-router';
+import {useCallback, useRef, useState} from 'react';
+import {Searchbar} from 'react-native-paper';
+import {GroupCard} from '@/src/components/Card';
+import {CustomAppbar} from '@/src/components/CustomAppbar';
+import {OptionalErrorMessage} from '@/src/components/OptionalErrorMessage';
+import type {GetGroupsQuery} from '@/src/graphql/__generated__/graphql';
+import {GET_GROUPS} from '@/src/graphql/queries';
+import {useAppTheme} from '@/src/hooks/useAppTheme';
+import {useFilteredGroups} from '@/src/hooks/useFilteredGroups';
 
 export default function GroupsScreen() {
   const theme = useAppTheme();
@@ -34,10 +34,7 @@ export default function GroupsScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: GetGroupsQuery['groups'][number] }) => (
-      <GroupCard
-        subtitle={item.defaultPrice ?? ''}
-        {...item}
-      />
+        <GroupCard {...item} />
     ),
     []
   );

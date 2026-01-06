@@ -1,15 +1,23 @@
-import { useQuery } from '@apollo/client/react';
-import { memo, useCallback, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Button, Text } from 'react-native-paper';
-import { CustomBottomSheet } from '@/src/components/BottomSheet/CustomBottomSheet';
-import { SearchbarWithFilter } from '@/src/components/Searchbar/SearchbarWithFilter';
-import { GET_GROUPS } from '@/src/graphql/queries';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { STATUS_LIST, type Status } from '@/src/types/student';
-import { FilterAccordion } from './FilterAccordion';
+import {useQuery} from '@apollo/client/react';
+import {memo, useCallback, useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {Button, Text} from 'react-native-paper';
+import {CustomBottomSheet} from '@/src/components/BottomSheet/CustomBottomSheet';
+import {SearchbarWithFilter} from '@/src/components/Searchbar/SearchbarWithFilter';
+import {GET_GROUPS} from '@/src/graphql/queries';
+import {useAppTheme} from '@/src/hooks/useAppTheme';
+import {STUDENT_STATUS_LABEL, type StudentStatus} from '@/src/types/student';
+import {FilterAccordion} from './FilterAccordion';
 
 const ALL_ITEM = { id: 'All', name: 'All' };
+
+const STATUS_ITEMS = [
+  ALL_ITEM,
+  ...Object.entries(STUDENT_STATUS_LABEL).map(([id, name]) => ({
+    id: id as StudentStatus,
+    name
+  }))
+];
 
 type ExpandedAccordion = 'group' | 'status' | null;
 
@@ -21,8 +29,8 @@ type Props = {
   filterGroup: string | null;
   setFilterGroup: (group: string | null) => void;
 
-  filterStatus: Status | null;
-  setFilterStatus: (status: Status | null) => void;
+  filterStatus: StudentStatus | null;
+  setFilterStatus: (status: StudentStatus | null) => void;
 };
 
 export const StudentSearchbarWithFilter = memo(
@@ -42,7 +50,7 @@ export const StudentSearchbarWithFilter = memo(
       useState<ExpandedAccordion>(null);
 
     const [draftGroup, setDraftGroup] = useState<string | null>(null);
-    const [draftStatus, setDraftStatus] = useState<Status | null>(null);
+    const [draftStatus, setDraftStatus] = useState<StudentStatus | null>(null);
 
     const { data } = useQuery(GET_GROUPS, {
       fetchPolicy: 'cache-first'
@@ -55,14 +63,6 @@ export const StudentSearchbarWithFilter = memo(
           [])
       ],
       [data]
-    );
-
-    const statusItems = useMemo(
-      () => [
-        ALL_ITEM,
-        ...STATUS_LIST.map(status => ({ id: status, name: status }))
-      ],
-      []
     );
 
     const handleOpen = useCallback(() => {
@@ -128,11 +128,13 @@ export const StudentSearchbarWithFilter = memo(
 
             <FilterAccordion
               title='Status'
-              items={statusItems}
+              items={STATUS_ITEMS}
               selectedItem={draftStatus ?? 'All'}
               expanded={expandedAccordion === 'status'}
               onPress={() => toggleAccordion('status')}
-              onSelect={s => setDraftStatus(s === 'All' ? null : (s as Status))}
+              onSelect={s =>
+                  setDraftStatus(s === 'All' ? null : (s as StudentStatus))
+              }
             />
           </View>
 

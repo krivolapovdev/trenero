@@ -1,23 +1,14 @@
-import { useMutation, useQuery } from '@apollo/client/react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, RefreshControl, ScrollView, View } from 'react-native';
-import { Divider, List, Text } from 'react-native-paper';
-import { LessonsCalendar } from '@/src/components/Calendar';
-import { GroupCard } from '@/src/components/Card';
-import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
-import { graphql } from '@/src/graphql/__generated__';
-import type { GetGroupQuery } from '@/src/graphql/__generated__/graphql';
-import { GET_GROUP } from '@/src/graphql/queries';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
-
-const buildSubtitle = (group: NonNullable<GetGroupQuery['group']>) =>
-  [
-    group.defaultPrice && `Default price: ${group.defaultPrice}`,
-    group.note && `Note: ${group.note}`
-  ]
-    .filter(Boolean)
-    .join('\n\n');
+import {useMutation, useQuery} from '@apollo/client/react';
+import {useLocalSearchParams, useRouter} from 'expo-router';
+import {Alert, RefreshControl, ScrollView, View} from 'react-native';
+import {Divider, List, Text} from 'react-native-paper';
+import {LessonsCalendar} from '@/src/components/Calendar';
+import {GroupCard} from '@/src/components/Card';
+import {CustomAppbar} from '@/src/components/CustomAppbar';
+import {OptionalErrorMessage} from '@/src/components/OptionalErrorMessage';
+import {graphql} from '@/src/graphql/__generated__';
+import {GET_GROUP} from '@/src/graphql/queries';
+import {useAppTheme} from '@/src/hooks/useAppTheme';
 
 const DELETE_GROUP = graphql(`
     mutation DeleteGroup($id: UUID!) {
@@ -34,7 +25,7 @@ export default function GroupByIdScreen() {
 
   const { data, loading, error, refetch } = useQuery(GET_GROUP, {
     variables: { id },
-    fetchPolicy: 'cache-and-network'
+    fetchPolicy: 'cache-first'
   });
 
   const [deleteGroup, resultDeleteGroup] = useMutation(DELETE_GROUP, {
@@ -129,10 +120,7 @@ export default function GroupByIdScreen() {
 
         {group && (
           <>
-            <GroupCard
-              subtitle={buildSubtitle(group)}
-              {...group}
-            />
+            <GroupCard {...group} />
 
             <LessonsCalendar lessons={group.lessons} />
 

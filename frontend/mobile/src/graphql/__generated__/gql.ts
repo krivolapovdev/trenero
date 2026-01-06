@@ -15,39 +15,43 @@ import {TypedDocumentNode as DocumentNode} from '@graphql-typed-document-node/co
  */
 type Documents = {
   "\n    mutation DeleteGroup($id: UUID!) {\n        deleteGroup(id: $id) {\n            id\n        }\n    }\n": typeof types.DeleteGroupDocument,
-  "\n    mutation CreateLesson($input: CreateLessonInput!) {\n        createLesson(input: $input) {\n            id\n            groupId\n            startDateTime\n        }\n    }\n": typeof types.CreateLessonDocument,
+  "\n    mutation CreateLesson($input: CreateLessonInput!) {\n        createLesson(input: $input) {\n            ...LessonFields\n        }\n    }\n": typeof types.CreateLessonDocument,
   "\n    mutation CreateGroup($input: CreateGroupInput!) {\n        createGroup(input: $input) {\n            ...GroupFields\n        }\n    }\n": typeof types.CreateGroupDocument,
   "\n    query GetPayments {\n        payments {\n            ...PaymentFields\n        }\n    }\n": typeof types.GetPaymentsDocument,
-  "\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            id\n            fullName\n            phone\n            birthDate\n            note\n            group {\n                id\n                name\n                defaultPrice\n            }\n            lastAttendance {\n                present\n            }\n            attendances {\n                id\n                present\n                createdAt\n            }\n            payments {\n                id\n                amount\n                createdAt\n            }\n        }\n    }\n": typeof types.GetStudentDocument,
   "\n    mutation DeleteStudent($id: UUID!) {\n        deleteStudent(id: $id) {\n            id\n        }\n    }\n": typeof types.DeleteStudentDocument,
-  "\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n": typeof types.CreateStudentDocument,
   "\n    mutation CreatePayment($input: CreatePaymentInput!) {\n        createPayment(input: $input) {\n            ...PaymentFields\n        }\n    }\n": typeof types.CreatePaymentDocument,
-  "\n    fragment GroupFields on Group {\n        id\n        name\n        defaultPrice\n        students {\n            id\n            fullName\n        }\n    }\n": typeof types.GroupFieldsFragmentDoc,
-  "\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        lastAttendance {\n            present\n        }\n    }\n": typeof types.StudentFieldsFragmentDoc,
-  "\n    fragment PaymentFields on Payment {\n        id\n        amount\n        createdAt\n    }\n": typeof types.PaymentFieldsFragmentDoc,
+  "\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n": typeof types.CreateStudentDocument,
+  "\n    fragment GroupFields on Group {\n        id\n        name\n        defaultPrice\n        note\n        students {\n            id\n            fullName\n        }\n    }\n": typeof types.GroupFieldsFragmentDoc,
+  "\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        attendances {\n            ...AttendanceFields\n        }\n        payments {\n            ...PaymentFields\n        }\n    }\n": typeof types.StudentFieldsFragmentDoc,
+  "\n    fragment PaymentFields on Payment {\n        id\n        amount\n        date\n        lessonsPerPayment\n    }\n": typeof types.PaymentFieldsFragmentDoc,
+  "\n    fragment LessonFields on Lesson {\n        id\n        groupId\n        startDateTime\n        attendances {\n            ...AttendanceFields\n        }\n    }\n": typeof types.LessonFieldsFragmentDoc,
+  "\n    fragment AttendanceFields on Attendance {\n        id\n        studentId\n        present\n        lesson {\n            id\n            startDateTime\n        }\n    }\n": typeof types.AttendanceFieldsFragmentDoc,
   "\n    mutation RefreshTokens($input: RefreshTokenInput!) {\n        refreshTokens(input: $input) {\n            accessToken\n            refreshToken\n        }\n    }\n": typeof types.RefreshTokensDocument,
   "\n    query GetGroups {\n        groups {\n            ...GroupFields\n        }\n    }\n": typeof types.GetGroupsDocument,
-  "\n    query GetGroup($id: UUID!) {\n        group(id: $id) {\n            id\n            name\n            defaultPrice\n            note\n            students {\n                id\n                fullName\n            }\n            lessons {\n                id\n                startDateTime\n            }\n        }\n    }\n": typeof types.GetGroupDocument,
+  "\n    query GetGroup($id: UUID!) {\n        group(id: $id) {\n            ...GroupFields\n            lessons {\n                ...LessonFields\n            }\n        }\n    }\n": typeof types.GetGroupDocument,
   "\n    query GetStudents {\n        students {\n            ...StudentFields\n        }\n    }\n": typeof types.GetStudentsDocument,
+  "\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            ...StudentFields\n            phone\n            birthDate\n            note\n            group {\n                id\n                defaultPrice\n            }\n            attendances {\n                ...AttendanceFields\n            }\n            payments {\n                ...PaymentFields\n            }\n        }\n    }\n": typeof types.GetStudentDocument,
   "\n    mutation GoogleLogin($input: SocialLoginInput!) {\n        googleLogin(input: $input) {\n            user {\n                id\n                email\n            }\n            jwtTokens {\n                accessToken\n                refreshToken\n            }\n        }\n    }\n": typeof types.GoogleLoginDocument,
   "\n    query GetInitialData {\n        groups {\n            ...GroupFields\n        }\n        students {\n            ...StudentFields\n        }\n        payments {\n            ...PaymentFields\n        }\n    }\n": typeof types.GetInitialDataDocument,
 };
 const documents: Documents = {
   "\n    mutation DeleteGroup($id: UUID!) {\n        deleteGroup(id: $id) {\n            id\n        }\n    }\n": types.DeleteGroupDocument,
-  "\n    mutation CreateLesson($input: CreateLessonInput!) {\n        createLesson(input: $input) {\n            id\n            groupId\n            startDateTime\n        }\n    }\n": types.CreateLessonDocument,
+  "\n    mutation CreateLesson($input: CreateLessonInput!) {\n        createLesson(input: $input) {\n            ...LessonFields\n        }\n    }\n": types.CreateLessonDocument,
   "\n    mutation CreateGroup($input: CreateGroupInput!) {\n        createGroup(input: $input) {\n            ...GroupFields\n        }\n    }\n": types.CreateGroupDocument,
   "\n    query GetPayments {\n        payments {\n            ...PaymentFields\n        }\n    }\n": types.GetPaymentsDocument,
-  "\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            id\n            fullName\n            phone\n            birthDate\n            note\n            group {\n                id\n                name\n                defaultPrice\n            }\n            lastAttendance {\n                present\n            }\n            attendances {\n                id\n                present\n                createdAt\n            }\n            payments {\n                id\n                amount\n                createdAt\n            }\n        }\n    }\n": types.GetStudentDocument,
   "\n    mutation DeleteStudent($id: UUID!) {\n        deleteStudent(id: $id) {\n            id\n        }\n    }\n": types.DeleteStudentDocument,
-  "\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n": types.CreateStudentDocument,
   "\n    mutation CreatePayment($input: CreatePaymentInput!) {\n        createPayment(input: $input) {\n            ...PaymentFields\n        }\n    }\n": types.CreatePaymentDocument,
-  "\n    fragment GroupFields on Group {\n        id\n        name\n        defaultPrice\n        students {\n            id\n            fullName\n        }\n    }\n": types.GroupFieldsFragmentDoc,
-  "\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        lastAttendance {\n            present\n        }\n    }\n": types.StudentFieldsFragmentDoc,
-  "\n    fragment PaymentFields on Payment {\n        id\n        amount\n        createdAt\n    }\n": types.PaymentFieldsFragmentDoc,
+  "\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n": types.CreateStudentDocument,
+  "\n    fragment GroupFields on Group {\n        id\n        name\n        defaultPrice\n        note\n        students {\n            id\n            fullName\n        }\n    }\n": types.GroupFieldsFragmentDoc,
+  "\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        attendances {\n            ...AttendanceFields\n        }\n        payments {\n            ...PaymentFields\n        }\n    }\n": types.StudentFieldsFragmentDoc,
+  "\n    fragment PaymentFields on Payment {\n        id\n        amount\n        date\n        lessonsPerPayment\n    }\n": types.PaymentFieldsFragmentDoc,
+  "\n    fragment LessonFields on Lesson {\n        id\n        groupId\n        startDateTime\n        attendances {\n            ...AttendanceFields\n        }\n    }\n": types.LessonFieldsFragmentDoc,
+  "\n    fragment AttendanceFields on Attendance {\n        id\n        studentId\n        present\n        lesson {\n            id\n            startDateTime\n        }\n    }\n": types.AttendanceFieldsFragmentDoc,
   "\n    mutation RefreshTokens($input: RefreshTokenInput!) {\n        refreshTokens(input: $input) {\n            accessToken\n            refreshToken\n        }\n    }\n": types.RefreshTokensDocument,
   "\n    query GetGroups {\n        groups {\n            ...GroupFields\n        }\n    }\n": types.GetGroupsDocument,
-  "\n    query GetGroup($id: UUID!) {\n        group(id: $id) {\n            id\n            name\n            defaultPrice\n            note\n            students {\n                id\n                fullName\n            }\n            lessons {\n                id\n                startDateTime\n            }\n        }\n    }\n": types.GetGroupDocument,
+  "\n    query GetGroup($id: UUID!) {\n        group(id: $id) {\n            ...GroupFields\n            lessons {\n                ...LessonFields\n            }\n        }\n    }\n": types.GetGroupDocument,
   "\n    query GetStudents {\n        students {\n            ...StudentFields\n        }\n    }\n": types.GetStudentsDocument,
+  "\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            ...StudentFields\n            phone\n            birthDate\n            note\n            group {\n                id\n                defaultPrice\n            }\n            attendances {\n                ...AttendanceFields\n            }\n            payments {\n                ...PaymentFields\n            }\n        }\n    }\n": types.GetStudentDocument,
   "\n    mutation GoogleLogin($input: SocialLoginInput!) {\n        googleLogin(input: $input) {\n            user {\n                id\n                email\n            }\n            jwtTokens {\n                accessToken\n                refreshToken\n            }\n        }\n    }\n": types.GoogleLoginDocument,
   "\n    query GetInitialData {\n        groups {\n            ...GroupFields\n        }\n        students {\n            ...StudentFields\n        }\n        payments {\n            ...PaymentFields\n        }\n    }\n": types.GetInitialDataDocument,
 };
@@ -73,7 +77,7 @@ export function graphql(source: "\n    mutation DeleteGroup($id: UUID!) {\n     
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    mutation CreateLesson($input: CreateLessonInput!) {\n        createLesson(input: $input) {\n            id\n            groupId\n            startDateTime\n        }\n    }\n"): (typeof documents)["\n    mutation CreateLesson($input: CreateLessonInput!) {\n        createLesson(input: $input) {\n            id\n            groupId\n            startDateTime\n        }\n    }\n"];
+export function graphql(source: "\n    mutation CreateLesson($input: CreateLessonInput!) {\n        createLesson(input: $input) {\n            ...LessonFields\n        }\n    }\n"): (typeof documents)["\n    mutation CreateLesson($input: CreateLessonInput!) {\n        createLesson(input: $input) {\n            ...LessonFields\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -85,15 +89,7 @@ export function graphql(source: "\n    query GetPayments {\n        payments {\n
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            id\n            fullName\n            phone\n            birthDate\n            note\n            group {\n                id\n                name\n                defaultPrice\n            }\n            lastAttendance {\n                present\n            }\n            attendances {\n                id\n                present\n                createdAt\n            }\n            payments {\n                id\n                amount\n                createdAt\n            }\n        }\n    }\n"): (typeof documents)["\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            id\n            fullName\n            phone\n            birthDate\n            note\n            group {\n                id\n                name\n                defaultPrice\n            }\n            lastAttendance {\n                present\n            }\n            attendances {\n                id\n                present\n                createdAt\n            }\n            payments {\n                id\n                amount\n                createdAt\n            }\n        }\n    }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
 export function graphql(source: "\n    mutation DeleteStudent($id: UUID!) {\n        deleteStudent(id: $id) {\n            id\n        }\n    }\n"): (typeof documents)["\n    mutation DeleteStudent($id: UUID!) {\n        deleteStudent(id: $id) {\n            id\n        }\n    }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n"): (typeof documents)["\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -101,15 +97,27 @@ export function graphql(source: "\n    mutation CreatePayment($input: CreatePaym
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    fragment GroupFields on Group {\n        id\n        name\n        defaultPrice\n        students {\n            id\n            fullName\n        }\n    }\n"): (typeof documents)["\n    fragment GroupFields on Group {\n        id\n        name\n        defaultPrice\n        students {\n            id\n            fullName\n        }\n    }\n"];
+export function graphql(source: "\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n"): (typeof documents)["\n    mutation CreateStudent($input: CreateStudentInput!) {\n        createStudent(input: $input) {\n            ...StudentFields\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        lastAttendance {\n            present\n        }\n    }\n"): (typeof documents)["\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        lastAttendance {\n            present\n        }\n    }\n"];
+export function graphql(source: "\n    fragment GroupFields on Group {\n        id\n        name\n        defaultPrice\n        note\n        students {\n            id\n            fullName\n        }\n    }\n"): (typeof documents)["\n    fragment GroupFields on Group {\n        id\n        name\n        defaultPrice\n        note\n        students {\n            id\n            fullName\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    fragment PaymentFields on Payment {\n        id\n        amount\n        createdAt\n    }\n"): (typeof documents)["\n    fragment PaymentFields on Payment {\n        id\n        amount\n        createdAt\n    }\n"];
+export function graphql(source: "\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        attendances {\n            ...AttendanceFields\n        }\n        payments {\n            ...PaymentFields\n        }\n    }\n"): (typeof documents)["\n    fragment StudentFields on Student {\n        id\n        fullName\n        group {\n            id\n            name\n        }\n        attendances {\n            ...AttendanceFields\n        }\n        payments {\n            ...PaymentFields\n        }\n    }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n    fragment PaymentFields on Payment {\n        id\n        amount\n        date\n        lessonsPerPayment\n    }\n"): (typeof documents)["\n    fragment PaymentFields on Payment {\n        id\n        amount\n        date\n        lessonsPerPayment\n    }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n    fragment LessonFields on Lesson {\n        id\n        groupId\n        startDateTime\n        attendances {\n            ...AttendanceFields\n        }\n    }\n"): (typeof documents)["\n    fragment LessonFields on Lesson {\n        id\n        groupId\n        startDateTime\n        attendances {\n            ...AttendanceFields\n        }\n    }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n    fragment AttendanceFields on Attendance {\n        id\n        studentId\n        present\n        lesson {\n            id\n            startDateTime\n        }\n    }\n"): (typeof documents)["\n    fragment AttendanceFields on Attendance {\n        id\n        studentId\n        present\n        lesson {\n            id\n            startDateTime\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -121,11 +129,15 @@ export function graphql(source: "\n    query GetGroups {\n        groups {\n    
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    query GetGroup($id: UUID!) {\n        group(id: $id) {\n            id\n            name\n            defaultPrice\n            note\n            students {\n                id\n                fullName\n            }\n            lessons {\n                id\n                startDateTime\n            }\n        }\n    }\n"): (typeof documents)["\n    query GetGroup($id: UUID!) {\n        group(id: $id) {\n            id\n            name\n            defaultPrice\n            note\n            students {\n                id\n                fullName\n            }\n            lessons {\n                id\n                startDateTime\n            }\n        }\n    }\n"];
+export function graphql(source: "\n    query GetGroup($id: UUID!) {\n        group(id: $id) {\n            ...GroupFields\n            lessons {\n                ...LessonFields\n            }\n        }\n    }\n"): (typeof documents)["\n    query GetGroup($id: UUID!) {\n        group(id: $id) {\n            ...GroupFields\n            lessons {\n                ...LessonFields\n            }\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n    query GetStudents {\n        students {\n            ...StudentFields\n        }\n    }\n"): (typeof documents)["\n    query GetStudents {\n        students {\n            ...StudentFields\n        }\n    }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            ...StudentFields\n            phone\n            birthDate\n            note\n            group {\n                id\n                defaultPrice\n            }\n            attendances {\n                ...AttendanceFields\n            }\n            payments {\n                ...PaymentFields\n            }\n        }\n    }\n"): (typeof documents)["\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            ...StudentFields\n            phone\n            birthDate\n            note\n            group {\n                id\n                defaultPrice\n            }\n            attendances {\n                ...AttendanceFields\n            }\n            payments {\n                ...PaymentFields\n            }\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

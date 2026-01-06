@@ -1,47 +1,20 @@
-import { useMutation, useQuery } from '@apollo/client/react';
-import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet } from 'react-native';
-import { TextInput } from 'react-native-paper';
-import { PaperSelect } from 'react-native-paper-select';
-import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { CustomTextInput } from '@/src/components/CustomTextInput';
-import { graphql } from '@/src/graphql/__generated__';
+import {useMutation, useQuery} from '@apollo/client/react';
+import {useRouter} from 'expo-router';
+import {useMemo, useState} from 'react';
+import {Alert, ScrollView, StyleSheet} from 'react-native';
+import {TextInput} from 'react-native-paper';
+import {PaperSelect} from 'react-native-paper-select';
+import {CustomAppbar} from '@/src/components/CustomAppbar';
+import {CustomTextInput} from '@/src/components/CustomTextInput';
+import {graphql} from '@/src/graphql/__generated__';
 import {
   type CreateStudentInput,
   StudentFieldsFragmentDoc
 } from '@/src/graphql/__generated__/graphql';
-import { GET_GROUPS } from '@/src/graphql/queries';
-import { formatDate } from '@/src/helpers/formatDate';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
-
-const parseDate = (value: string): Date | null => {
-  const [day, month, year] = value.split('/').map(Number);
-
-  if (
-    !day ||
-    !month ||
-    !year ||
-    year < 1900 ||
-    year > new Date().getFullYear() ||
-    month > 12 ||
-    day > 31
-  ) {
-    return null;
-  }
-
-  const date = new Date(year, month - 1, day);
-
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
-    return null;
-  }
-
-  return date;
-};
+import {GET_GROUPS} from '@/src/graphql/queries';
+import {formatDateInput} from '@/src/helpers/formatDateInput';
+import {parsePastOrTodayDateFromInput} from '@/src/helpers/parsePastOrTodayDateFromInput';
+import {useAppTheme} from '@/src/hooks/useAppTheme';
 
 const CREATE_STUDENT = graphql(`
     mutation CreateStudent($input: CreateStudentInput!) {
@@ -84,7 +57,8 @@ export default function CreateStudentScreen() {
 
       const newStudentRef = cache.writeFragment({
         data: newStudent,
-        fragment: StudentFieldsFragmentDoc
+        fragment: StudentFieldsFragmentDoc,
+        fragmentName: 'StudentFields'
       });
 
       cache.modify({
@@ -93,6 +67,17 @@ export default function CreateStudentScreen() {
             newStudentRef,
             ...existingStudents
           ]
+        }
+      });
+
+      if (!newStudent.group) {
+        return;
+      }
+
+      cache.modify({
+        id: cache.identify({__typename: 'Group', id: newStudent.group.id}),
+        fields: {
+          students: (existingData = []) => [...existingData, newStudentRef]
         }
       });
     },
@@ -115,7 +100,8 @@ export default function CreateStudentScreen() {
       fullName: fullName.trim(),
       phone: phoneNumber?.trim() || null,
       note: note?.trim() || null,
-      birthDate: parseDate(birthdate)?.toISOString().split('T')[0] || null,
+      birthDate:
+          parsePastOrTodayDateFromInput(birthdate)?.format('YYYY-MM-DD') || null,
       groupId: groupId || null
     };
 
@@ -181,7 +167,7 @@ export default function CreateStudentScreen() {
           keyboardType='numeric'
           maxLength={10}
           value={birthdate}
-          onChangeText={text => setBirthdate(formatDate(text))}
+          onChangeText={text => setBirthdate(formatDateInput(text))}
         />
 
         {groupItems.length > 0 && (

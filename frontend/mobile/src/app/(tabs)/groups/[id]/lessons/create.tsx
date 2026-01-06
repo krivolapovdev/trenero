@@ -1,31 +1,29 @@
-import { useMutation, useQuery } from '@apollo/client/react';
+import type {Reference} from '@apollo/client';
+import {useMutation, useQuery} from '@apollo/client/react';
 import dayjs from 'dayjs';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView } from 'react-native';
-import { Text } from 'react-native-paper';
+import {useLocalSearchParams, useRouter} from 'expo-router';
+import {useMemo, useState} from 'react';
+import {Alert, ScrollView} from 'react-native';
+import {Text} from 'react-native-paper';
+import {DatePickerModal, registerTranslation, ru, TimePickerModal} from 'react-native-paper-dates';
+import {CustomAppbar} from '@/src/components/CustomAppbar';
+import {StudentAttendancePicker} from '@/src/components/StudentAttendancePicker';
+import {SurfaceCard} from '@/src/components/SurfaceCard';
+import {graphql} from '@/src/graphql/__generated__';
 import {
-  DatePickerModal,
-  registerTranslation,
-  ru,
-  TimePickerModal
-} from 'react-native-paper-dates';
-import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { StudentAttendancePicker } from '@/src/components/StudentAttendancePicker';
-import { SurfaceCard } from '@/src/components/SurfaceCard';
-import { graphql } from '@/src/graphql/__generated__';
-import type { CreateLessonInput } from '@/src/graphql/__generated__/graphql';
-import { GET_GROUP } from '@/src/graphql/queries';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
+  AttendanceFieldsFragmentDoc,
+  type CreateLessonInput,
+  LessonFieldsFragmentDoc
+} from '@/src/graphql/__generated__/graphql';
+import {GET_GROUP} from '@/src/graphql/queries';
+import {useAppTheme} from '@/src/hooks/useAppTheme';
 
 registerTranslation('ru', ru);
 
 const CREATE_LESSON = graphql(`
     mutation CreateLesson($input: CreateLessonInput!) {
         createLesson(input: $input) {
-            id
-            groupId
-            startDateTime
+            ...LessonFields
         }
     }
 `);
@@ -56,13 +54,41 @@ export default function CreateLessonScreen() {
         return;
       }
 
+      const newLessonRef = cache.writeFragment({
+        data: newLesson,
+        fragment: LessonFieldsFragmentDoc,
+        fragmentName: 'LessonFields'
+      });
+
       cache.modify({
         id: cache.identify({ __typename: 'Group', id: newLesson.groupId }),
         fields: {
-          lessons(existingLessons = []) {
-            return [...existingLessons, newLesson];
-          }
+          lessons: (existingLessons = []) => [...existingLessons, newLessonRef]
         }
+      });
+
+      newLesson.attendances.forEach(attendance => {
+        const attendanceRef = cache.writeFragment({
+          data: attendance,
+          fragment: AttendanceFieldsFragmentDoc
+        });
+
+        if (!attendanceRef) {
+          return;
+        }
+
+        cache.modify({
+          id: cache.identify({
+            __typename: 'Student',
+            id: attendance.studentId
+          }),
+          fields: {
+            attendances: (existing: readonly Reference[] = []) => [
+              ...existing,
+              attendanceRef
+            ]
+          }
+        });
       });
     },
 
@@ -91,12 +117,6 @@ export default function CreateLessonScreen() {
   };
 
   const students = useMemo(() => data?.group?.students || [], [data]);
-
-  useEffect(() => {
-    setAttendanceStatus(
-      Object.fromEntries(students.map(student => [student.id, false]))
-    );
-  }, [students]);
 
   return (
     <>

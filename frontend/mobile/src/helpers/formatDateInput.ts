@@ -1,4 +1,4 @@
-export const formatDate = (value: string) => {
+export const formatDateInput = (value: string) => {
   const digits = value.replaceAll(/\D/g, '').slice(0, 8);
 
   const day = digits.slice(0, 2);

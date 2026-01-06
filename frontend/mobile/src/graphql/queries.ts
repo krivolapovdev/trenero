@@ -1,4 +1,4 @@
-import { graphql } from '@/src/graphql/__generated__';
+import {graphql} from '@/src/graphql/__generated__';
 
 export const GET_GROUPS = graphql(`
     query GetGroups {
@@ -11,17 +11,9 @@ export const GET_GROUPS = graphql(`
 export const GET_GROUP = graphql(`
     query GetGroup($id: UUID!) {
         group(id: $id) {
-            id
-            name
-            defaultPrice
-            note
-            students {
-                id
-                fullName
-            }
+            ...GroupFields
             lessons {
-                id
-                startDateTime
+                ...LessonFields
             }
         }
     }
@@ -31,6 +23,27 @@ export const GET_STUDENTS = graphql(`
     query GetStudents {
         students {
             ...StudentFields
+        }
+    }
+`);
+
+export const GET_STUDENT = graphql(`
+    query GetStudent($id: UUID!) {
+        student(id: $id) {
+            ...StudentFields
+            phone
+            birthDate
+            note
+            group {
+                id
+                defaultPrice
+            }
+            attendances {
+                ...AttendanceFields
+            }
+            payments {
+                ...PaymentFields
+            }
         }
     }
 `);

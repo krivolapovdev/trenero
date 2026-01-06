@@ -1,12 +1,12 @@
 import dayjs from 'dayjs';
-import { memo, useMemo, useState } from 'react';
-import { View } from 'react-native';
-import { DataTable, useTheme } from 'react-native-paper';
+import {memo, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import {DataTable, useTheme} from 'react-native-paper';
 
 type Payment = {
   id: string;
   amount: string;
-  createdAt: string;
+  date: string;
 };
 
 type Props = {
@@ -25,8 +25,8 @@ export const StudentPaymentsTable = memo(
 
     const sortedPayments = useMemo(() => {
       return [...payments].sort((a, b) => {
-        const dateA = new Date(a.createdAt).getTime();
-        const dateB = new Date(b.createdAt).getTime();
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
         return sortAscending ? dateA - dateB : dateB - dateA;
       });
     }, [payments, sortAscending]);
@@ -59,7 +59,7 @@ export const StudentPaymentsTable = memo(
 
           {sortedPayments.slice(from, to).map(pay => (
             <DataTable.Row key={pay.id}>
-              <DataTable.Cell>{formatDate(pay.createdAt)}</DataTable.Cell>
+              <DataTable.Cell>{formatDate(pay.date)}</DataTable.Cell>
               <DataTable.Cell numeric>{pay.amount}</DataTable.Cell>
             </DataTable.Row>
           ))}

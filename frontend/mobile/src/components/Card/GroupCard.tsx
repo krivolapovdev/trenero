@@ -1,17 +1,16 @@
-import { nanoid } from 'nanoid/non-secure';
-import type { GetGroupsQuery } from '@/src/graphql/__generated__/graphql';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { EntityCard } from './EntityCard';
+import {nanoid} from 'nanoid/non-secure';
+import type {GetGroupsQuery} from '@/src/graphql/__generated__/graphql';
+import {useAppTheme} from '@/src/hooks/useAppTheme';
+import {EntityCard} from './EntityCard';
 
-type Props = GetGroupsQuery['groups'][number] & {
-  subtitle: string;
-};
+type Props = GetGroupsQuery['groups'][number];
 
 export const GroupCard = ({
   id,
   name,
-  students,
-  subtitle
+                            defaultPrice,
+                            note,
+                            students
 }: Readonly<Props>) => {
   const theme = useAppTheme();
 
@@ -23,6 +22,13 @@ export const GroupCard = ({
       textColor: theme.colors.onSecondaryContainer
     }
   ];
+
+  const subtitle = [
+    defaultPrice && `Default price: ${defaultPrice}`,
+    note && `Note: ${note}`
+  ]
+      .filter(Boolean)
+      .join('\n');
 
   return (
     <EntityCard
