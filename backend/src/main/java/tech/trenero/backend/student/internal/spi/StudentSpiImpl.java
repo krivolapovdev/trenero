@@ -1,6 +1,7 @@
 package tech.trenero.backend.student.internal.spi;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,15 @@ public class StudentSpiImpl implements StudentSpi {
     }
 
     return studentService.getStudentsByGroupId(groupId, jwtUser);
+  }
+
+  @Override
+  public Optional<StudentDto> getStudentById(UUID studentId, JwtUser jwtUser) {
+    if (studentId == null || jwtUser == null) {
+      return Optional.empty();
+    }
+
+    return studentService.getStudentById(studentId, jwtUser);
   }
 
   @Override

@@ -37,6 +37,7 @@ public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonN
           SELECT p
           FROM Payment AS p
           WHERE p.id = :id
+            AND p.deleted = false
             AND p.ownerId = :ownerId""")
   Optional<Payment> findByIdAndOwnerId(@Param("id") UUID id, @Param("ownerId") UUID ownerId);
 }

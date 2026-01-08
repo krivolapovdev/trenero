@@ -44,6 +44,6 @@ public class UserService {
 
   private OAuth2User saveUser(OAuth2User user) {
     log.info("Saving user: {}", user);
-    return userRepository.save(user);
+    return userRepository.saveAndFlush(user);
   }
 }

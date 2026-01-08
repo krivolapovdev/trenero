@@ -44,8 +44,8 @@ public class Student {
   @NonNull
   private String fullName;
 
-  @Column(name = "birth_date")
-  private LocalDate birthDate;
+  @Column(name = "birthdate")
+  private LocalDate birthdate;
 
   @Column(name = "phone")
   private String phone;

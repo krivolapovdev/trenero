@@ -8,7 +8,7 @@ public record StudentDto(
     UUID id,
     String fullName,
     OffsetDateTime createdAt,
-    LocalDate birthDate,
+    LocalDate birthdate,
     String phone,
     String note,
     UUID groupId,

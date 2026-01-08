@@ -59,7 +59,7 @@ type LoginPayload {
 type Student {
     id: UUID!
     fullName: String!
-    birthDate: Date
+    birthdate: Date
     phone: String
     note: String
     group: Group
@@ -80,26 +80,26 @@ type Group {
 
 type Lesson {
     id: UUID!
-    groupId: UUID!
     startDateTime: DateTime!
+    group: Group!
     attendances: [Attendance!]!
     createdAt: DateTime!
 }
 
 type Attendance {
     id: UUID!
-    studentId: UUID!
     present: Boolean!
-    createdAt: DateTime!
     lesson: Lesson!
+    student: Student!
+    createdAt: DateTime!
 }
 
 type Payment {
     id: UUID!
-    studentId: UUID!
     amount: BigDecimal!
     lessonsPerPayment: Int!
     date: Date!
+    student: Student!
     createdAt: DateTime!
 }
 
@@ -113,7 +113,7 @@ input RefreshTokenInput {
 
 input CreateStudentInput {
     fullName: String!
-    birthDate: Date
+    birthdate: Date
     phone: String
     note: String
     groupId: UUID

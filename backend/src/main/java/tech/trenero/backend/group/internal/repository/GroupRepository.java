@@ -26,6 +26,7 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
           SELECT g
           FROM Group AS g
           WHERE g.id = :groupId
+            AND g.deleted = false
             AND g.ownerId = :ownerId""")
   Optional<Group> findByIdAndOwnerId(
       @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);

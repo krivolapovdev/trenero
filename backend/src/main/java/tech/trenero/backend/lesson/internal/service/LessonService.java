@@ -95,6 +95,6 @@ public class LessonService {
 
   private Lesson saveLesson(Lesson lesson) {
     log.info("Saving lesson: {}", lesson);
-    return lessonRepository.save(lesson);
+    return lessonRepository.saveAndFlush(lesson);
   }
 }

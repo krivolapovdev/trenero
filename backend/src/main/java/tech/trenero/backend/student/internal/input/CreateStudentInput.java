@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public record CreateStudentInput(
     @NotNull @NotBlank @Size(max = 255) String fullName,
-    LocalDate birthDate,
+    LocalDate birthdate,
     String phone,
     String note,
     UUID groupId) {}

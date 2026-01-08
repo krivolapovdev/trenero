@@ -95,6 +95,6 @@ public class StudentService {
 
   private Student saveStudent(Student student) {
     log.info("Saving student: {}", student);
-    return studentRepository.save(student);
+    return studentRepository.saveAndFlush(student);
   }
 }
