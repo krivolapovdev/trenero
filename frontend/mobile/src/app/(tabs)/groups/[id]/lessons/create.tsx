@@ -5,12 +5,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
-import {
-  DatePickerModal,
-  registerTranslation,
-  ru,
-  TimePickerModal
-} from 'react-native-paper-dates';
+import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { StudentAttendancePicker } from '@/src/components/StudentAttendancePicker';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
@@ -18,8 +13,6 @@ import { graphql } from '@/src/graphql/__generated__';
 import type { CreateLessonInput } from '@/src/graphql/__generated__/graphql';
 import { GET_GROUP } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-
-registerTranslation('ru', ru);
 
 const CREATE_LESSON = graphql(`
     mutation CreateLesson($input: CreateLessonInput!) {
@@ -47,7 +40,7 @@ const CREATE_LESSON = graphql(`
 export default function CreateLessonScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { id: groupId } = useLocalSearchParams<{ id: string }>();
 
   const [startDateTime, setStartDateTime] = useState(dayjs());
@@ -152,7 +145,7 @@ export default function CreateLessonScreen() {
       </ScrollView>
 
       <TimePickerModal
-        locale='ru'
+        locale={i18n.language}
         label={' '}
         visible={visibleTimePicker}
         defaultInputType={'keyboard'}
@@ -169,7 +162,7 @@ export default function CreateLessonScreen() {
       />
 
       <DatePickerModal
-        locale='ru'
+        locale={i18n.language}
         startWeekOnMonday={true}
         label={' '}
         mode='single'

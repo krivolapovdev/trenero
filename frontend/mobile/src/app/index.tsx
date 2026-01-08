@@ -1,13 +1,16 @@
 import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
-import '@/src/i18n';
+import { initI18n } from '@/src/i18n';
 import '@/src/helpers/dayjs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import { getLocales } from 'expo-localization';
 import { LocaleConfig } from 'react-native-calendars';
+import { en, registerTranslation, ru } from 'react-native-paper-dates';
 import { LoadingSpinner } from '@/src/components/LoadingSpinner';
-import { initI18n } from '@/src/i18n';
+
+registerTranslation('en', en);
+registerTranslation('ru', ru);
 
 export default function Index() {
   const [loading, setLoading] = useState(true);
