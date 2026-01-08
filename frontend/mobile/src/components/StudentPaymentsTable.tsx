@@ -3,19 +3,12 @@ import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { DataTable, useTheme } from 'react-native-paper';
-
-type Payment = {
-  id: string;
-  amount: string;
-  date: string;
-};
+import type { GetPaymentsQuery } from '@/src/graphql/__generated__/graphql';
 
 type Props = {
-  payments: Payment[];
+  payments: GetPaymentsQuery['payments'];
   itemsPerPage?: number;
 };
-
-const formatDate = (date: string) => dayjs(date).format('DD/MM/YYYY HH:mm');
 
 export const StudentPaymentsTable = memo(
   ({ payments, itemsPerPage = 5 }: Readonly<Props>) => {
@@ -55,13 +48,22 @@ export const StudentPaymentsTable = memo(
               textStyle={{ fontSize: 15 }}
               numeric
             >
-              {t('amount')}
+              🎫
+            </DataTable.Title>
+            <DataTable.Title
+              textStyle={{ fontSize: 15 }}
+              numeric
+            >
+              💲
             </DataTable.Title>
           </DataTable.Header>
 
           {sortedPayments.slice(from, to).map(pay => (
             <DataTable.Row key={pay.id}>
-              <DataTable.Cell>{formatDate(pay.date)}</DataTable.Cell>
+              <DataTable.Cell>
+                {dayjs(pay.date).format('DD/MM/YYYY')}
+              </DataTable.Cell>
+              <DataTable.Cell numeric>{pay.lessonsPerPayment}</DataTable.Cell>
               <DataTable.Cell numeric>{pay.amount}</DataTable.Cell>
             </DataTable.Row>
           ))}
