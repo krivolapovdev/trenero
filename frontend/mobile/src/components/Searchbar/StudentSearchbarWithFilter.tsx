@@ -1,23 +1,16 @@
-import {useQuery} from '@apollo/client/react';
-import {memo, useCallback, useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import {Button, Text} from 'react-native-paper';
-import {CustomBottomSheet} from '@/src/components/BottomSheet/CustomBottomSheet';
-import {SearchbarWithFilter} from '@/src/components/Searchbar/SearchbarWithFilter';
-import {GET_GROUPS} from '@/src/graphql/queries';
-import {useAppTheme} from '@/src/hooks/useAppTheme';
-import {STUDENT_STATUS_LABEL, type StudentStatus} from '@/src/types/student';
-import {FilterAccordion} from './FilterAccordion';
+import { useQuery } from '@apollo/client/react';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, View } from 'react-native';
+import { Button, Text } from 'react-native-paper';
+import { CustomBottomSheet } from '@/src/components/BottomSheet/CustomBottomSheet';
+import { SearchbarWithFilter } from '@/src/components/Searchbar/SearchbarWithFilter';
+import { GET_GROUPS } from '@/src/graphql/queries';
+import { useAppTheme } from '@/src/hooks/useAppTheme';
+import type { StudentStatus } from '@/src/types/student';
+import { FilterAccordion } from './FilterAccordion';
 
 const ALL_ITEM = { id: 'All', name: 'All' };
-
-const STATUS_ITEMS = [
-  ALL_ITEM,
-  ...Object.entries(STUDENT_STATUS_LABEL).map(([id, name]) => ({
-    id: id as StudentStatus,
-    name
-  }))
-];
 
 type ExpandedAccordion = 'group' | 'status' | null;
 
@@ -43,6 +36,7 @@ export const StudentSearchbarWithFilter = memo(
     filterStatus,
     setFilterStatus
   }: Readonly<Props>) => {
+    const { t } = useTranslation();
     const theme = useAppTheme();
 
     const [visible, setVisible] = useState(false);
@@ -63,6 +57,18 @@ export const StudentSearchbarWithFilter = memo(
           [])
       ],
       [data]
+    );
+
+    const statusItems = useMemo(
+      () => [
+        ALL_ITEM,
+        { id: 'no_activity', name: t('studentStatus.no_activity') },
+        { id: 'present', name: t('studentStatus.present') },
+        { id: 'missing', name: t('studentStatus.missing') },
+        { id: 'paid', name: t('studentStatus.paid') },
+        { id: 'unpaid', name: t('studentStatus.unpaid') }
+      ],
+      [t]
     );
 
     const handleOpen = useCallback(() => {
@@ -128,12 +134,12 @@ export const StudentSearchbarWithFilter = memo(
 
             <FilterAccordion
               title='Status'
-              items={STATUS_ITEMS}
+              items={statusItems}
               selectedItem={draftStatus ?? 'All'}
               expanded={expandedAccordion === 'status'}
               onPress={() => toggleAccordion('status')}
               onSelect={s =>
-                  setDraftStatus(s === 'All' ? null : (s as StudentStatus))
+                setDraftStatus(s === 'All' ? null : (s as StudentStatus))
               }
             />
           </View>

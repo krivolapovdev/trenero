@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@apollo/client/react';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { PaperSelect } from 'react-native-paper-select';
@@ -9,10 +10,7 @@ import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { graphql } from '@/src/graphql/__generated__';
-import {
-  type CreateGroupInput,
-  GroupFieldsFragmentDoc
-} from '@/src/graphql/__generated__/graphql';
+import type { CreateGroupInput } from '@/src/graphql/__generated__/graphql';
 import { GET_STUDENTS } from '@/src/graphql/queries';
 import { formatPriceInput } from '@/src/helpers/formatPriceInput';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -21,6 +19,12 @@ const CREATE_GROUP = graphql(`
     mutation CreateGroup($input: CreateGroupInput!) {
         createGroup(input: $input) {
             ...GroupFields
+            students {
+                id
+                group {
+                    id
+                }
+            }
         }
     }
 `);
@@ -28,6 +32,7 @@ const CREATE_GROUP = graphql(`
 export default function CreateGroupScreen() {
   const router = useRouter();
   const theme = useAppTheme();
+  const { t } = useTranslation();
 
   const { data } = useQuery(GET_STUDENTS, {
     fetchPolicy: 'cache-first'
@@ -61,24 +66,14 @@ export default function CreateGroupScreen() {
         return;
       }
 
-      const newGroupRef = cache.writeFragment({
-        data: newGroup,
-        fragment: GroupFieldsFragmentDoc
-      });
+      const newGroupRef = {
+        __ref: cache.identify(newGroup)
+      };
 
       cache.modify({
         fields: {
-          groups: (existingGroups = []) => [newGroupRef, ...existingGroups]
+          groups: (existingRefs = []) => [newGroupRef, ...existingRefs]
         }
-      });
-
-      students.selectedList.forEach(student => {
-        cache.modify({
-          id: cache.identify({ __typename: 'Student', id: student._id }),
-          fields: {
-            group: () => newGroupRef
-          }
-        });
       });
     },
 
@@ -116,7 +111,7 @@ export default function CreateGroupScreen() {
   return (
     <>
       <CustomAppbar
-        title='Add Group'
+        title={t('addGroup')}
         leftActions={[
           {
             icon: 'arrow-left',
@@ -143,7 +138,7 @@ export default function CreateGroupScreen() {
         <OptionalErrorMessage error={error?.message} />
 
         <CustomTextInput
-          label='Name *'
+          label={t('name')}
           value={name}
           onChangeText={setName}
           maxLength={255}
@@ -151,7 +146,7 @@ export default function CreateGroupScreen() {
         />
 
         <CustomTextInput
-          label='Default price'
+          label={t('defaultPrice')}
           placeholder={'123.45'}
           value={defaultPrice}
           onChangeText={text => setDefaultPrice(formatPriceInput(text))}
@@ -159,7 +154,7 @@ export default function CreateGroupScreen() {
         />
 
         <CustomTextInput
-          label='Note'
+          label={t('note')}
           value={note}
           onChangeText={setNote}
           maxLength={1023}
@@ -169,13 +164,16 @@ export default function CreateGroupScreen() {
 
         {studentItems.length > 0 && (
           <PaperSelect
-            label={'Students'}
+            label={t('students')}
             textInputMode={'outlined'}
             value={students.value}
             arrayList={students.list}
             textInputOutlineStyle={{ borderRadius: 10, borderWidth: 0 }}
             selectedArrayList={students.selectedList}
-            searchText={'Search'}
+            searchText={t('search')}
+            selectAllText={t('selectAll')}
+            dialogCloseButtonText={t('close')}
+            dialogDoneButtonText={t('ok')}
             multiEnable={true}
             onSelection={value =>
               setStudents({

@@ -35,7 +35,7 @@ export type Attendance = {
   id: Scalars['UUID']['output'];
   lesson: Lesson;
   present: Scalars['Boolean']['output'];
-  studentId: Scalars['UUID']['output'];
+  student: Student;
 };
 
 export type CreateAttendanceInput = {
@@ -65,7 +65,7 @@ export type CreatePaymentInput = {
 };
 
 export type CreateStudentInput = {
-  birthDate?: InputMaybe<Scalars['Date']['input']>;
+  birthdate?: InputMaybe<Scalars['Date']['input']>;
   fullName: Scalars['String']['input'];
   groupId?: InputMaybe<Scalars['UUID']['input']>;
   note?: InputMaybe<Scalars['String']['input']>;
@@ -93,7 +93,7 @@ export type Lesson = {
   __typename?: 'Lesson';
   attendances: Array<Attendance>;
   createdAt: Scalars['DateTime']['output'];
-  groupId: Scalars['UUID']['output'];
+  group: Group;
   id: Scalars['UUID']['output'];
   startDateTime: Scalars['DateTime']['output'];
 };
@@ -198,7 +198,7 @@ export type Payment = {
   date: Scalars['Date']['output'];
   id: Scalars['UUID']['output'];
   lessonsPerPayment: Scalars['Int']['output'];
-  studentId: Scalars['UUID']['output'];
+  student: Student;
 };
 
 export type Query = {
@@ -251,7 +251,7 @@ export type SocialLoginInput = {
 export type Student = {
   __typename?: 'Student';
   attendances: Array<Attendance>;
-  birthDate?: Maybe<Scalars['Date']['output']>;
+  birthdate?: Maybe<Scalars['Date']['output']>;
   createdAt: Scalars['DateTime']['output'];
   fullName: Scalars['String']['output'];
   group?: Maybe<Group>;
@@ -287,13 +287,21 @@ export type CreateLessonMutation = {
   createLesson: {
     __typename?: 'Lesson',
     id: string,
-    groupId: string,
     startDateTime: string,
+    group: {
+      __typename?: 'Group',
+      id: string,
+      lessons: Array<{ __typename?: 'Lesson', id: string }>
+    },
     attendances: Array<{
       __typename?: 'Attendance',
       id: string,
-      studentId: string,
       present: boolean,
+      student: {
+        __typename?: 'Student',
+        id: string,
+        attendances: Array<{ __typename?: 'Attendance', id: string }>
+      },
       lesson: { __typename?: 'Lesson', id: string, startDateTime: string }
     }>
   }
@@ -312,7 +320,12 @@ export type CreateGroupMutation = {
     name: string,
     defaultPrice?: string | null,
     note?: string | null,
-    students: Array<{ __typename?: 'Student', id: string, fullName: string }>
+    students: Array<{
+      __typename?: 'Student',
+      id: string,
+      fullName: string,
+      group?: { __typename?: 'Group', id: string } | null
+    }>
   }
 };
 
@@ -352,7 +365,12 @@ export type CreatePaymentMutation = {
     id: string,
     amount: string,
     date: string,
-    lessonsPerPayment: number
+    lessonsPerPayment: number,
+    student: {
+      __typename?: 'Student',
+      id: string,
+      payments: Array<{ __typename?: 'Payment', id: string }>
+    }
   }
 };
 
@@ -367,12 +385,20 @@ export type CreateStudentMutation = {
     __typename?: 'Student',
     id: string,
     fullName: string,
-    group?: { __typename?: 'Group', id: string, name: string } | null,
+    phone?: string | null,
+    note?: string | null,
+    birthdate?: string | null,
+    group?: {
+      __typename?: 'Group',
+      id: string,
+      name: string,
+      students: Array<{ __typename?: 'Student', id: string }>
+    } | null,
     attendances: Array<{
       __typename?: 'Attendance',
       id: string,
-      studentId: string,
       present: boolean,
+      student: { __typename?: 'Student', id: string },
       lesson: { __typename?: 'Lesson', id: string, startDateTime: string }
     }>,
     payments: Array<{
@@ -398,12 +424,15 @@ export type StudentFieldsFragment = {
   __typename?: 'Student',
   id: string,
   fullName: string,
+  phone?: string | null,
+  note?: string | null,
+  birthdate?: string | null,
   group?: { __typename?: 'Group', id: string, name: string } | null,
   attendances: Array<{
     __typename?: 'Attendance',
     id: string,
-    studentId: string,
     present: boolean,
+    student: { __typename?: 'Student', id: string },
     lesson: { __typename?: 'Lesson', id: string, startDateTime: string }
   }>,
   payments: Array<{
@@ -426,13 +455,13 @@ export type PaymentFieldsFragment = {
 export type LessonFieldsFragment = {
   __typename?: 'Lesson',
   id: string,
-  groupId: string,
   startDateTime: string,
+  group: { __typename?: 'Group', id: string },
   attendances: Array<{
     __typename?: 'Attendance',
     id: string,
-    studentId: string,
     present: boolean,
+    student: { __typename?: 'Student', id: string },
     lesson: { __typename?: 'Lesson', id: string, startDateTime: string }
   }>
 };
@@ -440,8 +469,8 @@ export type LessonFieldsFragment = {
 export type AttendanceFieldsFragment = {
   __typename?: 'Attendance',
   id: string,
-  studentId: string,
   present: boolean,
+  student: { __typename?: 'Student', id: string },
   lesson: { __typename?: 'Lesson', id: string, startDateTime: string }
 };
 
@@ -486,13 +515,13 @@ export type GetGroupQuery = {
     lessons: Array<{
       __typename?: 'Lesson',
       id: string,
-      groupId: string,
       startDateTime: string,
+      group: { __typename?: 'Group', id: string },
       attendances: Array<{
         __typename?: 'Attendance',
         id: string,
-        studentId: string,
         present: boolean,
+        student: { __typename?: 'Student', id: string },
         lesson: { __typename?: 'Lesson', id: string, startDateTime: string }
       }>
     }>,
@@ -509,12 +538,15 @@ export type GetStudentsQuery = {
     __typename?: 'Student',
     id: string,
     fullName: string,
+    phone?: string | null,
+    note?: string | null,
+    birthdate?: string | null,
     group?: { __typename?: 'Group', id: string, name: string } | null,
     attendances: Array<{
       __typename?: 'Attendance',
       id: string,
-      studentId: string,
       present: boolean,
+      student: { __typename?: 'Student', id: string },
       lesson: { __typename?: 'Lesson', id: string, startDateTime: string }
     }>,
     payments: Array<{
@@ -537,7 +569,7 @@ export type GetStudentQuery = {
   student?: {
     __typename?: 'Student',
     phone?: string | null,
-    birthDate?: string | null,
+    birthdate?: string | null,
     note?: string | null,
     id: string,
     fullName: string,
@@ -545,8 +577,8 @@ export type GetStudentQuery = {
     attendances: Array<{
       __typename?: 'Attendance',
       id: string,
-      studentId: string,
       present: boolean,
+      student: { __typename?: 'Student', id: string },
       lesson: { __typename?: 'Lesson', id: string, startDateTime: string }
     }>,
     payments: Array<{
@@ -590,12 +622,15 @@ export type GetInitialDataQuery = {
     __typename?: 'Student',
     id: string,
     fullName: string,
+    phone?: string | null,
+    note?: string | null,
+    birthdate?: string | null,
     group?: { __typename?: 'Group', id: string, name: string } | null,
     attendances: Array<{
       __typename?: 'Attendance',
       id: string,
-      studentId: string,
       present: boolean,
+      student: { __typename?: 'Student', id: string },
       lesson: { __typename?: 'Lesson', id: string, startDateTime: string }
     }>,
     payments: Array<{
@@ -653,8 +688,15 @@ export const AttendanceFieldsFragmentDoc = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "studentId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "present"}}, {
+        "name": {"kind": "Name", "value": "present"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "student"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "lesson"},
         "selectionSet": {
@@ -687,8 +729,7 @@ export const PaymentFieldsFragmentDoc = {
   }]
 } as unknown as DocumentNode<PaymentFieldsFragment, unknown>;
 export const StudentFieldsFragmentDoc = {
-  "kind": "Document",
-  "definitions": [{
+  "kind": "Document", "definitions": [{
     "kind": "FragmentDefinition",
     "name": {"kind": "Name", "value": "StudentFields"},
     "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Student"}},
@@ -697,7 +738,10 @@ export const StudentFieldsFragmentDoc = {
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "fullName"}
-      }, {
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "phone"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "note"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "birthdate"}}, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "group"},
         "selectionSet": {
@@ -737,8 +781,15 @@ export const StudentFieldsFragmentDoc = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "studentId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "present"}}, {
+        "name": {"kind": "Name", "value": "present"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "student"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "lesson"},
         "selectionSet": {
@@ -776,8 +827,15 @@ export const LessonFieldsFragmentDoc = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "groupId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "startDateTime"}}, {
+        "name": {"kind": "Name", "value": "startDateTime"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "group"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "attendances"},
         "selectionSet": {
@@ -797,8 +855,15 @@ export const LessonFieldsFragmentDoc = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "studentId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "present"}}, {
+        "name": {"kind": "Name", "value": "present"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "student"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "lesson"},
         "selectionSet": {
@@ -845,8 +910,7 @@ export const DeleteGroupDocument = {
   }]
 } as unknown as DocumentNode<DeleteGroupMutation, DeleteGroupMutationVariables>;
 export const CreateLessonDocument = {
-  "kind": "Document",
-  "definitions": [{
+  "kind": "Document", "definitions": [{
     "kind": "OperationDefinition",
     "operation": "mutation",
     "name": {"kind": "Name", "value": "CreateLesson"},
@@ -859,8 +923,7 @@ export const CreateLessonDocument = {
       }
     }],
     "selectionSet": {
-      "kind": "SelectionSet",
-      "selections": [{
+      "kind": "SelectionSet", "selections": [{
         "kind": "Field",
         "name": {"kind": "Name", "value": "createLesson"},
         "arguments": [{
@@ -873,6 +936,50 @@ export const CreateLessonDocument = {
           "selections": [{
             "kind": "FragmentSpread",
             "name": {"kind": "Name", "value": "LessonFields"}
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "group"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "lessons"},
+                "selectionSet": {
+                  "kind": "SelectionSet",
+                  "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+                }
+              }]
+            }
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "attendances"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "student"},
+                "selectionSet": {
+                  "kind": "SelectionSet",
+                  "selections": [{
+                    "kind": "Field",
+                    "name": {"kind": "Name", "value": "id"}
+                  }, {
+                    "kind": "Field",
+                    "name": {"kind": "Name", "value": "attendances"},
+                    "selectionSet": {
+                      "kind": "SelectionSet",
+                      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+                    }
+                  }]
+                }
+              }]
+            }
           }]
         }
       }]
@@ -885,8 +992,15 @@ export const CreateLessonDocument = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "studentId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "present"}}, {
+        "name": {"kind": "Name", "value": "present"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "student"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "lesson"},
         "selectionSet": {
@@ -906,8 +1020,15 @@ export const CreateLessonDocument = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "groupId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "startDateTime"}}, {
+        "name": {"kind": "Name", "value": "startDateTime"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "group"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "attendances"},
         "selectionSet": {
@@ -922,8 +1043,7 @@ export const CreateLessonDocument = {
   }]
 } as unknown as DocumentNode<CreateLessonMutation, CreateLessonMutationVariables>;
 export const CreateGroupDocument = {
-  "kind": "Document",
-  "definitions": [{
+  "kind": "Document", "definitions": [{
     "kind": "OperationDefinition",
     "operation": "mutation",
     "name": {"kind": "Name", "value": "CreateGroup"},
@@ -950,6 +1070,23 @@ export const CreateGroupDocument = {
           "selections": [{
             "kind": "FragmentSpread",
             "name": {"kind": "Name", "value": "GroupFields"}
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "students"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "group"},
+                "selectionSet": {
+                  "kind": "SelectionSet",
+                  "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+                }
+              }]
+            }
           }]
         }
       }]
@@ -1049,8 +1186,7 @@ export const DeleteStudentDocument = {
   }]
 } as unknown as DocumentNode<DeleteStudentMutation, DeleteStudentMutationVariables>;
 export const CreatePaymentDocument = {
-  "kind": "Document",
-  "definitions": [{
+  "kind": "Document", "definitions": [{
     "kind": "OperationDefinition",
     "operation": "mutation",
     "name": {"kind": "Name", "value": "CreatePayment"},
@@ -1077,6 +1213,23 @@ export const CreatePaymentDocument = {
           "selections": [{
             "kind": "FragmentSpread",
             "name": {"kind": "Name", "value": "PaymentFields"}
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "student"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "payments"},
+                "selectionSet": {
+                  "kind": "SelectionSet",
+                  "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+                }
+              }]
+            }
           }]
         }
       }]
@@ -1098,8 +1251,7 @@ export const CreatePaymentDocument = {
   }]
 } as unknown as DocumentNode<CreatePaymentMutation, CreatePaymentMutationVariables>;
 export const CreateStudentDocument = {
-  "kind": "Document",
-  "definitions": [{
+  "kind": "Document", "definitions": [{
     "kind": "OperationDefinition",
     "operation": "mutation",
     "name": {"kind": "Name", "value": "CreateStudent"},
@@ -1126,6 +1278,23 @@ export const CreateStudentDocument = {
           "selections": [{
             "kind": "FragmentSpread",
             "name": {"kind": "Name", "value": "StudentFields"}
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "group"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "id"}
+              }, {
+                "kind": "Field",
+                "name": {"kind": "Name", "value": "students"},
+                "selectionSet": {
+                  "kind": "SelectionSet",
+                  "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+                }
+              }]
+            }
           }]
         }
       }]
@@ -1138,8 +1307,15 @@ export const CreateStudentDocument = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "studentId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "present"}}, {
+        "name": {"kind": "Name", "value": "present"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "student"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "lesson"},
         "selectionSet": {
@@ -1174,7 +1350,10 @@ export const CreateStudentDocument = {
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "fullName"}
-      }, {
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "phone"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "note"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "birthdate"}}, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "group"},
         "selectionSet": {
@@ -1340,8 +1519,15 @@ export const GetGroupDocument = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "studentId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "present"}}, {
+        "name": {"kind": "Name", "value": "present"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "student"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "lesson"},
         "selectionSet": {
@@ -1385,8 +1571,15 @@ export const GetGroupDocument = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "groupId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "startDateTime"}}, {
+        "name": {"kind": "Name", "value": "startDateTime"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "group"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "attendances"},
         "selectionSet": {
@@ -1428,8 +1621,15 @@ export const GetStudentsDocument = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "studentId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "present"}}, {
+        "name": {"kind": "Name", "value": "present"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "student"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "lesson"},
         "selectionSet": {
@@ -1464,7 +1664,10 @@ export const GetStudentsDocument = {
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "fullName"}
-      }, {
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "phone"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "note"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "birthdate"}}, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "group"},
         "selectionSet": {
@@ -1527,7 +1730,7 @@ export const GetStudentDocument = {
             "name": {"kind": "Name", "value": "StudentFields"}
           }, {"kind": "Field", "name": {"kind": "Name", "value": "phone"}}, {
             "kind": "Field",
-            "name": {"kind": "Name", "value": "birthDate"}
+            "name": {"kind": "Name", "value": "birthdate"}
           }, {"kind": "Field", "name": {"kind": "Name", "value": "note"}}, {
             "kind": "Field",
             "name": {"kind": "Name", "value": "group"},
@@ -1570,8 +1773,15 @@ export const GetStudentDocument = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "studentId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "present"}}, {
+        "name": {"kind": "Name", "value": "present"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "student"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "lesson"},
         "selectionSet": {
@@ -1606,7 +1816,10 @@ export const GetStudentDocument = {
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "fullName"}
-      }, {
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "phone"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "note"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "birthdate"}}, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "group"},
         "selectionSet": {
@@ -1739,8 +1952,15 @@ export const GetInitialDataDocument = {
       "kind": "SelectionSet",
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
-        "name": {"kind": "Name", "value": "studentId"}
-      }, {"kind": "Field", "name": {"kind": "Name", "value": "present"}}, {
+        "name": {"kind": "Name", "value": "present"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "student"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}]
+        }
+      }, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "lesson"},
         "selectionSet": {
@@ -1799,7 +2019,10 @@ export const GetInitialDataDocument = {
       "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "fullName"}
-      }, {
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "phone"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "note"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "birthdate"}}, {
         "kind": "Field",
         "name": {"kind": "Name", "value": "group"},
         "selectionSet": {

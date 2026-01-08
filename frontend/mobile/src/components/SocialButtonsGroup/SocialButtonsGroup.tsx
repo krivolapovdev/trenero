@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SocialAuthButton } from '@/src/components/SocialButtonsGroup/SocialAuthButton';
@@ -6,6 +7,8 @@ import { useAppleSignIn } from '@/src/hooks/useAppleSignIn';
 import { useGoogleSignIn } from '@/src/hooks/useGoogleSignIn';
 
 export function SocialButtonsGroup() {
+  const { t } = useTranslation();
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const google = useGoogleSignIn(setErrorMessage);
   const apple = useAppleSignIn(setErrorMessage);
@@ -18,7 +21,7 @@ export function SocialButtonsGroup() {
       )}
 
       <SocialAuthButton
-        label='Sign in with Apple'
+        label={t('signInWithApple')}
         icon='apple'
         loading={apple.loading}
         onPress={async () => await apple.signIn()}
@@ -26,7 +29,7 @@ export function SocialButtonsGroup() {
       />
 
       <SocialAuthButton
-        label='Sign in with Google'
+        label={t('signInWithGoogle')}
         icon='google'
         loading={google.loading}
         onPress={async () => await google.signIn()}

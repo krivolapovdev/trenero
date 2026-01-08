@@ -1,56 +1,50 @@
 import { CommonActions } from '@react-navigation/native';
 import { Redirect, Tabs } from 'expo-router';
-import { ActivityIndicator, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { BottomNavigation, Icon } from 'react-native-paper';
+import { LoadingSpinner } from '@/src/components/LoadingSpinner';
 import { useInitApp } from '@/src/hooks/useInitApp';
 import { useAuthStore } from '@/src/stores/authStore';
-
-const TAB_CONFIG = [
-  {
-    name: 'index',
-    title: 'Statistics',
-    icon: 'chart-box',
-    iconOutline: 'chart-box-outline'
-  },
-  {
-    name: 'groups',
-    title: 'Groups',
-    icon: 'folder-account',
-    iconOutline: 'folder-account-outline'
-  },
-  {
-    name: 'students',
-    title: 'Students',
-    icon: 'account-group',
-    iconOutline: 'account-group-outline'
-  },
-  {
-    name: 'settings',
-    title: 'Settings',
-    icon: 'cog',
-    iconOutline: 'cog-outline'
-  }
-];
 
 export default function TabsLayout() {
   const user = useAuthStore(state => state.user);
   const { loading } = useInitApp();
+  const { t } = useTranslation();
 
   if (!user) {
     return <Redirect href='/(auth)' />;
   }
 
   if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator
-          animating={true}
-          size='large'
-          color='black'
-        />
-      </View>
-    );
+    return <LoadingSpinner />;
   }
+
+  const TAB_CONFIG = [
+    {
+      name: 'index',
+      title: t('statistics'),
+      icon: 'chart-box',
+      iconOutline: 'chart-box-outline'
+    },
+    {
+      name: 'groups',
+      title: t('groups'),
+      icon: 'folder-account',
+      iconOutline: 'folder-account-outline'
+    },
+    {
+      name: 'students',
+      title: t('students'),
+      icon: 'account-group',
+      iconOutline: 'account-group-outline'
+    },
+    {
+      name: 'settings',
+      title: t('settings'),
+      icon: 'cog',
+      iconOutline: 'cog-outline'
+    }
+  ];
 
   return (
     <Tabs

@@ -1,4 +1,4 @@
-import {graphql} from '@/src/graphql/__generated__';
+import { graphql } from '@/src/graphql/__generated__';
 
 export const GET_GROUPS = graphql(`
     query GetGroups {
@@ -32,7 +32,7 @@ export const GET_STUDENT = graphql(`
         student(id: $id) {
             ...StudentFields
             phone
-            birthDate
+            birthdate
             note
             group {
                 id

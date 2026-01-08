@@ -1,25 +1,29 @@
-import {useMutation, useQuery} from '@apollo/client/react';
-import {useRouter} from 'expo-router';
-import {useMemo, useState} from 'react';
-import {Alert, ScrollView, StyleSheet} from 'react-native';
-import {TextInput} from 'react-native-paper';
-import {PaperSelect} from 'react-native-paper-select';
-import {CustomAppbar} from '@/src/components/CustomAppbar';
-import {CustomTextInput} from '@/src/components/CustomTextInput';
-import {graphql} from '@/src/graphql/__generated__';
-import {
-  type CreateStudentInput,
-  StudentFieldsFragmentDoc
-} from '@/src/graphql/__generated__/graphql';
-import {GET_GROUPS} from '@/src/graphql/queries';
-import {formatDateInput} from '@/src/helpers/formatDateInput';
-import {parsePastOrTodayDateFromInput} from '@/src/helpers/parsePastOrTodayDateFromInput';
-import {useAppTheme} from '@/src/hooks/useAppTheme';
+import { useMutation, useQuery } from '@apollo/client/react';
+import { useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { TextInput } from 'react-native-paper';
+import { PaperSelect } from 'react-native-paper-select';
+import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { CustomTextInput } from '@/src/components/CustomTextInput';
+import { graphql } from '@/src/graphql/__generated__';
+import type { CreateStudentInput } from '@/src/graphql/__generated__/graphql';
+import { GET_GROUPS } from '@/src/graphql/queries';
+import { formatDateInput } from '@/src/helpers/formatDateInput';
+import { parsePastOrTodayDateFromInput } from '@/src/helpers/parsePastOrTodayDateFromInput';
+import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 const CREATE_STUDENT = graphql(`
     mutation CreateStudent($input: CreateStudentInput!) {
         createStudent(input: $input) {
             ...StudentFields
+            group {
+                id
+                students {
+                    id
+                }
+            }
         }
     }
 `);
@@ -27,6 +31,7 @@ const CREATE_STUDENT = graphql(`
 export default function CreateStudentScreen() {
   const theme = useAppTheme();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -55,40 +60,21 @@ export default function CreateStudentScreen() {
         return;
       }
 
-      const newStudentRef = cache.writeFragment({
-        data: newStudent,
-        fragment: StudentFieldsFragmentDoc,
-        fragmentName: 'StudentFields'
-      });
+      const newStudentRef = {
+        __ref: cache.identify(newStudent)
+      };
 
       cache.modify({
         fields: {
-          students: (existingStudents = []) => [
-            newStudentRef,
-            ...existingStudents
-          ]
-        }
-      });
-
-      if (!newStudent.group) {
-        return;
-      }
-
-      cache.modify({
-        id: cache.identify({__typename: 'Group', id: newStudent.group.id}),
-        fields: {
-          students: (existingData = []) => [...existingData, newStudentRef]
+          students: (existingRefs = []) => [newStudentRef, ...existingRefs]
         }
       });
     },
 
-    onCompleted: data => {
-      router.replace(`/(tabs)/students/${data.createStudent.id}`);
-    },
+    onCompleted: data =>
+      router.replace(`/(tabs)/students/${data.createStudent.id}`),
 
-    onError: err => {
-      Alert.alert('Error', err.message);
-    }
+    onError: err => Alert.alert(t('error'), err.message)
   });
 
   const handleSubmit = () => {
@@ -100,8 +86,8 @@ export default function CreateStudentScreen() {
       fullName: fullName.trim(),
       phone: phoneNumber?.trim() || null,
       note: note?.trim() || null,
-      birthDate:
-          parsePastOrTodayDateFromInput(birthdate)?.format('YYYY-MM-DD') || null,
+      birthdate:
+        parsePastOrTodayDateFromInput(birthdate)?.format('YYYY-MM-DD') || null,
       groupId: groupId || null
     };
 
@@ -111,7 +97,7 @@ export default function CreateStudentScreen() {
   return (
     <>
       <CustomAppbar
-        title='Add Student'
+        title={t('addStudent')}
         leftActions={[
           {
             icon: 'arrow-left',
@@ -136,7 +122,7 @@ export default function CreateStudentScreen() {
         keyboardShouldPersistTaps='handled'
       >
         <CustomTextInput
-          label='Full name *'
+          label={t('fullName')}
           value={fullName}
           onChangeText={setFullName}
           maxLength={255}
@@ -144,7 +130,7 @@ export default function CreateStudentScreen() {
         />
 
         <CustomTextInput
-          label='Phone number'
+          label={t('phoneNumber')}
           value={phoneNumber}
           placeholder='88005553535'
           onChangeText={text => setPhoneNumber(text.replaceAll(/\D/g, ''))}
@@ -153,7 +139,7 @@ export default function CreateStudentScreen() {
         />
 
         <CustomTextInput
-          label='Note'
+          label={t('note')}
           value={note}
           onChangeText={setNote}
           maxLength={1023}
@@ -162,7 +148,7 @@ export default function CreateStudentScreen() {
         />
 
         <CustomTextInput
-          label='Birthday'
+          label={t('birthday')}
           placeholder='31/12/1999'
           keyboardType='numeric'
           maxLength={10}
@@ -172,7 +158,7 @@ export default function CreateStudentScreen() {
 
         {groupItems.length > 0 && (
           <PaperSelect
-            label={'Group'}
+            label={t('group')}
             textInputMode={'outlined'}
             value={groupItems.find(g => g._id === groupId)?.value ?? ''}
             arrayList={groupItems}
@@ -183,7 +169,10 @@ export default function CreateStudentScreen() {
                 value: groupItems.find(g => g._id === groupId)?.value ?? ''
               }
             ]}
-            searchText={'Search'}
+            searchText={t('search')}
+            selectAllText={t('selectAll')}
+            dialogCloseButtonText={t('close')}
+            dialogDoneButtonText={t('ok')}
             multiEnable={false}
             onSelection={value => {
               if (value?.selectedList?.length > 0) {

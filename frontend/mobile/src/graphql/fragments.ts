@@ -1,4 +1,4 @@
-import {graphql} from '@/src/graphql/__generated__';
+import { graphql } from '@/src/graphql/__generated__';
 
 export const GROUP_FIELDS = graphql(`
     fragment GroupFields on Group {
@@ -17,6 +17,9 @@ export const STUDENT_FIELDS = graphql(`
     fragment StudentFields on Student {
         id
         fullName
+        phone
+        note
+        birthdate
         group {
             id
             name
@@ -42,8 +45,10 @@ export const PAYMENT_FIELDS = graphql(`
 export const LESSON_FIELDS = graphql(`
     fragment LessonFields on Lesson {
         id
-        groupId
         startDateTime
+        group {
+            id
+        }
         attendances {
             ...AttendanceFields
         }
@@ -53,8 +58,10 @@ export const LESSON_FIELDS = graphql(`
 export const ATTENDANCE_FIELDS = graphql(`
     fragment AttendanceFields on Attendance {
         id
-        studentId
         present
+        student {
+            id
+        }
         lesson {
             id
             startDateTime

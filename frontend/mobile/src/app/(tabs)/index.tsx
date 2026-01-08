@@ -1,6 +1,7 @@
 import { useQuery } from '@apollo/client/react';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
@@ -19,6 +20,7 @@ const GET_PAYMENTS = graphql(`
 
 export default function StatisticsScreen() {
   const theme = useAppTheme();
+  const { t } = useTranslation();
   const [selectedBar, setSelectedBar] = useState(dayjs());
 
   const { loading, data, error, refetch } = useQuery(GET_PAYMENTS, {
@@ -33,7 +35,7 @@ export default function StatisticsScreen() {
           date: month,
           value:
             data?.payments
-              .filter(p => dayjs(p.createdAt).isSame(month, 'month'))
+              .filter(p => dayjs(p.date).isSame(month, 'month'))
               .reduce((sum, p) => sum + Number(p.amount), 0) || 0
         }))
         .reverse(),
@@ -42,7 +44,7 @@ export default function StatisticsScreen() {
 
   return (
     <>
-      <CustomAppbar title={'Statistics'} />
+      <CustomAppbar title={t('statistics')} />
 
       <ScrollView
         contentContainerStyle={{ padding: 16, gap: 16 }}

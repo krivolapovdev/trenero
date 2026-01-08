@@ -1,8 +1,8 @@
-import type { Reference } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import dayjs from 'dayjs';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
 import {
@@ -15,11 +15,7 @@ import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { StudentAttendancePicker } from '@/src/components/StudentAttendancePicker';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { graphql } from '@/src/graphql/__generated__';
-import {
-  AttendanceFieldsFragmentDoc,
-  type CreateLessonInput,
-  LessonFieldsFragmentDoc
-} from '@/src/graphql/__generated__/graphql';
+import type { CreateLessonInput } from '@/src/graphql/__generated__/graphql';
 import { GET_GROUP } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
@@ -29,6 +25,21 @@ const CREATE_LESSON = graphql(`
     mutation CreateLesson($input: CreateLessonInput!) {
         createLesson(input: $input) {
             ...LessonFields
+            group {
+                id
+                lessons {
+                    id
+                }
+            }
+            attendances {
+                id
+                student {
+                    id
+                    attendances {
+                        id
+                    }
+                }
+            }
         }
     }
 `);
@@ -36,6 +47,7 @@ const CREATE_LESSON = graphql(`
 export default function CreateLessonScreen() {
   const router = useRouter();
   const theme = useAppTheme();
+  const { t } = useTranslation();
   const { id: groupId } = useLocalSearchParams<{ id: string }>();
 
   const [startDateTime, setStartDateTime] = useState(dayjs());
@@ -52,54 +64,8 @@ export default function CreateLessonScreen() {
   });
 
   const [createLesson, { loading }] = useMutation(CREATE_LESSON, {
-    update(cache, { data }) {
-      const newLesson = data?.createLesson;
-
-      if (!newLesson) {
-        return;
-      }
-
-      const newLessonRef = cache.writeFragment({
-        data: newLesson,
-        fragment: LessonFieldsFragmentDoc,
-        fragmentName: 'LessonFields'
-      });
-
-      cache.modify({
-        id: cache.identify({ __typename: 'Group', id: newLesson.groupId }),
-        fields: {
-          lessons: (existingLessons = []) => [...existingLessons, newLessonRef]
-        }
-      });
-
-      newLesson.attendances.forEach(attendance => {
-        const attendanceRef = cache.writeFragment({
-          data: attendance,
-          fragment: AttendanceFieldsFragmentDoc
-        });
-
-        if (!attendanceRef) {
-          return;
-        }
-
-        cache.modify({
-          id: cache.identify({
-            __typename: 'Student',
-            id: attendance.studentId
-          }),
-          fields: {
-            attendances: (existing: readonly Reference[] = []) => [
-              ...existing,
-              attendanceRef
-            ]
-          }
-        });
-      });
-    },
-
     onCompleted: () => router.back(),
-
-    onError: err => Alert.alert('Error', err.message)
+    onError: err => Alert.alert(t('error'), err.message)
   });
 
   const handleSubmit = () => {
@@ -126,7 +92,7 @@ export default function CreateLessonScreen() {
   return (
     <>
       <CustomAppbar
-        title='Add Lesson'
+        title={t('addLesson')}
         leftActions={[
           {
             icon: 'arrow-left',

@@ -1,14 +1,15 @@
-import {useMutation, useQuery} from '@apollo/client/react';
-import {useLocalSearchParams, useRouter} from 'expo-router';
-import {Alert, RefreshControl, ScrollView, View} from 'react-native';
-import {Divider, List, Text} from 'react-native-paper';
-import {LessonsCalendar} from '@/src/components/Calendar';
-import {GroupCard} from '@/src/components/Card';
-import {CustomAppbar} from '@/src/components/CustomAppbar';
-import {OptionalErrorMessage} from '@/src/components/OptionalErrorMessage';
-import {graphql} from '@/src/graphql/__generated__';
-import {GET_GROUP} from '@/src/graphql/queries';
-import {useAppTheme} from '@/src/hooks/useAppTheme';
+import { useMutation, useQuery } from '@apollo/client/react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { Alert, RefreshControl, ScrollView, View } from 'react-native';
+import { Divider, List, Text } from 'react-native-paper';
+import { LessonsCalendar } from '@/src/components/Calendar';
+import { GroupCard } from '@/src/components/Card';
+import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
+import { graphql } from '@/src/graphql/__generated__';
+import { GET_GROUP } from '@/src/graphql/queries';
+import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 const DELETE_GROUP = graphql(`
     mutation DeleteGroup($id: UUID!) {
@@ -22,6 +23,7 @@ export default function GroupByIdScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useAppTheme();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { data, loading, error, refetch } = useQuery(GET_GROUP, {
     variables: { id },
@@ -40,13 +42,9 @@ export default function GroupByIdScreen() {
       cache.gc();
     },
 
-    onCompleted: () => {
-      router.back();
-    },
+    onCompleted: () => router.back(),
 
-    onError: err => {
-      Alert.alert('Error', err.message);
-    }
+    onError: err => Alert.alert(t('error'), err.message)
   });
 
   const handleEditPress = () => {
@@ -54,20 +52,16 @@ export default function GroupByIdScreen() {
   };
 
   const handleDeletePress = () => {
-    Alert.alert(
-      'Delete Group',
-      `Are you sure you want to delete ${group?.name || 'this group'}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            void deleteGroup();
-          }
+    Alert.alert(t('deleteGroup'), t('deleteGroupConfirmation'), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('delete'),
+        style: 'destructive',
+        onPress: () => {
+          void deleteGroup();
         }
-      ]
-    );
+      }
+    ]);
   };
 
   const group = data?.group;
@@ -75,7 +69,7 @@ export default function GroupByIdScreen() {
   return (
     <>
       <CustomAppbar
-        title='Group'
+        title={t('group')}
         leftActions={[
           {
             icon: 'arrow-left',
@@ -136,7 +130,7 @@ export default function GroupByIdScreen() {
                     variant='bodyLarge'
                     style={{ textAlign: 'center' }}
                   >
-                    Students
+                    {t('students')}
                   </Text>
                 </List.Subheader>
 

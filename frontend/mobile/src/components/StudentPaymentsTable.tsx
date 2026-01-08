@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
-import {memo, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {DataTable, useTheme} from 'react-native-paper';
+import { memo, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View } from 'react-native';
+import { DataTable, useTheme } from 'react-native-paper';
 
 type Payment = {
   id: string;
@@ -18,6 +19,7 @@ const formatDate = (date: string) => dayjs(date).format('DD/MM/YYYY HH:mm');
 
 export const StudentPaymentsTable = memo(
   ({ payments, itemsPerPage = 5 }: Readonly<Props>) => {
+    const { t } = useTranslation();
     const theme = useTheme();
 
     const [page, setPage] = useState(0);
@@ -25,9 +27,9 @@ export const StudentPaymentsTable = memo(
 
     const sortedPayments = useMemo(() => {
       return [...payments].sort((a, b) => {
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
-        return sortAscending ? dateA - dateB : dateB - dateA;
+        const dateA = dayjs(a.date);
+        const dateB = dayjs(b.date);
+        return sortAscending ? dateA.diff(dateB) : dateB.diff(dateA);
       });
     }, [payments, sortAscending]);
 
@@ -47,13 +49,13 @@ export const StudentPaymentsTable = memo(
               onPress={() => setSortAscending(prev => !prev)}
               textStyle={{ fontSize: 15 }}
             >
-              Payments
+              {t('payments')}
             </DataTable.Title>
             <DataTable.Title
               textStyle={{ fontSize: 15 }}
               numeric
             >
-              Amount
+              {t('amount')}
             </DataTable.Title>
           </DataTable.Header>
 

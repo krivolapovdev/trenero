@@ -1,6 +1,7 @@
 import type dayjs from 'dayjs';
 import { nanoid } from 'nanoid/non-secure';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Divider, Text } from 'react-native-paper';
 import { BarItem } from '@/src/components/RoundedBarChart/BarItem';
@@ -22,6 +23,7 @@ export const RoundedBarChart = ({
   selectedBar,
   setSelectedBar
 }: Readonly<Props>) => {
+  const { i18n } = useTranslation();
   const theme = useAppTheme();
 
   const normalizedData = useMemo(() => {
@@ -52,7 +54,9 @@ export const RoundedBarChart = ({
               style={{ backgroundColor: theme.colors.outline, width: '100%' }}
             />
 
-            <Text style={styles.label}>{item.date.format('MMM')}</Text>
+            <Text style={styles.label}>
+              {item.date.locale(i18n.language).format('MMM')}
+            </Text>
           </View>
         ))}
       </View>

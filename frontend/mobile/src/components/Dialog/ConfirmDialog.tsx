@@ -1,4 +1,5 @@
 import { memo, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, useWindowDimensions } from 'react-native';
 import { Button, Dialog, Portal } from 'react-native-paper';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -29,12 +30,13 @@ export const ConfirmDialog = memo(
     onCancel,
     onDismiss,
 
-    confirmText = 'OK',
-    cancelText = 'Cancel',
+    confirmText,
+    cancelText,
 
     disabledConfirm,
     loading
   }: Readonly<Props>) => {
+    const { t } = useTranslation();
     const theme = useAppTheme();
     const { height } = useWindowDimensions();
 
@@ -63,7 +65,7 @@ export const ConfirmDialog = memo(
                 disabled={loading}
                 textColor={theme.colors.error}
               >
-                {cancelText}
+                {cancelText ?? t('cancel')}
               </Button>
             )}
 
@@ -72,7 +74,7 @@ export const ConfirmDialog = memo(
               disabled={disabledConfirm || loading}
               loading={loading}
             >
-              {confirmText}
+              {confirmText ?? t('ok')}
             </Button>
           </Dialog.Actions>
         </Dialog>

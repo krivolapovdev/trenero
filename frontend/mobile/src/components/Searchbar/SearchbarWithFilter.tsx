@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { IconButton, Searchbar } from 'react-native-paper';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -21,12 +22,13 @@ export const SearchbarWithFilter = memo(
     onFilterPress,
     hasActiveFilters
   }: SearchBarWithFilterProps) => {
+    const { t } = useTranslation();
     const theme = useAppTheme();
 
     return (
       <View style={styles.container}>
         <Searchbar
-          placeholder='Search by name'
+          placeholder={t('search')}
           value={value}
           onChangeText={onChange}
           onClearIconPress={onClearIconPress}

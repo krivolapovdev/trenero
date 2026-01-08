@@ -1,27 +1,15 @@
-import {useMutation, useQuery} from '@apollo/client/react';
-import dayjs from 'dayjs';
-import {useLocalSearchParams, useRouter} from 'expo-router';
-import {Alert, RefreshControl, ScrollView} from 'react-native';
-import {AttendanceCalendar} from '@/src/components/Calendar';
-import {StudentCard} from '@/src/components/Card';
-import {CustomAppbar} from '@/src/components/CustomAppbar';
-import {OptionalErrorMessage} from '@/src/components/OptionalErrorMessage';
-import {StudentPaymentsTable} from '@/src/components/StudentPaymentsTable';
-import {graphql} from '@/src/graphql/__generated__';
-import type {GetStudentQuery} from '@/src/graphql/__generated__/graphql';
-import {GET_STUDENT} from '@/src/graphql/queries';
-import {useAppTheme} from '@/src/hooks/useAppTheme';
-
-const buildSubtitle = (student: NonNullable<GetStudentQuery['student']>) =>
-  [
-    `Group: ${student.group?.name ?? 'Unassigned'}`,
-    student.phone && `Phone: ${student.phone}`,
-    student.birthDate &&
-      `Birthdate: ${dayjs(student.birthDate).format('DD/MM/YYYY')}`,
-    student.note && `Note: ${student.note}`
-  ]
-    .filter(Boolean)
-    .join('\n\n');
+import { useMutation, useQuery } from '@apollo/client/react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { Alert, RefreshControl, ScrollView } from 'react-native';
+import { AttendanceCalendar } from '@/src/components/Calendar';
+import { StudentCard } from '@/src/components/Card';
+import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
+import { StudentPaymentsTable } from '@/src/components/StudentPaymentsTable';
+import { graphql } from '@/src/graphql/__generated__';
+import { GET_STUDENT } from '@/src/graphql/queries';
+import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 const DELETE_STUDENT = graphql(`
     mutation DeleteStudent($id: UUID!) {
@@ -35,6 +23,7 @@ export default function StudentByIdScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useAppTheme();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { data, loading, error, refetch } = useQuery(GET_STUDENT, {
     variables: { id },
@@ -55,7 +44,7 @@ export default function StudentByIdScreen() {
 
     onCompleted: router.back,
 
-    onError: err => Alert.alert('Error', err.message)
+    onError: err => Alert.alert(t('error'), err.message)
   });
 
   const handleEditPress = () => {
@@ -63,18 +52,14 @@ export default function StudentByIdScreen() {
   };
 
   const handleDeletePress = () => {
-    Alert.alert(
-      'Delete student',
-      'Are you sure you want to delete this student?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => void deleteStudent()
-        }
-      ]
-    );
+    Alert.alert(t('deleteStudent'), t('deleteStudentConfirmation'), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('delete'),
+        style: 'destructive',
+        onPress: () => void deleteStudent()
+      }
+    ]);
   };
 
   const student = data?.student;
@@ -82,7 +67,7 @@ export default function StudentByIdScreen() {
   return (
     <>
       <CustomAppbar
-        title='Student'
+        title={t('student')}
         mode='small'
         leftActions={[
           {
@@ -95,7 +80,7 @@ export default function StudentByIdScreen() {
           {
             icon: 'account-cash',
             onPress: () =>
-                router.push(`/(tabs)/students/${id}/payments/create`),
+              router.push(`/(tabs)/students/${id}/payments/create`),
             disabled: loading || resultDeleteStudent.loading
           },
           {
@@ -130,10 +115,7 @@ export default function StudentByIdScreen() {
 
         {student && (
           <>
-            <StudentCard
-              subtitle={buildSubtitle(student)}
-              {...student}
-            />
+            <StudentCard {...student} />
 
             <StudentPaymentsTable payments={student.payments} />
 

@@ -48,6 +48,7 @@ export const CustomCalendar = memo(({ items }: Readonly<Props>) => {
           borderRadius: 16,
           backgroundColor: theme.colors.surface
         }}
+        firstDay={1}
         markedDates={markedDates}
         hideExtraDays={true}
         hideArrows={true}

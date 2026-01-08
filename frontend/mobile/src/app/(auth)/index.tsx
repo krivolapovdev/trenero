@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Divider, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +11,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export default function LoginScreen() {
   const theme = useAppTheme();
+  const { t } = useTranslation();
   const { width, height } = useWindowDimensions();
   const [isTermsVisible, setIsTermsVisible] = useState(false);
 
@@ -43,12 +45,13 @@ export default function LoginScreen() {
               textAlign: 'center'
             }}
           >
-            By continuing, you agree to our{' '}
+            {t('agreeText')}
+            {'\n'}
             <Text
               variant='bodySmall'
               onPress={() => setIsTermsVisible(true)}
             >
-              Terms & Privacy Policy
+              {t('termsPrivacy')}
             </Text>
           </Text>
         </View>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Linking, ScrollView } from 'react-native';
 import { Divider, List, Text } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { ConfirmDialog, LanguageDialog } from '@/src/components/Dialog';
 import { LabeledSection } from '@/src/components/LabeledSection';
@@ -10,12 +10,12 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAuthStore } from '@/src/stores/authStore';
 
 export default function SettingsScreen() {
+  const { t } = useTranslation();
   const theme = useAppTheme();
   const logout = useAuthStore(state => state.logout);
 
   const [logoutDialogVisible, setLogoutDialogVisible] =
     useState<boolean>(false);
-  const [language, setLanguage] = useState<'en' | 'ru'>('en');
   const [languageMenuVisible, setLanguageMenuVisible] =
     useState<boolean>(false);
   const [contactDialogVisible, setContactDialogVisible] =
@@ -30,86 +30,83 @@ export default function SettingsScreen() {
     <>
       <CustomAppbar title='Settings' />
 
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
+      <ScrollView
+        contentContainerStyle={{
+          flex: 1,
+          backgroundColor: theme.colors.surfaceVariant,
+          padding: 16
+        }}
       >
-        <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 0 }}>
-          <LabeledSection title='APPEARANCE'>
-            <SettingsItem
-              title='Language'
-              icon='flag-outline'
-              right={() => <List.Icon icon='chevron-right' />}
-              onPress={() => setLanguageMenuVisible(true)}
-            />
-          </LabeledSection>
+        <LabeledSection title={t('appearance')}>
+          <SettingsItem
+            title={t('language')}
+            icon='flag-outline'
+            right={() => <List.Icon icon='chevron-right' />}
+            onPress={() => setLanguageMenuVisible(true)}
+          />
+        </LabeledSection>
 
-          <LabeledSection title='ACCOUNT'>
-            <SettingsItem
-              title='Logout'
-              icon='logout'
-              right={() => <List.Icon icon='chevron-right' />}
-              onPress={() => setLogoutDialogVisible(true)}
-            />
-          </LabeledSection>
+        <LabeledSection title={t('account')}>
+          <SettingsItem
+            title={t('logout')}
+            icon='logout'
+            right={() => <List.Icon icon='chevron-right' />}
+            onPress={() => setLogoutDialogVisible(true)}
+          />
+        </LabeledSection>
 
-          <LabeledSection title='OTHER'>
-            <SettingsItem
-              title='Version'
-              icon='application-brackets-outline'
-              right={() => <Text variant='bodyMedium'>1.0.0</Text>}
-            />
+        <LabeledSection title={t('other')}>
+          <SettingsItem
+            title={t('version')}
+            icon='application-brackets-outline'
+            right={() => <Text variant='bodyMedium'>1.0.0</Text>}
+          />
 
-            <Divider />
+          <Divider />
 
-            <SettingsItem
-              title='Contact'
-              icon='account-circle-outline'
-              right={() => <List.Icon icon='chevron-right' />}
-              onPress={() => setContactDialogVisible(true)}
-            />
-          </LabeledSection>
-        </ScrollView>
+          <SettingsItem
+            title={t('contact')}
+            icon='account-circle-outline'
+            right={() => <List.Icon icon='chevron-right' />}
+            onPress={() => setContactDialogVisible(true)}
+          />
+        </LabeledSection>
+      </ScrollView>
 
-        <LanguageDialog
-          visible={languageMenuVisible}
-          language={language}
-          setLanguage={setLanguage}
-          onDismiss={() => setLanguageMenuVisible(false)}
-        />
+      <LanguageDialog
+        visible={languageMenuVisible}
+        onDismiss={() => setLanguageMenuVisible(false)}
+      />
 
-        <ConfirmDialog
-          visible={logoutDialogVisible}
-          title='Confirm Logout'
-          onConfirm={confirmLogout}
-          onCancel={() => setLogoutDialogVisible(false)}
-          confirmText='Logout'
+      <ConfirmDialog
+        visible={logoutDialogVisible}
+        title={t('confirmLogout')}
+        onConfirm={confirmLogout}
+        onCancel={() => setLogoutDialogVisible(false)}
+        confirmText={t('logout')}
+      >
+        <Text variant='bodyMedium'>{t('logoutMessage')}</Text>
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        visible={contactDialogVisible}
+        title={t('contact')}
+        onConfirm={() => setContactDialogVisible(false)}
+      >
+        <Text
+          variant='bodyMedium'
+          style={{ textAlign: 'justify' }}
         >
-          <Text variant='bodyMedium'>Are you sure you want to logout?</Text>
-        </ConfirmDialog>
-
-        <ConfirmDialog
-          visible={contactDialogVisible}
-          title='Contact'
-          onConfirm={() => setContactDialogVisible(false)}
-        >
+          {t('contactMessage')}
+          {'\n\n'}
           <Text
-            variant='bodyMedium'
-            style={{ textAlign: 'justify' }}
+            style={{ fontWeight: '700' }}
+            onPress={() => Linking.openURL('https://t.me/krivolapovdev')}
           >
-            Do you have questions regarding our services or suggestions for
-            future improvements? We are committed to providing the best
-            experience possible and welcome your communication. Please use the
-            following contact information to get in touch with our team:
-            {'\n\n'}
-            <Text
-              style={{ fontWeight: '700' }}
-              onPress={() => Linking.openURL('https://t.me/krivolapovdev')}
-            >
-              Telegram: @krivolapovdev
-            </Text>
+            Telegram: @krivolapovdev
           </Text>
-        </ConfirmDialog>
-      </SafeAreaView>
+        </Text>
+      </ConfirmDialog>
     </>
   );
 }

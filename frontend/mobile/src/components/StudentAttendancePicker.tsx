@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Button, Switch, Text } from 'react-native-paper';
 import type { GetGroupQuery } from '@/src/graphql/__generated__/graphql';
@@ -19,6 +20,8 @@ type Props = {
 
 export const StudentAttendancePicker = memo(
   ({ students, attendanceStatus, setAttendanceStatus }: Readonly<Props>) => {
+    const { t } = useTranslation();
+
     const anyPresent = useMemo(
       () => Object.values(attendanceStatus).some(Boolean),
       [attendanceStatus]
@@ -61,13 +64,13 @@ export const StudentAttendancePicker = memo(
             marginBottom: 8
           }}
         >
-          <Text style={{ fontSize: 16 }}>Select Students</Text>
+          <Text style={{ fontSize: 16 }}>{t('students')}</Text>
 
           <Button
             mode='text'
             onPress={anyPresent ? unselectAll : selectAll}
           >
-            {anyPresent ? 'Unselect All' : 'Select All'}
+            {anyPresent ? t('unselectAll') : t('selectAll')}
           </Button>
         </View>
 
