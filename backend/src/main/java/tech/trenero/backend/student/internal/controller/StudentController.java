@@ -46,6 +46,15 @@ public class StudentController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
+  public Optional<StudentDto> editStudent(
+      @Argument("id") UUID id,
+      @Argument("input") @Valid CreateStudentInput input,
+      @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.updateStudent(id, input, jwtUser);
+  }
+
+  @MutationMapping
+  @PreAuthorize("isAuthenticated()")
   public Optional<StudentDto> deleteStudent(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.softDeleteStudent(id, jwtUser);

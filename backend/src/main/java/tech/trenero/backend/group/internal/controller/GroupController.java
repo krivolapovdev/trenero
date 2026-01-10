@@ -45,6 +45,15 @@ public class GroupController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
+  public Optional<GroupDto> editGroup(
+      @Argument("id") UUID id,
+      @Argument("input") @Valid CreateGroupInput input,
+      @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.updateGroup(id, input, jwtUser);
+  }
+
+  @MutationMapping
+  @PreAuthorize("isAuthenticated()")
   public Optional<GroupDto> deleteGroup(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.softDeleteGroup(id, jwtUser);

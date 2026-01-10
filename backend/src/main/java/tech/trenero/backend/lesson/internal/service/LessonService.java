@@ -1,5 +1,6 @@
 package tech.trenero.backend.lesson.internal.service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -75,7 +76,7 @@ public class LessonService {
         .findByIdAndOwnerId(lessonId, jwtUser.userId())
         .map(
             lesson -> {
-              lesson.setDeleted(true);
+              lesson.setDeletedAt(OffsetDateTime.now());
               return saveLesson(lesson);
             })
         .map(lessonMapper::toDto);

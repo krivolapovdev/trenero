@@ -11,5 +11,7 @@ public interface StudentSpi {
 
   Optional<StudentDto> getStudentById(UUID studentId, JwtUser jwtUser);
 
-  void setGroupIdToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser);
+  void assignGroupToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser);
+
+  void updateStudentsGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser);
 }

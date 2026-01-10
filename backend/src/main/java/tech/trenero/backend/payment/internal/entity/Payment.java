@@ -1,8 +1,9 @@
 package tech.trenero.backend.payment.internal.entity;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -16,6 +17,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(
@@ -29,8 +31,8 @@ import org.hibernate.annotations.CreationTimestamp;
 public class Payment {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
-  @Builder.Default
-  private UUID id = UuidCreator.getTimeOrderedEpoch();
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
   @Column(name = "owner_id", nullable = false, updatable = false)
   @NonNull
@@ -56,7 +58,10 @@ public class Payment {
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;
 
-  @Column(name = "deleted", nullable = false)
-  @Builder.Default
-  private boolean deleted = false;
+  @UpdateTimestamp
+  @Column(name = "updated_at", nullable = false)
+  private OffsetDateTime updatedAt;
+
+  @Column(name = "deleted_at")
+  private OffsetDateTime deletedAt;
 }

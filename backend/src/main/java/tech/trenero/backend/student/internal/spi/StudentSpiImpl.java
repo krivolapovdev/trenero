@@ -34,11 +34,34 @@ public class StudentSpiImpl implements StudentSpi {
   }
 
   @Override
-  public void setGroupIdToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
+  public void assignGroupToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
     if (groupId == null || studentIds == null || studentIds.isEmpty() || jwtUser == null) {
       return;
     }
 
-    studentService.setGroupIdToStudents(groupId, studentIds, jwtUser);
+    studentService.assignGroupToStudents(groupId, studentIds, jwtUser);
+  }
+
+  @Override
+  public void updateStudentsGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
+    if (groupId == null || studentIds == null || jwtUser == null) {
+      return;
+    }
+
+    List<UUID> currentStudentIds =
+        studentService.getStudentsByGroupId(groupId, jwtUser).stream().map(StudentDto::id).toList();
+
+    List<UUID> toRemove =
+        currentStudentIds.stream().filter(id -> !studentIds.contains(id)).toList();
+
+    List<UUID> toAdd = studentIds.stream().filter(id -> !currentStudentIds.contains(id)).toList();
+
+    if (!toRemove.isEmpty()) {
+      studentService.assignGroupToStudents(null, toRemove, jwtUser);
+    }
+
+    if (!toAdd.isEmpty()) {
+      studentService.assignGroupToStudents(groupId, toAdd, jwtUser);
+    }
   }
 }

@@ -54,15 +54,7 @@ public class AttendanceService {
     studentValidator.validateStudentIsPresentAndActive(input.studentId(), jwtUser);
     lessonValidator.validateLessonIsPresentAndActive(input.lessonId(), jwtUser);
 
-    Attendance attendance =
-        Attendance.builder()
-            .lessonId(input.lessonId())
-            .studentId(input.studentId())
-            .present(input.present())
-            .ownerId(jwtUser.userId())
-            .createdAt(OffsetDateTime.now())
-            .deleted(false)
-            .build();
+    Attendance attendance = attendanceMapper.toAttendance(input, jwtUser.userId());
 
     Attendance savedAttendance = saveAttendance(attendance);
 
@@ -76,7 +68,7 @@ public class AttendanceService {
         .findByIdAndOwnerId(attendanceId, jwtUser.userId())
         .map(
             attendance -> {
-              attendance.setDeleted(true);
+              attendance.setDeletedAt(OffsetDateTime.now());
               return saveAttendance(attendance);
             })
         .map(attendanceMapper::toDto);

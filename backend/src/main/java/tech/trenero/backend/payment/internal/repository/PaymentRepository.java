@@ -17,7 +17,7 @@ public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonN
           SELECT DISTINCT p
           FROM Payment AS p
           WHERE p.ownerId = :ownerId
-            AND p.deleted = false
+            AND p.deletedAt IS NULL
           ORDER BY p.createdAt DESC""")
   List<Payment> findAllByOwnerId(@Param("ownerId") UUID ownerId);
 
@@ -27,7 +27,7 @@ public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonN
           FROM Payment AS p
           WHERE p.studentId = :studentId
             AND p.ownerId = :ownerId
-            AND p.deleted = false
+            AND p.deletedAt IS NULL
           ORDER BY p.createdAt DESC""")
   List<Payment> findAllByStudentId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
@@ -37,7 +37,7 @@ public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonN
           SELECT p
           FROM Payment AS p
           WHERE p.id = :id
-            AND p.deleted = false
+            AND p.deletedAt IS NULL
             AND p.ownerId = :ownerId""")
   Optional<Payment> findByIdAndOwnerId(@Param("id") UUID id, @Param("ownerId") UUID ownerId);
 }

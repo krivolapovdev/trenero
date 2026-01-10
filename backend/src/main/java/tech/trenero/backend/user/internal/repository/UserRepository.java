@@ -17,7 +17,8 @@ public interface UserRepository extends JpaRepository<@NonNull OAuth2User, @NonN
           SELECT u
           FROM OAuth2User AS u
           WHERE u.provider = :provider
-            AND u.providerId = :providerId""")
+            AND u.providerId = :providerId
+            AND u.deletedAt IS NULL""")
   Optional<OAuth2User> findByProviderAndProviderId(
       @Param("provider") OAuth2Provider provider, @Param("providerId") String providerId);
 }

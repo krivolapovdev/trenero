@@ -66,7 +66,7 @@ public class JwtTokenProvider {
     try {
       Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
       return true;
-    } catch (JwtException | IllegalArgumentException _) {
+    } catch (JwtException | IllegalArgumentException ignored) {
       return false;
     }
   }

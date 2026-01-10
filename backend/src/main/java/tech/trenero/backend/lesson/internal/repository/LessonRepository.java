@@ -18,7 +18,7 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
         SELECT l
         FROM Lesson AS l
         WHERE l.ownerId = :ownerId
-          AND l.deleted = false
+          AND l.deletedAt IS NULL
         ORDER BY l.createdAt DESC""")
   List<Lesson> findAllByOwnerId(@Param("ownerId") UUID ownerId);
 
@@ -37,7 +37,7 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
         SELECT l
         FROM Lesson AS l
         WHERE l.id = :lessonId
-          AND l.deleted = false
+          AND l.deletedAt IS NULL
           AND l.ownerId = :ownerId""")
   Optional<Lesson> findByIdAndOwnerId(
       @Param("lessonId") UUID lessonId, @Param("ownerId") UUID ownerId);
@@ -47,7 +47,7 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
         SELECT l
         FROM Lesson AS l
         WHERE l.groupId = :groupId
-          AND l.deleted = false
+          AND l.deletedAt IS NULL
           AND l.ownerId = :ownerId
         ORDER BY l.startDateTime DESC
         LIMIT 1""")

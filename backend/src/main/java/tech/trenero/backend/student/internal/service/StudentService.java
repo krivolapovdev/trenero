@@ -1,5 +1,7 @@
 package tech.trenero.backend.student.internal.service;
 
+import jakarta.validation.Valid;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,7 +61,7 @@ public class StudentService {
         .findByIdAndOwnerId(id, jwtUser.userId())
         .map(
             student -> {
-              student.setDeleted(true);
+              student.setDeletedAt(OffsetDateTime.now());
               return saveStudent(student);
             })
         .map(studentMapper::toStudentDto);
@@ -74,9 +76,9 @@ public class StudentService {
   }
 
   @Transactional
-  public void setGroupIdToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
+  public void assignGroupToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
     log.info(
-        "Setting groupId={} to students={} for ownerId={}", groupId, studentIds, jwtUser.userId());
+        "Assign groupId={} to students={} for ownerId={}", groupId, studentIds, jwtUser.userId());
 
     groupValidator.validateGroupIsPresentAndActive(groupId, jwtUser);
 
@@ -86,11 +88,30 @@ public class StudentService {
     log.info("Updated {} students with new groupId={}", updatedCount, groupId);
   }
 
+  @Transactional(readOnly = true)
   public List<StudentDto> getStudentListByIds(List<UUID> studentIds, JwtUser jwtUser) {
     log.info("Getting students by ids={} for ownerId={}", studentIds, jwtUser.userId());
     return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
         .map(studentMapper::toStudentDto)
         .toList();
+  }
+
+  @Transactional
+  public Optional<StudentDto> updateStudent(
+      UUID studentId, @Valid CreateStudentInput input, JwtUser jwtUser) {
+    return studentRepository
+        .findByIdAndOwnerId(studentId, jwtUser.userId())
+        .map(
+            student -> {
+              student.setFullName(input.fullName());
+              student.setNote(input.note());
+              student.setGroupId(input.groupId());
+              student.setPhone(input.phone());
+              student.setBirthdate(input.birthdate());
+              return student;
+            })
+        .map(this::saveStudent)
+        .map(studentMapper::toStudentDto);
   }
 
   private Student saveStudent(Student student) {

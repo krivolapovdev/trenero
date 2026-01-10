@@ -1,19 +1,23 @@
 package tech.trenero.backend.user.internal.entity;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import tech.trenero.backend.common.enums.OAuth2Provider;
 
 @Entity
@@ -28,8 +32,8 @@ import tech.trenero.backend.common.enums.OAuth2Provider;
 public class OAuth2User {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
-  @Builder.Default
-  private UUID id = UuidCreator.getTimeOrderedEpoch();
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "provider", nullable = false, updatable = false)
@@ -43,4 +47,15 @@ public class OAuth2User {
   @Column(name = "email", nullable = false)
   @NonNull
   private String email;
+
+  @CreationTimestamp
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private OffsetDateTime createdAt;
+
+  @UpdateTimestamp
+  @Column(name = "updated_at", nullable = false)
+  private OffsetDateTime updatedAt;
+
+  @Column(name = "deleted_at")
+  private OffsetDateTime deletedAt;
 }

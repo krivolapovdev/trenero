@@ -1,5 +1,7 @@
 package tech.trenero.backend.group.internal.service;
 
+import jakarta.validation.Valid;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,9 +49,28 @@ public class GroupService {
     Group group = groupMapper.toGroup(input, jwtUser.userId());
     Group saveGroup = saveGroup(group);
 
-    studentSpi.setGroupIdToStudents(saveGroup.getId(), input.studentIds(), jwtUser);
+    studentSpi.assignGroupToStudents(saveGroup.getId(), input.studentIds(), jwtUser);
 
     return groupMapper.toGroupDto(saveGroup);
+  }
+
+  @Transactional
+  public Optional<GroupDto> updateGroup(
+      UUID groupId, @Valid CreateGroupInput input, JwtUser jwtUser) {
+    return groupRepository
+        .findByIdAndOwnerId(groupId, jwtUser.userId())
+        .map(
+            group -> {
+              group.setName(input.name());
+              group.setDefaultPrice(input.defaultPrice());
+              group.setNote(input.note());
+
+              studentSpi.updateStudentsGroup(groupId, input.studentIds(), jwtUser);
+
+              return group;
+            })
+        .map(this::saveGroup)
+        .map(groupMapper::toGroupDto);
   }
 
   @Transactional
@@ -59,7 +80,7 @@ public class GroupService {
         .findByIdAndOwnerId(id, jwtUser.userId())
         .map(
             group -> {
-              group.setDeleted(true);
+              group.setDeletedAt(OffsetDateTime.now());
               return saveGroup(group);
             })
         .map(groupMapper::toGroupDto);

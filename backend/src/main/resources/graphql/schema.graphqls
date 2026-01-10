@@ -26,18 +26,23 @@ type Mutation {
     refreshTokens(input: RefreshTokenInput!): JwtTokens!
 
     createStudent(input: CreateStudentInput!): Student!
+    editStudent(id: UUID!, input: CreateStudentInput!): Student
     deleteStudent(id: UUID!): Student
 
     createGroup(input: CreateGroupInput!): Group!
+    editGroup(id: UUID!, input: CreateGroupInput!): Group
     deleteGroup(id: UUID!): Group
 
     createLesson(input: CreateLessonInput!): Lesson!
+    editLesson(id: UUID!, input: CreateLessonInput!): Lesson
     deleteLesson(id: UUID!): Lesson
 
     createAttendance(input: CreateAttendanceInput!): Attendance!
+    editAttendance(id: UUID!, input: CreateAttendanceInput!): Attendance
     deleteAttendance(id: UUID!): Attendance
 
     createPayment(input: CreatePaymentInput!): Payment!
+    editPayment(id: UUID!, input: CreatePaymentInput!): Payment
     deletePayment(id: UUID!): Payment
 }
 

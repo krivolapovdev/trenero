@@ -1,5 +1,6 @@
 package tech.trenero.backend.payment.internal.service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,7 +68,7 @@ public class PaymentService {
         .findByIdAndOwnerId(id, jwtUser.userId())
         .map(
             payment -> {
-              payment.setDeleted(true);
+              payment.setDeletedAt(OffsetDateTime.now());
               return savePayment(payment);
             })
         .map(paymentMapper::toPaymentDto);
