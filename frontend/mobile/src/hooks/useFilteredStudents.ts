@@ -1,7 +1,7 @@
-import {useDeferredValue, useMemo} from 'react';
-import type {GetStudentsQuery} from '@/src/graphql/__generated__/graphql';
-import {getStudentStatuses} from '@/src/helpers/getStudentStatuses';
-import type {StudentStatus} from '@/src/types/student';
+import { useDeferredValue, useMemo } from 'react';
+import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
+import { getStudentStatuses } from '@/src/helpers/getStudentStatuses';
+import type { StudentStatus } from '@/src/types/student';
 
 export function useFilteredStudents(
   students: GetStudentsQuery['students'],
@@ -13,7 +13,7 @@ export function useFilteredStudents(
 
   return useMemo(
     () =>
-        students.filter(student => {
+      students.filter(student => {
         if (
           deferredQuery &&
           !student.fullName.toLowerCase().includes(deferredQuery)
@@ -25,16 +25,16 @@ export function useFilteredStudents(
           return false;
         }
 
-          if (filterStatus) {
-            const statuses = getStudentStatuses(student);
+        if (filterStatus) {
+          const statuses = getStudentStatuses(student);
 
-            if (!statuses.has(filterStatus)) {
-              return false;
-            }
+          if (!statuses.has(filterStatus)) {
+            return false;
           }
+        }
 
-          return true;
+        return true;
       }),
-      [students, deferredQuery, filterGroup, filterStatus]
+    [students, deferredQuery, filterGroup, filterStatus]
   );
 }

@@ -11,10 +11,12 @@ export default function StudentsLayout() {
         name='index'
         options={{ headerShown: false }}
       />
+
       <Stack.Screen
         name='[id]'
         options={{ headerShown: false }}
       />
+
       <Stack.Screen
         name='create'
         options={{ headerShown: false }}

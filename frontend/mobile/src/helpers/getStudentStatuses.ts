@@ -1,14 +1,14 @@
 import dayjs from 'dayjs';
-import type {GetStudentsQuery} from '@/src/graphql/__generated__/graphql';
-import type {StudentStatus} from '@/src/types/student';
+import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
+import type { StudentStatus } from '@/src/types/student';
 
 export function getStudentStatuses(
-    student: Pick<
-        GetStudentsQuery['students'][number],
-        'attendances' | 'payments'
-    >
+  student: Pick<
+    GetStudentsQuery['students'][number],
+    'attendances' | 'payments'
+  >
 ): Set<StudentStatus> {
-  const {attendances = [], payments = []} = student;
+  const { attendances = [], payments = [] } = student;
 
   if (attendances.length === 0 && payments.length === 0) {
     return new Set(['no_activity']);
@@ -17,15 +17,15 @@ export function getStudentStatuses(
   const statuses = new Set<StudentStatus>();
 
   const lastAttendance =
-      attendances.length > 0
-          ? attendances.reduce((latest, current) =>
-              dayjs(current.lesson.startDateTime).isAfter(
-                  latest.lesson.startDateTime
-              )
-                  ? current
-                  : latest
+    attendances.length > 0
+      ? attendances.reduce((latest, current) =>
+          dayjs(current.lesson.startDateTime).isAfter(
+            latest.lesson.startDateTime
           )
-          : null;
+            ? current
+            : latest
+        )
+      : null;
 
   if (lastAttendance) {
     statuses.add(lastAttendance.present ? 'present' : 'missing');

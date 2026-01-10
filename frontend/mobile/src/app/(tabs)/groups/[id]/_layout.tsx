@@ -1,4 +1,4 @@
-import {Stack} from 'expo-router';
+import { Stack } from 'expo-router';
 
 export default function GroupByIdLayout() {
   return (
@@ -9,6 +9,11 @@ export default function GroupByIdLayout() {
     >
       <Stack.Screen
         name='index'
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name='edit'
         options={{ headerShown: false }}
       />
     </Stack>

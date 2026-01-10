@@ -47,10 +47,6 @@ export default function StudentByIdScreen() {
     onError: err => Alert.alert(t('error'), err.message)
   });
 
-  const handleEditPress = () => {
-    console.log('Edit pressed');
-  };
-
   const handleDeletePress = () => {
     Alert.alert(t('deleteStudent'), t('deleteStudentConfirmation'), [
       { text: t('cancel'), style: 'cancel' },
@@ -85,7 +81,7 @@ export default function StudentByIdScreen() {
           },
           {
             icon: 'account-edit',
-            onPress: () => handleEditPress(),
+            onPress: () => router.push(`/(tabs)/students/${id}/edit`),
             disabled: loading || resultDeleteStudent.loading
           },
           {

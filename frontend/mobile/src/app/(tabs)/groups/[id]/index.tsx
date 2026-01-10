@@ -47,10 +47,6 @@ export default function GroupByIdScreen() {
     onError: err => Alert.alert(t('error'), err.message)
   });
 
-  const handleEditPress = () => {
-    console.log('Edit pressed');
-  };
-
   const handleDeletePress = () => {
     Alert.alert(t('deleteGroup'), t('deleteGroupConfirmation'), [
       { text: t('cancel'), style: 'cancel' },
@@ -85,7 +81,7 @@ export default function GroupByIdScreen() {
           },
           {
             icon: 'account-edit',
-            onPress: () => handleEditPress(),
+            onPress: () => router.push(`/(tabs)/groups/${id}/edit`),
             disabled: loading || resultDeleteGroup.loading
           },
           {
@@ -138,7 +134,10 @@ export default function GroupByIdScreen() {
 
                 {group.students.map(student => (
                   <View key={student.fullName}>
-                    <List.Item title={student.fullName} />
+                    <List.Item
+                      title={student.fullName}
+                      onPress={() => router.push(`/students/${student.id}`)}
+                    />
                     <Divider />
                   </View>
                 ))}

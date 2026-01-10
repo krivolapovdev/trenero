@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 
 export const parsePastOrTodayDateFromInput = (
-    value: string
+  value: string
 ): dayjs.Dayjs | null => {
   const parsed = dayjs(value, 'DD/MM/YYYY', true);
 
