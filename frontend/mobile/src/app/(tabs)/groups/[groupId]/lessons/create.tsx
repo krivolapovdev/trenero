@@ -41,7 +41,7 @@ export default function CreateLessonScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { i18n, t } = useTranslation();
-  const { id: groupId } = useLocalSearchParams<{ id: string }>();
+  const { groupId } = useLocalSearchParams<{ groupId: string }>();
 
   const [startDateTime, setStartDateTime] = useState(dayjs());
   const [visibleTimePicker, setVisibleTimePicker] = useState(false);
@@ -119,7 +119,7 @@ export default function CreateLessonScreen() {
           }}
         >
           <Text
-            variant={'bodyLarge'}
+            variant='bodyLarge'
             onPress={() => setVisibleDatePicker(true)}
             style={{ color: theme.colors.primary }}
           >
@@ -127,7 +127,7 @@ export default function CreateLessonScreen() {
           </Text>
 
           <Text
-            variant={'bodyLarge'}
+            variant='bodyLarge'
             onPress={() => setVisibleTimePicker(true)}
             style={{ color: theme.colors.primary }}
           >
@@ -146,9 +146,9 @@ export default function CreateLessonScreen() {
 
       <TimePickerModal
         locale={i18n.language}
-        label={' '}
+        label=' '
         visible={visibleTimePicker}
-        defaultInputType={'keyboard'}
+        defaultInputType='keyboard'
         onDismiss={() => setVisibleTimePicker(false)}
         onConfirm={({ hours, minutes }) => {
           setStartDateTime(prev =>
@@ -164,7 +164,7 @@ export default function CreateLessonScreen() {
       <DatePickerModal
         locale={i18n.language}
         startWeekOnMonday={true}
-        label={' '}
+        label=' '
         mode='single'
         visible={visibleDatePicker}
         onDismiss={() => setVisibleDatePicker(false)}

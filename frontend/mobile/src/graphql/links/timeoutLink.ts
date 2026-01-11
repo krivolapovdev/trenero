@@ -1,6 +1,6 @@
 import { ApolloLink, Observable } from '@apollo/client';
 
-const DEFAULT_TIMEOUT = 10000;
+const DEFAULT_TIMEOUT = 10_000;
 
 export const timeoutLink = new ApolloLink((operation, forward) => {
   const timeout = operation.getContext().timeout || DEFAULT_TIMEOUT;

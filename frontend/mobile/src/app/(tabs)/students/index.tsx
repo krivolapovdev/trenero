@@ -56,7 +56,7 @@ export default function StudentsScreen() {
     <>
       <CustomAppbar
         title={t('students')}
-        mode={'center-aligned'}
+        mode='center-aligned'
         badgeCount={filteredStudents.length}
         rightActions={[
           {

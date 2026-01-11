@@ -11,7 +11,7 @@ export function getStudentStatuses(
   const { attendances = [], payments = [] } = student;
 
   if (attendances.length === 0 && payments.length === 0) {
-    return new Set(['no_activity']);
+    return new Set(['noActivity']);
   }
 
   const statuses = new Set<StudentStatus>();

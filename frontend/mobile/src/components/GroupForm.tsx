@@ -21,7 +21,7 @@ export type GroupFormValues = {
 
 type Props = {
   title: string;
-  initialData?: GetGroupQuery['group'] | null;
+  initialData?: Partial<GetGroupQuery['group']> | null;
   onSubmit: (values: GroupFormValues) => void;
   onBack: () => void;
   loading: boolean;
@@ -121,7 +121,7 @@ export const GroupForm = ({
 
         <CustomTextInput
           label={t('defaultPrice')}
-          placeholder={'123.45'}
+          placeholder='123.45'
           value={defaultPrice}
           onChangeText={text => setDefaultPrice(formatPriceInput(text))}
           keyboardType='decimal-pad'
@@ -141,7 +141,7 @@ export const GroupForm = ({
         {studentItems.length > 0 && (
           <PaperSelect
             label={t('students')}
-            textInputMode={'outlined'}
+            textInputMode='outlined'
             value={students.value}
             arrayList={students.list}
             textInputOutlineStyle={{ borderRadius: 10, borderWidth: 0 }}

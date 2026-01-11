@@ -52,7 +52,7 @@ export const CustomCalendar = memo(({ items }: Readonly<Props>) => {
         markedDates={markedDates}
         hideExtraDays={true}
         hideArrows={true}
-        monthFormat={'MM/yyyy'}
+        monthFormat='MM/yyyy'
         theme={{
           backgroundColor: theme.colors.surface,
           calendarBackground: theme.colors.surface

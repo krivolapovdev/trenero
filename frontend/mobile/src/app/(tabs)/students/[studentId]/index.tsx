@@ -20,18 +20,18 @@ const DELETE_STUDENT = graphql(`
 `);
 
 export default function StudentByIdScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { studentId } = useLocalSearchParams<{ studentId: string }>();
   const theme = useAppTheme();
   const router = useRouter();
   const { t } = useTranslation();
 
   const { data, loading, error, refetch } = useQuery(GET_STUDENT, {
-    variables: { id },
+    variables: { id: studentId },
     fetchPolicy: 'cache-first'
   });
 
   const [deleteStudent, resultDeleteStudent] = useMutation(DELETE_STUDENT, {
-    variables: { id },
+    variables: { id: studentId },
 
     update(cache, { data }) {
       if (!data?.deleteStudent) {
@@ -76,12 +76,12 @@ export default function StudentByIdScreen() {
           {
             icon: 'account-cash',
             onPress: () =>
-              router.push(`/(tabs)/students/${id}/payments/create`),
+              router.push(`/(tabs)/students/${studentId}/payments/create`),
             disabled: loading || resultDeleteStudent.loading
           },
           {
             icon: 'account-edit',
-            onPress: () => router.push(`/(tabs)/students/${id}/edit`),
+            onPress: () => router.push(`/(tabs)/students/${studentId}/edit`),
             disabled: loading || resultDeleteStudent.loading
           },
           {

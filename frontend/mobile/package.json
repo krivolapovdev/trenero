@@ -6,7 +6,7 @@
     "start": "expo start --clear",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "biome": "biome check --write",
+    "biome": "biome check --write --unsafe",
     "codegen": "graphql-codegen --config codegen.ts",
     "codegen:watch": "npm run codegen -- --watch"
   },

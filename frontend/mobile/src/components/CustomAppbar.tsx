@@ -51,7 +51,7 @@ export const CustomAppbar = memo(
           title={
             <View>
               <Text variant='titleLarge'>{title}</Text>
-              {!!badgeCount && badgeCount > 0 && (
+              {Boolean(badgeCount) && badgeCount > 0 && (
                 <Badge
                   style={[
                     styles.badge,

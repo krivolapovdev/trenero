@@ -127,7 +127,7 @@ export const StudentForm = ({
           value={note}
           onChangeText={setNote}
           maxLength={1023}
-          multiline
+          multiline={true}
           right={<TextInput.Affix text={`${note.length}/1023`} />}
           disabled={loading}
         />

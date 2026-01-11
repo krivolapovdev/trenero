@@ -11,6 +11,7 @@ export default function LessonsLayout() {
         name='index'
         options={{ headerShown: false }}
       />
+
       <Stack.Screen
         name='create'
         options={{ headerShown: false }}

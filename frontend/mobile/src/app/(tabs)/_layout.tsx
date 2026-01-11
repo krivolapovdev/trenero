@@ -19,7 +19,7 @@ export default function TabsLayout() {
     return <LoadingSpinner />;
   }
 
-  const TAB_CONFIG = [
+  const TabConfig = [
     {
       name: 'index',
       title: t('statistics'),
@@ -53,7 +53,7 @@ export default function TabsLayout() {
         animation: 'fade',
         transitionSpec: {
           animation: 'timing',
-          config: { duration: 300 }
+          config: { duration: 200 }
         }
       }}
       tabBar={({ navigation, state, descriptors, insets }) => (
@@ -90,7 +90,7 @@ export default function TabsLayout() {
         />
       )}
     >
-      {TAB_CONFIG.map(({ name, title, icon, iconOutline }) => (
+      {TabConfig.map(({ name, title, icon, iconOutline }) => (
         <Tabs.Screen
           key={name}
           name={name}

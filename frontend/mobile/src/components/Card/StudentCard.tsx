@@ -25,10 +25,10 @@ export const StudentCard = ({
   const badges = useMemo(() => {
     const result = [];
 
-    if (statuses.has('no_activity')) {
+    if (statuses.has('noActivity')) {
       result.push({
         id: nanoid(),
-        label: t('studentStatus.no_activity'),
+        label: t('studentStatus.noActivity'),
         backgroundColor: theme.colors.primary,
         textColor: theme.colors.onPrimary
       });

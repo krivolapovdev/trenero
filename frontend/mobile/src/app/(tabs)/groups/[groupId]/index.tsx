@@ -20,18 +20,18 @@ const DELETE_GROUP = graphql(`
 `);
 
 export default function GroupByIdScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const theme = useAppTheme();
   const router = useRouter();
   const { t } = useTranslation();
 
   const { data, loading, error, refetch } = useQuery(GET_GROUP, {
-    variables: { id },
+    variables: { id: groupId },
     fetchPolicy: 'cache-first'
   });
 
   const [deleteGroup, resultDeleteGroup] = useMutation(DELETE_GROUP, {
-    variables: { id },
+    variables: { id: groupId },
 
     update(cache, { data }) {
       if (!data?.deleteGroup) {
@@ -76,12 +76,12 @@ export default function GroupByIdScreen() {
         rightActions={[
           {
             icon: 'calendar-plus',
-            onPress: () => router.push(`/groups/${id}/lessons/create`),
+            onPress: () => router.push(`/groups/${groupId}/lessons/create`),
             disabled: loading || resultDeleteGroup.loading
           },
           {
             icon: 'account-edit',
-            onPress: () => router.push(`/(tabs)/groups/${id}/edit`),
+            onPress: () => router.push(`/(tabs)/groups/${groupId}/edit`),
             disabled: loading || resultDeleteGroup.loading
           },
           {

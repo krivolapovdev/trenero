@@ -62,7 +62,7 @@ export const StudentSearchbarWithFilter = memo(
     const statusItems = useMemo(
       () => [
         ALL_ITEM,
-        { id: 'no_activity', name: t('studentStatus.no_activity') },
+        { id: 'noActivity', name: t('studentStatus.noActivity') },
         { id: 'present', name: t('studentStatus.present') },
         { id: 'missing', name: t('studentStatus.missing') },
         { id: 'paid', name: t('studentStatus.paid') },
@@ -113,7 +113,7 @@ export const StudentSearchbarWithFilter = memo(
           onChange={onChange}
           onClearIconPress={onClearIconPress}
           onFilterPress={handleOpen}
-          hasActiveFilters={!!filterGroup || !!filterStatus}
+          hasActiveFilters={Boolean(filterGroup) || Boolean(filterStatus)}
         />
 
         <CustomBottomSheet

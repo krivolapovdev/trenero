@@ -25,9 +25,9 @@ const EDIT_GROUP = graphql(`
 export default function EditGroupScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { groupId } = useLocalSearchParams<{ groupId: string }>();
 
-  const { data } = useQuery(GET_GROUP, { variables: { id } });
+  const { data } = useQuery(GET_GROUP, { variables: { id: groupId } });
 
   const [editGroup, { loading }] = useMutation(EDIT_GROUP, {
     update(cache, { data }) {
@@ -60,22 +60,14 @@ export default function EditGroupScreen() {
     }
   });
 
-  const handleSubmit = ({
-    name,
-    defaultPrice,
-    note,
-    studentIds
-  }: GroupFormValues) => {
+  const handleSubmit = (values: GroupFormValues) => {
     const input: CreateGroupInput = {
-      name,
-      defaultPrice,
-      note,
-      studentIds
+      ...values
     };
 
     void editGroup({
       variables: {
-        id,
+        id: groupId,
         input
       }
     });

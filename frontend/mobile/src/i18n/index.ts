@@ -52,7 +52,7 @@ const resources = {
       enterLessonsError: 'Please enter the number of lessons',
       invalidDateError: 'Invalid date format',
       studentStatus: {
-        no_activity: 'No activity',
+        noActivity: 'No activity',
         present: 'Present',
         missing: 'Missing',
         paid: 'Paid',
@@ -125,7 +125,7 @@ const resources = {
       enterLessonsError: 'Пожалуйста, введите количество занятий',
       invalidDateError: 'Неверный формат даты',
       studentStatus: {
-        no_activity: 'Нет активности',
+        noActivity: 'Нет активности',
         present: 'Посетил',
         missing: 'Пропустил',
         paid: 'Оплачено',

@@ -7,16 +7,8 @@ import { Text } from 'react-native-paper';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { RoundedBarChart } from '@/src/components/RoundedBarChart';
-import { graphql } from '@/src/graphql/__generated__';
+import { GET_PAYMENTS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-
-const GET_PAYMENTS = graphql(`
-    query GetPayments {
-        payments {
-            ...PaymentFields
-        }
-    }
-`);
 
 export default function StatisticsScreen() {
   const theme = useAppTheme();
@@ -73,13 +65,13 @@ export default function StatisticsScreen() {
           }}
         >
           <Text
-            variant={'bodyLarge'}
+            variant='bodyLarge'
             style={{ color: theme.colors.primary }}
           >
             {selectedBar.format('MM/YYYY')}
           </Text>
 
-          <Text variant={'bodyLarge'}>
+          <Text variant='bodyLarge'>
             +
             {monthlyData.find(m => m.date.isSame(selectedBar, 'month'))
               ?.value || 0}

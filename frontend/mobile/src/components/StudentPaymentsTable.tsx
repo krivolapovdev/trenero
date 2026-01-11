@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
@@ -13,6 +14,8 @@ type Props = {
 export const StudentPaymentsTable = memo(
   ({ payments, itemsPerPage = 5 }: Readonly<Props>) => {
     const { t } = useTranslation();
+    const { studentId } = useLocalSearchParams<{ studentId: string }>();
+    const router = useRouter();
     const theme = useTheme();
 
     const [page, setPage] = useState(0);
@@ -46,25 +49,32 @@ export const StudentPaymentsTable = memo(
             </DataTable.Title>
             <DataTable.Title
               textStyle={{ fontSize: 15 }}
-              numeric
+              numeric={true}
             >
               🎫
             </DataTable.Title>
             <DataTable.Title
               textStyle={{ fontSize: 15 }}
-              numeric
+              numeric={true}
             >
               💲
             </DataTable.Title>
           </DataTable.Header>
 
           {sortedPayments.slice(from, to).map(pay => (
-            <DataTable.Row key={pay.id}>
+            <DataTable.Row
+              key={pay.id}
+              onPress={() =>
+                router.push(`/(tabs)/students/${studentId}/payments/${pay.id}`)
+              }
+            >
               <DataTable.Cell>
                 {dayjs(pay.date).format('DD/MM/YYYY')}
               </DataTable.Cell>
-              <DataTable.Cell numeric>{pay.lessonsPerPayment}</DataTable.Cell>
-              <DataTable.Cell numeric>{pay.amount}</DataTable.Cell>
+              <DataTable.Cell numeric={true}>
+                {pay.lessonsPerPayment}
+              </DataTable.Cell>
+              <DataTable.Cell numeric={true}>{pay.amount}</DataTable.Cell>
             </DataTable.Row>
           ))}
 

@@ -45,7 +45,7 @@ export default function GroupsScreen() {
     <>
       <CustomAppbar
         title={t('groups')}
-        mode={'center-aligned'}
+        mode='center-aligned'
         badgeCount={filteredGroups.length}
         rightActions={[
           {

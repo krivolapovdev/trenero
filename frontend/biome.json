@@ -25,7 +25,29 @@
     "rules": {
       "recommended": true,
       "style": {
-        "useBlockStatements": "warn"
+        "noImplicitBoolean": "warn",
+        "noYodaExpression": "warn",
+        "noUselessElse": "warn",
+        "noNestedTernary": "warn",
+        "useGroupedAccessorPairs": "warn",
+        "useNumberNamespace": "warn",
+        "useNumericSeparators": "warn",
+        "useReactFunctionComponents": "warn",
+        "useSelfClosingElements": "warn"
+      },
+      "complexity": {
+        "noImplicitCoercions": "warn"
+      },
+      "correctness": {
+        "noReactPropAssignments": "warn"
+      },
+      "performance": {
+        "noAwaitInLoops": "warn"
+      },
+      "suspicious": {
+        "noBitwiseOperators": "warn",
+        "noConstantBinaryExpressions": "warn",
+        "noEmptyBlockStatements": "warn"
       }
     }
   },

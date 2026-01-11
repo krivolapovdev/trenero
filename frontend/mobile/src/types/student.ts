@@ -1,5 +1,5 @@
 export type StudentStatus =
-  | 'no_activity'
+  | 'noActivity'
   | 'present'
   | 'missing'
   | 'paid'

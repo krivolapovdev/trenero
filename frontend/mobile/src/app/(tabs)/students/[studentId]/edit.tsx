@@ -28,9 +28,9 @@ const EDIT_STUDENT = graphql(`
 export default function EditStudentScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { studentId } = useLocalSearchParams<{ studentId: string }>();
 
-  const { data } = useQuery(GET_STUDENT, { variables: { id } });
+  const { data } = useQuery(GET_STUDENT, { variables: { id: studentId } });
 
   const [editStudent, { loading }] = useMutation(EDIT_STUDENT, {
     update(cache, { data }) {
@@ -79,7 +79,7 @@ export default function EditStudentScreen() {
       groupId
     };
 
-    void editStudent({ variables: { id, input } });
+    void editStudent({ variables: { id: studentId, input } });
   };
 
   if (!data?.student) {
