@@ -52,13 +52,22 @@ public class PaymentService {
   public PaymentDto createPayment(CreatePaymentInput input, JwtUser jwtUser) {
     log.info("Creating payment {}", input);
 
-    studentValidator.validateStudentIsPresentAndActive(input.studentId(), jwtUser);
+    studentValidator.validateStudentId(input.studentId(), jwtUser);
 
     Payment payment = paymentMapper.toPayment(input, jwtUser.userId());
 
     Payment savedPayment = savePayment(payment);
 
     return paymentMapper.toPaymentDto(savedPayment);
+  }
+
+  @Transactional
+  public Optional<PaymentDto> editPayment(UUID id, CreatePaymentInput input, JwtUser jwtUser) {
+    return paymentRepository
+        .findByIdAndOwnerId(id, jwtUser.userId())
+        .map(pay -> paymentMapper.editPayment(pay, input))
+        .map(this::savePayment)
+        .map(paymentMapper::toPaymentDto);
   }
 
   @Transactional

@@ -51,7 +51,7 @@ public class AttendanceService {
         input.present(),
         jwtUser.userId());
 
-    studentValidator.validateStudentIsPresentAndActive(input.studentId(), jwtUser);
+    studentValidator.validateStudentId(input.studentId(), jwtUser);
     lessonValidator.validateLessonIsPresentAndActive(input.lessonId(), jwtUser);
 
     Attendance attendance = attendanceMapper.toAttendance(input, jwtUser.userId());

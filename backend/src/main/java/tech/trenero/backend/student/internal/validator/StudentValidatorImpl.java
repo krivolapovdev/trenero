@@ -19,8 +19,7 @@ public class StudentValidatorImpl implements StudentValidator {
   private final StudentService studentService;
 
   @Override
-  public void validateStudentIsPresentAndActive(UUID studentId, JwtUser jwtUser)
-      throws EntityNotFoundException {
+  public void validateStudentId(UUID studentId, JwtUser jwtUser) throws EntityNotFoundException {
     Objects.requireNonNull(studentId, "studentId is required");
     Objects.requireNonNull(jwtUser, "jwtUser is required");
 

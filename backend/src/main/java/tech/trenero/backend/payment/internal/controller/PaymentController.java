@@ -46,6 +46,15 @@ public class PaymentController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
+  public Optional<PaymentDto> editPayment(
+      @Argument("id") UUID id,
+      @Argument("input") @Valid CreatePaymentInput input,
+      @AuthenticationPrincipal JwtUser jwtUser) {
+    return paymentService.editPayment(id, input, jwtUser);
+  }
+
+  @MutationMapping
+  @PreAuthorize("isAuthenticated()")
   public Optional<PaymentDto> deletePayment(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return paymentService.softDeletePayment(id, jwtUser);
