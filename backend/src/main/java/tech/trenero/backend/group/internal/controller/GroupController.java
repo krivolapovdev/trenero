@@ -49,7 +49,7 @@ public class GroupController {
       @Argument("id") UUID id,
       @Argument("input") @Valid CreateGroupInput input,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.updateGroup(id, input, jwtUser);
+    return groupService.editGroup(id, input, jwtUser);
   }
 
   @MutationMapping

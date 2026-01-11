@@ -1,5 +1,6 @@
 package tech.trenero.backend.lesson.internal.service;
 
+import jakarta.validation.Valid;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -70,6 +71,15 @@ public class LessonService {
   }
 
   @Transactional
+  public Optional<LessonDto> editLesson(UUID id, @Valid CreateLessonInput input, JwtUser jwtUser) {
+    return lessonRepository
+        .findByIdAndOwnerId(id, jwtUser.userId())
+        .map(lesson -> lessonMapper.editLesson(lesson, input))
+        .map(this::saveLesson)
+        .map(lessonMapper::toDto);
+  }
+
+  @Transactional
   public Optional<LessonDto> softDeleteLesson(UUID lessonId, JwtUser jwtUser) {
     log.info("Soft deleting lesson: {}", lessonId);
     return lessonRepository
@@ -82,6 +92,7 @@ public class LessonService {
         .map(lessonMapper::toDto);
   }
 
+  @Transactional(readOnly = true)
   public List<LessonDto> getLessonsByGroupId(UUID groupId, JwtUser jwtUser) {
     log.info("Getting lessons by groupId={} for ownerId={}", groupId, jwtUser.userId());
     return lessonRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
@@ -89,6 +100,7 @@ public class LessonService {
         .toList();
   }
 
+  @Transactional(readOnly = true)
   public Optional<LessonDto> getLastLessonByGroupId(UUID groupId, JwtUser jwtUser) {
     log.info("Getting last lesson by groupId={} for ownerId={}", groupId, jwtUser.userId());
     return lessonRepository.findLastLesson(groupId, jwtUser.userId());

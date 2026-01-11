@@ -97,19 +97,11 @@ public class StudentService {
   }
 
   @Transactional
-  public Optional<StudentDto> updateStudent(
+  public Optional<StudentDto> editStudent(
       UUID studentId, @Valid CreateStudentInput input, JwtUser jwtUser) {
     return studentRepository
         .findByIdAndOwnerId(studentId, jwtUser.userId())
-        .map(
-            student -> {
-              student.setFullName(input.fullName());
-              student.setNote(input.note());
-              student.setGroupId(input.groupId());
-              student.setPhone(input.phone());
-              student.setBirthdate(input.birthdate());
-              return student;
-            })
+        .map(student -> studentMapper.editStudent(student, input))
         .map(this::saveStudent)
         .map(studentMapper::toStudentDto);
   }

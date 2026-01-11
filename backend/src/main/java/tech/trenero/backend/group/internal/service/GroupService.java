@@ -55,20 +55,11 @@ public class GroupService {
   }
 
   @Transactional
-  public Optional<GroupDto> updateGroup(
+  public Optional<GroupDto> editGroup(
       UUID groupId, @Valid CreateGroupInput input, JwtUser jwtUser) {
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
-        .map(
-            group -> {
-              group.setName(input.name());
-              group.setDefaultPrice(input.defaultPrice());
-              group.setNote(input.note());
-
-              studentSpi.updateStudentsGroup(groupId, input.studentIds(), jwtUser);
-
-              return group;
-            })
+        .map(group -> groupMapper.editStudent(group, input))
         .map(this::saveGroup)
         .map(groupMapper::toGroupDto);
   }

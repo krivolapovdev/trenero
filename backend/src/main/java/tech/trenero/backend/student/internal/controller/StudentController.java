@@ -50,7 +50,7 @@ public class StudentController {
       @Argument("id") UUID id,
       @Argument("input") @Valid CreateStudentInput input,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.updateStudent(id, input, jwtUser);
+    return studentService.editStudent(id, input, jwtUser);
   }
 
   @MutationMapping

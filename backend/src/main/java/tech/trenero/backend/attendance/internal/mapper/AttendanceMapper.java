@@ -1,9 +1,12 @@
 package tech.trenero.backend.attendance.internal.mapper;
 
 import java.util.UUID;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import tech.trenero.backend.attendance.internal.entity.Attendance;
 import tech.trenero.backend.common.dto.AttendanceDto;
 import tech.trenero.backend.common.input.CreateAttendanceInput;
@@ -14,4 +17,7 @@ public interface AttendanceMapper {
 
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Attendance toAttendance(CreateAttendanceInput input, UUID ownerId);
+
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  Attendance editAttendance(@MappingTarget Attendance attendance, CreateAttendanceInput input);
 }

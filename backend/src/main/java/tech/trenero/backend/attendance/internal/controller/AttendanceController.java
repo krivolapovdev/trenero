@@ -46,6 +46,15 @@ public class AttendanceController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
+  public Optional<AttendanceDto> editAttendance(
+      @Argument("id") UUID id,
+      @Argument("input") @Valid CreateAttendanceInput input,
+      @AuthenticationPrincipal JwtUser jwtUser) {
+    return attendanceService.editAttendance(id, input, jwtUser);
+  }
+
+  @MutationMapping
+  @PreAuthorize("isAuthenticated()")
   public Optional<AttendanceDto> deleteAttendance(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return attendanceService.softDeleteAttendance(id, jwtUser);

@@ -1,5 +1,6 @@
 package tech.trenero.backend.attendance.internal.service;
 
+import jakarta.validation.Valid;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -62,6 +63,16 @@ public class AttendanceService {
   }
 
   @Transactional
+  public Optional<AttendanceDto> editAttendance(
+      UUID id, @Valid CreateAttendanceInput input, JwtUser jwtUser) {
+    return attendanceRepository
+        .findByIdAndOwnerId(id, jwtUser.userId())
+        .map(attendance -> attendanceMapper.editAttendance(attendance, input))
+        .map(this::saveAttendance)
+        .map(attendanceMapper::toDto);
+  }
+
+  @Transactional
   public Optional<AttendanceDto> softDeleteAttendance(UUID attendanceId, JwtUser jwtUser) {
     log.info("Soft deleting attendance: {}", attendanceId);
     return attendanceRepository
@@ -74,6 +85,7 @@ public class AttendanceService {
         .map(attendanceMapper::toDto);
   }
 
+  @Transactional(readOnly = true)
   public List<AttendanceDto> getAttendancesByStudentId(UUID studentId, JwtUser jwtUser) {
     log.info("Getting attendances by studentId={} for ownerId={}", studentId, jwtUser.userId());
     return attendanceRepository.findAllByStudentIdAndOwnerId(studentId, jwtUser.userId()).stream()
@@ -81,6 +93,7 @@ public class AttendanceService {
         .toList();
   }
 
+  @Transactional(readOnly = true)
   public Optional<AttendanceDto> getAttendanceByLessonId(
       UUID lessonId, UUID studentId, JwtUser jwtUser) {
     return attendanceRepository
@@ -88,6 +101,7 @@ public class AttendanceService {
         .map(attendanceMapper::toDto);
   }
 
+  @Transactional(readOnly = true)
   public List<AttendanceDto> getAttendancesByLessonId(UUID lessonId, JwtUser jwtUser) {
     log.info("Getting attendances by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
     return attendanceRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId()).stream()

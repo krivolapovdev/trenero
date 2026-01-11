@@ -45,6 +45,15 @@ public class LessonController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
+  public Optional<LessonDto> editLesson(
+      @Argument("id") UUID id,
+      @Argument("input") @Valid CreateLessonInput input,
+      @AuthenticationPrincipal JwtUser jwtUser) {
+    return lessonService.editLesson(id, input, jwtUser);
+  }
+
+  @MutationMapping
+  @PreAuthorize("isAuthenticated()")
   public Optional<LessonDto> deleteLesson(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return lessonService.softDeleteLesson(id, jwtUser);
