@@ -1,8 +1,10 @@
 package tech.trenero.backend.attendance.internal.spi;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -34,7 +36,9 @@ public class AttendanceSpiImpl implements AttendanceSpi {
     return lessonSpi
         .getLastLessonByGroupId(groupId, jwtUser)
         .flatMap(
-            lesson -> attendanceService.getAttendanceByLessonId(lesson.id(), studentId, jwtUser));
+            lesson ->
+                attendanceService.getAttendanceByLessonIdAndStudentId(
+                    lesson.id(), studentId, jwtUser));
   }
 
   @Override
@@ -79,5 +83,39 @@ public class AttendanceSpiImpl implements AttendanceSpi {
             .toList();
 
     attendanceService.saveAttendanceList(attendances);
+  }
+
+  @Override
+  public void editAttendancesByLessonId(
+      UUID lessonId, List<CreateAttendanceInput> input, JwtUser jwtUser) {
+    if (lessonId == null || input == null || jwtUser == null) {
+      return;
+    }
+
+    List<AttendanceDto> existingAttendances =
+        attendanceService.getAttendancesByLessonId(lessonId, jwtUser);
+
+    Map<UUID, AttendanceDto> existingMap =
+        existingAttendances.stream().collect(Collectors.toMap(AttendanceDto::studentId, a -> a));
+
+    List<Attendance> toUpdate =
+        input.stream()
+            .filter(in -> existingMap.containsKey(in.studentId()))
+            .map(in -> attendanceMapper.toAttendance(in, jwtUser.userId()))
+            .toList();
+
+    List<Attendance> toAdd =
+        input.stream()
+            .filter(in -> !existingMap.containsKey(in.studentId()))
+            .map(in -> attendanceMapper.toAttendance(in, jwtUser.userId()))
+            .toList();
+
+    if (!toUpdate.isEmpty()) {
+      attendanceService.saveAttendanceList(toUpdate);
+    }
+
+    if (!toAdd.isEmpty()) {
+      attendanceService.saveAttendanceList(toAdd);
+    }
   }
 }

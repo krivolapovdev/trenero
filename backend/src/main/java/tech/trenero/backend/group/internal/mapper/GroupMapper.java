@@ -18,6 +18,6 @@ public interface GroupMapper {
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Group toGroup(CreateGroupInput input, UUID ownerId);
 
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
   Group editStudent(@MappingTarget Group group, CreateGroupInput input);
 }

@@ -19,4 +19,6 @@ public interface AttendanceSpi {
       UUID groupId,
       List<CreateAttendanceInput> attendanceInputList,
       JwtUser jwtUser);
+
+  void editAttendancesByLessonId(UUID lessonId, List<CreateAttendanceInput> input, JwtUser jwtUser);
 }

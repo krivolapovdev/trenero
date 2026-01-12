@@ -43,6 +43,22 @@ public class AttendanceService {
         .map(attendanceMapper::toDto);
   }
 
+  @Transactional(readOnly = true)
+  public Optional<AttendanceDto> getAttendanceByLessonIdAndStudentId(
+      UUID lessonId, UUID studentId, JwtUser jwtUser) {
+    return attendanceRepository
+        .findByLessonIdAndStudentIdAndOwnerId(lessonId, studentId, jwtUser.userId())
+        .map(attendanceMapper::toDto);
+  }
+
+  @Transactional(readOnly = true)
+  public List<AttendanceDto> getAttendancesByLessonId(UUID lessonId, JwtUser jwtUser) {
+    log.info("Getting attendances by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
+    return attendanceRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId()).stream()
+        .map(attendanceMapper::toDto)
+        .toList();
+  }
+
   @Transactional
   public AttendanceDto createAttendance(CreateAttendanceInput input, JwtUser jwtUser) {
     log.info(
@@ -89,22 +105,6 @@ public class AttendanceService {
   public List<AttendanceDto> getAttendancesByStudentId(UUID studentId, JwtUser jwtUser) {
     log.info("Getting attendances by studentId={} for ownerId={}", studentId, jwtUser.userId());
     return attendanceRepository.findAllByStudentIdAndOwnerId(studentId, jwtUser.userId()).stream()
-        .map(attendanceMapper::toDto)
-        .toList();
-  }
-
-  @Transactional(readOnly = true)
-  public Optional<AttendanceDto> getAttendanceByLessonId(
-      UUID lessonId, UUID studentId, JwtUser jwtUser) {
-    return attendanceRepository
-        .findByLessonIdAndStudentIdAndOwnerId(lessonId, studentId, jwtUser.userId())
-        .map(attendanceMapper::toDto);
-  }
-
-  @Transactional(readOnly = true)
-  public List<AttendanceDto> getAttendancesByLessonId(UUID lessonId, JwtUser jwtUser) {
-    log.info("Getting attendances by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
-    return attendanceRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId()).stream()
         .map(attendanceMapper::toDto)
         .toList();
   }

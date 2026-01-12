@@ -57,6 +57,9 @@ public class GroupService {
   @Transactional
   public Optional<GroupDto> editGroup(
       UUID groupId, @Valid CreateGroupInput input, JwtUser jwtUser) {
+
+    studentSpi.editStudentsGroup(groupId, input.studentIds(), jwtUser);
+
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
         .map(group -> groupMapper.editStudent(group, input))

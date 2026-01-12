@@ -18,6 +18,6 @@ public interface StudentMapper {
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Student toStudent(CreateStudentInput input, UUID ownerId);
 
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
   Student editStudent(@MappingTarget Student student, CreateStudentInput input);
 }

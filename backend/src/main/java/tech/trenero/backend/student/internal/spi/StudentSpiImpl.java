@@ -43,7 +43,7 @@ public class StudentSpiImpl implements StudentSpi {
   }
 
   @Override
-  public void updateStudentsGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
+  public void editStudentsGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
     if (groupId == null || studentIds == null || jwtUser == null) {
       return;
     }

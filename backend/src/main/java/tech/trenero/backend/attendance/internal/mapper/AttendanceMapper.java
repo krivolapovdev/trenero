@@ -18,6 +18,6 @@ public interface AttendanceMapper {
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Attendance toAttendance(CreateAttendanceInput input, UUID ownerId);
 
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
   Attendance editAttendance(@MappingTarget Attendance attendance, CreateAttendanceInput input);
 }

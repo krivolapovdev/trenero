@@ -13,5 +13,5 @@ public interface StudentSpi {
 
   void assignGroupToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser);
 
-  void updateStudentsGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser);
+  void editStudentsGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser);
 }

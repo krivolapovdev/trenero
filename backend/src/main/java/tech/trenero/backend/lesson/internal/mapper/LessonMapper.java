@@ -18,6 +18,6 @@ public interface LessonMapper {
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Lesson toLesson(CreateLessonInput input, UUID ownerId);
 
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
   Lesson editLesson(@MappingTarget Lesson lesson, CreateLessonInput input);
 }

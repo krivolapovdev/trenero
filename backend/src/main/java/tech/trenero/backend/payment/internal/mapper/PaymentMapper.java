@@ -18,6 +18,6 @@ public interface PaymentMapper {
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Payment toPayment(CreatePaymentInput input, UUID ownerId);
 
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
   Payment editPayment(@MappingTarget Payment payment, CreatePaymentInput input);
 }

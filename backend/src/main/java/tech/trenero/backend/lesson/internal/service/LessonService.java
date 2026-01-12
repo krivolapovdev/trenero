@@ -1,6 +1,5 @@
 package tech.trenero.backend.lesson.internal.service;
 
-import jakarta.validation.Valid;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -71,9 +70,19 @@ public class LessonService {
   }
 
   @Transactional
-  public Optional<LessonDto> editLesson(UUID id, @Valid CreateLessonInput input, JwtUser jwtUser) {
+  public Optional<LessonDto> editLesson(UUID lessonId, CreateLessonInput input, JwtUser jwtUser) {
+    log.info("Editing lesson by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
+
+    List<CreateAttendanceInput> attendanceInputList =
+        input.students().stream()
+            .map(
+                status -> new CreateAttendanceInput(lessonId, status.studentId(), status.present()))
+            .toList();
+
+    attendanceSpi.editAttendancesByLessonId(lessonId, attendanceInputList, jwtUser);
+
     return lessonRepository
-        .findByIdAndOwnerId(id, jwtUser.userId())
+        .findByIdAndOwnerId(lessonId, jwtUser.userId())
         .map(lesson -> lessonMapper.editLesson(lesson, input))
         .map(this::saveLesson)
         .map(lessonMapper::toDto);
