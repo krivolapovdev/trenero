@@ -8,7 +8,7 @@ export default function Index() {
 
   return (
     <Redirect
-      href={`/(tabs)/students/${studentId}/payments/${paymentId}/create`}
+      href={`/(tabs)/students/${studentId}/payments/${paymentId}/edit`}
     />
   );
 }

@@ -11,7 +11,7 @@ import { parsePastOrTodayDateFromInput } from '@/src/helpers/parsePastOrTodayDat
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export type PaymentFormValues = {
-  amount: string;
+  amount: number;
   lessonsPerPayment: number;
   date: string;
 };
@@ -34,12 +34,13 @@ export const PaymentForm = ({
   const { t } = useTranslation();
   const theme = useAppTheme();
 
-  const [amount, setAmount] = useState(initialData?.amount ?? '');
+  const [amount, setAmount] = useState(initialData?.amount?.toString() ?? '');
   const [lessonsPerPayment, setLessonsPerPayment] = useState<number | null>(
     initialData?.lessonsPerPayment ?? null
   );
   const [date, setDate] = useState(
-    initialData?.date ?? dayjs().format('DD/MM/YYYY')
+    dayjs(initialData?.date).format('DD/MM/YYYY') ??
+      dayjs().format('DD/MM/YYYY')
   );
 
   const handleSubmit = () => {
@@ -53,11 +54,13 @@ export const PaymentForm = ({
       return Alert.alert(t('error'), t('invalidDateError'));
     }
 
-    onSubmit({
-      amount,
+    const values: PaymentFormValues = {
+      amount: Number(amount),
       lessonsPerPayment,
       date: parsedDate.format('YYYY-MM-DD')
-    });
+    };
+
+    onSubmit(values);
   };
 
   return (

@@ -3,7 +3,10 @@ import { useMutation } from '@apollo/client/react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
-import { GroupForm, type GroupFormValues } from '@/src/components/GroupForm';
+import {
+  GroupForm,
+  type GroupFormValues
+} from '@/src/components/Form/GroupForm';
 import { graphql } from '@/src/graphql/__generated__';
 import type { CreateGroupInput } from '@/src/graphql/__generated__/graphql';
 

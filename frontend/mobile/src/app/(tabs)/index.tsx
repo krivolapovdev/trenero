@@ -7,7 +7,7 @@ import { Text } from 'react-native-paper';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { RoundedBarChart } from '@/src/components/RoundedBarChart';
-import { GET_PAYMENTS } from '@/src/graphql/queries';
+import { GET_STUDENTS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export default function StatisticsScreen() {
@@ -15,7 +15,7 @@ export default function StatisticsScreen() {
   const { t } = useTranslation();
   const [selectedBar, setSelectedBar] = useState(dayjs());
 
-  const { loading, data, error, refetch } = useQuery(GET_PAYMENTS, {
+  const { loading, data, error, refetch } = useQuery(GET_STUDENTS, {
     fetchPolicy: 'cache-first'
   });
 
@@ -26,7 +26,8 @@ export default function StatisticsScreen() {
         .map(month => ({
           date: month,
           value:
-            data?.payments
+            data?.students
+              .flatMap(student => student.payments)
               .filter(p => dayjs(p.date).isSame(month, 'month'))
               .reduce((sum, p) => sum + Number(p.amount), 0) || 0
         }))

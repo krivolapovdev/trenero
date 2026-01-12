@@ -1,21 +1,19 @@
 import dayjs from 'dayjs';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { DataTable, useTheme } from 'react-native-paper';
-import type { GetPaymentsQuery } from '@/src/graphql/__generated__/graphql';
+import type { GetStudentQuery } from '@/src/graphql/__generated__/graphql';
 
 type Props = {
-  payments: GetPaymentsQuery['payments'];
+  payments: NonNullable<GetStudentQuery['student']>['payments'];
   itemsPerPage?: number;
+  onRowPress: (id: string) => void;
 };
 
 export const StudentPaymentsTable = memo(
-  ({ payments, itemsPerPage = 5 }: Readonly<Props>) => {
+  ({ payments, itemsPerPage = 5, onRowPress }: Readonly<Props>) => {
     const { t } = useTranslation();
-    const { studentId } = useLocalSearchParams<{ studentId: string }>();
-    const router = useRouter();
     const theme = useTheme();
 
     const [page, setPage] = useState(0);
@@ -47,12 +45,14 @@ export const StudentPaymentsTable = memo(
             >
               {t('payments')}
             </DataTable.Title>
+
             <DataTable.Title
               textStyle={{ fontSize: 15 }}
               numeric={true}
             >
               🎫
             </DataTable.Title>
+
             <DataTable.Title
               textStyle={{ fontSize: 15 }}
               numeric={true}
@@ -64,16 +64,16 @@ export const StudentPaymentsTable = memo(
           {sortedPayments.slice(from, to).map(pay => (
             <DataTable.Row
               key={pay.id}
-              onPress={() =>
-                router.push(`/(tabs)/students/${studentId}/payments/${pay.id}`)
-              }
+              onPress={() => onRowPress(pay.id)}
             >
               <DataTable.Cell>
                 {dayjs(pay.date).format('DD/MM/YYYY')}
               </DataTable.Cell>
+
               <DataTable.Cell numeric={true}>
                 {pay.lessonsPerPayment}
               </DataTable.Cell>
+
               <DataTable.Cell numeric={true}>{pay.amount}</DataTable.Cell>
             </DataTable.Row>
           ))}

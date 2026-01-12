@@ -65,6 +65,9 @@ export const ATTENDANCE_FIELDS = graphql(`
         lesson {
             id
             startDateTime
+            group {
+                id
+            }
         }
     }
 `);

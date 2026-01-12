@@ -4,11 +4,11 @@ import dayjs from 'dayjs';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
-import { LoadingSpinner } from '@/src/components/LoadingSpinner';
 import {
   PaymentForm,
   type PaymentFormValues
-} from '@/src/components/PaymentForm';
+} from '@/src/components/Form/PaymentForm';
+import { LoadingSpinner } from '@/src/components/LoadingSpinner';
 import { graphql } from '@/src/graphql/__generated__';
 import { GET_PAYMENT } from '@/src/graphql/queries';
 
@@ -34,52 +34,54 @@ export default function EditPaymentScreen() {
     paymentId: string;
   }>();
 
-  console.log(studentId);
-  console.log(paymentId);
-
-  const { data, loading } = useQuery(GET_PAYMENT, {
-    variables: { id: paymentId }
-    // fetchPolicy: 'cache-first'
+  const { data, loading: queryLoading } = useQuery(GET_PAYMENT, {
+    variables: { id: paymentId },
+    fetchPolicy: 'cache-first'
   });
 
-  const [updatePayment, resultUpdatePayment] = useMutation(EDIT_PAYMENT, {
-    update(cache, { data }) {
-      const updatedPayment = data?.editPayment;
+  const [editPayment, { loading: mutationLoading }] = useMutation(
+    EDIT_PAYMENT,
+    {
+      update(cache, { data }) {
+        const updatedPayment = data?.editPayment;
 
-      if (!updatedPayment) {
-        return;
-      }
-
-      const identify = cache.identify(updatedPayment);
-
-      if (!identify) {
-        return;
-      }
-
-      cache.modify({
-        fields: {
-          payments: (existingRefs: readonly Reference[] = []) =>
-            existingRefs.map(ref =>
-              ref.__ref === identify ? { __ref: identify } : ref
-            )
+        if (!updatedPayment) {
+          return;
         }
-      });
-    },
-    onCompleted: () => router.back(),
-    onError: err => Alert.alert('Error', err.message)
-  });
+
+        const identify = cache.identify(updatedPayment);
+
+        if (!identify) {
+          return;
+        }
+
+        cache.modify({
+          fields: {
+            payments: (existingRefs: readonly Reference[] = []) =>
+              existingRefs.map(ref =>
+                ref.__ref === identify ? { __ref: identify } : ref
+              )
+          }
+        });
+      },
+
+      onCompleted: () => router.back(),
+
+      onError: err => Alert.alert('Error', err.message)
+    }
+  );
 
   const handleSubmit = (values: PaymentFormValues) => {
-    if (resultUpdatePayment.loading) {
+    if (mutationLoading) {
       return;
     }
 
     const input = { studentId, ...values };
 
-    void updatePayment({ variables: { id: paymentId, input } });
+    void editPayment({ variables: { id: paymentId, input } });
   };
 
-  if (loading) {
+  if (queryLoading) {
     return <LoadingSpinner />;
   }
 
@@ -87,11 +89,11 @@ export default function EditPaymentScreen() {
     <PaymentForm
       title={t('editPayment')}
       initialData={{
-        amount: data?.payment?.amount ?? '',
+        amount: data?.payment?.amount,
         lessonsPerPayment: data?.payment?.lessonsPerPayment ?? 0,
         date: data?.payment?.date ?? dayjs().format('DD/MM/YYYY')
       }}
-      loading={resultUpdatePayment.loading}
+      loading={mutationLoading}
       onBack={() => router.back()}
       onSubmit={handleSubmit}
     />

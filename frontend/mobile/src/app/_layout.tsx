@@ -21,9 +21,10 @@ export default function RootLayout() {
               <StatusBar style='dark' />
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen
-                  name='(auth)'
+                  name='auth'
                   options={{ headerShown: false }}
                 />
+
                 <Stack.Screen
                   name='(tabs)'
                   options={{ headerShown: false }}

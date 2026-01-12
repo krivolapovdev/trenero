@@ -50,5 +50,5 @@ export default function Index() {
     return <LoadingSpinner />;
   }
 
-  return <Redirect href='/(auth)' />;
+  return <Redirect href='/auth' />;
 }

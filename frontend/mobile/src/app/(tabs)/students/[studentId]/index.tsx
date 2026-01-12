@@ -1,7 +1,9 @@
 import { useMutation, useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
+import { PaymentSheet } from '@/src/components/BottomSheet/PaymentSheet';
 import { AttendanceCalendar } from '@/src/components/Calendar';
 import { StudentCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
@@ -24,6 +26,8 @@ export default function StudentByIdScreen() {
   const theme = useAppTheme();
   const router = useRouter();
   const { t } = useTranslation();
+
+  const [paymentIdSheet, setPaymentIdSheet] = useState<string | null>(null);
 
   const { data, loading, error, refetch } = useQuery(GET_STUDENT, {
     variables: { id: studentId },
@@ -113,12 +117,21 @@ export default function StudentByIdScreen() {
           <>
             <StudentCard {...student} />
 
-            <StudentPaymentsTable payments={student.payments} />
+            <StudentPaymentsTable
+              payments={student.payments}
+              onRowPress={setPaymentIdSheet}
+            />
 
             <AttendanceCalendar attendances={student.attendances} />
           </>
         )}
       </ScrollView>
+
+      <PaymentSheet
+        visible={Boolean(paymentIdSheet)}
+        onDismiss={() => setPaymentIdSheet(null)}
+        paymentId={paymentIdSheet ?? ''}
+      />
     </>
   );
 }

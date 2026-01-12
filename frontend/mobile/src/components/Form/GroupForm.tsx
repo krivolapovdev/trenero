@@ -14,7 +14,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export type GroupFormValues = {
   name: string;
-  defaultPrice?: string | null;
+  defaultPrice?: number | null;
   note?: string | null;
   studentIds: string[];
 };
@@ -39,7 +39,7 @@ export const GroupForm = ({
 
   const [name, setName] = useState(initialData?.name ?? '');
   const [defaultPrice, setDefaultPrice] = useState(
-    initialData?.defaultPrice ?? ''
+    initialData?.defaultPrice?.toString() ?? ''
   );
   const [note, setNote] = useState(initialData?.note ?? '');
 
@@ -75,7 +75,7 @@ export const GroupForm = ({
 
     const values: GroupFormValues = {
       name: trimmedName,
-      defaultPrice: defaultPrice.trim() || null,
+      defaultPrice: Number(defaultPrice) || null,
       studentIds: students.selectedList.map(s => s._id),
       note: note?.trim() || null
     };

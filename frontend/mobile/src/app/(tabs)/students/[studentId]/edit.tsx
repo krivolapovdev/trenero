@@ -6,23 +6,23 @@ import { Alert } from 'react-native';
 import {
   StudentForm,
   type StudentFormValues
-} from '@/src/components/StudentForm';
+} from '@/src/components/Form/StudentForm';
 import { graphql } from '@/src/graphql/__generated__';
 import type { CreateStudentInput } from '@/src/graphql/__generated__/graphql';
 import { GET_STUDENT } from '@/src/graphql/queries';
 
 const EDIT_STUDENT = graphql(`
-  mutation EditStudent($id: UUID!, $input: CreateStudentInput!) {
-    editStudent(id: $id, input: $input) {
-      ...StudentFields
-      group {
-        id
-        students {
-          id
+    mutation EditStudent($id: UUID!, $input: CreateStudentInput!) {
+        editStudent(id: $id, input: $input) {
+            ...StudentFields
+            group {
+                id
+                students {
+                    id
+                }
+            }
         }
-      }
     }
-  }
 `);
 
 export default function EditStudentScreen() {
@@ -57,6 +57,7 @@ export default function EditStudentScreen() {
     },
 
     onCompleted: () => router.back(),
+
     onError: err => Alert.alert(t('error'), err.message)
   });
 

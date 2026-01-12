@@ -45,7 +45,10 @@ const resources = {
       privacyPolicyTitle: 'Privacy Policy',
       privacyPolicyText:
         'We collect and process only the information necessary to provide and maintain the application. Personal data is not sold, rented, or otherwise disclosed to third parties except as required by law. Reasonable administrative, technical, and organizational measures are implemented to protect personal data from unauthorized access, use, or disclosure.',
+      edit: 'Edit',
+      editLesson: 'Edit Lesson',
       addPayment: 'Add Payment',
+      editPayment: 'Edit Payment',
       amount: 'Amount *',
       lessonsPerPayment: 'Lessons per payment *',
       date: 'Date *',
@@ -118,7 +121,10 @@ const resources = {
       privacyPolicyTitle: 'Политика конфиденциальности',
       privacyPolicyText:
         'Мы собираем и обрабатываем только ту информацию, которая необходима для предоставления и поддержки работы приложения. Персональные данные не продаются, не передаются в аренду и не раскрываются третьим лицам, за исключением случаев, предусмотренных законом. Для защиты персональных данных от несанкционированного доступа, использования или раскрытия применяются разумные административные, технические и организационные меры.',
-      addPayment: 'Добавить платёж',
+      edit: 'Редактировать',
+      editLesson: 'Редактировать урок',
+      addPayment: 'Добавить платеж',
+      editPayment: 'Редактировать платеж',
       amount: 'Сумма *',
       lessonsPerPayment: 'Количество оплаченных занятий *',
       date: 'Дата *',

@@ -48,20 +48,31 @@ export const GET_STUDENT = graphql(`
     }
 `);
 
-export const GET_PAYMENTS = graphql(`
-    query GetPayments {
-        payments {
-            ...PaymentFields
-        }
-    }
-`);
-
 export const GET_PAYMENT = graphql(`
     query GetPayment($id: UUID!) {
         payment(id: $id) {
             ...PaymentFields
             student {
                 id
+            }
+        }
+    }
+`);
+
+export const GET_LESSON = graphql(`
+    query GetLesson($id: UUID!) {
+        lesson(id: $id) {
+            ...LessonFields
+            group {
+                id
+                students {
+                    id
+                    fullName
+                }
+            }
+            attendances {
+                student { id }
+                present
             }
         }
     }

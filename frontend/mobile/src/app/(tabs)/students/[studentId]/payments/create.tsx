@@ -6,7 +6,7 @@ import { Alert } from 'react-native';
 import {
   PaymentForm,
   type PaymentFormValues
-} from '@/src/components/PaymentForm';
+} from '@/src/components/Form/PaymentForm';
 import { graphql } from '@/src/graphql/__generated__';
 
 const CREATE_PAYMENT = graphql(`
@@ -71,7 +71,7 @@ export default function CreatePaymentScreen() {
 
   return (
     <PaymentForm
-      title='addPayment'
+      title={t('addPayment')}
       onSubmit={handleSubmit}
       onBack={() => router.back()}
       loading={loading}

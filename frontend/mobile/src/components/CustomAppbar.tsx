@@ -33,7 +33,7 @@ type Props = {
 export const CustomAppbar = memo(
   ({
     title,
-    badgeCount,
+    badgeCount = 0,
     mode,
     leftActions = [],
     rightActions = []
@@ -51,7 +51,7 @@ export const CustomAppbar = memo(
           title={
             <View>
               <Text variant='titleLarge'>{title}</Text>
-              {Boolean(badgeCount) && badgeCount > 0 && (
+              {badgeCount > 0 && (
                 <Badge
                   style={[
                     styles.badge,

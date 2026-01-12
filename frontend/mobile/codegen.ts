@@ -17,7 +17,7 @@ const config: CodegenConfig = {
           UUID: 'string',
           Date: 'string',
           DateTime: 'string',
-          BigDecimal: 'string'
+          BigDecimal: 'number'
         }
       }
     }

@@ -136,7 +136,9 @@ export default function GroupByIdScreen() {
                   <View key={student.fullName}>
                     <List.Item
                       title={student.fullName}
-                      onPress={() => router.push(`/students/${student.id}`)}
+                      onPress={() =>
+                        router.push(`/(tabs)/students/${student.id}`)
+                      }
                     />
                     <Divider />
                   </View>

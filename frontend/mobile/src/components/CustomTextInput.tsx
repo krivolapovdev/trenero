@@ -7,7 +7,7 @@ import {
 } from 'react-native-paper';
 
 export const CustomTextInput = memo(
-  ({ label, value, onChangeText, ...rest }: TextInputProps) => {
+  ({ label, value = '', onChangeText, ...rest }: TextInputProps) => {
     const theme = useTheme();
     const [isFocused, setIsFocused] = useState(false);
 
@@ -17,12 +17,12 @@ export const CustomTextInput = memo(
         theme={{
           roundness: 10
         }}
-        value={value?.toString() ?? ''}
+        value={value}
         label={
           <Text
             style={{
               color:
-                value?.length || isFocused
+                value.length || isFocused
                   ? theme.colors.primary
                   : theme.colors.secondary
             }}

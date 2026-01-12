@@ -12,72 +12,79 @@ type MarkedDay = {
 
 type Props = {
   items: MarkedDay[];
+  onDatePress: (date: dayjs.Dayjs) => void;
 };
 
-export const CustomCalendar = memo(({ items }: Readonly<Props>) => {
-  const theme = useAppTheme();
-  const [currentMonth, setCurrentMonth] = useState(dayjs());
+export const CustomCalendar = memo(
+  ({ items, onDatePress }: Readonly<Props>) => {
+    const theme = useAppTheme();
+    const [currentMonth, setCurrentMonth] = useState(dayjs());
 
-  const markedDates = useMemo(
-    () =>
-      Object.fromEntries(
-        items.map(item => [
-          item.date.format('YYYY-MM-DD'),
-          {
-            selected: true,
-            selectedColor: item.color ?? '#00adf5'
-          }
-        ])
-      ),
-    [items]
-  );
+    const markedDates = useMemo(
+      () =>
+        Object.fromEntries(
+          items.map(item => [
+            item.date.format('YYYY-MM-DD'),
+            {
+              marked: true,
+              dotColor: item.color ?? '#00adf5',
+              disabled: false
+            }
+          ])
+        ),
+      [items]
+    );
 
-  const goPrevMonth = useCallback(() => {
-    setCurrentMonth(prev => prev.subtract(1, 'month'));
-  }, []);
+    const goPrevMonth = useCallback(() => {
+      setCurrentMonth(prev => prev.subtract(1, 'month'));
+    }, []);
 
-  const goNextMonth = useCallback(() => {
-    setCurrentMonth(prev => prev.add(1, 'month'));
-  }, []);
+    const goNextMonth = useCallback(() => {
+      setCurrentMonth(prev => prev.add(1, 'month'));
+    }, []);
 
-  return (
-    <View style={{ borderRadius: 16, backgroundColor: theme.colors.surface }}>
-      <Calendar
-        initialDate={currentMonth.format('YYYY-MM-DD')}
-        style={{
-          borderRadius: 16,
-          backgroundColor: theme.colors.surface
-        }}
-        firstDay={1}
-        markedDates={markedDates}
-        hideExtraDays={true}
-        hideArrows={true}
-        monthFormat='MM/yyyy'
-        theme={{
-          backgroundColor: theme.colors.surface,
-          calendarBackground: theme.colors.surface
-        }}
-      />
-
-      <View
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'flex-end'
-        }}
-      >
-        <IconButton
-          icon='chevron-left'
-          onPress={goPrevMonth}
+    return (
+      <View style={{ borderRadius: 16, backgroundColor: theme.colors.surface }}>
+        <Calendar
+          initialDate={currentMonth.format('YYYY-MM-DD')}
+          style={{
+            borderRadius: 16,
+            backgroundColor: theme.colors.surface
+          }}
+          firstDay={1}
+          markedDates={markedDates}
+          disableAllTouchEventsForDisabledDays={true}
+          disabledByDefault={true}
+          hideExtraDays={true}
+          hideArrows={true}
+          monthFormat='MM/yyyy'
+          onDayPress={date => onDatePress(dayjs(date.dateString))}
+          theme={{
+            backgroundColor: theme.colors.surface,
+            calendarBackground: theme.colors.surface
+          }}
         />
 
-        <IconButton
-          icon='chevron-right'
-          disabled={currentMonth.isSame(dayjs(), 'month')}
-          onPress={goNextMonth}
-        />
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'flex-end'
+          }}
+        >
+          <IconButton
+            icon='chevron-left'
+            onPress={goPrevMonth}
+          />
+
+          <IconButton
+            icon='chevron-right'
+            disabled={currentMonth.isSame(dayjs(), 'month')}
+            onPress={goNextMonth}
+          />
+        </View>
       </View>
-    </View>
-  );
-});
+    );
+  }
+);
