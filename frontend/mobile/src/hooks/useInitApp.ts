@@ -5,10 +5,10 @@ import { useAuthStore } from '@/src/stores/authStore';
 const GET_INIT_DATA = graphql(`
     query GetInitialData {
         groups {
-            ...GroupFields
+            ...GroupDetailsFields
         }
         students {
-            ...StudentFields
+            ...StudentDetailsFields
         }
     }
 `);

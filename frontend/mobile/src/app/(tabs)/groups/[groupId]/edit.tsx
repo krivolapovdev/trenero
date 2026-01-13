@@ -1,4 +1,3 @@
-import type { Reference } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -8,20 +7,14 @@ import {
   type GroupFormValues
 } from '@/src/components/Form/GroupForm';
 import { graphql } from '@/src/graphql/__generated__';
-import { GET_GROUP } from '@/src/graphql/queries';
+import { GET_GROUP, GET_GROUPS, GET_STUDENTS } from '@/src/graphql/queries';
 
 const EDIT_GROUP = graphql(`
-  mutation EditGroup($id: UUID!, $input: CreateGroupInput!) {
-    editGroup(id: $id, input: $input) {
-        ...GroupFields
-        students {
-            id
-            group {
-                id
-            }
+    mutation EditGroup($id: UUID!, $input: CreateGroupInput!) {
+        editGroup(id: $id, input: $input) {
+            ...GroupDetailsFields
         }
     }
-  }
 `);
 
 export default function EditGroupScreen() {
@@ -35,28 +28,9 @@ export default function EditGroupScreen() {
   });
 
   const [editGroup, { loading }] = useMutation(EDIT_GROUP, {
-    update(cache, { data }) {
-      const updatedGroup = data?.editGroup;
+    refetchQueries: [GET_STUDENTS, GET_GROUPS],
 
-      if (!updatedGroup) {
-        return;
-      }
-
-      const identify = cache.identify(updatedGroup);
-
-      if (!identify) {
-        return;
-      }
-
-      cache.modify({
-        fields: {
-          groups: (existingRefs: readonly Reference[] = []) =>
-            existingRefs.map(ref =>
-              ref.__ref === identify ? { __ref: identify } : ref
-            )
-        }
-      });
-    },
+    awaitRefetchQueries: true,
 
     onCompleted: () => router.back(),
 

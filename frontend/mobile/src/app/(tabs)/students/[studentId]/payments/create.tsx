@@ -1,4 +1,3 @@
-import type { Reference } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { t } from 'i18next';
@@ -8,17 +7,12 @@ import {
   type PaymentFormValues
 } from '@/src/components/Form/PaymentForm';
 import { graphql } from '@/src/graphql/__generated__';
+import { GET_GROUPS, GET_STUDENTS } from '@/src/graphql/queries';
 
 const CREATE_PAYMENT = graphql(`
     mutation CreatePayment($input: CreatePaymentInput!) {
         createPayment(input: $input) {
-            ...PaymentFields
-            student {
-                id
-                payments {
-                    id
-                }
-            }
+            ...PaymentDetailsFields
         }
     }
 `);
@@ -28,28 +22,9 @@ export default function CreatePaymentScreen() {
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
 
   const [createPayment, { loading }] = useMutation(CREATE_PAYMENT, {
-    update(cache, { data }) {
-      const newPayment = data?.createPayment;
+    refetchQueries: [GET_GROUPS, GET_STUDENTS],
 
-      if (!newPayment) {
-        return;
-      }
-
-      const identify = cache.identify(newPayment);
-
-      if (!identify) {
-        return;
-      }
-
-      cache.modify({
-        fields: {
-          payments: (existingPayments: readonly Reference[] = []) => [
-            { __ref: identify },
-            ...existingPayments
-          ]
-        }
-      });
-    },
+    awaitRefetchQueries: true,
 
     onCompleted: () => router.back(),
 

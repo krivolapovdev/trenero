@@ -112,7 +112,10 @@ export default function GroupByIdScreen() {
           <>
             <GroupCard {...group} />
 
-            <LessonsCalendar lessons={group.lessons} />
+            <LessonsCalendar
+              groupId={groupId}
+              lessons={group.lessons}
+            />
 
             {group.students.length > 0 && (
               <List.Section

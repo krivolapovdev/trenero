@@ -1,72 +1,99 @@
 import { graphql } from '@/src/graphql/__generated__';
 
-export const GROUP_FIELDS = graphql(`
-    fragment GroupFields on Group {
-        id
-        name
-        defaultPrice
-        note
-        students {
-            id
-            fullName
-        }
-    }
+export const STUDENT_CORE_FIELDS = graphql(`
+  fragment StudentCoreFields on Student {
+    id
+    fullName
+    phone
+    birthdate
+    note
+  }
 `);
 
-export const STUDENT_FIELDS = graphql(`
-    fragment StudentFields on Student {
-        id
-        fullName
-        phone
-        note
-        birthdate
-        group {
-            id
-            name
-        }
-        attendances {
-            ...AttendanceFields
-        }
-        payments {
-            ...PaymentFields
-        }
-    }
+export const GROUP_CORE_FIELDS = graphql(`
+  fragment GroupCoreFields on Group {
+    id
+    name
+    defaultPrice
+    note
+  }
 `);
 
-export const PAYMENT_FIELDS = graphql(`
-    fragment PaymentFields on Payment {
-        id
-        amount
-        date
-        lessonsPerPayment
-    }
+export const LESSON_CORE_FIELDS = graphql(`
+  fragment LessonCoreFields on Lesson {
+    id
+    startDateTime
+  }
 `);
 
-export const LESSON_FIELDS = graphql(`
-    fragment LessonFields on Lesson {
-        id
-        startDateTime
-        group {
-            id
-        }
-        attendances {
-            ...AttendanceFields
-        }
-    }
+export const PAYMENT_CORE_FIELDS = graphql(`
+  fragment PaymentCoreFields on Payment {
+    id
+    amount
+    date
+    lessonsPerPayment
+  }
 `);
 
-export const ATTENDANCE_FIELDS = graphql(`
-    fragment AttendanceFields on Attendance {
+export const ATTENDANCE_CORE_FIELDS = graphql(`
+    fragment AttendanceCoreFields on Attendance {
         id
         present
-        student {
-            id
+    }
+`);
+
+export const PAYMENT_DETAILS_FIELDS = graphql(`
+  fragment PaymentDetailsFields on Payment {
+    ...PaymentCoreFields
+    student {
+      ...StudentCoreFields
+    }
+  }
+`);
+
+export const GROUP_DETAILS_FIELDS = graphql(`
+    fragment GroupDetailsFields on Group {
+        ...GroupCoreFields
+        students {
+            ...StudentCoreFields
         }
-        lesson {
-            id
-            startDateTime
-            group {
-                id
+        lessons {
+            ...LessonCoreFields
+        }
+    }
+`);
+
+export const STUDENT_DETAILS_FIELDS = graphql(`
+  fragment StudentDetailsFields on Student {
+    ...StudentCoreFields
+    group {
+      ...GroupCoreFields
+    }
+    attendances {
+      ...AttendanceCoreFields
+      lesson {
+        ...LessonCoreFields
+      }
+    }
+    payments {
+      ...PaymentCoreFields
+    }
+  }
+`);
+
+export const LESSON_DETAILS_FIELDS = graphql(`
+    fragment LessonDetailsFields on Lesson {
+        ...LessonCoreFields
+        group {
+            ...GroupCoreFields
+            students {
+                ...StudentCoreFields
+            }
+        }
+        attendances {
+            ...AttendanceCoreFields
+            student {
+                ...StudentCoreFields
             }
         }
     }

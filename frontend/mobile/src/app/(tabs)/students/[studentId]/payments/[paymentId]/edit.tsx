@@ -1,4 +1,3 @@
-import type { Reference } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import dayjs from 'dayjs';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -10,18 +9,12 @@ import {
 } from '@/src/components/Form/PaymentForm';
 import { LoadingSpinner } from '@/src/components/LoadingSpinner';
 import { graphql } from '@/src/graphql/__generated__';
-import { GET_PAYMENT } from '@/src/graphql/queries';
+import { GET_GROUPS, GET_PAYMENT, GET_STUDENTS } from '@/src/graphql/queries';
 
 const EDIT_PAYMENT = graphql(`
     mutation EditPayment($id: UUID!, $input: CreatePaymentInput!) {
         editPayment(id: $id, input: $input) {
-            ...PaymentFields
-            student {
-                id
-                payments {
-                    id
-                }
-            }
+            ...PaymentDetailsFields
         }
     }
 `);
@@ -42,28 +35,9 @@ export default function EditPaymentScreen() {
   const [editPayment, { loading: mutationLoading }] = useMutation(
     EDIT_PAYMENT,
     {
-      update(cache, { data }) {
-        const updatedPayment = data?.editPayment;
+      refetchQueries: [GET_GROUPS, GET_STUDENTS],
 
-        if (!updatedPayment) {
-          return;
-        }
-
-        const identify = cache.identify(updatedPayment);
-
-        if (!identify) {
-          return;
-        }
-
-        cache.modify({
-          fields: {
-            payments: (existingRefs: readonly Reference[] = []) =>
-              existingRefs.map(ref =>
-                ref.__ref === identify ? { __ref: identify } : ref
-              )
-          }
-        });
-      },
+      awaitRefetchQueries: true,
 
       onCompleted: () => router.back(),
 

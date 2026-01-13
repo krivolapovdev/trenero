@@ -8,17 +8,12 @@ import {
 } from '@/src/components/Form/StudentForm';
 import { graphql } from '@/src/graphql/__generated__';
 import type { CreateStudentInput } from '@/src/graphql/__generated__/graphql';
+import { GET_GROUPS, GET_STUDENTS } from '@/src/graphql/queries';
 
 const CREATE_STUDENT = graphql(`
     mutation CreateStudent($input: CreateStudentInput!) {
         createStudent(input: $input) {
-            ...StudentFields
-            group {
-                id
-                students {
-                    id
-                }
-            }
+            ...StudentDetailsFields
         }
     }
 `);
@@ -28,6 +23,10 @@ export default function CreateStudentScreen() {
   const router = useRouter();
 
   const [createStudent, { loading }] = useMutation(CREATE_STUDENT, {
+    refetchQueries: [GET_STUDENTS, GET_GROUPS],
+
+    awaitRefetchQueries: true,
+
     onCompleted: data =>
       router.replace(`/(tabs)/students/${data.createStudent.id}`),
 

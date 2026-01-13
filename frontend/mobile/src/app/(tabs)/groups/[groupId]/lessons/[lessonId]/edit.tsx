@@ -8,12 +8,12 @@ import {
 } from '@/src/components/Form/LessonForm';
 import { LoadingSpinner } from '@/src/components/LoadingSpinner';
 import { graphql } from '@/src/graphql/__generated__';
-import { GET_GROUP, GET_LESSON, GET_STUDENTS } from '@/src/graphql/queries';
+import { GET_GROUPS, GET_LESSON, GET_STUDENTS } from '@/src/graphql/queries';
 
 const EDIT_LESSON = graphql(`
     mutation EditLesson($id: UUID!, $input: CreateLessonInput!) {
         editLesson(id: $id, input: $input) {
-            id
+            ...LessonDetailsFields
         }
     }
 `);
@@ -31,13 +31,9 @@ export default function EditLessonScreen() {
   });
 
   const [editLesson, { loading: mutationLoading }] = useMutation(EDIT_LESSON, {
-    refetchQueries: [
-      {
-        query: GET_GROUP,
-        variables: { id: groupId }
-      },
-      GET_STUDENTS
-    ],
+    refetchQueries: [GET_GROUPS, GET_STUDENTS],
+
+    awaitRefetchQueries: true,
 
     onCompleted: () => router.back(),
 

@@ -9,10 +9,11 @@ import type { GetGroupQuery } from '@/src/graphql/__generated__/graphql';
 import { CustomCalendar } from './CustomCalendar';
 
 type Props = {
+  groupId: string;
   lessons: NonNullable<GetGroupQuery['group']>['lessons'];
 };
 
-export const LessonsCalendar = memo(({ lessons }: Readonly<Props>) => {
+export const LessonsCalendar = memo(({ groupId, lessons }: Readonly<Props>) => {
   const router = useRouter();
 
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
@@ -21,8 +22,7 @@ export const LessonsCalendar = memo(({ lessons }: Readonly<Props>) => {
     () =>
       lessons.map(lesson => ({
         date: dayjs(lesson.startDateTime),
-        lessonId: lesson.id,
-        groupId: lesson.group.id
+        lessonId: lesson.id
       })),
     [lessons]
   );
@@ -64,7 +64,7 @@ export const LessonsCalendar = memo(({ lessons }: Readonly<Props>) => {
                   onPress={() => {
                     setSelectedDate(null);
                     router.push(
-                      `/(tabs)/groups/${item.groupId}/lessons/${item.lessonId}/edit`
+                      `/(tabs)/groups/${groupId}/lessons/${item.lessonId}/edit`
                     );
                   }}
                 />

@@ -7,27 +7,12 @@ import {
   type LessonFormValues
 } from '@/src/components/Form/LessonForm';
 import { graphql } from '@/src/graphql/__generated__';
-import { GET_GROUP } from '@/src/graphql/queries';
+import { GET_GROUP, GET_GROUPS, GET_STUDENTS } from '@/src/graphql/queries';
 
 const CREATE_LESSON = graphql(`
     mutation CreateLesson($input: CreateLessonInput!) {
         createLesson(input: $input) {
-            ...LessonFields
-            group {
-                id
-                lessons {
-                    id
-                }
-            }
-            attendances {
-                id
-                student {
-                    id
-                    attendances {
-                        id
-                    }
-                }
-            }
+            ...LessonDetailsFields
         }
     }
 `);
@@ -43,7 +28,12 @@ export default function CreateLessonScreen() {
   });
 
   const [createLesson, { loading }] = useMutation(CREATE_LESSON, {
+    refetchQueries: [GET_GROUPS, GET_STUDENTS],
+
+    awaitRefetchQueries: true,
+
     onCompleted: () => router.back(),
+
     onError: err => Alert.alert(t('error'), err.message)
   });
 

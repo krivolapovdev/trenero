@@ -1,4 +1,3 @@
-import type { Reference } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -9,18 +8,12 @@ import {
 } from '@/src/components/Form/StudentForm';
 import { graphql } from '@/src/graphql/__generated__';
 import type { CreateStudentInput } from '@/src/graphql/__generated__/graphql';
-import { GET_STUDENT } from '@/src/graphql/queries';
+import { GET_GROUPS, GET_STUDENT, GET_STUDENTS } from '@/src/graphql/queries';
 
 const EDIT_STUDENT = graphql(`
     mutation EditStudent($id: UUID!, $input: CreateStudentInput!) {
         editStudent(id: $id, input: $input) {
-            ...StudentFields
-            group {
-                id
-                students {
-                    id
-                }
-            }
+            ...StudentDetailsFields
         }
     }
 `);
@@ -30,31 +23,15 @@ export default function EditStudentScreen() {
   const { t } = useTranslation();
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
 
-  const { data } = useQuery(GET_STUDENT, { variables: { id: studentId } });
+  const { data } = useQuery(GET_STUDENT, {
+    variables: { id: studentId },
+    fetchPolicy: 'cache-first'
+  });
 
   const [editStudent, { loading }] = useMutation(EDIT_STUDENT, {
-    update(cache, { data }) {
-      const updatedStudent = data?.editStudent;
+    refetchQueries: [GET_GROUPS, GET_STUDENTS],
 
-      if (!updatedStudent) {
-        return;
-      }
-
-      const identify = cache.identify(updatedStudent);
-
-      if (!identify) {
-        return;
-      }
-
-      cache.modify({
-        fields: {
-          students: (existingRefs: readonly Reference[] = []) =>
-            existingRefs.map(ref =>
-              ref.__ref === identify ? { __ref: identify } : ref
-            )
-        }
-      });
-    },
+    awaitRefetchQueries: true,
 
     onCompleted: () => router.back(),
 

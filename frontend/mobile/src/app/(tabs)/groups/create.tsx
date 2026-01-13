@@ -1,4 +1,3 @@
-import type { Reference } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -9,17 +8,12 @@ import {
 } from '@/src/components/Form/GroupForm';
 import { graphql } from '@/src/graphql/__generated__';
 import type { CreateGroupInput } from '@/src/graphql/__generated__/graphql';
+import { GET_GROUPS, GET_STUDENTS } from '@/src/graphql/queries';
 
 const CREATE_GROUP = graphql(`
     mutation CreateGroup($input: CreateGroupInput!) {
         createGroup(input: $input) {
-            ...GroupFields
-            students {
-                id
-                group {
-                    id
-                }
-            }
+            ...GroupDetailsFields
         }
     }
 `);
@@ -29,38 +23,14 @@ export default function CreateGroupScreen() {
   const router = useRouter();
 
   const [createGroup, { loading }] = useMutation(CREATE_GROUP, {
-    update(cache, { data }) {
-      const newGroup = data?.createGroup;
+    refetchQueries: [GET_GROUPS, GET_STUDENTS],
 
-      if (!newGroup) {
-        return;
-      }
+    awaitRefetchQueries: true,
 
-      const identify = cache.identify(newGroup);
+    onCompleted: data =>
+      router.replace(`/(tabs)/groups/${data.createGroup.id}`),
 
-      if (!identify) {
-        return;
-      }
-
-      cache.modify({
-        fields: {
-          groups: (existingRefs: readonly Reference[] = []) => [
-            {
-              __ref: identify
-            },
-            ...existingRefs
-          ]
-        }
-      });
-    },
-
-    onCompleted: data => {
-      router.replace(`/(tabs)/groups/${data.createGroup.id}`);
-    },
-
-    onError: err => {
-      Alert.alert('Error', err.message);
-    }
+    onError: err => Alert.alert('Error', err.message)
   });
 
   const handleSubmit = ({

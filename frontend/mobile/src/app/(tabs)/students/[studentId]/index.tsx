@@ -122,7 +122,10 @@ export default function StudentByIdScreen() {
               onRowPress={setPaymentIdSheet}
             />
 
-            <AttendanceCalendar attendances={student.attendances} />
+            <AttendanceCalendar
+              groupId={student?.group?.id ?? ''}
+              attendances={student.attendances}
+            />
           </>
         )}
       </ScrollView>
