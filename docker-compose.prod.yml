@@ -1,0 +1,10 @@
+services:
+  backend:
+    build: !reset null
+    image: krivolapovdev/backend:latest
+    restart: unless-stopped
+
+  nginx:
+    build: !reset null
+    image: krivolapovdev/nginx:latest
+    restart: unless-stopped
