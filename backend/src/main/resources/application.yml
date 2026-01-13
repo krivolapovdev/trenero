@@ -12,12 +12,21 @@ spring:
           batch_size: 25
   datasource:
     driverClassName: org.postgresql.Driver
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/trenero}
+    username: ${DB_USERNAME:username}
+    password: ${DB_PASSWORD:password}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    url: ${DB_URL:${spring.datasource.url}}
+    user: ${DB_USER:${spring.datasource.username}}
+    password: ${DB_PASSWORD:${spring.datasource.password}}
   autoconfigure:
     exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
 jwt:
-  secret-key: your-jwt-ultra-secure-and-ultra-long-secret
+  secret-key: ${JWT_SECRET_KEY:your-jwt-ultra-secure-and-ultra-long-secret}
   access-token-expiration: 15m
   refresh-token-expiration: 7d
 oauth2:
   google:
-    client-id: ${EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID}
+    client-id: ${GOOGLE_WEB_CLIENT_ID}

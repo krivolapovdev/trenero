@@ -8,7 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -21,10 +20,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import tech.trenero.backend.common.enums.OAuth2Provider;
 
 @Entity
-@Table(
-    name = "users",
-    schema = "users_module",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"provider", "provider_id"})})
+@Table(name = "oauth2_users", schema = "users_module")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

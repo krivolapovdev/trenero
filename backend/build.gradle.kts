@@ -39,6 +39,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-graphql")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.modulith:spring-modulith-starter-core:$springModulithVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$openApiVersion")
     implementation("org.postgresql:postgresql")
@@ -47,6 +48,8 @@ dependencies {
     implementation("com.google.api-client:google-api-client:${googleApiClientVersion}")
     implementation("com.github.f4b6a3:uuid-creator:${uuidCreatorVersion}")
     implementation("com.graphql-java:graphql-java-extended-scalars:${graphqlScalarsVersion}")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-postgresql")
 
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")

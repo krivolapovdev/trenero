@@ -9,6 +9,6 @@ import java.util.UUID;
 public record CreateStudentInput(
     @NotNull @NotBlank @Size(max = 255) String fullName,
     LocalDate birthdate,
-    String phone,
-    String note,
+    @Size(max = 15) String phone,
+    @Size(max = 1023) String note,
     UUID groupId) {}

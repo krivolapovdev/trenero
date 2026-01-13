@@ -1,0 +1,6 @@
+*
+!src/
+!gradle/
+!settings.gradle.kts
+!build.gradle.kts
+!lombok.config

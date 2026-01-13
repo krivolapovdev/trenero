@@ -1,15 +1,8 @@
 spring:
-  sql:
-    init:
-      mode: always
-  datasource:
-    url: jdbc:postgresql://localhost:5432/trenero
-    username: username
-    password: password
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
   graphql:
     graphiql:
       enabled: true

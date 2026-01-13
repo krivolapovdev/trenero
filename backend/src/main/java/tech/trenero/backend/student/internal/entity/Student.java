@@ -5,9 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -20,14 +18,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(
-    name = "students",
-    schema = "students_module",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"owner_id", "fullName"})},
-    indexes = {
-      @Index(columnList = "owner_id, full_name"),
-      @Index(columnList = "owner_id, group_id, full_name")
-    })
+@Table(name = "students", schema = "students_module")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
