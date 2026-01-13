@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
@@ -92,30 +93,28 @@ public class AttendanceSpiImpl implements AttendanceSpi {
       return;
     }
 
-    List<AttendanceDto> existingAttendances =
-        attendanceService.getAttendancesByLessonId(lessonId, jwtUser);
-
     Map<UUID, AttendanceDto> existingMap =
-        existingAttendances.stream().collect(Collectors.toMap(AttendanceDto::studentId, a -> a));
+        attendanceService.getAttendancesByLessonId(lessonId, jwtUser).stream()
+            .collect(Collectors.toMap(AttendanceDto::studentId, Function.identity()));
 
-    List<Attendance> toUpdate =
+    List<Attendance> attendancesToSave =
         input.stream()
-            .filter(in -> existingMap.containsKey(in.studentId()))
-            .map(in -> attendanceMapper.toAttendance(in, jwtUser.userId()))
+            .map(
+                in -> {
+                  AttendanceDto existing = existingMap.get(in.studentId());
+
+                  Attendance attendance = attendanceMapper.toAttendance(in, jwtUser.userId());
+
+                  if (existing != null) {
+                    attendance.setId(existing.id());
+                  }
+
+                  return attendance;
+                })
             .toList();
 
-    List<Attendance> toAdd =
-        input.stream()
-            .filter(in -> !existingMap.containsKey(in.studentId()))
-            .map(in -> attendanceMapper.toAttendance(in, jwtUser.userId()))
-            .toList();
-
-    if (!toUpdate.isEmpty()) {
-      attendanceService.saveAttendanceList(toUpdate);
-    }
-
-    if (!toAdd.isEmpty()) {
-      attendanceService.saveAttendanceList(toAdd);
+    if (!attendancesToSave.isEmpty()) {
+      attendanceService.saveAttendanceList(attendancesToSave);
     }
   }
 }

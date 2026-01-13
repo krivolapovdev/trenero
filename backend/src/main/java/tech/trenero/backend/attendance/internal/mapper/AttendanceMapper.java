@@ -16,6 +16,9 @@ public interface AttendanceMapper {
   AttendanceDto toDto(Attendance attendance);
 
   @Mapping(target = "ownerId", expression = "java(ownerId)")
+  Attendance fromDto(AttendanceDto dto, UUID ownerId);
+
+  @Mapping(target = "ownerId", expression = "java(ownerId)")
   Attendance toAttendance(CreateAttendanceInput input, UUID ownerId);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
