@@ -13,7 +13,7 @@ RUN chmod +x gradlew && ./gradlew --no-daemon dependencies
 
 COPY . .
 
-RUN ./gradlew --no-daemon bootJar
+RUN chmod +x gradlew && ./gradlew --no-daemon bootJar
 
 # Run stage
 FROM eclipse-temurin:25.0.1_8-jre-alpine-3.23
