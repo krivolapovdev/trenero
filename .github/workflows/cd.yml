@@ -47,7 +47,9 @@ jobs:
           private_key_filename: id_rsa
           private_key_value: ${{ secrets.SERVER_SSH_KEY }}
           commands: |
-            cd ~
+            cd ~/trenero
+
+            git fetch && git reset origin/main --hard
 
             export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
             export DB_USERNAME="${{ secrets.DB_USERNAME }}"
