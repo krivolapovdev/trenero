@@ -1,6 +1,11 @@
 services:
+  db:
+    ports: !reset []
+    restart: unless-stopped
+
   backend:
     build: !reset null
+    ports: !reset []
     image: krivolapovdev/backend:latest
     restart: unless-stopped
 

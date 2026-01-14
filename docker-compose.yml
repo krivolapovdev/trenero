@@ -6,7 +6,7 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_DB: trenero
-      POSTGRES_USER: ${DB_USER:-username}
+      POSTGRES_USER: ${DB_USERNAME:-username}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
     volumes:
       - db-data:/var/lib/postgresql/data
@@ -27,7 +27,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: jdbc:postgresql://db:5432/trenero
-      DB_USERNAME: ${DB_USER:-username}
+      DB_USERNAME: ${DB_USERNAME:-username}
       DB_PASSWORD: ${DB_PASSWORD:-password}
       GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-ultra-secure-and-ultra-long-secret}
@@ -38,7 +38,7 @@ services:
       retries: 20
 
   nginx:
-    build: ./nginx
+    build: ./frontend
     container_name: nginx
     ports:
       - "80:80"

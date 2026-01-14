@@ -1,0 +1,8 @@
+*
+!nginx.conf
+!web/src
+!web/bun.lock
+!web/bun-env.d.ts
+!web/bunfig.toml
+!web/package.json
+!web/tsconfig.json

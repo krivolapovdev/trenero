@@ -19,12 +19,20 @@ target "backend" {
     "${DOCKERHUB_USERNAME}/backend:${IMAGE_TAG}",
     "${DOCKERHUB_USERNAME}/backend:latest"
   ]
+  platforms = [
+    "linux/amd64",
+    "linux/arm64"
+  ]
 }
 
 target "nginx" {
-  context = "./nginx"
+  context = "./frontend"
   tags = [
     "${DOCKERHUB_USERNAME}/nginx:${IMAGE_TAG}",
     "${DOCKERHUB_USERNAME}/nginx:latest"
+  ]
+  platforms = [
+    "linux/amd64",
+    "linux/arm64"
   ]
 }
