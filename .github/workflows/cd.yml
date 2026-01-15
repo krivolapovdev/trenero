@@ -25,7 +25,7 @@ jobs:
         uses: docker/bake-action@v6
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          IMAGE_TAG: ${{ github.ref_name }}
+          IMAGE_TAG:  ${{ github.sha }}-${{ github.run_attempt }}
         with:
           push: true
           files: ./docker-bake.hcl
