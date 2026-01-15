@@ -57,7 +57,7 @@ export const PaymentSheet = ({
     >
       <View style={{ gap: 16, padding: 16 }}>
         <Button
-          mode={'contained-tonal'}
+          mode='contained-tonal'
           textColor={theme.colors.primary}
           buttonColor={theme.colors.surface}
           onPress={() => {
@@ -72,7 +72,7 @@ export const PaymentSheet = ({
         </Button>
 
         <Button
-          mode={'contained-tonal'}
+          mode='contained-tonal'
           textColor={theme.colors.error}
           buttonColor={theme.colors.tertiaryContainer}
           onPress={() => void deletePayment()}

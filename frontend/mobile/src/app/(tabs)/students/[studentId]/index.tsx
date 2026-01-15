@@ -31,7 +31,7 @@ export default function StudentByIdScreen() {
 
   const { data, loading, error, refetch } = useQuery(GET_STUDENT, {
     variables: { id: studentId },
-    fetchPolicy: 'cache-first'
+    fetchPolicy: __DEV__ ? 'cache-first' : 'cache-and-network'
   });
 
   const [deleteStudent, resultDeleteStudent] = useMutation(DELETE_STUDENT, {

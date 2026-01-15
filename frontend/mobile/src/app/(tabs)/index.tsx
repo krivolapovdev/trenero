@@ -37,7 +37,10 @@ export default function StatisticsScreen() {
 
   return (
     <>
-      <CustomAppbar title={t('statistics')} />
+      <CustomAppbar
+        title={t('statistics')}
+        mode='center-aligned'
+      />
 
       <ScrollView
         contentContainerStyle={{ padding: 16, gap: 16 }}

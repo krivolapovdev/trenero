@@ -88,7 +88,7 @@ export const PaymentForm = ({
         keyboardShouldPersistTaps='handled'
       >
         <CustomTextInput
-          label={t('amount')}
+          label={`${t('amount')} *`}
           keyboardType='numeric'
           value={amount}
           onChangeText={text => setAmount(formatPriceInput(text))}
@@ -96,7 +96,7 @@ export const PaymentForm = ({
         />
 
         <CustomTextInput
-          label={t('lessonsPerPayment')}
+          label={`${t('lessonsPerPayment')} *`}
           keyboardType='numeric'
           value={lessonsPerPayment?.toString() ?? ''}
           onChangeText={text =>
@@ -108,7 +108,7 @@ export const PaymentForm = ({
         />
 
         <CustomTextInput
-          label={t('date')}
+          label={`${t('date')} *`}
           keyboardType='numeric'
           maxLength={10}
           value={date}

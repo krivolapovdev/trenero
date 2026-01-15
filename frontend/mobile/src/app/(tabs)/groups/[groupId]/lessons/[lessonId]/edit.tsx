@@ -21,7 +21,7 @@ const EDIT_LESSON = graphql(`
 export default function EditLessonScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { groupId, lessonId } = useLocalSearchParams<{
+  const { lessonId } = useLocalSearchParams<{
     groupId: string;
     lessonId: string;
   }>();

@@ -27,7 +27,7 @@ export default function GroupByIdScreen() {
 
   const { data, loading, error, refetch } = useQuery(GET_GROUP, {
     variables: { id: groupId },
-    fetchPolicy: 'cache-first'
+    fetchPolicy: __DEV__ ? 'cache-first' : 'cache-and-network'
   });
 
   const [deleteGroup, resultDeleteGroup] = useMutation(DELETE_GROUP, {

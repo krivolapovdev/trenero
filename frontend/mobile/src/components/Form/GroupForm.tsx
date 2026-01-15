@@ -111,7 +111,7 @@ export const GroupForm = ({
         keyboardShouldPersistTaps='handled'
       >
         <CustomTextInput
-          label={t('name')}
+          label={`${t('name')} *`}
           value={name}
           onChangeText={setName}
           maxLength={255}

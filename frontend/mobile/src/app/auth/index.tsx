@@ -46,13 +46,13 @@ export default function LoginScreen() {
             }}
           >
             {t('agreeText')}
-            {'\n'}
-            <Text
-              variant='bodySmall'
-              onPress={() => setIsTermsVisible(true)}
-            >
-              {t('termsPrivacy')}
-            </Text>
+          </Text>
+          <Text
+            variant='bodySmall'
+            onPress={() => setIsTermsVisible(true)}
+            style={{ textAlign: 'center' }}
+          >
+            {t('termsPrivacy')}
           </Text>
         </View>
       </View>

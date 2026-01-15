@@ -33,7 +33,8 @@
         "useNumberNamespace": "warn",
         "useNumericSeparators": "warn",
         "useReactFunctionComponents": "warn",
-        "useSelfClosingElements": "warn"
+        "useSelfClosingElements": "warn",
+        "useConsistentCurlyBraces": "warn"
       },
       "complexity": {
         "noImplicitCoercions": "warn"

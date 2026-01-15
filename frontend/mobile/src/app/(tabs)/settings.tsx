@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, ScrollView } from 'react-native';
+import { Linking, ScrollView, View } from 'react-native';
 import { Divider, List, Text } from 'react-native-paper';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { ConfirmDialog, LanguageDialog } from '@/src/components/Dialog';
@@ -28,7 +28,10 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <CustomAppbar title='Settings' />
+      <CustomAppbar
+        title='Settings'
+        mode='center-aligned'
+      />
 
       <ScrollView
         contentContainerStyle={{
@@ -93,19 +96,21 @@ export default function SettingsScreen() {
         title={t('contact')}
         onConfirm={() => setContactDialogVisible(false)}
       >
-        <Text
-          variant='bodyMedium'
-          style={{ textAlign: 'justify' }}
-        >
-          {t('contactMessage')}
-          {'\n\n'}
+        <View style={{ gap: 10 }}>
+          <Text
+            variant='bodyMedium'
+            style={{ textAlign: 'justify' }}
+          >
+            {t('contactMessage')}
+          </Text>
+
           <Text
             style={{ fontWeight: '700' }}
             onPress={() => Linking.openURL('https://t.me/krivolapovdev')}
           >
             Telegram: @krivolapovdev
           </Text>
-        </Text>
+        </View>
       </ConfirmDialog>
     </>
   );

@@ -104,7 +104,7 @@ export const StudentForm = ({
         keyboardShouldPersistTaps='handled'
       >
         <CustomTextInput
-          label={t('fullName')}
+          label={`${t('fullName')} *`}
           value={fullName}
           onChangeText={setFullName}
           maxLength={255}
