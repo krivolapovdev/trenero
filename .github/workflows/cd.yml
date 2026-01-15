@@ -51,6 +51,7 @@ jobs:
 
             git fetch && git reset origin/main --hard
 
+            export IMAGE_TAG="${{ github.sha }}-${{ github.run_attempt }}"
             export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
             export DB_USERNAME="${{ secrets.DB_USERNAME }}"
             export DOCKERHUB_TOKEN="${{ secrets.DOCKERHUB_TOKEN }}"

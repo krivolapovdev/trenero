@@ -6,10 +6,10 @@ services:
   backend:
     build: !reset null
     ports: !reset []
-    image: krivolapovdev/backend:latest
+    image: krivolapovdev/backend:${IMAGE_TAG}
     restart: unless-stopped
 
   nginx:
     build: !reset null
-    image: krivolapovdev/nginx:latest
+    image: krivolapovdev/nginx:${IMAGE_TAG}
     restart: unless-stopped
