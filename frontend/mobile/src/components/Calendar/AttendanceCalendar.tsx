@@ -21,12 +21,14 @@ export const AttendanceCalendar = memo(
 
     const items = useMemo(
       () =>
-        attendances.map(attendance => ({
-          date: dayjs(attendance.lesson.startDateTime),
-          color: attendance.present ? 'green' : '#fc975c',
-          isPresent: attendance.present,
-          lessonId: attendance.lesson.id
-        })),
+        [...attendances]
+          .map(attendance => ({
+            date: dayjs(attendance.lesson.startDateTime),
+            color: attendance.present ? 'green' : '#fc975c',
+            isPresent: attendance.present,
+            lessonId: attendance.lesson.id
+          }))
+          .sort((a, b) => a.date.diff(b.date)),
       [attendances]
     );
 

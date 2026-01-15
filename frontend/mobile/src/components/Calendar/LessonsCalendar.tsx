@@ -20,10 +20,12 @@ export const LessonsCalendar = memo(({ groupId, lessons }: Readonly<Props>) => {
 
   const items = useMemo(
     () =>
-      lessons.map(lesson => ({
-        date: dayjs(lesson.startDateTime),
-        lessonId: lesson.id
-      })),
+      [...lessons]
+        .map(lesson => ({
+          date: dayjs(lesson.startDateTime),
+          lessonId: lesson.id
+        }))
+        .sort((a, b) => a.date.diff(b.date)),
     [lessons]
   );
 

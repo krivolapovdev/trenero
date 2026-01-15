@@ -142,32 +142,30 @@ export const StudentForm = ({
           disabled={loading}
         />
 
-        {groupItems.length > 0 && (
-          <PaperSelect
-            label={t('group')}
-            textInputMode='outlined'
-            value={groupItems.find(g => g._id === groupId)?.value ?? ''}
-            arrayList={groupItems}
-            textInputOutlineStyle={{ borderRadius: 10, borderWidth: 0 }}
-            selectedArrayList={[
-              {
-                _id: groupId,
-                value: groupItems.find(g => g._id === groupId)?.value ?? ''
-              }
-            ]}
-            searchText={t('search')}
-            selectAllText={t('selectAll')}
-            dialogCloseButtonText={t('close')}
-            dialogDoneButtonText={t('ok')}
-            multiEnable={false}
-            disabled={loading}
-            onSelection={value => {
-              if (value?.selectedList?.length > 0) {
-                setGroupId(value.selectedList[0]._id);
-              }
-            }}
-          />
-        )}
+        <PaperSelect
+          label={t('group')}
+          textInputMode='outlined'
+          value={groupItems.find(g => g._id === groupId)?.value ?? ''}
+          arrayList={groupItems}
+          textInputOutlineStyle={{ borderRadius: 10, borderWidth: 0 }}
+          selectedArrayList={[
+            {
+              _id: groupId,
+              value: groupItems.find(g => g._id === groupId)?.value ?? ''
+            }
+          ]}
+          searchText={t('search')}
+          selectAllText={t('selectAll')}
+          dialogCloseButtonText={t('close')}
+          dialogDoneButtonText={t('ok')}
+          multiEnable={false}
+          disabled={loading}
+          onSelection={value => {
+            if (value?.selectedList?.length > 0) {
+              setGroupId(value.selectedList[0]._id);
+            }
+          }}
+        />
       </ScrollView>
     </>
   );

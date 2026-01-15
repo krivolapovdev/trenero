@@ -9,7 +9,7 @@ import {
 } from '@/src/components/Form/PaymentForm';
 import { LoadingSpinner } from '@/src/components/LoadingSpinner';
 import { graphql } from '@/src/graphql/__generated__';
-import { GET_GROUPS, GET_PAYMENT, GET_STUDENTS } from '@/src/graphql/queries';
+import { GET_PAYMENT, GET_STUDENTS } from '@/src/graphql/queries';
 
 const EDIT_PAYMENT = graphql(`
     mutation EditPayment($id: UUID!, $input: CreatePaymentInput!) {
@@ -35,7 +35,7 @@ export default function EditPaymentScreen() {
   const [editPayment, { loading: mutationLoading }] = useMutation(
     EDIT_PAYMENT,
     {
-      refetchQueries: [GET_GROUPS, GET_STUDENTS],
+      refetchQueries: [GET_STUDENTS],
 
       awaitRefetchQueries: true,
 

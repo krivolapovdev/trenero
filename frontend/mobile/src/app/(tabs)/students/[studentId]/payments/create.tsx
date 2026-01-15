@@ -7,7 +7,7 @@ import {
   type PaymentFormValues
 } from '@/src/components/Form/PaymentForm';
 import { graphql } from '@/src/graphql/__generated__';
-import { GET_GROUPS, GET_STUDENTS } from '@/src/graphql/queries';
+import { GET_STUDENTS } from '@/src/graphql/queries';
 
 const CREATE_PAYMENT = graphql(`
     mutation CreatePayment($input: CreatePaymentInput!) {
@@ -22,7 +22,7 @@ export default function CreatePaymentScreen() {
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
 
   const [createPayment, { loading }] = useMutation(CREATE_PAYMENT, {
-    refetchQueries: [GET_GROUPS, GET_STUDENTS],
+    refetchQueries: [GET_STUDENTS],
 
     awaitRefetchQueries: true,
 

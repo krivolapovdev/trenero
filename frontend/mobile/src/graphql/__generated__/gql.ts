@@ -35,7 +35,7 @@ type Documents = {
     "\n  fragment StudentDetailsFields on Student {\n    ...StudentCoreFields\n    group {\n      ...GroupCoreFields\n    }\n    attendances {\n      ...AttendanceCoreFields\n      lesson {\n        ...LessonCoreFields\n      }\n    }\n    payments {\n      ...PaymentCoreFields\n    }\n  }\n": typeof types.StudentDetailsFieldsFragmentDoc,
     "\n    fragment LessonDetailsFields on Lesson {\n        ...LessonCoreFields\n        group {\n            ...GroupCoreFields\n            students {\n                ...StudentCoreFields\n            }\n        }\n        attendances {\n            ...AttendanceCoreFields\n            student {\n                ...StudentCoreFields\n            }\n        }\n    }\n": typeof types.LessonDetailsFieldsFragmentDoc,
     "\n    mutation RefreshTokens($input: RefreshTokenInput!) {\n        refreshTokens(input: $input) {\n            accessToken\n            refreshToken\n        }\n    }\n": typeof types.RefreshTokensDocument,
-    "\n    query GetGroups {\n        groups {\n            ...GroupDetailsFields\n        }\n    }\n": typeof types.GetGroupsDocument,
+    "\n    query GetGroups {\n        groups {\n            ...GroupCoreFields\n            students {\n                ...StudentCoreFields\n            }\n        }\n    }\n": typeof types.GetGroupsDocument,
     "\n    query GetGroup($id: UUID!) {\n        group(id: $id) {\n            ...GroupDetailsFields\n        }\n    }\n": typeof types.GetGroupDocument,
     "\n    query GetStudents {\n        students {\n            ...StudentDetailsFields\n        }\n    }\n": typeof types.GetStudentsDocument,
     "\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            ...StudentDetailsFields\n        }\n    }\n": typeof types.GetStudentDocument,
@@ -66,7 +66,7 @@ const documents: Documents = {
     "\n  fragment StudentDetailsFields on Student {\n    ...StudentCoreFields\n    group {\n      ...GroupCoreFields\n    }\n    attendances {\n      ...AttendanceCoreFields\n      lesson {\n        ...LessonCoreFields\n      }\n    }\n    payments {\n      ...PaymentCoreFields\n    }\n  }\n": types.StudentDetailsFieldsFragmentDoc,
     "\n    fragment LessonDetailsFields on Lesson {\n        ...LessonCoreFields\n        group {\n            ...GroupCoreFields\n            students {\n                ...StudentCoreFields\n            }\n        }\n        attendances {\n            ...AttendanceCoreFields\n            student {\n                ...StudentCoreFields\n            }\n        }\n    }\n": types.LessonDetailsFieldsFragmentDoc,
     "\n    mutation RefreshTokens($input: RefreshTokenInput!) {\n        refreshTokens(input: $input) {\n            accessToken\n            refreshToken\n        }\n    }\n": types.RefreshTokensDocument,
-    "\n    query GetGroups {\n        groups {\n            ...GroupDetailsFields\n        }\n    }\n": types.GetGroupsDocument,
+    "\n    query GetGroups {\n        groups {\n            ...GroupCoreFields\n            students {\n                ...StudentCoreFields\n            }\n        }\n    }\n": types.GetGroupsDocument,
     "\n    query GetGroup($id: UUID!) {\n        group(id: $id) {\n            ...GroupDetailsFields\n        }\n    }\n": types.GetGroupDocument,
     "\n    query GetStudents {\n        students {\n            ...StudentDetailsFields\n        }\n    }\n": types.GetStudentsDocument,
     "\n    query GetStudent($id: UUID!) {\n        student(id: $id) {\n            ...StudentDetailsFields\n        }\n    }\n": types.GetStudentDocument,
@@ -177,7 +177,7 @@ export function graphql(source: "\n    mutation RefreshTokens($input: RefreshTok
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    query GetGroups {\n        groups {\n            ...GroupDetailsFields\n        }\n    }\n"): (typeof documents)["\n    query GetGroups {\n        groups {\n            ...GroupDetailsFields\n        }\n    }\n"];
+export function graphql(source: "\n    query GetGroups {\n        groups {\n            ...GroupCoreFields\n            students {\n                ...StudentCoreFields\n            }\n        }\n    }\n"): (typeof documents)["\n    query GetGroups {\n        groups {\n            ...GroupCoreFields\n            students {\n                ...StudentCoreFields\n            }\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -138,29 +138,27 @@ export const GroupForm = ({
           disabled={loading}
         />
 
-        {studentItems.length > 0 && (
-          <PaperSelect
-            label={t('students')}
-            textInputMode='outlined'
-            value={students.value}
-            arrayList={students.list}
-            textInputOutlineStyle={{ borderRadius: 10, borderWidth: 0 }}
-            selectedArrayList={students.selectedList}
-            searchText={t('search')}
-            selectAllText={t('selectAll')}
-            dialogCloseButtonText={t('close')}
-            dialogDoneButtonText={t('ok')}
-            multiEnable={true}
-            disabled={loading}
-            onSelection={value =>
-              setStudents({
-                ...students,
-                value: value.text,
-                selectedList: value.selectedList
-              })
-            }
-          />
-        )}
+        <PaperSelect
+          label={t('students')}
+          textInputMode='outlined'
+          value={students.value}
+          arrayList={students.list}
+          textInputOutlineStyle={{ borderRadius: 10, borderWidth: 0 }}
+          selectedArrayList={students.selectedList}
+          searchText={t('search')}
+          selectAllText={t('selectAll')}
+          dialogCloseButtonText={t('close')}
+          dialogDoneButtonText={t('ok')}
+          multiEnable={true}
+          disabled={loading}
+          onSelection={value =>
+            setStudents({
+              ...students,
+              value: value.text,
+              selectedList: value.selectedList
+            })
+          }
+        />
       </ScrollView>
     </>
   );
