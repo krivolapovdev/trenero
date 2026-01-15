@@ -29,7 +29,7 @@ export default function SettingsScreen() {
   return (
     <>
       <CustomAppbar
-        title='Settings'
+        title={t('settings')}
         mode='center-aligned'
       />
 

@@ -14,7 +14,7 @@ type Props = {
 
 export const LanguageDialog = memo(
   ({ visible, onDismiss }: Readonly<Props>) => {
-    const { i18n } = useTranslation();
+    const { i18n, t } = useTranslation();
 
     const handleLanguageChange = async (lang: string) => {
       dayjs.locale(lang);
@@ -41,7 +41,7 @@ export const LanguageDialog = memo(
           visible={visible}
           onDismiss={onDismiss}
         >
-          <Dialog.Title>Language</Dialog.Title>
+          <Dialog.Title>{t('language')}</Dialog.Title>
           <Dialog.Content>
             <RadioButton.Group
               onValueChange={handleLanguageChange}

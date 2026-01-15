@@ -25,6 +25,7 @@
     "rules": {
       "recommended": true,
       "style": {
+        "useBlockStatements": "warn",
         "noImplicitBoolean": "warn",
         "noYodaExpression": "warn",
         "noUselessElse": "warn",

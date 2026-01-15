@@ -17,6 +17,7 @@ type Documents = {
     "\n    mutation EditGroup($id: UUID!, $input: CreateGroupInput!) {\n        editGroup(id: $id, input: $input) {\n            ...GroupDetailsFields\n        }\n    }\n": typeof types.EditGroupDocument,
     "\n    mutation DeleteGroup($id: UUID!) {\n        deleteGroup(id: $id) {\n            id\n        }\n    }\n": typeof types.DeleteGroupDocument,
     "\n    mutation EditLesson($id: UUID!, $input: CreateLessonInput!) {\n        editLesson(id: $id, input: $input) {\n            ...LessonDetailsFields\n        }\n    }\n": typeof types.EditLessonDocument,
+  "\n    mutation DeleteLesson($id: UUID!) {\n        deleteLesson(id: $id) {\n            id\n        }\n    }\n": typeof types.DeleteLessonDocument,
     "\n    mutation CreateLesson($input: CreateLessonInput!) {\n        createLesson(input: $input) {\n            ...LessonDetailsFields\n        }\n    }\n": typeof types.CreateLessonDocument,
     "\n    mutation CreateGroup($input: CreateGroupInput!) {\n        createGroup(input: $input) {\n            ...GroupDetailsFields\n        }\n    }\n": typeof types.CreateGroupDocument,
     "\n    mutation EditStudent($id: UUID!, $input: CreateStudentInput!) {\n        editStudent(id: $id, input: $input) {\n            ...StudentDetailsFields\n        }\n    }\n": typeof types.EditStudentDocument,
@@ -48,6 +49,7 @@ const documents: Documents = {
     "\n    mutation EditGroup($id: UUID!, $input: CreateGroupInput!) {\n        editGroup(id: $id, input: $input) {\n            ...GroupDetailsFields\n        }\n    }\n": types.EditGroupDocument,
     "\n    mutation DeleteGroup($id: UUID!) {\n        deleteGroup(id: $id) {\n            id\n        }\n    }\n": types.DeleteGroupDocument,
     "\n    mutation EditLesson($id: UUID!, $input: CreateLessonInput!) {\n        editLesson(id: $id, input: $input) {\n            ...LessonDetailsFields\n        }\n    }\n": types.EditLessonDocument,
+  "\n    mutation DeleteLesson($id: UUID!) {\n        deleteLesson(id: $id) {\n            id\n        }\n    }\n": types.DeleteLessonDocument,
     "\n    mutation CreateLesson($input: CreateLessonInput!) {\n        createLesson(input: $input) {\n            ...LessonDetailsFields\n        }\n    }\n": types.CreateLessonDocument,
     "\n    mutation CreateGroup($input: CreateGroupInput!) {\n        createGroup(input: $input) {\n            ...GroupDetailsFields\n        }\n    }\n": types.CreateGroupDocument,
     "\n    mutation EditStudent($id: UUID!, $input: CreateStudentInput!) {\n        editStudent(id: $id, input: $input) {\n            ...StudentDetailsFields\n        }\n    }\n": types.EditStudentDocument,
@@ -102,6 +104,10 @@ export function graphql(source: "\n    mutation DeleteGroup($id: UUID!) {\n     
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n    mutation EditLesson($id: UUID!, $input: CreateLessonInput!) {\n        editLesson(id: $id, input: $input) {\n            ...LessonDetailsFields\n        }\n    }\n"): (typeof documents)["\n    mutation EditLesson($id: UUID!, $input: CreateLessonInput!) {\n        editLesson(id: $id, input: $input) {\n            ...LessonDetailsFields\n        }\n    }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n    mutation DeleteLesson($id: UUID!) {\n        deleteLesson(id: $id) {\n            id\n        }\n    }\n"): (typeof documents)["\n    mutation DeleteLesson($id: UUID!) {\n        deleteLesson(id: $id) {\n            id\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

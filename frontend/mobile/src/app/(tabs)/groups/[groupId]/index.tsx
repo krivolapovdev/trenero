@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Alert, RefreshControl, ScrollView, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { Divider, List, Text } from 'react-native-paper';
 import { LessonsCalendar } from '@/src/components/Calendar';
 import { GroupCard } from '@/src/components/Card';
@@ -53,9 +53,7 @@ export default function GroupByIdScreen() {
       {
         text: t('delete'),
         style: 'destructive',
-        onPress: () => {
-          void deleteGroup();
-        }
+        onPress: () => void deleteGroup()
       }
     ]);
   };
@@ -136,15 +134,13 @@ export default function GroupByIdScreen() {
                 <Divider />
 
                 {group.students.map(student => (
-                  <View key={student.fullName}>
-                    <List.Item
-                      title={student.fullName}
-                      onPress={() =>
-                        router.push(`/(tabs)/students/${student.id}`)
-                      }
-                    />
-                    <Divider />
-                  </View>
+                  <List.Item
+                    key={student.fullName}
+                    title={student.fullName}
+                    onPress={() =>
+                      router.push(`/(tabs)/students/${student.id}`)
+                    }
+                  />
                 ))}
               </List.Section>
             )}

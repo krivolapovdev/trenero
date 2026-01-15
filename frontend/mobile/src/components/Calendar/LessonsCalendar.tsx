@@ -66,7 +66,7 @@ export const LessonsCalendar = memo(({ groupId, lessons }: Readonly<Props>) => {
                   onPress={() => {
                     setSelectedDate(null);
                     router.push(
-                      `/(tabs)/groups/${groupId}/lessons/${item.lessonId}/edit`
+                      `/(tabs)/groups/${groupId}/lessons/${item.lessonId}`
                     );
                   }}
                 />

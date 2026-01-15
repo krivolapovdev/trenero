@@ -68,12 +68,7 @@ export default function StatisticsScreen() {
             borderRadius: 16
           }}
         >
-          <Text
-            variant='bodyLarge'
-            style={{ color: theme.colors.primary }}
-          >
-            {selectedBar.format('MM/YYYY')}
-          </Text>
+          <Text variant='bodyLarge'>{selectedBar.format('MM/YYYY')}</Text>
 
           <Text variant='bodyLarge'>
             +
