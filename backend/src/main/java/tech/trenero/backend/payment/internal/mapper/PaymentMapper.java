@@ -8,11 +8,12 @@ import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.ReportingPolicy;
 import tech.trenero.backend.codegen.types.CreatePaymentInput;
 import tech.trenero.backend.codegen.types.Student;
 import tech.trenero.backend.payment.internal.entity.Payment;
 
-@Mapper(componentModel = ComponentModel.SPRING)
+@Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PaymentMapper {
   @Mapping(target = "student", source = "studentId", qualifiedByName = "studentFromId")
   tech.trenero.backend.codegen.types.Payment toGraphql(Payment payment);

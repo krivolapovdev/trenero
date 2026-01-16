@@ -8,11 +8,12 @@ import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.ReportingPolicy;
 import tech.trenero.backend.codegen.types.CreateStudentInput;
 import tech.trenero.backend.codegen.types.Group;
 import tech.trenero.backend.student.internal.entity.Student;
 
-@Mapper(componentModel = ComponentModel.SPRING)
+@Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface StudentMapper {
   @Mapping(target = "group", source = "groupId", qualifiedByName = "groupFromId")
   tech.trenero.backend.codegen.types.Student toGraphql(Student student);

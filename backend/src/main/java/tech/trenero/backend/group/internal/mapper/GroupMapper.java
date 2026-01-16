@@ -7,10 +7,11 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.ReportingPolicy;
 import tech.trenero.backend.codegen.types.CreateGroupInput;
 import tech.trenero.backend.group.internal.entity.Group;
 
-@Mapper(componentModel = ComponentModel.SPRING)
+@Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface GroupMapper {
   tech.trenero.backend.codegen.types.Group toGraphql(Group group);
 

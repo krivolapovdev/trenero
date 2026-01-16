@@ -8,12 +8,13 @@ import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.ReportingPolicy;
 import tech.trenero.backend.attendance.internal.entity.Attendance;
 import tech.trenero.backend.codegen.types.CreateAttendanceInput;
 import tech.trenero.backend.codegen.types.Lesson;
 import tech.trenero.backend.codegen.types.Student;
 
-@Mapper(componentModel = ComponentModel.SPRING)
+@Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface AttendanceMapper {
   @Mapping(target = "lesson", source = "lessonId", qualifiedByName = "lessonFromId")
   @Mapping(target = "student", source = "studentId", qualifiedByName = "studentFromId")
