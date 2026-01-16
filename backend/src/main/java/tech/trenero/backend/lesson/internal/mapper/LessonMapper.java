@@ -6,14 +6,21 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-import tech.trenero.backend.common.dto.LessonDto;
+import tech.trenero.backend.codegen.types.CreateLessonInput;
+import tech.trenero.backend.codegen.types.Group;
 import tech.trenero.backend.lesson.internal.entity.Lesson;
-import tech.trenero.backend.lesson.internal.input.CreateLessonInput;
 
 @Mapper(componentModel = ComponentModel.SPRING)
 public interface LessonMapper {
-  LessonDto toDto(Lesson lesson);
+  @Mapping(target = "group", source = "groupId", qualifiedByName = "groupFromId")
+  tech.trenero.backend.codegen.types.Lesson toGraphql(Lesson lesson);
+
+  @Named("groupFromId")
+  default Group groupFromId(UUID groupId) {
+    return Group.newBuilder().id(groupId).build();
+  }
 
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Lesson toLesson(CreateLessonInput input, UUID ownerId);

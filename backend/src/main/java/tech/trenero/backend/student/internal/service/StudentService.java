@@ -7,13 +7,13 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.trenero.backend.common.dto.StudentDto;
+import tech.trenero.backend.codegen.types.CreateStudentInput;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.group.external.GroupValidator;
+import tech.trenero.backend.group.external.GroupSpi;
 import tech.trenero.backend.student.internal.entity.Student;
-import tech.trenero.backend.student.internal.input.CreateStudentInput;
 import tech.trenero.backend.student.internal.mapper.StudentMapper;
 import tech.trenero.backend.student.internal.repository.StudentRepository;
 
@@ -23,39 +23,42 @@ import tech.trenero.backend.student.internal.repository.StudentRepository;
 public class StudentService {
   private final StudentRepository studentRepository;
   private final StudentMapper studentMapper;
-  private final GroupValidator groupValidator;
+  @Lazy private final GroupSpi groupSpi;
 
   @Transactional(readOnly = true)
-  public List<StudentDto> getAllStudents(JwtUser jwtUser) {
+  public List<tech.trenero.backend.codegen.types.Student> getAllStudents(JwtUser jwtUser) {
     log.info("Getting all students for ownerId={}", jwtUser.userId());
     return studentRepository.findAllByOwnerIdAndDeletedFalse(jwtUser.userId()).stream()
-        .map(studentMapper::toStudentDto)
+        .map(studentMapper::toGraphql)
         .toList();
   }
 
   @Transactional(readOnly = true)
-  public Optional<StudentDto> getStudentById(UUID studentId, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Student> findStudentById(
+      UUID studentId, JwtUser jwtUser) {
     log.info("Getting student by id={} for ownerId={}", studentId, jwtUser.userId());
     return studentRepository
         .findByIdAndOwnerId(studentId, jwtUser.userId())
-        .map(studentMapper::toStudentDto);
+        .map(studentMapper::toGraphql);
   }
 
   @Transactional
-  public StudentDto createStudent(CreateStudentInput input, JwtUser jwtUser) {
+  public tech.trenero.backend.codegen.types.Student createStudent(
+      CreateStudentInput input, JwtUser jwtUser) {
     log.info("Creating student: {}", input);
 
-    groupValidator.validateGroupIsPresentAndActive(input.groupId(), jwtUser);
+    groupSpi.getGroupById(input.getGroupId(), jwtUser);
 
     Student student = studentMapper.toStudent(input, jwtUser.userId());
 
     Student savedStudent = saveStudent(student);
 
-    return studentMapper.toStudentDto(savedStudent);
+    return studentMapper.toGraphql(savedStudent);
   }
 
   @Transactional
-  public Optional<StudentDto> softDeleteStudent(UUID id, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Student> softDeleteStudent(
+      UUID id, JwtUser jwtUser) {
     log.info("Deleting student: {}", id);
     return studentRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
@@ -64,14 +67,15 @@ public class StudentService {
               student.setDeletedAt(OffsetDateTime.now());
               return saveStudent(student);
             })
-        .map(studentMapper::toStudentDto);
+        .map(studentMapper::toGraphql);
   }
 
   @Transactional(readOnly = true)
-  public List<StudentDto> getStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
+  public List<tech.trenero.backend.codegen.types.Student> getStudentsByGroupId(
+      UUID groupId, JwtUser jwtUser) {
     log.info("Getting students by groupId={} for ownerId={}", groupId, jwtUser.userId());
     return studentRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
-        .map(studentMapper::toStudentDto)
+        .map(studentMapper::toGraphql)
         .toList();
   }
 
@@ -80,7 +84,7 @@ public class StudentService {
     log.info(
         "Assign groupId={} to students={} for ownerId={}", groupId, studentIds, jwtUser.userId());
 
-    groupValidator.validateGroupIsPresentAndActive(groupId, jwtUser);
+    groupSpi.getGroupById(groupId, jwtUser);
 
     int updatedCount =
         studentRepository.setGroupIdForStudents(groupId, studentIds, jwtUser.userId());
@@ -89,21 +93,22 @@ public class StudentService {
   }
 
   @Transactional(readOnly = true)
-  public List<StudentDto> getStudentListByIds(List<UUID> studentIds, JwtUser jwtUser) {
+  public List<tech.trenero.backend.codegen.types.Student> getStudentListByIds(
+      List<UUID> studentIds, JwtUser jwtUser) {
     log.info("Getting students by ids={} for ownerId={}", studentIds, jwtUser.userId());
     return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
-        .map(studentMapper::toStudentDto)
+        .map(studentMapper::toGraphql)
         .toList();
   }
 
   @Transactional
-  public Optional<StudentDto> editStudent(
+  public Optional<tech.trenero.backend.codegen.types.Student> editStudent(
       UUID studentId, @Valid CreateStudentInput input, JwtUser jwtUser) {
     return studentRepository
         .findByIdAndOwnerId(studentId, jwtUser.userId())
         .map(student -> studentMapper.editStudent(student, input))
         .map(this::saveStudent)
-        .map(studentMapper::toStudentDto);
+        .map(studentMapper::toGraphql);
   }
 
   private Student saveStudent(Student student) {

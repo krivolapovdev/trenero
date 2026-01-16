@@ -14,7 +14,7 @@ import tech.trenero.backend.payment.internal.entity.Payment;
 public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonNull UUID> {
   @Query(
       """
-          SELECT DISTINCT p
+          SELECT p
           FROM Payment AS p
           WHERE p.ownerId = :ownerId
             AND p.deletedAt IS NULL
@@ -23,10 +23,10 @@ public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonN
 
   @Query(
       """
-          SELECT DISTINCT p
+          SELECT p
           FROM Payment AS p
-          WHERE p.studentId = :studentId
-            AND p.ownerId = :ownerId
+          WHERE p.ownerId = :ownerId
+            AND p.studentId = :studentId
             AND p.deletedAt IS NULL
           ORDER BY p.createdAt DESC""")
   List<Payment> findAllByStudentId(
@@ -37,7 +37,7 @@ public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonN
           SELECT p
           FROM Payment AS p
           WHERE p.id = :id
-            AND p.deletedAt IS NULL
-            AND p.ownerId = :ownerId""")
+            AND p.ownerId = :ownerId
+            AND p.deletedAt IS NULL""")
   Optional<Payment> findByIdAndOwnerId(@Param("id") UUID id, @Param("ownerId") UUID ownerId);
 }

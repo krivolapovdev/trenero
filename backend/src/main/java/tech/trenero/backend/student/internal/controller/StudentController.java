@@ -12,9 +12,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import tech.trenero.backend.common.dto.StudentDto;
+import tech.trenero.backend.codegen.types.CreateStudentInput;
+import tech.trenero.backend.codegen.types.Student;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.student.internal.input.CreateStudentInput;
 import tech.trenero.backend.student.internal.service.StudentService;
 
 @Controller
@@ -25,20 +25,20 @@ public class StudentController {
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public List<StudentDto> students(@AuthenticationPrincipal JwtUser jwtUser) {
+  public List<Student> students(@AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.getAllStudents(jwtUser);
   }
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<StudentDto> student(
+  public Optional<Student> student(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.getStudentById(id, jwtUser);
+    return studentService.findStudentById(id, jwtUser);
   }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public StudentDto createStudent(
+  public Student createStudent(
       @Argument("input") @Valid CreateStudentInput input,
       @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.createStudent(input, jwtUser);
@@ -46,7 +46,7 @@ public class StudentController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<StudentDto> editStudent(
+  public Optional<Student> editStudent(
       @Argument("id") UUID id,
       @Argument("input") @Valid CreateStudentInput input,
       @AuthenticationPrincipal JwtUser jwtUser) {
@@ -55,7 +55,7 @@ public class StudentController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<StudentDto> deleteStudent(
+  public Optional<Student> deleteStudent(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.softDeleteStudent(id, jwtUser);
   }

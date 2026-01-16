@@ -4,8 +4,8 @@ import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import tech.trenero.backend.auth.internal.dto.JwtTokens;
-import tech.trenero.backend.auth.internal.input.RefreshTokenInput;
+import tech.trenero.backend.codegen.types.JwtTokens;
+import tech.trenero.backend.codegen.types.RefreshTokenInput;
 import tech.trenero.backend.common.security.JwtTokenProvider;
 import tech.trenero.backend.common.security.JwtUser;
 
@@ -27,7 +27,7 @@ public class JwtTokenService {
   public JwtTokens refreshTokens(RefreshTokenInput input) {
     log.info("Refreshing jwtTokens: {}", input);
 
-    String oldRefreshToken = input.refreshToken();
+    String oldRefreshToken = input.getRefreshToken();
 
     log.info("Refreshing token: {}", oldRefreshToken);
 

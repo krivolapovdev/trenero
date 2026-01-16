@@ -3,6 +3,7 @@ plugins {
     id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.diffplug.spotless") version "8.1.0"
+    id("com.netflix.dgs.codegen") version "8.3.0"
 }
 
 group = "tech.trenero"
@@ -81,4 +82,18 @@ spotless {
         googleJavaFormat()
         target("src/**/*.java")
     }
+}
+
+tasks.generateJava {
+    schemaPaths.add("${projectDir}/src/main/resources/graphql")
+    packageName = "tech.trenero.backend.codegen"
+    language = "java"
+    addGeneratedAnnotation = true
+    generateCustomAnnotations = true
+    typeMapping = mutableMapOf(
+        "UUID" to "java.util.UUID",
+        "BigDecimal" to "java.math.BigDecimal",
+        "Date" to "java.time.LocalDate",
+        "DateTime" to "java.time.OffsetDateTime"
+    )
 }

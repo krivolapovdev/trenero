@@ -10,10 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.trenero.backend.common.dto.GroupDto;
+import tech.trenero.backend.codegen.types.CreateGroupInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.internal.entity.Group;
-import tech.trenero.backend.group.internal.input.CreateGroupInput;
 import tech.trenero.backend.group.internal.mapper.GroupMapper;
 import tech.trenero.backend.group.internal.repository.GroupRepository;
 import tech.trenero.backend.student.external.StudentSpi;
@@ -27,49 +26,55 @@ public class GroupService {
   @Lazy private final StudentSpi studentSpi;
 
   @Transactional(readOnly = true)
-  public List<GroupDto> getAllGroups(JwtUser jwtUser) {
+  public List<tech.trenero.backend.codegen.types.Group> getAllGroups(JwtUser jwtUser) {
     log.info("Getting all groups for ownerId={}", jwtUser.userId());
     return groupRepository.findAllByOwnerId(jwtUser.userId()).stream()
-        .map(groupMapper::toGroupDto)
+        .map(groupMapper::toGraphql)
         .toList();
   }
 
   @Transactional(readOnly = true)
-  public Optional<GroupDto> getGroupById(UUID groupId, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Group> findGroupById(
+      UUID groupId, JwtUser jwtUser) {
     log.info("Getting group by id={} for ownerId={}", groupId, jwtUser.userId());
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
-        .map(groupMapper::toGroupDto);
+        .map(groupMapper::toGraphql);
   }
 
   @Transactional
-  public GroupDto createGroup(CreateGroupInput input, JwtUser jwtUser) {
-    log.info("Creating group: name='{}', ownerId={}", input.name(), jwtUser.userId());
+  public tech.trenero.backend.codegen.types.Group createGroup(
+      CreateGroupInput input, JwtUser jwtUser) {
+    log.info("Creating group: name='{}', ownerId={}", input.getName(), jwtUser.userId());
 
     Group group = groupMapper.toGroup(input, jwtUser.userId());
     Group saveGroup = saveGroup(group);
 
-    studentSpi.assignGroupToStudents(saveGroup.getId(), input.studentIds(), jwtUser);
+    studentSpi.assignGroupToStudents(saveGroup.getId(), input.getStudentIds(), jwtUser);
 
-    return groupMapper.toGroupDto(saveGroup);
+    return groupMapper.toGraphql(saveGroup);
   }
 
   @Transactional
-  public Optional<GroupDto> editGroup(
+  public Optional<tech.trenero.backend.codegen.types.Group> editGroup(
       UUID groupId, @Valid CreateGroupInput input, JwtUser jwtUser) {
 
-    studentSpi.editStudentsGroup(groupId, input.studentIds(), jwtUser);
+    studentSpi.editStudentsGroup(groupId, input.getStudentIds(), jwtUser);
 
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
         .map(group -> groupMapper.editStudent(group, input))
         .map(this::saveGroup)
-        .map(groupMapper::toGroupDto);
+        .map(groupMapper::toGraphql);
   }
 
   @Transactional
-  public Optional<GroupDto> softDeleteGroup(UUID id, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Group> softDeleteGroup(
+      UUID id, JwtUser jwtUser) {
     log.info("Deleting group: {}", id);
+
+    studentSpi.removeGroupFromStudents(id, jwtUser);
+
     return groupRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
         .map(
@@ -77,7 +82,7 @@ public class GroupService {
               group.setDeletedAt(OffsetDateTime.now());
               return saveGroup(group);
             })
-        .map(groupMapper::toGroupDto);
+        .map(groupMapper::toGraphql);
   }
 
   private Group saveGroup(Group group) {

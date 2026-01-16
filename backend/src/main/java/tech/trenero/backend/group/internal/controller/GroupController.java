@@ -12,9 +12,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import tech.trenero.backend.common.dto.GroupDto;
+import tech.trenero.backend.codegen.types.CreateGroupInput;
+import tech.trenero.backend.codegen.types.Group;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.group.internal.input.CreateGroupInput;
 import tech.trenero.backend.group.internal.service.GroupService;
 
 @Controller
@@ -25,27 +25,26 @@ public class GroupController {
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public List<GroupDto> groups(@AuthenticationPrincipal JwtUser jwtUser) {
+  public List<Group> groups(@AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.getAllGroups(jwtUser);
   }
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<GroupDto> group(
-      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.getGroupById(id, jwtUser);
+  public Optional<Group> group(@Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.findGroupById(id, jwtUser);
   }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public GroupDto createGroup(
+  public Group createGroup(
       @Argument("input") @Valid CreateGroupInput input, @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.createGroup(input, jwtUser);
   }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<GroupDto> editGroup(
+  public Optional<Group> editGroup(
       @Argument("id") UUID id,
       @Argument("input") @Valid CreateGroupInput input,
       @AuthenticationPrincipal JwtUser jwtUser) {
@@ -54,7 +53,7 @@ public class GroupController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<GroupDto> deleteGroup(
+  public Optional<Group> deleteGroup(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.softDeleteGroup(id, jwtUser);
   }

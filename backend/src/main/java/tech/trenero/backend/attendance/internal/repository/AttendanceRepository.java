@@ -26,8 +26,8 @@ public interface AttendanceRepository extends JpaRepository<@NonNull Attendance,
         SELECT a
         FROM Attendance AS a
         WHERE a.id = :attendanceId
-          AND a.deletedAt IS NULL
-          AND a.ownerId = :ownerId""")
+          AND a.ownerId = :ownerId
+          AND a.deletedAt IS NULL""")
   Optional<Attendance> findByIdAndOwnerId(
       @Param("attendanceId") UUID attendanceId, @Param("ownerId") UUID ownerId);
 
@@ -35,9 +35,9 @@ public interface AttendanceRepository extends JpaRepository<@NonNull Attendance,
       """
         SELECT a
         FROM Attendance AS a
-        WHERE a.studentId = :studentId
-          AND a.deletedAt IS NULL
-          AND a.ownerId = :ownerId""")
+        WHERE a.ownerId = :ownerId
+          AND a.studentId = :studentId
+          AND a.deletedAt IS NULL""")
   List<Attendance> findAllByStudentIdAndOwnerId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 
@@ -45,22 +45,9 @@ public interface AttendanceRepository extends JpaRepository<@NonNull Attendance,
       """
         SELECT a
         FROM Attendance AS a
-        WHERE a.lessonId = :lessonId
-          AND a.deletedAt IS NULL
-          AND a.ownerId = :ownerId""")
+        WHERE a.ownerId = :ownerId
+          AND a.lessonId = :lessonId
+          AND a.deletedAt IS NULL""")
   List<Attendance> findAllByLessonIdAndOwnerId(
       @Param("lessonId") UUID lessonId, @Param("ownerId") UUID ownerId);
-
-  @Query(
-      """
-        SELECT a
-        FROM Attendance AS a
-        WHERE a.lessonId = :lessonId
-          AND a.studentId = :studentId
-          AND a.deletedAt IS NULL
-          AND a.ownerId = :ownerId""")
-  Optional<Attendance> findByLessonIdAndStudentIdAndOwnerId(
-      @Param("lessonId") UUID lessonId,
-      @Param("studentId") UUID studentId,
-      @Param("ownerId") UUID ownerId);
 }

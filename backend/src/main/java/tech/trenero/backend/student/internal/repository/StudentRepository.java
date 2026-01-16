@@ -28,8 +28,8 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           SELECT s
           FROM Student AS s
           WHERE s.id = :studentId
-            AND s.deletedAt IS NULL
-            AND s.ownerId = :ownerId""")
+            AND s.ownerId = :ownerId
+            AND s.deletedAt IS NULL""")
   Optional<Student> findByIdAndOwnerId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 
@@ -37,9 +37,9 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
       """
           SELECT DISTINCT s
           FROM Student AS s
-          WHERE s.groupId = :groupId
+          WHERE s.ownerId = :ownerId
+            AND s.groupId = :groupId
             AND s.deletedAt IS NULL
-            AND s.ownerId = :ownerId
           ORDER BY s.fullName""")
   List<Student> findAllByGroupIdAndOwnerId(
       @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
@@ -49,8 +49,8 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           SELECT s
           FROM Student AS s
           WHERE s.id IN :studentIds
-            AND s.deletedAt IS NULL
-            AND s.ownerId = :ownerId""")
+            AND s.ownerId = :ownerId
+            AND s.deletedAt IS NULL""")
   List<Student> findAllByIdsAndOwnerId(
       @Param("studentIds") List<UUID> studentIds, @Param("ownerId") UUID ownerId);
 
@@ -61,8 +61,8 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           UPDATE Student s
           SET s.groupId = :groupId
           WHERE s.id IN :studentIds
-            AND s.deletedAt IS NULL
-            AND s.ownerId = :ownerId""")
+            AND s.ownerId = :ownerId
+            AND s.deletedAt IS NULL""")
   int setGroupIdForStudents(
       @Param("groupId") UUID groupId,
       @Param("studentIds") List<UUID> studentIds,

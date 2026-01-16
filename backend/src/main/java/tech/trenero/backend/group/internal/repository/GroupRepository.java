@@ -14,7 +14,7 @@ import tech.trenero.backend.group.internal.entity.Group;
 public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull UUID> {
   @Query(
       """
-        SELECT DISTINCT g
+        SELECT g
         FROM Group AS g
         WHERE g.ownerId = :ownerId
           AND g.deletedAt IS NULL
@@ -26,8 +26,8 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
           SELECT g
           FROM Group AS g
           WHERE g.id = :groupId
-            AND g.deletedAt IS NULL
-            AND g.ownerId = :ownerId""")
+            AND g.ownerId = :ownerId
+            AND g.deletedAt IS NULL""")
   Optional<Group> findByIdAndOwnerId(
       @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
 }

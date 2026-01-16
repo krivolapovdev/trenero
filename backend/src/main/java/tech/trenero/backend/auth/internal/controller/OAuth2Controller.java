@@ -6,9 +6,9 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import tech.trenero.backend.auth.internal.dto.LoginPayload;
-import tech.trenero.backend.auth.internal.input.SocialLoginInput;
 import tech.trenero.backend.auth.internal.service.OAuth2Service;
+import tech.trenero.backend.codegen.types.LoginPayload;
+import tech.trenero.backend.codegen.types.SocialLoginInput;
 
 @Controller
 @RequiredArgsConstructor

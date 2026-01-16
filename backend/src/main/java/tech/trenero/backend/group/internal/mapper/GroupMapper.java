@@ -7,13 +7,12 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-import tech.trenero.backend.common.dto.GroupDto;
+import tech.trenero.backend.codegen.types.CreateGroupInput;
 import tech.trenero.backend.group.internal.entity.Group;
-import tech.trenero.backend.group.internal.input.CreateGroupInput;
 
 @Mapper(componentModel = ComponentModel.SPRING)
 public interface GroupMapper {
-  GroupDto toGroupDto(Group group);
+  tech.trenero.backend.codegen.types.Group toGraphql(Group group);
 
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Group toGroup(CreateGroupInput input, UUID ownerId);

@@ -12,9 +12,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import tech.trenero.backend.common.dto.PaymentDto;
+import tech.trenero.backend.codegen.types.CreatePaymentInput;
+import tech.trenero.backend.codegen.types.Payment;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.payment.internal.input.CreatePaymentInput;
 import tech.trenero.backend.payment.internal.service.PaymentService;
 
 @Controller
@@ -25,20 +25,20 @@ public class PaymentController {
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public List<PaymentDto> payments(@AuthenticationPrincipal JwtUser jwtUser) {
+  public List<Payment> payments(@AuthenticationPrincipal JwtUser jwtUser) {
     return paymentService.getAllPayments(jwtUser);
   }
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<PaymentDto> payment(
+  public Optional<Payment> payment(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return paymentService.getPaymentById(id, jwtUser);
+    return paymentService.findPaymentById(id, jwtUser);
   }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public PaymentDto createPayment(
+  public Payment createPayment(
       @Argument("input") @Valid CreatePaymentInput input,
       @AuthenticationPrincipal JwtUser jwtUser) {
     return paymentService.createPayment(input, jwtUser);
@@ -46,7 +46,7 @@ public class PaymentController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<PaymentDto> editPayment(
+  public Optional<Payment> editPayment(
       @Argument("id") UUID id,
       @Argument("input") @Valid CreatePaymentInput input,
       @AuthenticationPrincipal JwtUser jwtUser) {
@@ -55,7 +55,7 @@ public class PaymentController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<PaymentDto> deletePayment(
+  public Optional<Payment> deletePayment(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
     return paymentService.softDeletePayment(id, jwtUser);
   }

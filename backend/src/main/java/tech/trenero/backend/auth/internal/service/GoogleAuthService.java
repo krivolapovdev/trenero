@@ -7,9 +7,9 @@ import com.google.api.client.json.gson.GsonFactory;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ public class GoogleAuthService {
   @Value("${oauth2.google.client-id}")
   private String clientId;
 
-  public @Nullable GoogleIdToken verifyIdToken(String idTokenString)
+  public Optional<GoogleIdToken> verifyIdToken(String idTokenString)
       throws GeneralSecurityException, IOException {
     log.info("Verifying idToken={}", idTokenString);
 
@@ -30,6 +30,8 @@ public class GoogleAuthService {
             .setAudience(Collections.singletonList(clientId))
             .build();
 
-    return verifier.verify(idTokenString);
+    GoogleIdToken googleIdToken = verifier.verify(idTokenString);
+
+    return Optional.ofNullable(googleIdToken);
   }
 }

@@ -6,17 +6,28 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import tech.trenero.backend.attendance.internal.entity.Attendance;
-import tech.trenero.backend.common.dto.AttendanceDto;
-import tech.trenero.backend.common.input.CreateAttendanceInput;
+import tech.trenero.backend.codegen.types.CreateAttendanceInput;
+import tech.trenero.backend.codegen.types.Lesson;
+import tech.trenero.backend.codegen.types.Student;
 
 @Mapper(componentModel = ComponentModel.SPRING)
 public interface AttendanceMapper {
-  AttendanceDto toDto(Attendance attendance);
+  @Mapping(target = "lesson", source = "lessonId", qualifiedByName = "lessonFromId")
+  @Mapping(target = "student", source = "studentId", qualifiedByName = "studentFromId")
+  tech.trenero.backend.codegen.types.Attendance toGraphql(Attendance attendance);
 
-  @Mapping(target = "ownerId", expression = "java(ownerId)")
-  Attendance fromDto(AttendanceDto dto, UUID ownerId);
+  @Named("lessonFromId")
+  default Lesson lessonFromId(UUID lessonId) {
+    return Lesson.newBuilder().id(lessonId).build();
+  }
+
+  @Named("studentFromId")
+  default Student studentFromId(UUID studentId) {
+    return Student.newBuilder().id(studentId).build();
+  }
 
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Attendance toAttendance(CreateAttendanceInput input, UUID ownerId);

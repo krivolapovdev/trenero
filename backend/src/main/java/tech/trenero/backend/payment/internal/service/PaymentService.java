@@ -6,15 +6,15 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.trenero.backend.common.dto.PaymentDto;
+import tech.trenero.backend.codegen.types.CreatePaymentInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.payment.internal.entity.Payment;
-import tech.trenero.backend.payment.internal.input.CreatePaymentInput;
 import tech.trenero.backend.payment.internal.mapper.PaymentMapper;
 import tech.trenero.backend.payment.internal.repository.PaymentRepository;
-import tech.trenero.backend.student.external.StudentValidator;
+import tech.trenero.backend.student.external.StudentSpi;
 
 @Service
 @RequiredArgsConstructor
@@ -22,56 +22,61 @@ import tech.trenero.backend.student.external.StudentValidator;
 public class PaymentService {
   private final PaymentRepository paymentRepository;
   private final PaymentMapper paymentMapper;
-  private final StudentValidator studentValidator;
+  @Lazy private final StudentSpi studentSpi;
 
   @Transactional(readOnly = true)
-  public List<PaymentDto> getAllPayments(JwtUser jwtUser) {
+  public List<tech.trenero.backend.codegen.types.Payment> getAllPayments(JwtUser jwtUser) {
     log.info("Get payments for user {}", jwtUser.userId());
     return paymentRepository.findAllByOwnerId(jwtUser.userId()).stream()
-        .map(paymentMapper::toPaymentDto)
+        .map(paymentMapper::toGraphql)
         .toList();
   }
 
   @Transactional(readOnly = true)
-  public Optional<PaymentDto> getPaymentById(UUID id, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Payment> findPaymentById(
+      UUID id, JwtUser jwtUser) {
     log.info("Get status of payment with id {}", id);
-    return paymentRepository
-        .findByIdAndOwnerId(id, jwtUser.userId())
-        .map(paymentMapper::toPaymentDto);
+    return paymentRepository.findByIdAndOwnerId(id, jwtUser.userId()).map(paymentMapper::toGraphql);
   }
 
   @Transactional(readOnly = true)
-  public List<PaymentDto> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser) {
+  public List<tech.trenero.backend.codegen.types.Payment> getPaymentsByStudentId(
+      UUID studentId, JwtUser jwtUser) {
     log.info("Getting payments by studentId={}", studentId);
     return paymentRepository.findAllByStudentId(studentId, jwtUser.userId()).stream()
-        .map(paymentMapper::toPaymentDto)
+        .map(paymentMapper::toGraphql)
         .toList();
   }
 
   @Transactional
-  public PaymentDto createPayment(CreatePaymentInput input, JwtUser jwtUser) {
+  public tech.trenero.backend.codegen.types.Payment createPayment(
+      CreatePaymentInput input, JwtUser jwtUser) {
     log.info("Creating payment {}", input);
 
-    studentValidator.validateStudentId(input.studentId(), jwtUser);
+    studentSpi.getStudentById(input.getStudentId(), jwtUser);
 
     Payment payment = paymentMapper.toPayment(input, jwtUser.userId());
 
     Payment savedPayment = savePayment(payment);
 
-    return paymentMapper.toPaymentDto(savedPayment);
+    return paymentMapper.toGraphql(savedPayment);
   }
 
   @Transactional
-  public Optional<PaymentDto> editPayment(UUID id, CreatePaymentInput input, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Payment> editPayment(
+      UUID id, CreatePaymentInput input, JwtUser jwtUser) {
+    log.info("Edit payment {}", input);
+
     return paymentRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
         .map(pay -> paymentMapper.editPayment(pay, input))
         .map(this::savePayment)
-        .map(paymentMapper::toPaymentDto);
+        .map(paymentMapper::toGraphql);
   }
 
   @Transactional
-  public Optional<PaymentDto> softDeletePayment(UUID id, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Payment> softDeletePayment(
+      UUID id, JwtUser jwtUser) {
     log.info("Deleting payment: {}", id);
     return paymentRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
@@ -80,7 +85,7 @@ public class PaymentService {
               payment.setDeletedAt(OffsetDateTime.now());
               return savePayment(payment);
             })
-        .map(paymentMapper::toPaymentDto);
+        .map(paymentMapper::toGraphql);
   }
 
   private Payment savePayment(Payment payment) {

@@ -3,15 +3,16 @@ package tech.trenero.backend.auth.internal.service;
 import static tech.trenero.backend.common.enums.OAuth2Provider.GOOGLE;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import tech.trenero.backend.auth.internal.dto.JwtTokens;
-import tech.trenero.backend.auth.internal.dto.LoginPayload;
-import tech.trenero.backend.auth.internal.input.SocialLoginInput;
-import tech.trenero.backend.common.dto.UserDto;
+import tech.trenero.backend.codegen.types.JwtTokens;
+import tech.trenero.backend.codegen.types.LoginPayload;
+import tech.trenero.backend.codegen.types.SocialLoginInput;
+import tech.trenero.backend.codegen.types.User;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.user.external.UserSpi;
 
@@ -27,19 +28,19 @@ public class OAuth2Service {
   public LoginPayload googleLogin(SocialLoginInput request) {
     log.info("Google login request: {}", request);
 
-    GoogleIdToken googleIdToken = googleAuthService.verifyIdToken(request.idToken());
+    Optional<GoogleIdToken> googleIdToken = googleAuthService.verifyIdToken(request.getIdToken());
 
-    if (googleIdToken == null) {
+    if (googleIdToken.isEmpty()) {
       throw new IllegalArgumentException("Invalid ID token");
     }
 
-    GoogleIdToken.Payload payload = googleIdToken.getPayload();
+    GoogleIdToken.Payload payload = googleIdToken.get().getPayload();
     String providerId = payload.getSubject();
     String email = payload.getEmail();
 
-    UserDto user = userSpi.getOrCreateUserFromOAuth2(GOOGLE, providerId, email);
+    User user = userSpi.getOrCreateUserFromOAuth2(GOOGLE, providerId, email);
 
-    JwtUser jwtUser = new JwtUser(user.id(), email);
+    JwtUser jwtUser = new JwtUser(user.getId(), email);
     JwtTokens tokens = jwtTokenService.createAccessAndRefreshTokens(jwtUser);
 
     return new LoginPayload(user, tokens);

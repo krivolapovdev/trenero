@@ -1,5 +1,6 @@
 package tech.trenero.backend.lesson.internal.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -10,12 +11,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.attendance.external.AttendanceSpi;
-import tech.trenero.backend.common.dto.LessonDto;
-import tech.trenero.backend.common.input.CreateAttendanceInput;
+import tech.trenero.backend.codegen.types.CreateAttendanceInput;
+import tech.trenero.backend.codegen.types.CreateLessonInput;
+import tech.trenero.backend.codegen.types.Group;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.group.external.GroupValidator;
+import tech.trenero.backend.group.external.GroupSpi;
 import tech.trenero.backend.lesson.internal.entity.Lesson;
-import tech.trenero.backend.lesson.internal.input.CreateLessonInput;
 import tech.trenero.backend.lesson.internal.mapper.LessonMapper;
 import tech.trenero.backend.lesson.internal.repository.LessonRepository;
 
@@ -25,58 +26,79 @@ import tech.trenero.backend.lesson.internal.repository.LessonRepository;
 public class LessonService {
   private final LessonRepository lessonRepository;
   private final LessonMapper lessonMapper;
-  private final GroupValidator groupValidator;
   @Lazy private final AttendanceSpi attendanceSpi;
+  @Lazy private final GroupSpi groupSpi;
 
   @Transactional(readOnly = true)
-  public List<LessonDto> getAllLessons(JwtUser jwtUser) {
+  public List<tech.trenero.backend.codegen.types.Lesson> getAllLessons(JwtUser jwtUser) {
     log.info("Getting all lessons for ownerId={}", jwtUser.userId());
     return lessonRepository.findAllByOwnerId(jwtUser.userId()).stream()
-        .map(lessonMapper::toDto)
+        .map(lessonMapper::toGraphql)
         .toList();
   }
 
   @Transactional(readOnly = true)
-  public Optional<LessonDto> getLessonById(UUID lessonId, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Lesson> findLessonById(
+      UUID lessonId, JwtUser jwtUser) {
     log.info("Getting lesson by id={} for ownerId={}", lessonId, jwtUser.userId());
-    return lessonRepository.findByIdAndOwnerId(lessonId, jwtUser.userId()).map(lessonMapper::toDto);
+    return lessonRepository
+        .findByIdAndOwnerId(lessonId, jwtUser.userId())
+        .map(lessonMapper::toGraphql);
+  }
+
+  @Transactional(readOnly = true)
+  public List<tech.trenero.backend.codegen.types.Lesson> getLessonsByGroupId(
+      UUID groupId, JwtUser jwtUser) {
+    log.info("Getting lessons by groupId={} for ownerId={}", groupId, jwtUser.userId());
+    return lessonRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
+        .map(lessonMapper::toGraphql)
+        .toList();
   }
 
   @Transactional
-  public LessonDto createLesson(CreateLessonInput input, JwtUser jwtUser) {
+  public tech.trenero.backend.codegen.types.Lesson createLesson(
+      CreateLessonInput input, JwtUser jwtUser) {
     log.info(
         "Creating lesson for groupId='{}', startDateTime={}, ownerId={}",
-        input.groupId(),
-        input.startDateTime(),
+        input.getGroupId(),
+        input.getStartDateTime(),
         jwtUser.userId());
 
-    groupValidator.validateGroupIsPresentAndActive(input.groupId(), jwtUser);
+    groupSpi.getGroupById(input.getGroupId(), jwtUser);
+
+    Optional<Group> groupById = groupSpi.findGroupById(input.getGroupId(), jwtUser);
+
+    if (groupById.isEmpty()) {
+      throw new EntityNotFoundException("Group with id=" + input.getGroupId() + " not found");
+    }
 
     Lesson lesson = lessonMapper.toLesson(input, jwtUser.userId());
     Lesson savedLesson = saveLesson(lesson);
 
     List<CreateAttendanceInput> attendanceInputList =
-        input.students().stream()
+        input.getStudents().stream()
             .map(
                 status ->
                     new CreateAttendanceInput(
-                        savedLesson.getId(), status.studentId(), status.present()))
+                        savedLesson.getId(), status.getStudentId(), status.getPresent()))
             .toList();
 
     attendanceSpi.createAttendances(
-        savedLesson.getId(), input.groupId(), attendanceInputList, jwtUser);
+        savedLesson.getId(), input.getGroupId(), attendanceInputList, jwtUser);
 
-    return lessonMapper.toDto(savedLesson);
+    return lessonMapper.toGraphql(savedLesson);
   }
 
   @Transactional
-  public Optional<LessonDto> editLesson(UUID lessonId, CreateLessonInput input, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Lesson> editLesson(
+      UUID lessonId, CreateLessonInput input, JwtUser jwtUser) {
     log.info("Editing lesson by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
 
     List<CreateAttendanceInput> attendanceInputList =
-        input.students().stream()
+        input.getStudents().stream()
             .map(
-                status -> new CreateAttendanceInput(lessonId, status.studentId(), status.present()))
+                status ->
+                    new CreateAttendanceInput(lessonId, status.getStudentId(), status.getPresent()))
             .toList();
 
     attendanceSpi.editAttendancesByLessonId(lessonId, attendanceInputList, jwtUser);
@@ -85,12 +107,16 @@ public class LessonService {
         .findByIdAndOwnerId(lessonId, jwtUser.userId())
         .map(lesson -> lessonMapper.editLesson(lesson, input))
         .map(this::saveLesson)
-        .map(lessonMapper::toDto);
+        .map(lessonMapper::toGraphql);
   }
 
   @Transactional
-  public Optional<LessonDto> softDeleteLesson(UUID lessonId, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Lesson> softDeleteLesson(
+      UUID lessonId, JwtUser jwtUser) {
     log.info("Soft deleting lesson: {}", lessonId);
+
+    attendanceSpi.removeAttendancesByLessonId(lessonId, jwtUser);
+
     return lessonRepository
         .findByIdAndOwnerId(lessonId, jwtUser.userId())
         .map(
@@ -98,21 +124,7 @@ public class LessonService {
               lesson.setDeletedAt(OffsetDateTime.now());
               return saveLesson(lesson);
             })
-        .map(lessonMapper::toDto);
-  }
-
-  @Transactional(readOnly = true)
-  public List<LessonDto> getLessonsByGroupId(UUID groupId, JwtUser jwtUser) {
-    log.info("Getting lessons by groupId={} for ownerId={}", groupId, jwtUser.userId());
-    return lessonRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
-        .map(lessonMapper::toDto)
-        .toList();
-  }
-
-  @Transactional(readOnly = true)
-  public Optional<LessonDto> getLastLessonByGroupId(UUID groupId, JwtUser jwtUser) {
-    log.info("Getting last lesson by groupId={} for ownerId={}", groupId, jwtUser.userId());
-    return lessonRepository.findLastLesson(groupId, jwtUser.userId());
+        .map(lessonMapper::toGraphql);
   }
 
   private Lesson saveLesson(Lesson lesson) {

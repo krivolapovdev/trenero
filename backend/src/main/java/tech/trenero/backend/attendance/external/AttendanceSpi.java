@@ -1,18 +1,15 @@
 package tech.trenero.backend.attendance.external;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import tech.trenero.backend.common.dto.AttendanceDto;
-import tech.trenero.backend.common.input.CreateAttendanceInput;
+import tech.trenero.backend.codegen.types.Attendance;
+import tech.trenero.backend.codegen.types.CreateAttendanceInput;
 import tech.trenero.backend.common.security.JwtUser;
 
 public interface AttendanceSpi {
-  Optional<AttendanceDto> getLastStudentAttendance(UUID studentId, UUID groupId, JwtUser jwtUser);
+  List<Attendance> getAttendancesByStudentId(UUID studentId, JwtUser jwtUser);
 
-  List<AttendanceDto> getAttendancesByStudentId(UUID studentId, JwtUser jwtUser);
-
-  List<AttendanceDto> getAttendancesByLessonId(UUID lessonId, JwtUser jwtUser);
+  List<Attendance> getAttendancesByLessonId(UUID lessonId, JwtUser jwtUser);
 
   void createAttendances(
       UUID lessonId,
@@ -21,4 +18,6 @@ public interface AttendanceSpi {
       JwtUser jwtUser);
 
   void editAttendancesByLessonId(UUID lessonId, List<CreateAttendanceInput> input, JwtUser jwtUser);
+
+  void removeAttendancesByLessonId(UUID lessonId, JwtUser jwtUser);
 }
