@@ -1,5 +1,6 @@
 package tech.trenero.backend.lesson.internal.controller;
 
+import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import tech.trenero.backend.codegen.types.CreateLessonInput;
 import tech.trenero.backend.codegen.types.Lesson;
+import tech.trenero.backend.codegen.types.UpdateLessonInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.lesson.internal.service.LessonService;
 
@@ -45,11 +47,12 @@ public class LessonController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Lesson> editLesson(
+  public Optional<Lesson> updateLesson(
       @Argument("id") UUID id,
-      @Argument("input") @Valid CreateLessonInput input,
+      @Argument("input") @Valid UpdateLessonInput input,
+      DataFetchingEnvironment environment,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return lessonService.editLesson(id, input, jwtUser);
+    return lessonService.updateLesson(id, input, environment, jwtUser);
   }
 
   @MutationMapping

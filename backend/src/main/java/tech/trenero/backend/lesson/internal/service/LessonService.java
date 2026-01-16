@@ -1,5 +1,6 @@
 package tech.trenero.backend.lesson.internal.service;
 
+import graphql.schema.DataFetchingEnvironment;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -14,6 +15,7 @@ import tech.trenero.backend.attendance.external.AttendanceSpi;
 import tech.trenero.backend.codegen.types.CreateAttendanceInput;
 import tech.trenero.backend.codegen.types.CreateLessonInput;
 import tech.trenero.backend.codegen.types.Group;
+import tech.trenero.backend.codegen.types.UpdateLessonInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupSpi;
 import tech.trenero.backend.lesson.internal.entity.Lesson;
@@ -90,22 +92,28 @@ public class LessonService {
   }
 
   @Transactional
-  public Optional<tech.trenero.backend.codegen.types.Lesson> editLesson(
-      UUID lessonId, CreateLessonInput input, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Lesson> updateLesson(
+      UUID lessonId,
+      UpdateLessonInput input,
+      DataFetchingEnvironment environment,
+      JwtUser jwtUser) {
     log.info("Editing lesson by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
 
-    List<CreateAttendanceInput> attendanceInputList =
-        input.getStudents().stream()
-            .map(
-                status ->
-                    new CreateAttendanceInput(lessonId, status.getStudentId(), status.getPresent()))
-            .toList();
+    if (input.hasStudents()) {
+      List<CreateAttendanceInput> attendanceInputList =
+          input.getStudents().stream()
+              .map(
+                  status ->
+                      new CreateAttendanceInput(
+                          lessonId, status.getStudentId(), status.getPresent()))
+              .toList();
 
-    attendanceSpi.editAttendancesByLessonId(lessonId, attendanceInputList, jwtUser);
+      attendanceSpi.editAttendancesByLessonId(lessonId, attendanceInputList, jwtUser);
+    }
 
     return lessonRepository
         .findByIdAndOwnerId(lessonId, jwtUser.userId())
-        .map(lesson -> lessonMapper.editLesson(lesson, input))
+        .map(lesson -> lessonMapper.updateLesson(lesson, input, environment))
         .map(this::saveLesson)
         .map(lessonMapper::toGraphql);
   }

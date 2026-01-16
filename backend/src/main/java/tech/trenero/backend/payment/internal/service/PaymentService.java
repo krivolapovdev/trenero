@@ -1,5 +1,6 @@
 package tech.trenero.backend.payment.internal.service;
 
+import graphql.schema.DataFetchingEnvironment;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.codegen.types.CreatePaymentInput;
+import tech.trenero.backend.codegen.types.UpdatePaymentInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.payment.internal.entity.Payment;
 import tech.trenero.backend.payment.internal.mapper.PaymentMapper;
@@ -63,13 +65,12 @@ public class PaymentService {
   }
 
   @Transactional
-  public Optional<tech.trenero.backend.codegen.types.Payment> editPayment(
-      UUID id, CreatePaymentInput input, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Payment> updatePayment(
+      UUID id, UpdatePaymentInput input, DataFetchingEnvironment environment, JwtUser jwtUser) {
     log.info("Edit payment {}", input);
-
     return paymentRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
-        .map(pay -> paymentMapper.editPayment(pay, input))
+        .map(pay -> paymentMapper.updatePayment(pay, input, environment))
         .map(this::savePayment)
         .map(paymentMapper::toGraphql);
   }

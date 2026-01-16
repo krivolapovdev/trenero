@@ -1,5 +1,6 @@
 package tech.trenero.backend.group.internal.controller;
 
+import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import tech.trenero.backend.codegen.types.CreateGroupInput;
 import tech.trenero.backend.codegen.types.Group;
+import tech.trenero.backend.codegen.types.UpdateGroupInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.internal.service.GroupService;
 
@@ -44,11 +46,12 @@ public class GroupController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Group> editGroup(
+  public Optional<Group> updateGroup(
       @Argument("id") UUID id,
-      @Argument("input") @Valid CreateGroupInput input,
+      @Argument("input") @Valid UpdateGroupInput input,
+      DataFetchingEnvironment environment,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.editGroup(id, input, jwtUser);
+    return groupService.updateGroup(id, input, environment, jwtUser);
   }
 
   @MutationMapping

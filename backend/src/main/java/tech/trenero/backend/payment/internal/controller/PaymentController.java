@@ -1,5 +1,6 @@
 package tech.trenero.backend.payment.internal.controller;
 
+import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import tech.trenero.backend.codegen.types.CreatePaymentInput;
 import tech.trenero.backend.codegen.types.Payment;
+import tech.trenero.backend.codegen.types.UpdatePaymentInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.payment.internal.service.PaymentService;
 
@@ -46,11 +48,12 @@ public class PaymentController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Payment> editPayment(
+  public Optional<Payment> updatePayment(
       @Argument("id") UUID id,
-      @Argument("input") @Valid CreatePaymentInput input,
+      @Argument("input") @Valid UpdatePaymentInput input,
+      DataFetchingEnvironment environment,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return paymentService.editPayment(id, input, jwtUser);
+    return paymentService.updatePayment(id, input, environment, jwtUser);
   }
 
   @MutationMapping

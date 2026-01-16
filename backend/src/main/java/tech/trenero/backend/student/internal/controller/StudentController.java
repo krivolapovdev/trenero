@@ -1,5 +1,6 @@
 package tech.trenero.backend.student.internal.controller;
 
+import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import tech.trenero.backend.codegen.types.CreateStudentInput;
 import tech.trenero.backend.codegen.types.Student;
+import tech.trenero.backend.codegen.types.UpdateStudentInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.student.internal.service.StudentService;
 
@@ -46,11 +48,12 @@ public class StudentController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Student> editStudent(
+  public Optional<Student> updateStudent(
       @Argument("id") UUID id,
-      @Argument("input") @Valid CreateStudentInput input,
+      @Argument("input") @Valid UpdateStudentInput input,
+      DataFetchingEnvironment environment,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.editStudent(id, input, jwtUser);
+    return studentService.updateStudent(id, input, environment, jwtUser);
   }
 
   @MutationMapping

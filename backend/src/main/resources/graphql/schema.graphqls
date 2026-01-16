@@ -30,42 +30,42 @@ type Mutation {
     refreshTokens(input: RefreshTokenInput!): JwtTokens!
 
     createStudent(input: CreateStudentInput!): Student!
-    editStudent(id: UUID!, input: CreateStudentInput!): Student
+    updateStudent(id: UUID!, input: UpdateStudentInput!): Student
     deleteStudent(id: UUID!): Student
 
     createGroup(input: CreateGroupInput!): Group!
-    editGroup(id: UUID!, input: CreateGroupInput!): Group
+    updateGroup(id: UUID!, input: UpdateGroupInput!): Group
     deleteGroup(id: UUID!): Group
 
     createLesson(input: CreateLessonInput!): Lesson!
-    editLesson(id: UUID!, input: CreateLessonInput!): Lesson
+    updateLesson(id: UUID!, input: UpdateLessonInput!): Lesson
     deleteLesson(id: UUID!): Lesson
 
     createAttendance(input: CreateAttendanceInput!): Attendance!
-    editAttendance(id: UUID!, input: CreateAttendanceInput!): Attendance
+    updateAttendance(id: UUID!, input: UpdateAttendanceInput!): Attendance
     deleteAttendance(id: UUID!): Attendance
 
     createPayment(input: CreatePaymentInput!): Payment!
-    editPayment(id: UUID!, input: CreatePaymentInput!): Payment
+    updatePayment(id: UUID!, input: UpdatePaymentInput!): Payment
     deletePayment(id: UUID!): Payment
 }
 
-type JwtTokens  @annotate(name: "org.springframework.modulith.NamedInterface")  {
+type JwtTokens  {
     accessToken: String!
     refreshToken: String!
 }
 
-type User @annotate(name: "org.springframework.modulith.NamedInterface") {
+type User {
     id: UUID!
     email: String!
 }
 
-type LoginPayload @annotate(name: "org.springframework.modulith.NamedInterface") {
+type LoginPayload {
     user: User!
     jwtTokens: JwtTokens!
 }
 
-type Student @annotate(name: "org.springframework.modulith.NamedInterface") {
+type Student {
     id: UUID!
     fullName: String!
     birthdate: Date
@@ -77,7 +77,7 @@ type Student @annotate(name: "org.springframework.modulith.NamedInterface") {
     createdAt: DateTime!
 }
 
-type Group @annotate(name: "org.springframework.modulith.NamedInterface") {
+type Group {
     id: UUID!
     name: String!
     defaultPrice: BigDecimal
@@ -87,7 +87,7 @@ type Group @annotate(name: "org.springframework.modulith.NamedInterface") {
     createdAt: DateTime!
 }
 
-type Lesson @annotate(name: "org.springframework.modulith.NamedInterface") {
+type Lesson {
     id: UUID!
     startDateTime: DateTime!
     group: Group!
@@ -95,7 +95,7 @@ type Lesson @annotate(name: "org.springframework.modulith.NamedInterface") {
     createdAt: DateTime!
 }
 
-type Attendance @annotate(name: "org.springframework.modulith.NamedInterface") {
+type Attendance {
     id: UUID!
     present: Boolean!
     lesson: Lesson!
@@ -103,7 +103,7 @@ type Attendance @annotate(name: "org.springframework.modulith.NamedInterface") {
     createdAt: DateTime!
 }
 
-type Payment @annotate(name: "org.springframework.modulith.NamedInterface") {
+type Payment {
     id: UUID!
     amount: BigDecimal!
     lessonsPerPayment: Int!
@@ -112,15 +112,15 @@ type Payment @annotate(name: "org.springframework.modulith.NamedInterface") {
     createdAt: DateTime!
 }
 
-input SocialLoginInput @annotate(name: "org.springframework.modulith.NamedInterface") {
+input SocialLoginInput {
     idToken: String!
 }
 
-input RefreshTokenInput @annotate(name: "org.springframework.modulith.NamedInterface") {
+input RefreshTokenInput {
     refreshToken: String!
 }
 
-input CreateStudentInput @annotate(name: "org.springframework.modulith.NamedInterface") {
+input CreateStudentInput {
     fullName: String!
     birthdate: Date
     phone: String
@@ -128,33 +128,64 @@ input CreateStudentInput @annotate(name: "org.springframework.modulith.NamedInte
     groupId: UUID
 }
 
-input CreateGroupInput @annotate(name: "org.springframework.modulith.NamedInterface") {
+input UpdateStudentInput {
+    fullName: String
+    birthdate: Date
+    phone: String
+    note: String
+    groupId: UUID
+}
+
+input CreateGroupInput {
     name: String!
     defaultPrice: BigDecimal
     note: String
     studentIds: [UUID!]!
 }
 
-input CreateLessonInput @annotate(name: "org.springframework.modulith.NamedInterface") {
+input UpdateGroupInput {
+    name: String
+    defaultPrice: BigDecimal
+    note: String
+    studentIds: [UUID!]
+}
+
+input CreateLessonInput {
     groupId: UUID!
     startDateTime: DateTime!
     students: [LessonStudentInput!]!
 }
 
-input LessonStudentInput @annotate(name: "org.springframework.modulith.NamedInterface") {
+input LessonStudentInput {
     studentId: UUID!
     present: Boolean!
 }
 
-input CreateAttendanceInput @annotate(name: "org.springframework.modulith.NamedInterface") {
+input UpdateLessonInput {
+    groupId: UUID
+    startDateTime: DateTime
+    students: [LessonStudentInput!]
+}
+
+input CreateAttendanceInput {
     lessonId: UUID!
     studentId: UUID!
     present: Boolean!
 }
 
-input CreatePaymentInput @annotate(name: "org.springframework.modulith.NamedInterface") {
+input UpdateAttendanceInput {
+    present: Boolean
+}
+
+input CreatePaymentInput {
     studentId: UUID!
     amount: BigDecimal!
     lessonsPerPayment: Int!
     date: Date!
+}
+
+input UpdatePaymentInput {
+    amount: BigDecimal
+    lessonsPerPayment: Int
+    date: Date
 }

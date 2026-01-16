@@ -1,6 +1,6 @@
 package tech.trenero.backend.group.internal.service;
 
-import jakarta.validation.Valid;
+import graphql.schema.DataFetchingEnvironment;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.codegen.types.CreateGroupInput;
+import tech.trenero.backend.codegen.types.UpdateGroupInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.internal.entity.Group;
 import tech.trenero.backend.group.internal.mapper.GroupMapper;
@@ -56,14 +57,16 @@ public class GroupService {
   }
 
   @Transactional
-  public Optional<tech.trenero.backend.codegen.types.Group> editGroup(
-      UUID groupId, @Valid CreateGroupInput input, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Group> updateGroup(
+      UUID groupId, UpdateGroupInput input, DataFetchingEnvironment environment, JwtUser jwtUser) {
 
-    studentSpi.editStudentsGroup(groupId, input.getStudentIds(), jwtUser);
+    if (input.hasStudentIds()) {
+      studentSpi.editStudentsGroup(groupId, input.getStudentIds(), jwtUser);
+    }
 
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
-        .map(group -> groupMapper.editStudent(group, input))
+        .map(group -> groupMapper.updateGroup(group, input, environment))
         .map(this::saveGroup)
         .map(groupMapper::toGraphql);
   }

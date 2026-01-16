@@ -1,5 +1,6 @@
 package tech.trenero.backend.attendance.internal.controller;
 
+import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import tech.trenero.backend.attendance.internal.service.AttendanceService;
 import tech.trenero.backend.codegen.types.Attendance;
 import tech.trenero.backend.codegen.types.CreateAttendanceInput;
+import tech.trenero.backend.codegen.types.UpdateAttendanceInput;
 import tech.trenero.backend.common.security.JwtUser;
 
 @Controller
@@ -46,11 +48,12 @@ public class AttendanceController {
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Attendance> editAttendance(
+  public Optional<Attendance> updateAttendance(
       @Argument("id") UUID id,
-      @Argument("input") @Valid CreateAttendanceInput input,
+      @Argument("input") @Valid UpdateAttendanceInput input,
+      DataFetchingEnvironment environment,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return attendanceService.editAttendance(id, input, jwtUser);
+    return attendanceService.updateAttendance(id, input, environment, jwtUser);
   }
 
   @MutationMapping

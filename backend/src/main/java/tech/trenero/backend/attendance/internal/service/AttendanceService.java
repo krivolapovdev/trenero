@@ -1,6 +1,6 @@
 package tech.trenero.backend.attendance.internal.service;
 
-import jakarta.validation.Valid;
+import graphql.schema.DataFetchingEnvironment;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +14,7 @@ import tech.trenero.backend.attendance.internal.entity.Attendance;
 import tech.trenero.backend.attendance.internal.mapper.AttendanceMapper;
 import tech.trenero.backend.attendance.internal.repository.AttendanceRepository;
 import tech.trenero.backend.codegen.types.CreateAttendanceInput;
+import tech.trenero.backend.codegen.types.UpdateAttendanceInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.lesson.external.LessonSpi;
 
@@ -71,11 +72,11 @@ public class AttendanceService {
   }
 
   @Transactional
-  public Optional<tech.trenero.backend.codegen.types.Attendance> editAttendance(
-      UUID id, @Valid CreateAttendanceInput input, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Attendance> updateAttendance(
+      UUID id, UpdateAttendanceInput input, DataFetchingEnvironment environment, JwtUser jwtUser) {
     return attendanceRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
-        .map(attendance -> attendanceMapper.editAttendance(attendance, input))
+        .map(attendance -> attendanceMapper.updateAttendance(attendance, input, environment))
         .map(this::saveAttendance)
         .map(attendanceMapper::toGraphql);
   }

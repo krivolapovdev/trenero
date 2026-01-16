@@ -1,16 +1,16 @@
 package tech.trenero.backend.lesson.internal.mapper;
 
+import graphql.schema.DataFetchingEnvironment;
+import java.util.Map;
 import java.util.UUID;
-import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
-import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import tech.trenero.backend.codegen.types.CreateLessonInput;
 import tech.trenero.backend.codegen.types.Group;
+import tech.trenero.backend.codegen.types.UpdateLessonInput;
 import tech.trenero.backend.lesson.internal.entity.Lesson;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -26,6 +26,26 @@ public interface LessonMapper {
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Lesson toLesson(CreateLessonInput input, UUID ownerId);
 
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
-  Lesson editLesson(@MappingTarget Lesson lesson, CreateLessonInput input);
+  default Lesson updateLesson(
+      Lesson lesson, UpdateLessonInput input, DataFetchingEnvironment environment) {
+    if (lesson == null || input == null || environment == null) {
+      return lesson;
+    }
+
+    Map<String, Object> inputMap = environment.getArgument("input");
+    if (inputMap == null) {
+      return lesson;
+    }
+
+    Map<String, Runnable> updates =
+        Map.of(
+            "groupId", () -> lesson.setGroupId(input.getGroupId()),
+            "startDateTime", () -> lesson.setStartDateTime(input.getStartDateTime()));
+
+    updates.entrySet().stream()
+        .filter(entry -> inputMap.containsKey(entry.getKey()))
+        .forEach(entry -> entry.getValue().run());
+
+    return lesson;
+  }
 }

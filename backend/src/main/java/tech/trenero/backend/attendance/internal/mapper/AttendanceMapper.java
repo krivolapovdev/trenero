@@ -1,18 +1,18 @@
 package tech.trenero.backend.attendance.internal.mapper;
 
+import graphql.schema.DataFetchingEnvironment;
+import java.util.Map;
 import java.util.UUID;
-import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
-import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import tech.trenero.backend.attendance.internal.entity.Attendance;
 import tech.trenero.backend.codegen.types.CreateAttendanceInput;
 import tech.trenero.backend.codegen.types.Lesson;
 import tech.trenero.backend.codegen.types.Student;
+import tech.trenero.backend.codegen.types.UpdateAttendanceInput;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface AttendanceMapper {
@@ -33,6 +33,24 @@ public interface AttendanceMapper {
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Attendance toAttendance(CreateAttendanceInput input, UUID ownerId);
 
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
-  Attendance editAttendance(@MappingTarget Attendance attendance, CreateAttendanceInput input);
+  default Attendance updateAttendance(
+      Attendance attendance, UpdateAttendanceInput input, DataFetchingEnvironment environment) {
+    if (attendance == null || input == null || environment == null) {
+      return attendance;
+    }
+
+    Map<String, Object> inputMap = environment.getArgument("input");
+    if (inputMap == null) {
+      return attendance;
+    }
+
+    Map<String, Runnable> updates =
+        Map.of("present", () -> attendance.setPresent(input.getPresent()));
+
+    updates.entrySet().stream()
+        .filter(entry -> inputMap.containsKey(entry.getKey()))
+        .forEach(entry -> entry.getValue().run());
+
+    return attendance;
+  }
 }

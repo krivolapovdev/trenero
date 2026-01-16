@@ -90,10 +90,37 @@ tasks.generateJava {
     language = "java"
     addGeneratedAnnotation = true
     generateCustomAnnotations = true
+    trackInputFieldSet = true
     typeMapping = mutableMapOf(
         "UUID" to "java.util.UUID",
         "BigDecimal" to "java.math.BigDecimal",
         "Date" to "java.time.LocalDate",
         "DateTime" to "java.time.OffsetDateTime"
     )
+    finalizedBy(generatePackageInfo)
+}
+
+val generatePackageInfo by tasks.registering {
+    doLast {
+        val packages = listOf(
+            "tech.trenero.backend.codegen" to "@NamedInterface(\"codegen-external\")",
+            "tech.trenero.backend.codegen.types" to "@NamedInterface(\"codegen-types\")"
+        )
+
+        packages.forEach { (packageName, annotation) ->
+            val path = packageName.replace('.', '/')
+            val outputDir =
+                layout.buildDirectory.dir("generated/sources/dgs-codegen/$path").get().asFile
+            outputDir.mkdirs()
+            val file = File(outputDir, "package-info.java")
+            file.writeText(
+                """
+                $annotation
+                package $packageName;
+
+                import org.springframework.modulith.NamedInterface;
+                """.trimIndent()
+            )
+        }
+    }
 }

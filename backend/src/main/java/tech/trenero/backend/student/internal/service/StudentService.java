@@ -1,6 +1,6 @@
 package tech.trenero.backend.student.internal.service;
 
-import jakarta.validation.Valid;
+import graphql.schema.DataFetchingEnvironment;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.codegen.types.CreateStudentInput;
+import tech.trenero.backend.codegen.types.UpdateStudentInput;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupSpi;
 import tech.trenero.backend.student.internal.entity.Student;
@@ -102,11 +103,15 @@ public class StudentService {
   }
 
   @Transactional
-  public Optional<tech.trenero.backend.codegen.types.Student> editStudent(
-      UUID studentId, @Valid CreateStudentInput input, JwtUser jwtUser) {
+  public Optional<tech.trenero.backend.codegen.types.Student> updateStudent(
+      UUID studentId,
+      UpdateStudentInput input,
+      DataFetchingEnvironment environment,
+      JwtUser jwtUser) {
+    log.info("Updating student ID: {} for user: {}. Input: {}", studentId, jwtUser.userId(), input);
     return studentRepository
         .findByIdAndOwnerId(studentId, jwtUser.userId())
-        .map(student -> studentMapper.editStudent(student, input))
+        .map(student -> studentMapper.updateStudent(student, input, environment))
         .map(this::saveStudent)
         .map(studentMapper::toGraphql);
   }
