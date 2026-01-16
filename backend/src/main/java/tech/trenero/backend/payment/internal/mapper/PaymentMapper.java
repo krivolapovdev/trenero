@@ -1,5 +1,9 @@
 package tech.trenero.backend.payment.internal.mapper;
 
+import static tech.trenero.backend.codegen.DgsConstants.UPDATEPAYMENTINPUT.Amount;
+import static tech.trenero.backend.codegen.DgsConstants.UPDATEPAYMENTINPUT.Date;
+import static tech.trenero.backend.codegen.DgsConstants.UPDATEPAYMENTINPUT.LessonsPerPayment;
+
 import graphql.schema.DataFetchingEnvironment;
 import java.util.Map;
 import java.util.UUID;
@@ -39,9 +43,9 @@ public interface PaymentMapper {
 
     Map<String, Runnable> updates =
         Map.of(
-            "amount", () -> payment.setAmount(input.getAmount()),
-            "lessonsPerPayment", () -> payment.setLessonsPerPayment(input.getLessonsPerPayment()),
-            "date", () -> payment.setDate(input.getDate()));
+            Amount, () -> payment.setAmount(input.getAmount()),
+            LessonsPerPayment, () -> payment.setLessonsPerPayment(input.getLessonsPerPayment()),
+            Date, () -> payment.setDate(input.getDate()));
 
     updates.entrySet().stream()
         .filter(entry -> inputMap.containsKey(entry.getKey()))

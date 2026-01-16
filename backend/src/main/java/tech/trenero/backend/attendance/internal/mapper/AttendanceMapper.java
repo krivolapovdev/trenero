@@ -1,5 +1,7 @@
 package tech.trenero.backend.attendance.internal.mapper;
 
+import static tech.trenero.backend.codegen.DgsConstants.UPDATEATTENDANCEINPUT.Present;
+
 import graphql.schema.DataFetchingEnvironment;
 import java.util.Map;
 import java.util.UUID;
@@ -45,7 +47,7 @@ public interface AttendanceMapper {
     }
 
     Map<String, Runnable> updates =
-        Map.of("present", () -> attendance.setPresent(input.getPresent()));
+        Map.of(Present, () -> attendance.setPresent(input.getPresent()));
 
     updates.entrySet().stream()
         .filter(entry -> inputMap.containsKey(entry.getKey()))

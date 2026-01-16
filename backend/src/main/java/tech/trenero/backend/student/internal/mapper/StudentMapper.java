@@ -1,5 +1,11 @@
 package tech.trenero.backend.student.internal.mapper;
 
+import static tech.trenero.backend.codegen.DgsConstants.UPDATESTUDENTINPUT.Birthdate;
+import static tech.trenero.backend.codegen.DgsConstants.UPDATESTUDENTINPUT.FullName;
+import static tech.trenero.backend.codegen.DgsConstants.UPDATESTUDENTINPUT.GroupId;
+import static tech.trenero.backend.codegen.DgsConstants.UPDATESTUDENTINPUT.Note;
+import static tech.trenero.backend.codegen.DgsConstants.UPDATESTUDENTINPUT.Phone;
+
 import graphql.schema.DataFetchingEnvironment;
 import java.util.Map;
 import java.util.UUID;
@@ -40,11 +46,11 @@ public interface StudentMapper {
 
     Map<String, Runnable> updates =
         Map.of(
-            "fullName", () -> student.setFullName(input.getFullName()),
-            "birthdate", () -> student.setBirthdate(input.getBirthdate()),
-            "phone", () -> student.setPhone(input.getPhone()),
-            "note", () -> student.setNote(input.getNote()),
-            "groupId", () -> student.setGroupId(input.getGroupId()));
+            FullName, () -> student.setFullName(input.getFullName()),
+            Birthdate, () -> student.setBirthdate(input.getBirthdate()),
+            Phone, () -> student.setPhone(input.getPhone()),
+            Note, () -> student.setNote(input.getNote()),
+            GroupId, () -> student.setGroupId(input.getGroupId()));
 
     updates.entrySet().stream()
         .filter(entry -> inputMap.containsKey(entry.getKey()))

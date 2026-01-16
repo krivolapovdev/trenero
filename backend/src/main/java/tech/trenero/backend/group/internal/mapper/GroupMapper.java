@@ -1,5 +1,9 @@
 package tech.trenero.backend.group.internal.mapper;
 
+import static tech.trenero.backend.codegen.DgsConstants.UPDATEGROUPINPUT.DefaultPrice;
+import static tech.trenero.backend.codegen.DgsConstants.UPDATEGROUPINPUT.Name;
+import static tech.trenero.backend.codegen.DgsConstants.UPDATEGROUPINPUT.Note;
+
 import graphql.schema.DataFetchingEnvironment;
 import java.util.Map;
 import java.util.UUID;
@@ -31,9 +35,9 @@ public interface GroupMapper {
 
     Map<String, Runnable> updates =
         Map.of(
-            "name", () -> group.setName(input.getName()),
-            "defaultPrice", () -> group.setDefaultPrice(input.getDefaultPrice()),
-            "note", () -> group.setNote(input.getNote()));
+            Name, () -> group.setName(input.getName()),
+            DefaultPrice, () -> group.setDefaultPrice(input.getDefaultPrice()),
+            Note, () -> group.setNote(input.getNote()));
 
     updates.entrySet().stream()
         .filter(entry -> inputMap.containsKey(entry.getKey()))
