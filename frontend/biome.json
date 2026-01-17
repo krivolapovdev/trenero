@@ -35,10 +35,23 @@
         "useNumericSeparators": "warn",
         "useReactFunctionComponents": "warn",
         "useSelfClosingElements": "warn",
-        "useConsistentCurlyBraces": "warn"
+        "useConsistentCurlyBraces": "warn",
+        "useArrayLiterals": "warn",
+        "useShorthandFunctionType": "warn"
       },
       "complexity": {
-        "noImplicitCoercions": "warn"
+        "noImplicitCoercions": "warn",
+        "noFlatMapIdentity": "warn",
+        "useIndexOf": "warn",
+        "noUselessTypeConstraint": "warn",
+        "noUselessThisAlias": "warn",
+        "noUselessTernary": "warn",
+        "noUselessSwitchCase": "warn",
+        "noUselessLoneBlockStatements": "warn",
+        "noUselessLabel": "warn",
+        "noUselessFragments": "warn",
+        "noUselessContinue": "warn",
+        "noUselessConstructor": "warn"
       },
       "correctness": {
         "noReactPropAssignments": "warn"
