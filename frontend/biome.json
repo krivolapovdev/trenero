@@ -50,6 +50,9 @@
         "noBitwiseOperators": "warn",
         "noConstantBinaryExpressions": "warn",
         "noEmptyBlockStatements": "warn"
+      },
+      "nursery": {
+        "useConsistentArrowReturn": "warn"
       }
     }
   },

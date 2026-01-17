@@ -19,13 +19,15 @@ export const StudentPaymentsTable = memo(
     const [page, setPage] = useState(0);
     const [sortAscending, setSortAscending] = useState(true);
 
-    const sortedPayments = useMemo(() => {
-      return [...payments].sort((a, b) => {
-        const dateA = dayjs(a.date);
-        const dateB = dayjs(b.date);
-        return sortAscending ? dateA.diff(dateB) : dateB.diff(dateA);
-      });
-    }, [payments, sortAscending]);
+    const sortedPayments = useMemo(
+      () =>
+        [...payments].sort((a, b) => {
+          const dateA = dayjs(a.date);
+          const dateB = dayjs(b.date);
+          return sortAscending ? dateA.diff(dateB) : dateB.diff(dateA);
+        }),
+      [payments, sortAscending]
+    );
 
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, payments.length);

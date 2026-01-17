@@ -1,6 +1,6 @@
-import {useMemo} from 'react';
-import {MD3LightTheme} from 'react-native-paper';
-import type {MD3Theme} from 'react-native-paper/src/types';
+import { useMemo } from 'react';
+import { MD3LightTheme } from 'react-native-paper';
+import type { MD3Theme } from 'react-native-paper/src/types';
 
 type AppTheme = MD3Theme & {
   colors: MD3Theme['colors'] & {
@@ -8,8 +8,8 @@ type AppTheme = MD3Theme & {
   };
 };
 
-export const useAppTheme = (): AppTheme => {
-  return useMemo(() => {
+export const useAppTheme = (): AppTheme =>
+  useMemo(() => {
     const baseTheme = MD3LightTheme;
     const greenColor = '#9CCC65';
 
@@ -21,4 +21,3 @@ export const useAppTheme = (): AppTheme => {
       }
     };
   }, []);
-};
