@@ -5,7 +5,7 @@ import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { StudentAttendancePicker } from '@/src/components/StudentAttendancePicker';
+import { StudentVisitPicker } from '@/src/components/StudentVisitPicker';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
 import type { GetLessonQuery } from '@/src/graphql/__generated__/graphql';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -36,9 +36,7 @@ export const LessonForm = ({
   const theme = useAppTheme();
 
   const [startDateTime, setStartDateTime] = useState(dayjs());
-  const [attendanceStatus, setAttendanceStatus] = useState<
-    Record<string, boolean>
-  >({});
+  const [visitStatus, setVisitStatus] = useState<Record<string, boolean>>({});
 
   const [visibleTimePicker, setVisibleTimePicker] = useState(false);
   const [visibleDatePicker, setVisibleDatePicker] = useState(false);
@@ -50,7 +48,7 @@ export const LessonForm = ({
       return;
     }
 
-    const students = Object.entries(attendanceStatus).map(
+    const students = Object.entries(visitStatus).map(
       ([studentId, present]) => ({
         studentId,
         present
@@ -69,10 +67,10 @@ export const LessonForm = ({
         setStartDateTime(dayjs(initialData.startDateTime));
       }
 
-      if (initialData.attendances) {
-        setAttendanceStatus(
+      if (initialData.visits) {
+        setVisitStatus(
           Object.fromEntries(
-            initialData.attendances.map(a => [a.student.id, a.present])
+            initialData.visits.map(a => [a.student.id, a.present])
           )
         );
       }
@@ -121,10 +119,10 @@ export const LessonForm = ({
         </SurfaceCard>
 
         <SurfaceCard>
-          <StudentAttendancePicker
+          <StudentVisitPicker
             students={initialData?.group?.students ?? []}
-            attendanceStatus={attendanceStatus}
-            setAttendanceStatus={setAttendanceStatus}
+            visitStatus={visitStatus}
+            setVisitStatus={setVisitStatus}
             disabled={isLoading}
           />
         </SurfaceCard>

@@ -1,2 +1,2 @@
-export * from './AttendanceCalendar';
 export * from './LessonsCalendar';
+export * from './VisitCalendar';

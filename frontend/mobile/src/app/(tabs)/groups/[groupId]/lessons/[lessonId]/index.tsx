@@ -120,7 +120,7 @@ export default function LessonByIdScreen() {
             </SurfaceCard>
 
             <SurfaceCard style={{ padding: 0 }}>
-              {data.lesson.attendances.map(a => (
+              {data.lesson.visits.map(a => (
                 <List.Item
                   key={a.student.id}
                   title={a.student.fullName}

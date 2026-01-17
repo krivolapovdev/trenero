@@ -26,7 +26,7 @@ export function useFilteredStudents(
         }
 
         if (filterStatus) {
-          const statuses = getStudentStatuses(student);
+          const statuses = getStudentStatuses(student.visits, student.payments);
 
           if (!statuses.has(filterStatus)) {
             return false;

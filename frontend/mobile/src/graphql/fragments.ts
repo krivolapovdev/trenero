@@ -35,8 +35,8 @@ export const PAYMENT_CORE_FIELDS = graphql(`
   }
 `);
 
-export const ATTENDANCE_CORE_FIELDS = graphql(`
-    fragment AttendanceCoreFields on Attendance {
+export const VISIT_CORE_FIELDS = graphql(`
+    fragment VisitCoreFields on Visit {
         id
         present
     }
@@ -64,21 +64,21 @@ export const GROUP_DETAILS_FIELDS = graphql(`
 `);
 
 export const STUDENT_DETAILS_FIELDS = graphql(`
-  fragment StudentDetailsFields on Student {
-    ...StudentCoreFields
-    group {
-      ...GroupCoreFields
+    fragment StudentDetailsFields on Student {
+        ...StudentCoreFields
+        group {
+            ...GroupCoreFields
+        }
+        visits {
+            ...VisitCoreFields
+            lesson {
+                ...LessonCoreFields
+            }
+        }
+        payments {
+            ...PaymentCoreFields
+        }
     }
-    attendances {
-      ...AttendanceCoreFields
-      lesson {
-        ...LessonCoreFields
-      }
-    }
-    payments {
-      ...PaymentCoreFields
-    }
-  }
 `);
 
 export const LESSON_DETAILS_FIELDS = graphql(`
@@ -90,8 +90,8 @@ export const LESSON_DETAILS_FIELDS = graphql(`
                 ...StudentCoreFields
             }
         }
-        attendances {
-            ...AttendanceCoreFields
+        visits {
+            ...VisitCoreFields
             student {
                 ...StudentCoreFields
             }

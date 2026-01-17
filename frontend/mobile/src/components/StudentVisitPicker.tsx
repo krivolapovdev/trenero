@@ -14,39 +14,39 @@ import type { GetGroupQuery } from '@/src/graphql/__generated__/graphql';
 
 type Props = {
   students: NonNullable<GetGroupQuery['group']>['students'];
-  attendanceStatus: Record<string, boolean>;
-  setAttendanceStatus: Dispatch<SetStateAction<Record<string, boolean>>>;
+  visitStatus: Record<string, boolean>;
+  setVisitStatus: Dispatch<SetStateAction<Record<string, boolean>>>;
   disabled?: boolean;
 };
 
-export const StudentAttendancePicker = memo(
+export const StudentVisitPicker = memo(
   ({
     students,
-    attendanceStatus,
-    setAttendanceStatus,
+    visitStatus,
+    setVisitStatus,
     disabled = false
   }: Readonly<Props>) => {
     const { t } = useTranslation();
 
     const anyPresent = useMemo(
-      () => Object.values(attendanceStatus).some(Boolean),
-      [attendanceStatus]
+      () => Object.values(visitStatus).some(Boolean),
+      [visitStatus]
     );
 
     const selectAll = useCallback(() => {
-      setAttendanceStatus(
+      setVisitStatus(
         Object.fromEntries(students.map(student => [student.id, true]))
       );
-    }, [setAttendanceStatus, students.map]);
+    }, [setVisitStatus, students.map]);
 
     const unselectAll = useCallback(() => {
-      setAttendanceStatus(
+      setVisitStatus(
         Object.fromEntries(students.map(student => [student.id, false]))
       );
-    }, [setAttendanceStatus, students.map]);
+    }, [setVisitStatus, students.map]);
 
     useEffect(() => {
-      setAttendanceStatus((prev: Record<string, boolean>) => {
+      setVisitStatus((prev: Record<string, boolean>) => {
         if (Object.keys(prev).length === 0 && students.length > 0) {
           return Object.fromEntries(
             students.map(student => [student.id, false])
@@ -54,7 +54,7 @@ export const StudentAttendancePicker = memo(
         }
         return prev;
       });
-    }, [students, setAttendanceStatus]);
+    }, [students, setVisitStatus]);
 
     if (students.length === 0) {
       return <Text>{t('noStudentsFound')}</Text>;
@@ -94,11 +94,11 @@ export const StudentAttendancePicker = memo(
             <Text>{student.fullName}</Text>
 
             <Switch
-              value={attendanceStatus[student.id] ?? false}
+              value={visitStatus[student.id] ?? false}
               style={{ padding: 0 }}
               disabled={disabled}
               onValueChange={value =>
-                setAttendanceStatus(prev => ({ ...prev, [student.id]: value }))
+                setVisitStatus(prev => ({ ...prev, [student.id]: value }))
               }
             />
           </View>

@@ -16,11 +16,12 @@ export const StudentCard = ({
   phone,
   birthdate,
   note,
-  ...student
+  payments,
+  visits
 }: Readonly<Props>) => {
   const { t } = useTranslation();
   const theme = useAppTheme();
-  const statuses = getStudentStatuses(student);
+  const statuses = getStudentStatuses(visits, payments);
 
   const badges = useMemo(() => {
     const result = [];

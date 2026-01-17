@@ -4,30 +4,27 @@ import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
 import type { StudentStatus } from '@/src/types/student';
 
 export function getStudentStatuses(
-  student: Pick<
-    GetStudentsQuery['students'][number],
-    'attendances' | 'payments'
-  >
+  visits: GetStudentsQuery['students'][number]['visits'] = [],
+  payments: GetStudentsQuery['students'][number]['payments'] = []
 ): Set<StudentStatus> {
-  const { attendances = [], payments = [] } = student;
-
-  if (attendances.length === 0 && payments.length === 0) {
+  if (visits.length === 0 && payments.length === 0) {
     return new Set(['noActivity']);
   }
 
   const statuses = new Set<StudentStatus>();
 
-  const lastAttendance = R.firstBy(attendances, [
+  const lastVisit = R.firstBy(visits, [
     a => dayjs(a.lesson.startDateTime).valueOf(),
     'desc'
   ]);
 
-  if (lastAttendance) {
-    statuses.add(lastAttendance.present ? 'present' : 'missing');
+  if (lastVisit) {
+    statuses.add(lastVisit.present ? 'present' : 'missing');
   }
 
   const totalPaid = R.sumBy(payments, p => p.lessonsPerPayment);
-  statuses.add(attendances.length <= totalPaid ? 'paid' : 'unpaid');
+
+  statuses.add(visits.length <= totalPaid ? 'paid' : 'unpaid');
 
   return statuses;
 }

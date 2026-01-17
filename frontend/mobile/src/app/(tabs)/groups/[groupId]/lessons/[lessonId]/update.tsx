@@ -64,12 +64,12 @@ export default function UpdateLessonScreen() {
       input.startDateTime = values.startDateTime;
     }
 
-    const currentAttendance = lesson.attendances.map(a => ({
+    const currentStudents = lesson.visits.map(a => ({
       studentId: a.student.id,
       present: a.present
     }));
 
-    if (!R.isDeepEqual(currentAttendance, values.students)) {
+    if (!R.isDeepEqual(currentStudents, values.students)) {
       input.students = values.students;
     }
 

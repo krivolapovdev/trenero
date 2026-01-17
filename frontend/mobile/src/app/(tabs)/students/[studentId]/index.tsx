@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { PaymentSheet } from '@/src/components/BottomSheet/PaymentSheet';
-import { AttendanceCalendar } from '@/src/components/Calendar';
+import { VisitCalendar } from '@/src/components/Calendar';
 import { StudentCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
@@ -122,9 +122,9 @@ export default function StudentByIdScreen() {
               onRowPress={setPaymentIdSheet}
             />
 
-            <AttendanceCalendar
+            <VisitCalendar
               groupId={student?.group?.id ?? ''}
-              attendances={student.attendances}
+              visits={student.visits}
             />
           </>
         )}
