@@ -17,8 +17,8 @@ type Query {
     lessons: [Lesson!]!
     lesson(id: UUID!): Lesson
 
-    attendances: [Attendance!]!
-    attendance(id: UUID!): Attendance
+    visits: [Visit!]!
+    visit(id: UUID!): Visit
 
     payments: [Payment!]!
     payment(id: UUID!): Payment
@@ -41,9 +41,9 @@ type Mutation {
     updateLesson(id: UUID!, input: UpdateLessonInput!): Lesson
     deleteLesson(id: UUID!): Lesson
 
-    createAttendance(input: CreateAttendanceInput!): Attendance!
-    updateAttendance(id: UUID!, input: UpdateAttendanceInput!): Attendance
-    deleteAttendance(id: UUID!): Attendance
+    createVisit(input: CreateVisitInput!): Visit!
+    updateVisit(id: UUID!, input: UpdateVisitInput!): Visit
+    deleteVisit(id: UUID!): Visit
 
     createPayment(input: CreatePaymentInput!): Payment!
     updatePayment(id: UUID!, input: UpdatePaymentInput!): Payment
@@ -73,7 +73,7 @@ type Student {
     note: String
     group: Group
     payments: [Payment!]!
-    attendances: [Attendance!]!
+    visits: [Visit!]!
     createdAt: DateTime!
 }
 
@@ -91,11 +91,11 @@ type Lesson {
     id: UUID!
     startDateTime: DateTime!
     group: Group!
-    attendances: [Attendance!]!
+    visits: [Visit!]!
     createdAt: DateTime!
 }
 
-type Attendance {
+type Visit {
     id: UUID!
     present: Boolean!
     lesson: Lesson!
@@ -166,13 +166,13 @@ input UpdateLessonInput {
     students: [LessonStudentInput!]
 }
 
-input CreateAttendanceInput {
+input CreateVisitInput {
     lessonId: UUID!
     studentId: UUID!
     present: Boolean!
 }
 
-input UpdateAttendanceInput {
+input UpdateVisitInput {
     present: Boolean
 }
 

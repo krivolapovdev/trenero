@@ -1,6 +1,6 @@
-package tech.trenero.backend.attendance.internal.mapper;
+package tech.trenero.backend.visit.internal.mapper;
 
-import static tech.trenero.backend.codegen.DgsConstants.UPDATEATTENDANCEINPUT.Present;
+import static tech.trenero.backend.codegen.DgsConstants.UPDATEVISITINPUT.Present;
 
 import graphql.schema.DataFetchingEnvironment;
 import java.util.Map;
@@ -10,17 +10,17 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
-import tech.trenero.backend.attendance.internal.entity.Attendance;
-import tech.trenero.backend.codegen.types.CreateAttendanceInput;
+import tech.trenero.backend.codegen.types.CreateVisitInput;
 import tech.trenero.backend.codegen.types.Lesson;
 import tech.trenero.backend.codegen.types.Student;
-import tech.trenero.backend.codegen.types.UpdateAttendanceInput;
+import tech.trenero.backend.codegen.types.UpdateVisitInput;
+import tech.trenero.backend.visit.internal.entity.Visit;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface AttendanceMapper {
+public interface VisitMapper {
   @Mapping(target = "lesson", source = "lessonId", qualifiedByName = "lessonFromId")
   @Mapping(target = "student", source = "studentId", qualifiedByName = "studentFromId")
-  tech.trenero.backend.codegen.types.Attendance toGraphql(Attendance attendance);
+  tech.trenero.backend.codegen.types.Visit toGraphql(Visit visit);
 
   @Named("lessonFromId")
   default Lesson lessonFromId(UUID lessonId) {
@@ -33,26 +33,25 @@ public interface AttendanceMapper {
   }
 
   @Mapping(target = "ownerId", expression = "java(ownerId)")
-  Attendance toAttendance(CreateAttendanceInput input, UUID ownerId);
+  Visit toVisit(CreateVisitInput input, UUID ownerId);
 
-  default Attendance updateAttendance(
-      Attendance attendance, UpdateAttendanceInput input, DataFetchingEnvironment environment) {
-    if (attendance == null || input == null || environment == null) {
-      return attendance;
+  default Visit updateVisit(
+      Visit visit, UpdateVisitInput input, DataFetchingEnvironment environment) {
+    if (visit == null || input == null || environment == null) {
+      return visit;
     }
 
     Map<String, Object> inputMap = environment.getArgument("input");
     if (inputMap == null) {
-      return attendance;
+      return visit;
     }
 
-    Map<String, Runnable> updates =
-        Map.of(Present, () -> attendance.setPresent(input.getPresent()));
+    Map<String, Runnable> updates = Map.of(Present, () -> visit.setPresent(input.getPresent()));
 
     updates.entrySet().stream()
         .filter(entry -> inputMap.containsKey(entry.getKey()))
         .forEach(entry -> entry.getValue().run());
 
-    return attendance;
+    return visit;
   }
 }

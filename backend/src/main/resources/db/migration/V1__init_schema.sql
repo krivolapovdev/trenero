@@ -1,4 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS attendance_module;
+CREATE SCHEMA IF NOT EXISTS visits_module;
 CREATE SCHEMA IF NOT EXISTS groups_module;
 CREATE SCHEMA IF NOT EXISTS lessons_module;
 CREATE SCHEMA IF NOT EXISTS payments_module;
@@ -6,7 +6,7 @@ CREATE SCHEMA IF NOT EXISTS students_module;
 CREATE SCHEMA IF NOT EXISTS users_module;
 
 
-CREATE TABLE attendance_module.attendance
+CREATE TABLE visits_module.visits
 (
     id         uuid PRIMARY KEY DEFAULT uuidv7(),
     owner_id   uuid        NOT NULL,
@@ -18,19 +18,19 @@ CREATE TABLE attendance_module.attendance
     deleted_at timestamptz
 );
 
-ALTER TABLE attendance_module.attendance
-    ADD CONSTRAINT attendance_owner_lesson_student_unique UNIQUE (owner_id, lesson_id, student_id);
+ALTER TABLE visits_module.visits
+    ADD CONSTRAINT visits_owner_lesson_student_unique UNIQUE (owner_id, lesson_id, student_id);
 
-CREATE INDEX idx_attendance_owner_deleted_created
-    ON attendance_module.attendance (owner_id, created_at DESC)
+CREATE INDEX idx_visits_owner_deleted_created
+    ON visits_module.visits (owner_id, created_at DESC)
     WHERE deleted_at IS NULL;
 
-CREATE INDEX idx_attendance_owner_student_deleted
-    ON attendance_module.attendance (owner_id, student_id)
+CREATE INDEX idx_visits_owner_student_deleted
+    ON visits_module.visits (owner_id, student_id)
     WHERE deleted_at IS NULL;
 
-CREATE INDEX idx_attendance_owner_lesson_deleted
-    ON attendance_module.attendance (owner_id, lesson_id)
+CREATE INDEX idx_visits_owner_lesson_deleted
+    ON visits_module.visits (owner_id, lesson_id)
     WHERE deleted_at IS NULL;
 
 

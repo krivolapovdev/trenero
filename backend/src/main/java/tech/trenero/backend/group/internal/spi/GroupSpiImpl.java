@@ -18,8 +18,12 @@ public class GroupSpiImpl implements GroupSpi {
 
   @Override
   public Optional<Group> findGroupById(UUID groupId, JwtUser jwtUser) {
-    Objects.requireNonNull(groupId, "groupId must not be null");
     Objects.requireNonNull(jwtUser, "jwtUser must not be null");
+
+    if (groupId == null) {
+      return Optional.empty();
+    }
+
     return groupService.findGroupById(groupId, jwtUser);
   }
 

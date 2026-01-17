@@ -1,4 +1,4 @@
-package tech.trenero.backend.attendance.internal.entity;
+package tech.trenero.backend.visit.internal.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,12 +17,12 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "attendance", schema = "attendance_module")
+@Table(name = "visits", schema = "visits_module")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Attendance {
+public class Visit {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
   @GeneratedValue(strategy = GenerationType.UUID)

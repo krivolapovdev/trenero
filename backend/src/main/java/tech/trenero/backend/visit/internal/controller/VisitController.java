@@ -1,4 +1,4 @@
-package tech.trenero.backend.attendance.internal.controller;
+package tech.trenero.backend.visit.internal.controller;
 
 import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.Valid;
@@ -13,53 +13,51 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import tech.trenero.backend.attendance.internal.service.AttendanceService;
-import tech.trenero.backend.codegen.types.Attendance;
-import tech.trenero.backend.codegen.types.CreateAttendanceInput;
-import tech.trenero.backend.codegen.types.UpdateAttendanceInput;
+import tech.trenero.backend.codegen.types.CreateVisitInput;
+import tech.trenero.backend.codegen.types.UpdateVisitInput;
+import tech.trenero.backend.codegen.types.Visit;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.visit.internal.service.VisitService;
 
 @Controller
 @RequiredArgsConstructor
 @Validated
-public class AttendanceController {
-  private final AttendanceService attendanceService;
+public class VisitController {
+  private final VisitService visitService;
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public List<Attendance> attendances(@AuthenticationPrincipal JwtUser jwtUser) {
-    return attendanceService.getAllAttendances(jwtUser);
+  public List<Visit> visits(@AuthenticationPrincipal JwtUser jwtUser) {
+    return visitService.getAllVisits(jwtUser);
   }
 
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Attendance> attendance(
-      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return attendanceService.findAttendanceById(id, jwtUser);
+  public Optional<Visit> visit(@Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
+    return visitService.findVisitById(id, jwtUser);
   }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Attendance createAttendance(
-      @Argument("input") @Valid CreateAttendanceInput input,
-      @AuthenticationPrincipal JwtUser jwtUser) {
-    return attendanceService.createAttendance(input, jwtUser);
+  public Visit createVisit(
+      @Argument("input") @Valid CreateVisitInput input, @AuthenticationPrincipal JwtUser jwtUser) {
+    return visitService.createVisit(input, jwtUser);
   }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Attendance> updateAttendance(
+  public Optional<Visit> updateVisit(
       @Argument("id") UUID id,
-      @Argument("input") @Valid UpdateAttendanceInput input,
+      @Argument("input") @Valid UpdateVisitInput input,
       DataFetchingEnvironment environment,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return attendanceService.updateAttendance(id, input, environment, jwtUser);
+    return visitService.updateVisit(id, input, environment, jwtUser);
   }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  public Optional<Attendance> deleteAttendance(
+  public Optional<Visit> deleteVisit(
       @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return attendanceService.softDeleteAttendance(id, jwtUser);
+    return visitService.softDeleteVisit(id, jwtUser);
   }
 }

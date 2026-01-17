@@ -11,9 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.trenero.backend.attendance.external.AttendanceSpi;
-import tech.trenero.backend.codegen.types.CreateAttendanceInput;
 import tech.trenero.backend.codegen.types.CreateLessonInput;
+import tech.trenero.backend.codegen.types.CreateVisitInput;
 import tech.trenero.backend.codegen.types.Group;
 import tech.trenero.backend.codegen.types.UpdateLessonInput;
 import tech.trenero.backend.common.security.JwtUser;
@@ -21,6 +20,7 @@ import tech.trenero.backend.group.external.GroupSpi;
 import tech.trenero.backend.lesson.internal.entity.Lesson;
 import tech.trenero.backend.lesson.internal.mapper.LessonMapper;
 import tech.trenero.backend.lesson.internal.repository.LessonRepository;
+import tech.trenero.backend.visit.external.VisitSpi;
 
 @Service
 @Slf4j
@@ -28,7 +28,7 @@ import tech.trenero.backend.lesson.internal.repository.LessonRepository;
 public class LessonService {
   private final LessonRepository lessonRepository;
   private final LessonMapper lessonMapper;
-  @Lazy private final AttendanceSpi attendanceSpi;
+  @Lazy private final VisitSpi visitSpi;
   @Lazy private final GroupSpi groupSpi;
 
   @Transactional(readOnly = true)
@@ -77,16 +77,15 @@ public class LessonService {
     Lesson lesson = lessonMapper.toLesson(input, jwtUser.userId());
     Lesson savedLesson = saveLesson(lesson);
 
-    List<CreateAttendanceInput> attendanceInputList =
+    List<CreateVisitInput> visitInputList =
         input.getStudents().stream()
             .map(
                 status ->
-                    new CreateAttendanceInput(
+                    new CreateVisitInput(
                         savedLesson.getId(), status.getStudentId(), status.getPresent()))
             .toList();
 
-    attendanceSpi.createAttendances(
-        savedLesson.getId(), input.getGroupId(), attendanceInputList, jwtUser);
+    visitSpi.createVisits(savedLesson.getId(), input.getGroupId(), visitInputList, jwtUser);
 
     return lessonMapper.toGraphql(savedLesson);
   }
@@ -100,15 +99,14 @@ public class LessonService {
     log.info("Editing lesson by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
 
     if (input.hasStudents()) {
-      List<CreateAttendanceInput> attendanceInputList =
+      List<CreateVisitInput> visitInputList =
           input.getStudents().stream()
               .map(
                   status ->
-                      new CreateAttendanceInput(
-                          lessonId, status.getStudentId(), status.getPresent()))
+                      new CreateVisitInput(lessonId, status.getStudentId(), status.getPresent()))
               .toList();
 
-      attendanceSpi.editAttendancesByLessonId(lessonId, attendanceInputList, jwtUser);
+      visitSpi.editVisitsByLessonId(lessonId, visitInputList, jwtUser);
     }
 
     return lessonRepository
@@ -123,7 +121,7 @@ public class LessonService {
       UUID lessonId, JwtUser jwtUser) {
     log.info("Soft deleting lesson: {}", lessonId);
 
-    attendanceSpi.removeAttendancesByLessonId(lessonId, jwtUser);
+    visitSpi.removeVisitsByLessonId(lessonId, jwtUser);
 
     return lessonRepository
         .findByIdAndOwnerId(lessonId, jwtUser.userId())

@@ -1,4 +1,4 @@
-package tech.trenero.backend.attendance.internal.repository;
+package tech.trenero.backend.visit.internal.repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,46 +8,46 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import tech.trenero.backend.attendance.internal.entity.Attendance;
+import tech.trenero.backend.visit.internal.entity.Visit;
 
 @Repository
-public interface AttendanceRepository extends JpaRepository<@NonNull Attendance, @NonNull UUID> {
+public interface VisitRepository extends JpaRepository<@NonNull Visit, @NonNull UUID> {
   @Query(
       """
         SELECT a
-        FROM Attendance AS a
+        FROM Visit AS a
         WHERE a.ownerId = :ownerId
           AND a.deletedAt IS NULL
         ORDER BY a.createdAt DESC""")
-  List<Attendance> findAllByOwnerId(@Param("ownerId") UUID ownerId);
+  List<Visit> findAllByOwnerId(@Param("ownerId") UUID ownerId);
 
   @Query(
       """
         SELECT a
-        FROM Attendance AS a
-        WHERE a.id = :attendanceId
+        FROM Visit AS a
+        WHERE a.id = :visitId
           AND a.ownerId = :ownerId
           AND a.deletedAt IS NULL""")
-  Optional<Attendance> findByIdAndOwnerId(
-      @Param("attendanceId") UUID attendanceId, @Param("ownerId") UUID ownerId);
+  Optional<Visit> findByIdAndOwnerId(
+      @Param("visitId") UUID visitId, @Param("ownerId") UUID ownerId);
 
   @Query(
       """
         SELECT a
-        FROM Attendance AS a
+        FROM Visit AS a
         WHERE a.ownerId = :ownerId
           AND a.studentId = :studentId
           AND a.deletedAt IS NULL""")
-  List<Attendance> findAllByStudentIdAndOwnerId(
+  List<Visit> findAllByStudentIdAndOwnerId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 
   @Query(
       """
         SELECT a
-        FROM Attendance AS a
+        FROM Visit AS a
         WHERE a.ownerId = :ownerId
           AND a.lessonId = :lessonId
           AND a.deletedAt IS NULL""")
-  List<Attendance> findAllByLessonIdAndOwnerId(
+  List<Visit> findAllByLessonIdAndOwnerId(
       @Param("lessonId") UUID lessonId, @Param("ownerId") UUID ownerId);
 }

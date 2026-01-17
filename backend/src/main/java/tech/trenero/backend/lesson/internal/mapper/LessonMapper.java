@@ -1,6 +1,5 @@
 package tech.trenero.backend.lesson.internal.mapper;
 
-import static tech.trenero.backend.codegen.DgsConstants.UPDATELESSONINPUT.GroupId;
 import static tech.trenero.backend.codegen.DgsConstants.UPDATELESSONINPUT.StartDateTime;
 
 import graphql.schema.DataFetchingEnvironment;
@@ -41,9 +40,7 @@ public interface LessonMapper {
     }
 
     Map<String, Runnable> updates =
-        Map.of(
-            GroupId, () -> lesson.setGroupId(input.getGroupId()),
-            StartDateTime, () -> lesson.setStartDateTime(input.getStartDateTime()));
+        Map.of(StartDateTime, () -> lesson.setStartDateTime(input.getStartDateTime()));
 
     updates.entrySet().stream()
         .filter(entry -> inputMap.containsKey(entry.getKey()))
