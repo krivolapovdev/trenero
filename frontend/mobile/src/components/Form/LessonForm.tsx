@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
@@ -17,42 +17,39 @@ export type LessonFormValues = {
 
 type Props = {
   title: string;
+  queryLoading: boolean;
+  mutationLoading?: boolean;
   initialData?: Partial<GetLessonQuery['lesson']> | null;
-  availableStudents: { id: string; fullName: string }[];
   onSubmit: (values: LessonFormValues) => void;
   onBack: () => void;
-  loading: boolean;
 };
 
 export const LessonForm = ({
   title,
+  queryLoading,
+  mutationLoading = false,
   initialData,
-  availableStudents,
   onSubmit,
-  onBack,
-  loading
+  onBack
 }: Readonly<Props>) => {
   const { i18n } = useTranslation();
   const theme = useAppTheme();
 
-  const [startDateTime, setStartDateTime] = useState(
-    initialData ? dayjs(initialData.startDateTime) : dayjs()
-  );
+  const [startDateTime, setStartDateTime] = useState(dayjs());
+  const [attendanceStatus, setAttendanceStatus] = useState<
+    Record<string, boolean>
+  >({});
 
   const [visibleTimePicker, setVisibleTimePicker] = useState(false);
   const [visibleDatePicker, setVisibleDatePicker] = useState(false);
 
-  const [attendanceStatus, setAttendanceStatus] = useState<
-    Record<string, boolean>
-  >(() =>
-    initialData?.attendances
-      ? Object.fromEntries(
-          initialData.attendances.map(a => [a.student.id, a.present])
-        )
-      : {}
-  );
+  const isLoading = queryLoading || mutationLoading;
 
   const handleSubmit = () => {
+    if (isLoading) {
+      return;
+    }
+
     const students = Object.entries(attendanceStatus).map(
       ([studentId, present]) => ({
         studentId,
@@ -66,27 +63,49 @@ export const LessonForm = ({
     });
   };
 
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.startDateTime) {
+        setStartDateTime(dayjs(initialData.startDateTime));
+      }
+
+      if (initialData.attendances) {
+        setAttendanceStatus(
+          Object.fromEntries(
+            initialData.attendances.map(a => [a.student.id, a.present])
+          )
+        );
+      }
+    }
+  }, [initialData]);
+
   return (
     <>
       <CustomAppbar
         title={title}
         leftActions={[
-          { icon: 'arrow-left', onPress: onBack, disabled: loading }
+          { icon: 'arrow-left', onPress: onBack, disabled: mutationLoading }
         ]}
         rightActions={[
-          { icon: 'content-save', disabled: loading, onPress: handleSubmit }
+          {
+            icon: 'content-save',
+            disabled: isLoading,
+            onPress: handleSubmit
+          }
         ]}
       />
 
       <ScrollView
         contentContainerStyle={styles.container}
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
+        refreshControl={<RefreshControl refreshing={isLoading} />}
       >
         <SurfaceCard style={styles.dateTimeRow}>
           <Text
             variant='bodyLarge'
             onPress={() => setVisibleDatePicker(true)}
             style={{ color: theme.colors.primary }}
+            disabled={isLoading}
           >
             {startDateTime.format('DD/MM/YYYY')}
           </Text>
@@ -95,6 +114,7 @@ export const LessonForm = ({
             variant='bodyLarge'
             onPress={() => setVisibleTimePicker(true)}
             style={{ color: theme.colors.primary }}
+            disabled={isLoading}
           >
             {startDateTime.format('HH:mm')}
           </Text>
@@ -102,9 +122,10 @@ export const LessonForm = ({
 
         <SurfaceCard>
           <StudentAttendancePicker
-            students={availableStudents}
+            students={initialData?.group?.students ?? []}
             attendanceStatus={attendanceStatus}
             setAttendanceStatus={setAttendanceStatus}
+            disabled={isLoading}
           />
         </SurfaceCard>
       </ScrollView>

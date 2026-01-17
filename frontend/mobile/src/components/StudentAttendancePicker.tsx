@@ -16,10 +16,16 @@ type Props = {
   students: NonNullable<GetGroupQuery['group']>['students'];
   attendanceStatus: Record<string, boolean>;
   setAttendanceStatus: Dispatch<SetStateAction<Record<string, boolean>>>;
+  disabled?: boolean;
 };
 
 export const StudentAttendancePicker = memo(
-  ({ students, attendanceStatus, setAttendanceStatus }: Readonly<Props>) => {
+  ({
+    students,
+    attendanceStatus,
+    setAttendanceStatus,
+    disabled = false
+  }: Readonly<Props>) => {
     const { t } = useTranslation();
 
     const anyPresent = useMemo(
@@ -51,7 +57,7 @@ export const StudentAttendancePicker = memo(
     }, [students, setAttendanceStatus]);
 
     if (students.length === 0) {
-      return <Text>No students found</Text>;
+      return <Text>{t('noStudentsFound')}</Text>;
     }
 
     return (
@@ -69,6 +75,7 @@ export const StudentAttendancePicker = memo(
           <Button
             mode='text'
             onPress={anyPresent ? unselectAll : selectAll}
+            disabled={disabled}
           >
             {anyPresent ? t('unselectAll') : t('selectAll')}
           </Button>
@@ -85,9 +92,11 @@ export const StudentAttendancePicker = memo(
             }}
           >
             <Text>{student.fullName}</Text>
+
             <Switch
               value={attendanceStatus[student.id] ?? false}
               style={{ padding: 0 }}
+              disabled={disabled}
               onValueChange={value =>
                 setAttendanceStatus(prev => ({ ...prev, [student.id]: value }))
               }

@@ -20,18 +20,18 @@ const DELETE_GROUP = graphql(`
 `);
 
 export default function GroupByIdScreen() {
-  const { groupId } = useLocalSearchParams<{ groupId: string }>();
+  const { groupId: id } = useLocalSearchParams<{ groupId: string }>();
   const theme = useAppTheme();
   const router = useRouter();
   const { t } = useTranslation();
 
   const { data, loading, error, refetch } = useQuery(GET_GROUP, {
-    variables: { id: groupId },
+    variables: { id },
     fetchPolicy: __DEV__ ? 'cache-first' : 'cache-and-network'
   });
 
   const [deleteGroup, resultDeleteGroup] = useMutation(DELETE_GROUP, {
-    variables: { id: groupId },
+    variables: { id },
 
     update(cache, { data }) {
       if (!data?.deleteGroup) {
@@ -74,12 +74,12 @@ export default function GroupByIdScreen() {
         rightActions={[
           {
             icon: 'calendar-plus',
-            onPress: () => router.push(`/groups/${groupId}/lessons/create`),
+            onPress: () => router.push(`/groups/${id}/lessons/create`),
             disabled: loading || resultDeleteGroup.loading
           },
           {
             icon: 'account-edit',
-            onPress: () => router.push(`/(tabs)/groups/${groupId}/edit`),
+            onPress: () => router.push(`/(tabs)/groups/${id}/update`),
             disabled: loading || resultDeleteGroup.loading
           },
           {
@@ -111,7 +111,7 @@ export default function GroupByIdScreen() {
             <GroupCard {...group} />
 
             <LessonsCalendar
-              groupId={groupId}
+              groupId={id}
               lessons={group.lessons}
             />
 

@@ -78,6 +78,7 @@ export default function GroupsScreen() {
               style={{ backgroundColor: theme.colors.surface }}
               onClearIconPress={() => setSearchQuery('')}
             />
+
             <OptionalErrorMessage error={error?.message} />
           </>
         }

@@ -85,7 +85,7 @@ export default function StudentByIdScreen() {
           },
           {
             icon: 'account-edit',
-            onPress: () => router.push(`/(tabs)/students/${studentId}/edit`),
+            onPress: () => router.push(`/(tabs)/students/${studentId}/update`),
             disabled: loading || resultDeleteStudent.loading
           },
           {

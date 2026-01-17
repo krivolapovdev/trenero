@@ -58,7 +58,7 @@ export default function CreateGroupScreen() {
       title={t('addGroup')}
       onSubmit={handleSubmit}
       onBack={() => router.back()}
-      loading={loading}
+      queryLoading={loading}
     />
   );
 }

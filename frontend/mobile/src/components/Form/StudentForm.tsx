@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { PaperSelect } from 'react-native-paper-select';
 import type { ListItem } from 'react-native-paper-select/src/interface/paperSelect.interface';
@@ -26,51 +26,47 @@ export type StudentFormValues = {
 
 type Props = {
   title: string;
+  queryLoading: boolean;
+  mutationLoading?: boolean;
   initialData?: GetStudentQuery['student'] | null;
   onSubmit: (values: StudentFormValues) => void;
   onBack: () => void;
-  loading: boolean;
 };
 
 export const StudentForm = ({
   title,
+  queryLoading,
+  mutationLoading = false,
   initialData,
   onSubmit,
-  onBack,
-  loading
+  onBack
 }: Readonly<Props>) => {
   const { t } = useTranslation();
   const theme = useAppTheme();
 
-  const [fullName, setFullName] = useState(initialData?.fullName ?? '');
-  const [phoneNumber, setPhoneNumber] = useState(initialData?.phone ?? '');
-  const [note, setNote] = useState(initialData?.note ?? '');
-  const [birthdate, setBirthdate] = useState(
-    initialData?.birthdate ? formatDateInput(initialData.birthdate) : ''
-  );
-  const [groupId, setGroupId] = useState(initialData?.group?.id ?? '');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [note, setNote] = useState('');
+  const [birthdate, setBirthdate] = useState('');
+  const [groupId, setGroupId] = useState<string | null>(null);
 
-  const { data } = useQuery<GetGroupsQuery>(GET_GROUPS, {
-    fetchPolicy: 'cache-first'
-  });
-
-  const groupItems: ListItem[] = useMemo(
-    () =>
-      data?.groups?.map(group => ({
-        _id: group.id,
-        value: group.name
-      })) ?? [],
-    [data]
+  const { data: groupsData, loading: groupsLoading } = useQuery<GetGroupsQuery>(
+    GET_GROUPS,
+    {
+      fetchPolicy: 'cache-first'
+    }
   );
 
   const handleSubmit = () => {
-    if (!fullName.trim() || loading) {
+    const trimmedName = fullName.trim();
+
+    if (!trimmedName || isLoading) {
       return;
     }
 
     const values: StudentFormValues = {
-      fullName: fullName.trim(),
-      phone: phoneNumber.trim() || null,
+      fullName: trimmedName,
+      phone: phone.trim() || null,
       note: note.trim() || null,
       birthdate:
         parsePastOrTodayDateFromInput(birthdate)?.format('YYYY-MM-DD') || null,
@@ -80,17 +76,45 @@ export const StudentForm = ({
     onSubmit(values);
   };
 
+  const isLoading = queryLoading || mutationLoading || groupsLoading;
+
+  const groupItems: ListItem[] = useMemo(
+    () =>
+      groupsData?.groups?.map(group => ({
+        _id: group.id,
+        value: group.name
+      })) ?? [],
+    [groupsData]
+  );
+
+  const selectedGroupItems = useMemo(
+    () => groupItems.filter(g => g._id === groupId),
+    [groupItems, groupId]
+  );
+
+  useEffect(() => {
+    if (initialData) {
+      setFullName(initialData.fullName ?? '');
+      setPhone(initialData.phone ?? '');
+      setNote(initialData.note ?? '');
+      setBirthdate(
+        initialData.birthdate ? formatDateInput(initialData.birthdate) : ''
+      );
+      setGroupId(initialData.group?.id ?? null);
+    }
+  }, [initialData]);
+
   return (
     <>
       <CustomAppbar
         title={title}
         leftActions={[
-          { icon: 'arrow-left', onPress: onBack, disabled: loading }
+          { icon: 'arrow-left', onPress: onBack, disabled: mutationLoading }
         ]}
         rightActions={[
           {
             icon: 'content-save',
-            disabled: !fullName.trim() || loading,
+            disabled: !fullName.trim() || isLoading,
             onPress: handleSubmit
           }
         ]}
@@ -102,6 +126,7 @@ export const StudentForm = ({
           { backgroundColor: theme.colors.surfaceVariant }
         ]}
         keyboardShouldPersistTaps='handled'
+        refreshControl={<RefreshControl refreshing={isLoading} />}
       >
         <CustomTextInput
           label={`${t('fullName')} *`}
@@ -109,17 +134,17 @@ export const StudentForm = ({
           onChangeText={setFullName}
           maxLength={255}
           right={<TextInput.Affix text={`${fullName.length}/255`} />}
-          disabled={loading}
+          disabled={isLoading}
         />
 
         <CustomTextInput
           label={t('phoneNumber')}
-          value={phoneNumber}
+          value={phone}
           placeholder='88005553535'
-          onChangeText={text => setPhoneNumber(text.replaceAll(/\D/g, ''))}
+          onChangeText={text => setPhone(text.replaceAll(/\D/g, ''))}
           maxLength={15}
           keyboardType='numeric'
-          disabled={loading}
+          disabled={isLoading}
         />
 
         <CustomTextInput
@@ -129,7 +154,7 @@ export const StudentForm = ({
           maxLength={1023}
           multiline={true}
           right={<TextInput.Affix text={`${note.length}/1023`} />}
-          disabled={loading}
+          disabled={isLoading}
         />
 
         <CustomTextInput
@@ -139,7 +164,7 @@ export const StudentForm = ({
           keyboardType='numeric'
           maxLength={10}
           onChangeText={text => setBirthdate(formatDateInput(text))}
-          disabled={loading}
+          disabled={isLoading}
         />
 
         <PaperSelect
@@ -148,18 +173,13 @@ export const StudentForm = ({
           value={groupItems.find(g => g._id === groupId)?.value ?? ''}
           arrayList={groupItems}
           textInputOutlineStyle={{ borderRadius: 10, borderWidth: 0 }}
-          selectedArrayList={[
-            {
-              _id: groupId,
-              value: groupItems.find(g => g._id === groupId)?.value ?? ''
-            }
-          ]}
+          selectedArrayList={selectedGroupItems}
           searchText={t('search')}
           selectAllText={t('selectAll')}
           dialogCloseButtonText={t('close')}
           dialogDoneButtonText={t('ok')}
           multiEnable={false}
-          disabled={loading}
+          disabled={isLoading}
           onSelection={value => {
             if (value?.selectedList?.length > 0) {
               setGroupId(value.selectedList[0]._id);

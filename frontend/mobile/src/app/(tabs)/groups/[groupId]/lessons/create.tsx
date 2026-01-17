@@ -54,10 +54,12 @@ export default function CreateLessonScreen() {
   return (
     <LessonForm
       title={t('addLesson')}
-      availableStudents={data?.group?.students || []}
+      initialData={{
+        group: data?.group ?? undefined
+      }}
       onSubmit={handleSubmit}
-      onBack={() => router.back()}
-      loading={loading}
+      onBack={router.back}
+      queryLoading={loading}
     />
   );
 }

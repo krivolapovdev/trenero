@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { Text } from 'react-native-paper';
+import * as R from 'remeda';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { RoundedBarChart } from '@/src/components/RoundedBarChart';
@@ -19,21 +20,22 @@ export default function StatisticsScreen() {
     fetchPolicy: 'cache-first'
   });
 
-  const monthlyData = useMemo(
-    () =>
-      Array.from({ length: 6 })
-        .map((_, i) => dayjs().subtract(i, 'month'))
-        .map(month => ({
-          date: month,
-          value:
-            data?.students
-              .flatMap(student => student.payments)
-              .filter(p => dayjs(p.date).isSame(month, 'month'))
-              .reduce((sum, p) => sum + Number(p.amount), 0) || 0
-        }))
-        .reverse(),
-    [data]
-  );
+  const monthlyData = useMemo(() => {
+    const paymentsByMonth = R.pipe(
+      data?.students ?? [],
+      R.flatMap(s => s.payments),
+      R.groupBy(p => dayjs(p.date).format('YYYY-MM')),
+      R.mapValues(payments => R.sumBy(payments, p => Number(p.amount)))
+    );
+
+    return R.range(0, 6).map(i => {
+      const month = dayjs().subtract(5 - i, 'month');
+      return {
+        date: month,
+        value: paymentsByMonth[month.format('YYYY-MM')] ?? 0
+      };
+    });
+  }, [data]);
 
   return (
     <>

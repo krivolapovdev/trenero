@@ -2,10 +2,10 @@ import { useMutation, useQuery } from '@apollo/client/react';
 import dayjs from 'dayjs';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Alert, ScrollView } from 'react-native';
+import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { List, Text } from 'react-native-paper';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { LoadingSpinner } from '@/src/components/LoadingSpinner';
+import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { graphql } from '@/src/graphql/__generated__';
 import { GET_LESSON } from '@/src/graphql/queries';
@@ -28,7 +28,12 @@ export default function LessonByIdScreen() {
     lessonId: string;
   }>();
 
-  const { data, loading: queryLoading } = useQuery(GET_LESSON, {
+  const {
+    data,
+    loading: queryLoading,
+    error,
+    refetch
+  } = useQuery(GET_LESSON, {
     variables: { id: lessonId }
   });
 
@@ -45,8 +50,6 @@ export default function LessonByIdScreen() {
         cache.evict({ id: cache.identify(data.deleteLesson) });
         cache.gc();
       },
-
-      onCompleted: () => router.back(),
 
       onError: err => Alert.alert(t('error'), err.message)
     }
@@ -72,7 +75,9 @@ export default function LessonByIdScreen() {
           {
             icon: 'account-edit',
             onPress: () =>
-              router.push(`/(tabs)/groups/${groupId}/lessons/${lessonId}/edit`),
+              router.push(
+                `/(tabs)/groups/${groupId}/lessons/${lessonId}/update`
+              ),
             disabled: queryLoading || mutationLoading
           },
           {
@@ -86,10 +91,16 @@ export default function LessonByIdScreen() {
       <ScrollView
         contentContainerStyle={{ padding: 16, gap: 16 }}
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
+        refreshControl={
+          <RefreshControl
+            refreshing={queryLoading}
+            onRefresh={refetch}
+          />
+        }
       >
-        {queryLoading && <LoadingSpinner />}
+        <OptionalErrorMessage error={error?.message} />
 
-        {!queryLoading && data?.lesson && (
+        {data?.lesson && (
           <>
             <SurfaceCard
               style={{

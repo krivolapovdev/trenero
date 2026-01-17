@@ -45,7 +45,7 @@ export const PaymentSheet = ({
       cache.gc();
     },
 
-    onCompleted: router.back,
+    onCompleted: onDismiss,
 
     onError: err => Alert.alert(t('error'), err.message)
   });
@@ -62,7 +62,7 @@ export const PaymentSheet = ({
           buttonColor={theme.colors.surface}
           onPress={() => {
             router.push(
-              `/(tabs)/students/${studentId}/payments/${paymentId}/edit`
+              `/(tabs)/students/${studentId}/payments/${paymentId}/update`
             );
             onDismiss();
           }}

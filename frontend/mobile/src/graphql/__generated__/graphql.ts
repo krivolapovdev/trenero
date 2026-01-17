@@ -118,13 +118,13 @@ export type Mutation = {
   deleteLesson?: Maybe<Lesson>;
   deletePayment?: Maybe<Payment>;
   deleteStudent?: Maybe<Student>;
-  editAttendance?: Maybe<Attendance>;
-  editGroup?: Maybe<Group>;
-  editLesson?: Maybe<Lesson>;
-  editPayment?: Maybe<Payment>;
-  editStudent?: Maybe<Student>;
   googleLogin: LoginPayload;
   refreshTokens: JwtTokens;
+  updateAttendance?: Maybe<Attendance>;
+  updateGroup?: Maybe<Group>;
+  updateLesson?: Maybe<Lesson>;
+  updatePayment?: Maybe<Payment>;
+  updateStudent?: Maybe<Student>;
 };
 
 
@@ -183,36 +183,6 @@ export type MutationDeleteStudentArgs = {
 };
 
 
-export type MutationEditAttendanceArgs = {
-  id: Scalars['UUID']['input'];
-  input: CreateAttendanceInput;
-};
-
-
-export type MutationEditGroupArgs = {
-  id: Scalars['UUID']['input'];
-  input: CreateGroupInput;
-};
-
-
-export type MutationEditLessonArgs = {
-  id: Scalars['UUID']['input'];
-  input: CreateLessonInput;
-};
-
-
-export type MutationEditPaymentArgs = {
-  id: Scalars['UUID']['input'];
-  input: CreatePaymentInput;
-};
-
-
-export type MutationEditStudentArgs = {
-  id: Scalars['UUID']['input'];
-  input: CreateStudentInput;
-};
-
-
 export type MutationGoogleLoginArgs = {
   input: SocialLoginInput;
 };
@@ -220,6 +190,36 @@ export type MutationGoogleLoginArgs = {
 
 export type MutationRefreshTokensArgs = {
   input: RefreshTokenInput;
+};
+
+
+export type MutationUpdateAttendanceArgs = {
+  id: Scalars['UUID']['input'];
+  input: UpdateAttendanceInput;
+};
+
+
+export type MutationUpdateGroupArgs = {
+  id: Scalars['UUID']['input'];
+  input: UpdateGroupInput;
+};
+
+
+export type MutationUpdateLessonArgs = {
+  id: Scalars['UUID']['input'];
+  input: UpdateLessonInput;
+};
+
+
+export type MutationUpdatePaymentArgs = {
+  id: Scalars['UUID']['input'];
+  input: UpdatePaymentInput;
+};
+
+
+export type MutationUpdateStudentArgs = {
+  id: Scalars['UUID']['input'];
+  input: UpdateStudentInput;
 };
 
 export type Payment = {
@@ -292,19 +292,42 @@ export type Student = {
   phone?: Maybe<Scalars['String']['output']>;
 };
 
+export type UpdateAttendanceInput = {
+  present?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type UpdateGroupInput = {
+  defaultPrice?: InputMaybe<Scalars['BigDecimal']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  note?: InputMaybe<Scalars['String']['input']>;
+  studentIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
+};
+
+export type UpdateLessonInput = {
+  groupId?: InputMaybe<Scalars['UUID']['input']>;
+  startDateTime?: InputMaybe<Scalars['DateTime']['input']>;
+  students?: InputMaybe<Array<LessonStudentInput>>;
+};
+
+export type UpdatePaymentInput = {
+  amount?: InputMaybe<Scalars['BigDecimal']['input']>;
+  date?: InputMaybe<Scalars['Date']['input']>;
+  lessonsPerPayment?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type UpdateStudentInput = {
+  birthdate?: InputMaybe<Scalars['Date']['input']>;
+  fullName?: InputMaybe<Scalars['String']['input']>;
+  groupId?: InputMaybe<Scalars['UUID']['input']>;
+  note?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type User = {
   __typename?: 'User';
   email: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
 };
-
-export type EditGroupMutationVariables = Exact<{
-  id: Scalars['UUID']['input'];
-  input: CreateGroupInput;
-}>;
-
-
-export type EditGroupMutation = { __typename?: 'Mutation', editGroup?: { __typename?: 'Group', id: string, name: string, defaultPrice?: number | null, note?: string | null, students: Array<{ __typename?: 'Student', id: string, fullName: string, phone?: string | null, birthdate?: string | null, note?: string | null }>, lessons: Array<{ __typename?: 'Lesson', id: string, startDateTime: string }> } | null };
 
 export type DeleteGroupMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -312,14 +335,6 @@ export type DeleteGroupMutationVariables = Exact<{
 
 
 export type DeleteGroupMutation = { __typename?: 'Mutation', deleteGroup?: { __typename?: 'Group', id: string } | null };
-
-export type EditLessonMutationVariables = Exact<{
-  id: Scalars['UUID']['input'];
-  input: CreateLessonInput;
-}>;
-
-
-export type EditLessonMutation = { __typename?: 'Mutation', editLesson?: { __typename?: 'Lesson', id: string, startDateTime: string, group: { __typename?: 'Group', id: string, name: string, defaultPrice?: number | null, note?: string | null, students: Array<{ __typename?: 'Student', id: string, fullName: string, phone?: string | null, birthdate?: string | null, note?: string | null }> }, attendances: Array<{ __typename?: 'Attendance', id: string, present: boolean, student: { __typename?: 'Student', id: string, fullName: string, phone?: string | null, birthdate?: string | null, note?: string | null } }> } | null };
 
 export type DeleteLessonMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -331,12 +346,81 @@ export type DeleteLessonMutation = {
   deleteLesson?: { __typename?: 'Lesson', id: string } | null
 };
 
+export type UpdateLessonMutationVariables = Exact<{
+  id: Scalars['UUID']['input'];
+  input: UpdateLessonInput;
+}>;
+
+
+export type UpdateLessonMutation = {
+  __typename?: 'Mutation',
+  updateLesson?: {
+    __typename?: 'Lesson',
+    id: string,
+    startDateTime: string,
+    group: {
+      __typename?: 'Group',
+      id: string,
+      name: string,
+      defaultPrice?: number | null,
+      note?: string | null,
+      students: Array<{
+        __typename?: 'Student',
+        id: string,
+        fullName: string,
+        phone?: string | null,
+        birthdate?: string | null,
+        note?: string | null
+      }>
+    },
+    attendances: Array<{
+      __typename?: 'Attendance',
+      id: string,
+      present: boolean,
+      student: {
+        __typename?: 'Student',
+        id: string,
+        fullName: string,
+        phone?: string | null,
+        birthdate?: string | null,
+        note?: string | null
+      }
+    }>
+  } | null
+};
+
 export type CreateLessonMutationVariables = Exact<{
   input: CreateLessonInput;
 }>;
 
 
 export type CreateLessonMutation = { __typename?: 'Mutation', createLesson: { __typename?: 'Lesson', id: string, startDateTime: string, group: { __typename?: 'Group', id: string, name: string, defaultPrice?: number | null, note?: string | null, students: Array<{ __typename?: 'Student', id: string, fullName: string, phone?: string | null, birthdate?: string | null, note?: string | null }> }, attendances: Array<{ __typename?: 'Attendance', id: string, present: boolean, student: { __typename?: 'Student', id: string, fullName: string, phone?: string | null, birthdate?: string | null, note?: string | null } }> } };
+
+export type UpdateGroupMutationVariables = Exact<{
+  id: Scalars['UUID']['input'];
+  input: UpdateGroupInput;
+}>;
+
+
+export type UpdateGroupMutation = {
+  __typename?: 'Mutation',
+  updateGroup?: {
+    __typename?: 'Group',
+    id: string,
+    name: string,
+    defaultPrice?: number | null,
+    note?: string | null,
+    students: Array<{
+      __typename?: 'Student',
+      id: string,
+      fullName: string,
+      phone?: string | null,
+      birthdate?: string | null,
+      note?: string | null
+    }>,
+    lessons: Array<{ __typename?: 'Lesson', id: string, startDateTime: string }>
+  } | null
+};
 
 export type CreateGroupMutationVariables = Exact<{
   input: CreateGroupInput;
@@ -345,14 +429,6 @@ export type CreateGroupMutationVariables = Exact<{
 
 export type CreateGroupMutation = { __typename?: 'Mutation', createGroup: { __typename?: 'Group', id: string, name: string, defaultPrice?: number | null, note?: string | null, students: Array<{ __typename?: 'Student', id: string, fullName: string, phone?: string | null, birthdate?: string | null, note?: string | null }>, lessons: Array<{ __typename?: 'Lesson', id: string, startDateTime: string }> } };
 
-export type EditStudentMutationVariables = Exact<{
-  id: Scalars['UUID']['input'];
-  input: CreateStudentInput;
-}>;
-
-
-export type EditStudentMutation = { __typename?: 'Mutation', editStudent?: { __typename?: 'Student', id: string, fullName: string, phone?: string | null, birthdate?: string | null, note?: string | null, group?: { __typename?: 'Group', id: string, name: string, defaultPrice?: number | null, note?: string | null } | null, attendances: Array<{ __typename?: 'Attendance', id: string, present: boolean, lesson: { __typename?: 'Lesson', id: string, startDateTime: string } }>, payments: Array<{ __typename?: 'Payment', id: string, amount: number, date: string, lessonsPerPayment: number }> } | null };
-
 export type DeleteStudentMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -360,13 +436,30 @@ export type DeleteStudentMutationVariables = Exact<{
 
 export type DeleteStudentMutation = { __typename?: 'Mutation', deleteStudent?: { __typename?: 'Student', id: string } | null };
 
-export type EditPaymentMutationVariables = Exact<{
+export type UpdatePaymentMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
-  input: CreatePaymentInput;
+  input: UpdatePaymentInput;
 }>;
 
 
-export type EditPaymentMutation = { __typename?: 'Mutation', editPayment?: { __typename?: 'Payment', id: string, amount: number, date: string, lessonsPerPayment: number, student: { __typename?: 'Student', id: string, fullName: string, phone?: string | null, birthdate?: string | null, note?: string | null } } | null };
+export type UpdatePaymentMutation = {
+  __typename?: 'Mutation',
+  updatePayment?: {
+    __typename?: 'Payment',
+    id: string,
+    amount: number,
+    date: string,
+    lessonsPerPayment: number,
+    student: {
+      __typename?: 'Student',
+      id: string,
+      fullName: string,
+      phone?: string | null,
+      birthdate?: string | null,
+      note?: string | null
+    }
+  } | null
+};
 
 export type CreatePaymentMutationVariables = Exact<{
   input: CreatePaymentInput;
@@ -374,6 +467,44 @@ export type CreatePaymentMutationVariables = Exact<{
 
 
 export type CreatePaymentMutation = { __typename?: 'Mutation', createPayment: { __typename?: 'Payment', id: string, amount: number, date: string, lessonsPerPayment: number, student: { __typename?: 'Student', id: string, fullName: string, phone?: string | null, birthdate?: string | null, note?: string | null } } };
+
+export type EditStudentMutationVariables = Exact<{
+  id: Scalars['UUID']['input'];
+  input: UpdateStudentInput;
+}>;
+
+
+export type EditStudentMutation = {
+  __typename?: 'Mutation',
+  updateStudent?: {
+    __typename?: 'Student',
+    id: string,
+    fullName: string,
+    phone?: string | null,
+    birthdate?: string | null,
+    note?: string | null,
+    group?: {
+      __typename?: 'Group',
+      id: string,
+      name: string,
+      defaultPrice?: number | null,
+      note?: string | null
+    } | null,
+    attendances: Array<{
+      __typename?: 'Attendance',
+      id: string,
+      present: boolean,
+      lesson: { __typename?: 'Lesson', id: string, startDateTime: string }
+    }>,
+    payments: Array<{
+      __typename?: 'Payment',
+      id: string,
+      amount: number,
+      date: string,
+      lessonsPerPayment: number
+    }>
+  } | null
+};
 
 export type CreateStudentMutationVariables = Exact<{
   input: CreateStudentInput;
@@ -473,9 +604,7 @@ export const GroupDetailsFieldsFragmentDoc = {"kind":"Document","definitions":[{
 export const AttendanceCoreFieldsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"AttendanceCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Attendance"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"present"}}]}}]} as unknown as DocumentNode<AttendanceCoreFieldsFragment, unknown>;
 export const StudentDetailsFieldsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentDetailsFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"group"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GroupCoreFields"}}]}},{"kind":"Field","name":{"kind":"Name","value":"attendances"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"AttendanceCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"lesson"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LessonCoreFields"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"payments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PaymentCoreFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"birthdate"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GroupCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Group"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"defaultPrice"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"AttendanceCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Attendance"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"present"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LessonCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Lesson"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"startDateTime"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PaymentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Payment"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"lessonsPerPayment"}}]}}]} as unknown as DocumentNode<StudentDetailsFieldsFragment, unknown>;
 export const LessonDetailsFieldsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LessonDetailsFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Lesson"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LessonCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"group"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GroupCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"students"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"attendances"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"AttendanceCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"student"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LessonCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Lesson"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"startDateTime"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GroupCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Group"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"defaultPrice"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"birthdate"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"AttendanceCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Attendance"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"present"}}]}}]} as unknown as DocumentNode<LessonDetailsFieldsFragment, unknown>;
-export const EditGroupDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"EditGroup"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateGroupInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"editGroup"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GroupDetailsFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GroupCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Group"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"defaultPrice"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"birthdate"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LessonCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Lesson"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"startDateTime"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GroupDetailsFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Group"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GroupCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"students"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}}]}},{"kind":"Field","name":{"kind":"Name","value":"lessons"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LessonCoreFields"}}]}}]}}]} as unknown as DocumentNode<EditGroupMutation, EditGroupMutationVariables>;
 export const DeleteGroupDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteGroup"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteGroup"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeleteGroupMutation, DeleteGroupMutationVariables>;
-export const EditLessonDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"EditLesson"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateLessonInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"editLesson"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LessonDetailsFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LessonCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Lesson"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"startDateTime"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GroupCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Group"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"defaultPrice"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"birthdate"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"AttendanceCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Attendance"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"present"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LessonDetailsFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Lesson"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LessonCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"group"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GroupCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"students"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"attendances"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"AttendanceCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"student"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}}]}}]}}]}}]} as unknown as DocumentNode<EditLessonMutation, EditLessonMutationVariables>;
 export const DeleteLessonDocument = {
   "kind": "Document",
   "definitions": [{
@@ -508,12 +637,525 @@ export const DeleteLessonDocument = {
     }
   }]
 } as unknown as DocumentNode<DeleteLessonMutation, DeleteLessonMutationVariables>;
+export const UpdateLessonDocument = {
+  "kind": "Document", "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "UpdateLesson"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UUID"}}
+      }
+    }, {
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UpdateLessonInput"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "updateLesson"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "id"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}}
+        }, {
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "input"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "LessonDetailsFields"}
+          }]
+        }
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "LessonCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Lesson"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "startDateTime"}
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "GroupCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Group"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "name"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "defaultPrice"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "note"}
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "StudentCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Student"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "fullName"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "phone"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "birthdate"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "note"}}]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "AttendanceCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Attendance"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "present"}
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "LessonDetailsFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Lesson"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "FragmentSpread",
+        "name": {"kind": "Name", "value": "LessonCoreFields"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "group"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "GroupCoreFields"}
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "students"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "FragmentSpread",
+                "name": {"kind": "Name", "value": "StudentCoreFields"}
+              }]
+            }
+          }]
+        }
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "attendances"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "AttendanceCoreFields"}
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "student"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "FragmentSpread",
+                "name": {"kind": "Name", "value": "StudentCoreFields"}
+              }]
+            }
+          }]
+        }
+      }]
+    }
+  }]
+} as unknown as DocumentNode<UpdateLessonMutation, UpdateLessonMutationVariables>;
 export const CreateLessonDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateLesson"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateLessonInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createLesson"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LessonDetailsFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LessonCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Lesson"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"startDateTime"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GroupCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Group"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"defaultPrice"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"birthdate"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"AttendanceCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Attendance"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"present"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LessonDetailsFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Lesson"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LessonCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"group"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GroupCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"students"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"attendances"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"AttendanceCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"student"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}}]}}]}}]}}]} as unknown as DocumentNode<CreateLessonMutation, CreateLessonMutationVariables>;
+export const UpdateGroupDocument = {
+  "kind": "Document", "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "UpdateGroup"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UUID"}}
+      }
+    }, {
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UpdateGroupInput"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "updateGroup"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "id"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}}
+        }, {
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "input"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "GroupDetailsFields"}
+          }]
+        }
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "GroupCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Group"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "name"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "defaultPrice"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "note"}
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "StudentCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Student"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "fullName"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "phone"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "birthdate"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "note"}}]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "LessonCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Lesson"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "startDateTime"}
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "GroupDetailsFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Group"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "FragmentSpread",
+        "name": {"kind": "Name", "value": "GroupCoreFields"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "students"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "StudentCoreFields"}
+          }]
+        }
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "lessons"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "LessonCoreFields"}
+          }]
+        }
+      }]
+    }
+  }]
+} as unknown as DocumentNode<UpdateGroupMutation, UpdateGroupMutationVariables>;
 export const CreateGroupDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateGroup"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateGroupInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createGroup"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GroupDetailsFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GroupCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Group"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"defaultPrice"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"birthdate"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LessonCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Lesson"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"startDateTime"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GroupDetailsFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Group"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GroupCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"students"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}}]}},{"kind":"Field","name":{"kind":"Name","value":"lessons"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LessonCoreFields"}}]}}]}}]} as unknown as DocumentNode<CreateGroupMutation, CreateGroupMutationVariables>;
-export const EditStudentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"EditStudent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateStudentInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"editStudent"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentDetailsFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"birthdate"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GroupCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Group"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"defaultPrice"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"AttendanceCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Attendance"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"present"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LessonCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Lesson"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"startDateTime"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PaymentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Payment"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"lessonsPerPayment"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentDetailsFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"group"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GroupCoreFields"}}]}},{"kind":"Field","name":{"kind":"Name","value":"attendances"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"AttendanceCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"lesson"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LessonCoreFields"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"payments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PaymentCoreFields"}}]}}]}}]} as unknown as DocumentNode<EditStudentMutation, EditStudentMutationVariables>;
 export const DeleteStudentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteStudent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteStudent"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeleteStudentMutation, DeleteStudentMutationVariables>;
-export const EditPaymentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"EditPayment"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreatePaymentInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"editPayment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PaymentDetailsFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PaymentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Payment"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"lessonsPerPayment"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"birthdate"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PaymentDetailsFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Payment"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PaymentCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"student"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}}]}}]}}]} as unknown as DocumentNode<EditPaymentMutation, EditPaymentMutationVariables>;
+export const UpdatePaymentDocument = {
+  "kind": "Document", "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "UpdatePayment"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UUID"}}
+      }
+    }, {
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UpdatePaymentInput"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "updatePayment"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "id"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}}
+        }, {
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "input"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "PaymentDetailsFields"}
+          }]
+        }
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "PaymentCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Payment"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "amount"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "date"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "lessonsPerPayment"}
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "StudentCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Student"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "fullName"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "phone"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "birthdate"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "note"}}]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "PaymentDetailsFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Payment"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "FragmentSpread",
+        "name": {"kind": "Name", "value": "PaymentCoreFields"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "student"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "StudentCoreFields"}
+          }]
+        }
+      }]
+    }
+  }]
+} as unknown as DocumentNode<UpdatePaymentMutation, UpdatePaymentMutationVariables>;
 export const CreatePaymentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreatePayment"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreatePaymentInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createPayment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PaymentDetailsFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PaymentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Payment"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"lessonsPerPayment"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"birthdate"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PaymentDetailsFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Payment"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PaymentCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"student"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}}]}}]}}]} as unknown as DocumentNode<CreatePaymentMutation, CreatePaymentMutationVariables>;
+export const EditStudentDocument = {
+  "kind": "Document", "definitions": [{
+    "kind": "OperationDefinition",
+    "operation": "mutation",
+    "name": {"kind": "Name", "value": "EditStudent"},
+    "variableDefinitions": [{
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UUID"}}
+      }
+    }, {
+      "kind": "VariableDefinition",
+      "variable": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}},
+      "type": {
+        "kind": "NonNullType",
+        "type": {"kind": "NamedType", "name": {"kind": "Name", "value": "UpdateStudentInput"}}
+      }
+    }],
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "updateStudent"},
+        "arguments": [{
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "id"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "id"}}
+        }, {
+          "kind": "Argument",
+          "name": {"kind": "Name", "value": "input"},
+          "value": {"kind": "Variable", "name": {"kind": "Name", "value": "input"}}
+        }],
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "StudentDetailsFields"}
+          }]
+        }
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "StudentCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Student"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "fullName"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "phone"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "birthdate"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "note"}}]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "GroupCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Group"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "name"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "defaultPrice"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "note"}
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "AttendanceCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Attendance"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "present"}
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "LessonCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Lesson"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "startDateTime"}
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "PaymentCoreFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Payment"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{"kind": "Field", "name": {"kind": "Name", "value": "id"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "amount"}
+      }, {"kind": "Field", "name": {"kind": "Name", "value": "date"}}, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "lessonsPerPayment"}
+      }]
+    }
+  }, {
+    "kind": "FragmentDefinition",
+    "name": {"kind": "Name", "value": "StudentDetailsFields"},
+    "typeCondition": {"kind": "NamedType", "name": {"kind": "Name", "value": "Student"}},
+    "selectionSet": {
+      "kind": "SelectionSet",
+      "selections": [{
+        "kind": "FragmentSpread",
+        "name": {"kind": "Name", "value": "StudentCoreFields"}
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "group"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "GroupCoreFields"}
+          }]
+        }
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "attendances"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "AttendanceCoreFields"}
+          }, {
+            "kind": "Field",
+            "name": {"kind": "Name", "value": "lesson"},
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [{
+                "kind": "FragmentSpread",
+                "name": {"kind": "Name", "value": "LessonCoreFields"}
+              }]
+            }
+          }]
+        }
+      }, {
+        "kind": "Field",
+        "name": {"kind": "Name", "value": "payments"},
+        "selectionSet": {
+          "kind": "SelectionSet",
+          "selections": [{
+            "kind": "FragmentSpread",
+            "name": {"kind": "Name", "value": "PaymentCoreFields"}
+          }]
+        }
+      }]
+    }
+  }]
+} as unknown as DocumentNode<EditStudentMutation, EditStudentMutationVariables>;
 export const CreateStudentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateStudent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateStudentInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createStudent"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentDetailsFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"birthdate"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GroupCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Group"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"defaultPrice"}},{"kind":"Field","name":{"kind":"Name","value":"note"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"AttendanceCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Attendance"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"present"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LessonCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Lesson"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"startDateTime"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PaymentCoreFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Payment"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"lessonsPerPayment"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StudentDetailsFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Student"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StudentCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"group"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GroupCoreFields"}}]}},{"kind":"Field","name":{"kind":"Name","value":"attendances"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"AttendanceCoreFields"}},{"kind":"Field","name":{"kind":"Name","value":"lesson"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LessonCoreFields"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"payments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PaymentCoreFields"}}]}}]}}]} as unknown as DocumentNode<CreateStudentMutation, CreateStudentMutationVariables>;
 export const DeletePaymentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeletePayment"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deletePayment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeletePaymentMutation, DeletePaymentMutationVariables>;
 export const RefreshTokensDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RefreshTokens"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"RefreshTokenInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"refreshTokens"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accessToken"}},{"kind":"Field","name":{"kind":"Name","value":"refreshToken"}}]}}]}}]} as unknown as DocumentNode<RefreshTokensMutation, RefreshTokensMutationVariables>;

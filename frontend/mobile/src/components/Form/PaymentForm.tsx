@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { Alert, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
 import type { GetPaymentQuery } from '@/src/graphql/__generated__/graphql';
@@ -18,63 +18,72 @@ export type PaymentFormValues = {
 
 type Props = {
   title: string;
+  queryLoading: boolean;
+  mutationLoading?: boolean;
   initialData?: Partial<GetPaymentQuery['payment']> | null;
   onSubmit: (values: PaymentFormValues) => void;
   onBack: () => void;
-  loading: boolean;
 };
 
 export const PaymentForm = ({
   title,
+  queryLoading,
+  mutationLoading = false,
   initialData,
   onSubmit,
-  onBack,
-  loading
+  onBack
 }: Readonly<Props>) => {
   const { t } = useTranslation();
   const theme = useAppTheme();
 
-  const [amount, setAmount] = useState(initialData?.amount?.toString() ?? '');
-  const [lessonsPerPayment, setLessonsPerPayment] = useState<number | null>(
-    initialData?.lessonsPerPayment ?? null
-  );
-  const [date, setDate] = useState(
-    dayjs(initialData?.date).format('DD/MM/YYYY') ??
-      dayjs().format('DD/MM/YYYY')
-  );
+  const [amount, setAmount] = useState('');
+  const [lessonsPerPayment, setLessonsPerPayment] = useState('');
+  const [date, setDate] = useState(dayjs().format('DD/MM/YYYY'));
 
   const handleSubmit = () => {
-    if (!lessonsPerPayment) {
+    const parsedLessons = Number(lessonsPerPayment);
+    if (!parsedLessons || Number.isNaN(parsedLessons)) {
       return Alert.alert(t('error'), t('enterLessonsError'));
     }
 
     const parsedDate = parsePastOrTodayDateFromInput(date);
-
     if (!parsedDate) {
       return Alert.alert(t('error'), t('invalidDateError'));
     }
 
     const values: PaymentFormValues = {
       amount: Number(amount),
-      lessonsPerPayment,
+      lessonsPerPayment: parsedLessons,
       date: parsedDate.format('YYYY-MM-DD')
     };
 
     onSubmit(values);
   };
 
+  const isLoading = queryLoading || mutationLoading;
+
+  useEffect(() => {
+    if (initialData) {
+      setAmount(initialData.amount?.toString() ?? '');
+      setLessonsPerPayment(initialData.lessonsPerPayment?.toString() ?? '');
+      if (initialData.date) {
+        setDate(dayjs(initialData.date).format('DD/MM/YYYY'));
+      }
+    }
+  }, [initialData]);
+
   return (
     <>
       <CustomAppbar
         title={title}
         leftActions={[
-          { icon: 'arrow-left', onPress: onBack, disabled: loading }
+          { icon: 'arrow-left', onPress: onBack, disabled: mutationLoading }
         ]}
         rightActions={[
           {
             icon: 'content-save',
             disabled:
-              loading || !amount || !lessonsPerPayment || date.length !== 10,
+              isLoading || !amount || !lessonsPerPayment || date.length !== 10,
             onPress: handleSubmit
           }
         ]}
@@ -86,13 +95,14 @@ export const PaymentForm = ({
           { backgroundColor: theme.colors.surfaceVariant }
         ]}
         keyboardShouldPersistTaps='handled'
+        refreshControl={<RefreshControl refreshing={isLoading} />}
       >
         <CustomTextInput
           label={`${t('amount')} *`}
           keyboardType='numeric'
           value={amount}
           onChangeText={text => setAmount(formatPriceInput(text))}
-          disabled={loading}
+          disabled={isLoading}
         />
 
         <CustomTextInput
@@ -100,11 +110,9 @@ export const PaymentForm = ({
           keyboardType='numeric'
           value={lessonsPerPayment?.toString() ?? ''}
           onChangeText={text =>
-            setLessonsPerPayment(
-              Number.isNaN(Number(text)) ? null : Number(text)
-            )
+            setLessonsPerPayment(text.replaceAll(/\D/g, ''))
           }
-          disabled={loading}
+          disabled={isLoading}
         />
 
         <CustomTextInput
@@ -113,7 +121,7 @@ export const PaymentForm = ({
           maxLength={10}
           value={date}
           onChangeText={text => setDate(formatDateInput(text))}
-          disabled={loading}
+          disabled={isLoading}
         />
       </ScrollView>
     </>
