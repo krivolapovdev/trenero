@@ -25,7 +25,9 @@ public class StudentGraphQlResolver {
 
   @SchemaMapping(typeName = "Student", field = "group")
   public Optional<Group> group(Student student, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupSpi.findGroupById(student.getGroup().getId(), jwtUser);
+    return student.getGroup() != null && student.getGroup().getId() != null
+        ? groupSpi.findGroupById(student.getGroup().getId(), jwtUser)
+        : Optional.empty();
   }
 
   @SchemaMapping(typeName = "Student", field = "payments")

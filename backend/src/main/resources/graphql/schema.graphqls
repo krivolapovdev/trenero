@@ -162,7 +162,6 @@ input LessonStudentInput {
 }
 
 input UpdateLessonInput {
-    groupId: UUID
     startDateTime: DateTime
     students: [LessonStudentInput!]
 }

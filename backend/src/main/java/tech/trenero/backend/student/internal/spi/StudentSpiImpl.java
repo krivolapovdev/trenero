@@ -95,7 +95,7 @@ public class StudentSpiImpl implements StudentSpi {
     List<UUID> toAdd = studentIds.stream().filter(id -> !currentStudentIds.contains(id)).toList();
 
     if (!toRemove.isEmpty()) {
-      studentService.assignGroupToStudents(null, toRemove, jwtUser);
+      studentService.removeGroupFromStudents(toRemove, jwtUser);
     }
 
     if (!toAdd.isEmpty()) {

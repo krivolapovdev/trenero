@@ -48,7 +48,9 @@ public class StudentService {
       CreateStudentInput input, JwtUser jwtUser) {
     log.info("Creating student: {}", input);
 
-    groupSpi.getGroupById(input.getGroupId(), jwtUser);
+    if (input.hasGroupId()) {
+      groupSpi.getGroupById(input.getGroupId(), jwtUser);
+    }
 
     Student student = studentMapper.toStudent(input, jwtUser.userId());
 
@@ -91,6 +93,15 @@ public class StudentService {
         studentRepository.setGroupIdForStudents(groupId, studentIds, jwtUser.userId());
 
     log.info("Updated {} students with new groupId={}", updatedCount, groupId);
+  }
+
+  @Transactional
+  public void removeGroupFromStudents(List<UUID> studentIds, JwtUser jwtUser) {
+    log.info("Remove from group from students={} for ownerId={}", studentIds, jwtUser.userId());
+
+    int updatedCount = studentRepository.setGroupIdForStudents(null, studentIds, jwtUser.userId());
+
+    log.info("Updated {} students with empty groupId", updatedCount);
   }
 
   @Transactional(readOnly = true)
