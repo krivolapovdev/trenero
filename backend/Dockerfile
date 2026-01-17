@@ -7,6 +7,8 @@ COPY gradlew .
 
 COPY gradle gradle
 
+RUN chmod +x gradlew && ./gradlew --no-daemon --version
+
 COPY build.gradle.kts settings.gradle.kts ./
 
 RUN chmod +x gradlew && ./gradlew --no-daemon dependencies
@@ -22,4 +24,6 @@ WORKDIR /app
 
 COPY --from=build /app/build/libs/*.jar app.jar
 
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=85", "-jar", "app.jar"]
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=85", "-Dfile.encoding=UTF-8", "-jar", "app.jar"]
