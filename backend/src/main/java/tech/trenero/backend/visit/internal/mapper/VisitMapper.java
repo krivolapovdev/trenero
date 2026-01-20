@@ -21,6 +21,9 @@ public interface VisitMapper {
     if (visit == null || input == null) {
       return visit;
     }
+
+    input.present().ifPresent(visit::setPresent);
+
     return visit;
   }
 }

@@ -21,6 +21,11 @@ public interface GroupMapper {
     if (group == null || request == null) {
       return group;
     }
+
+    request.name().ifPresent(group::setName);
+    request.defaultPrice().ifPresent(group::setDefaultPrice);
+    request.note().ifPresent(group::setNote);
+
     return group;
   }
 }

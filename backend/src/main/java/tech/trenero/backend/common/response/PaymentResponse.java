@@ -9,6 +9,6 @@ public record PaymentResponse(
     UUID id,
     UUID studentId,
     BigDecimal amount,
-    Integer lessonsPerPayment,
+    Integer paidLessons,
     LocalDate date,
     OffsetDateTime createdAt) {}

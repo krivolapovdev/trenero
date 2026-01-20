@@ -42,9 +42,9 @@ public class Payment {
   @NonNull
   private BigDecimal amount;
 
-  @Column(name = "lessons_per_payment", nullable = false)
+  @Column(name = "paid_lessons", nullable = false)
   @NonNull
-  private Integer lessonsPerPayment;
+  private Integer paidLessons;
 
   @Column(name = "date", nullable = false)
   @NonNull

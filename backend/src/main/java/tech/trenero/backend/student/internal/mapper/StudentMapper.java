@@ -22,6 +22,12 @@ public interface StudentMapper {
       return student;
     }
 
+    request.fullName().ifPresent(student::setFullName);
+    request.birthdate().ifPresent(student::setBirthdate);
+    request.phone().ifPresent(student::setPhone);
+    request.note().ifPresent(student::setNote);
+    request.groupId().ifPresent(student::setGroupId);
+
     return student;
   }
 }

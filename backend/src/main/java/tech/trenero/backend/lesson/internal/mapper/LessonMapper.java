@@ -22,6 +22,8 @@ public interface LessonMapper {
       return lesson;
     }
 
+    request.startDateTime().ifPresent(lesson::setStartDateTime);
+
     return lesson;
   }
 }
