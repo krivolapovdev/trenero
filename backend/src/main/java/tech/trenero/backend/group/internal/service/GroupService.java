@@ -1,91 +1,90 @@
 package tech.trenero.backend.group.internal.service;
 
-import graphql.schema.DataFetchingEnvironment;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.trenero.backend.codegen.types.CreateGroupInput;
-import tech.trenero.backend.codegen.types.UpdateGroupInput;
+import tech.trenero.backend.common.response.GroupResponse;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.group.external.GroupSpi;
 import tech.trenero.backend.group.internal.entity.Group;
 import tech.trenero.backend.group.internal.mapper.GroupMapper;
 import tech.trenero.backend.group.internal.repository.GroupRepository;
+import tech.trenero.backend.group.internal.request.CreateGroupRequest;
+import tech.trenero.backend.group.internal.request.UpdateGroupRequest;
 import tech.trenero.backend.student.external.StudentSpi;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class GroupService {
+public class GroupService implements GroupSpi {
   private final GroupRepository groupRepository;
   private final GroupMapper groupMapper;
   @Lazy private final StudentSpi studentSpi;
 
   @Transactional(readOnly = true)
-  public List<tech.trenero.backend.codegen.types.Group> getAllGroups(JwtUser jwtUser) {
+  public List<GroupResponse> getAllGroups(JwtUser jwtUser) {
     log.info("Getting all groups for ownerId={}", jwtUser.userId());
     return groupRepository.findAllByOwnerId(jwtUser.userId()).stream()
-        .map(groupMapper::toGraphql)
+        .map(groupMapper::toResponse)
         .toList();
   }
 
   @Transactional(readOnly = true)
-  public Optional<tech.trenero.backend.codegen.types.Group> findGroupById(
-      UUID groupId, JwtUser jwtUser) {
+  public GroupResponse getGroupById(UUID groupId, JwtUser jwtUser) {
     log.info("Getting group by id={} for ownerId={}", groupId, jwtUser.userId());
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
-        .map(groupMapper::toGraphql);
+        .map(groupMapper::toResponse)
+        .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
   }
 
   @Transactional
-  public tech.trenero.backend.codegen.types.Group createGroup(
-      CreateGroupInput input, JwtUser jwtUser) {
-    log.info("Creating group: name='{}', ownerId={}", input.getName(), jwtUser.userId());
+  public GroupResponse createGroup(CreateGroupRequest request, JwtUser jwtUser) {
+    log.info("Creating group: name='{}', ownerId={}", request.name(), jwtUser.userId());
 
-    Group group = groupMapper.toGroup(input, jwtUser.userId());
+    Group group = groupMapper.toGroup(request, jwtUser.userId());
     Group saveGroup = saveGroup(group);
 
-    studentSpi.assignGroupToStudents(saveGroup.getId(), input.getStudentIds(), jwtUser);
+    studentSpi.assignGroupToStudents(saveGroup.getId(), request.studentIds(), jwtUser);
 
-    return groupMapper.toGraphql(saveGroup);
+    return groupMapper.toResponse(saveGroup);
   }
 
   @Transactional
-  public Optional<tech.trenero.backend.codegen.types.Group> updateGroup(
-      UUID groupId, UpdateGroupInput input, DataFetchingEnvironment environment, JwtUser jwtUser) {
+  public GroupResponse updateGroup(UUID groupId, UpdateGroupRequest request, JwtUser jwtUser) {
 
-    if (input.hasStudentIds()) {
-      studentSpi.editStudentsGroup(groupId, input.getStudentIds(), jwtUser);
+    if (request.studentIds().isPresent()) {
+      studentSpi.editStudentsGroup(groupId, request.studentIds().get(), jwtUser);
     }
 
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
-        .map(group -> groupMapper.updateGroup(group, input, environment))
+        .map(group -> groupMapper.updateGroup(group, request))
         .map(this::saveGroup)
-        .map(groupMapper::toGraphql);
+        .map(groupMapper::toResponse)
+        .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
   }
 
   @Transactional
-  public Optional<tech.trenero.backend.codegen.types.Group> softDeleteGroup(
-      UUID id, JwtUser jwtUser) {
+  public void softDeleteGroup(UUID id, JwtUser jwtUser) {
     log.info("Deleting group: {}", id);
 
     studentSpi.removeGroupFromStudents(id, jwtUser);
 
-    return groupRepository
+    groupRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
         .map(
             group -> {
               group.setDeletedAt(OffsetDateTime.now());
               return saveGroup(group);
             })
-        .map(groupMapper::toGraphql);
+        .orElseThrow(() -> new EntityNotFoundException("Group not found: " + id));
   }
 
   private Group saveGroup(Group group) {

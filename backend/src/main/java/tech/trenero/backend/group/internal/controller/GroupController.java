@@ -1,63 +1,68 @@
 package tech.trenero.backend.group.internal.controller;
 
-import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import tech.trenero.backend.codegen.types.CreateGroupInput;
-import tech.trenero.backend.codegen.types.Group;
-import tech.trenero.backend.codegen.types.UpdateGroupInput;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import tech.trenero.backend.common.response.GroupResponse;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.group.internal.request.CreateGroupRequest;
+import tech.trenero.backend.group.internal.request.UpdateGroupRequest;
 import tech.trenero.backend.group.internal.service.GroupService;
 
-@Controller
+@RestController
+@RequestMapping("/api/v1/groups")
 @RequiredArgsConstructor
 @Validated
 public class GroupController {
   private final GroupService groupService;
 
-  @QueryMapping
+  @GetMapping
   @PreAuthorize("isAuthenticated()")
-  public List<Group> groups(@AuthenticationPrincipal JwtUser jwtUser) {
+  public List<GroupResponse> getGroups(@AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.getAllGroups(jwtUser);
   }
 
-  @QueryMapping
+  @GetMapping("/{id}")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Group> group(@Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.findGroupById(id, jwtUser);
+  public GroupResponse getGroup(@PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getGroupById(id, jwtUser);
   }
 
-  @MutationMapping
+  @PostMapping
   @PreAuthorize("isAuthenticated()")
-  public Group createGroup(
-      @Argument("input") @Valid CreateGroupInput input, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.createGroup(input, jwtUser);
+  @ResponseStatus(HttpStatus.CREATED)
+  public GroupResponse createGroup(
+      @RequestBody @Valid CreateGroupRequest request, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.createGroup(request, jwtUser);
   }
 
-  @MutationMapping
+  @PatchMapping("/{id}")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Group> updateGroup(
-      @Argument("id") UUID id,
-      @Argument("input") @Valid UpdateGroupInput input,
-      DataFetchingEnvironment environment,
+  public GroupResponse updateGroup(
+      @PathVariable UUID id,
+      @RequestBody @Valid UpdateGroupRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.updateGroup(id, input, environment, jwtUser);
+    return groupService.updateGroup(id, request, jwtUser);
   }
 
-  @MutationMapping
+  @DeleteMapping("/{id}")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Group> deleteGroup(
-      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.softDeleteGroup(id, jwtUser);
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteGroup(@PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
+    groupService.softDeleteGroup(id, jwtUser);
   }
 }

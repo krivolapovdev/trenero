@@ -1,96 +1,102 @@
 package tech.trenero.backend.payment.internal.service;
 
-import graphql.schema.DataFetchingEnvironment;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.trenero.backend.codegen.types.CreatePaymentInput;
-import tech.trenero.backend.codegen.types.UpdatePaymentInput;
+import tech.trenero.backend.common.response.PaymentResponse;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.payment.external.PaymentSpi;
 import tech.trenero.backend.payment.internal.entity.Payment;
 import tech.trenero.backend.payment.internal.mapper.PaymentMapper;
 import tech.trenero.backend.payment.internal.repository.PaymentRepository;
+import tech.trenero.backend.payment.internal.request.CreatePaymentRequest;
+import tech.trenero.backend.payment.internal.request.UpdatePaymentRequest;
 import tech.trenero.backend.student.external.StudentSpi;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentService {
+public class PaymentService implements PaymentSpi {
   private final PaymentRepository paymentRepository;
   private final PaymentMapper paymentMapper;
   @Lazy private final StudentSpi studentSpi;
 
   @Transactional(readOnly = true)
-  public List<tech.trenero.backend.codegen.types.Payment> getAllPayments(JwtUser jwtUser) {
+  public List<PaymentResponse> getAllPayments(JwtUser jwtUser) {
     log.info("Get payments for user {}", jwtUser.userId());
+
     return paymentRepository.findAllByOwnerId(jwtUser.userId()).stream()
-        .map(paymentMapper::toGraphql)
+        .map(paymentMapper::toResponse)
         .toList();
   }
 
   @Transactional(readOnly = true)
-  public Optional<tech.trenero.backend.codegen.types.Payment> findPaymentById(
-      UUID id, JwtUser jwtUser) {
+  public PaymentResponse getPaymentById(UUID id, JwtUser jwtUser) {
     log.info("Get status of payment with id {}", id);
-    return paymentRepository.findByIdAndOwnerId(id, jwtUser.userId()).map(paymentMapper::toGraphql);
+
+    return paymentRepository
+        .findByIdAndOwnerId(id, jwtUser.userId())
+        .map(paymentMapper::toResponse)
+        .orElseThrow(() -> new EntityNotFoundException("Group not found with id=" + id));
   }
 
   @Transactional(readOnly = true)
-  public List<tech.trenero.backend.codegen.types.Payment> getPaymentsByStudentId(
-      UUID studentId, JwtUser jwtUser) {
+  public List<PaymentResponse> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser) {
     log.info("Getting payments by studentId={}", studentId);
+
     return paymentRepository.findAllByStudentId(studentId, jwtUser.userId()).stream()
-        .map(paymentMapper::toGraphql)
+        .map(paymentMapper::toResponse)
         .toList();
   }
 
   @Transactional
-  public tech.trenero.backend.codegen.types.Payment createPayment(
-      CreatePaymentInput input, JwtUser jwtUser) {
-    log.info("Creating payment {}", input);
+  public PaymentResponse createPayment(CreatePaymentRequest request, JwtUser jwtUser) {
+    log.info("Creating payment {}", request);
 
-    studentSpi.getStudentById(input.getStudentId(), jwtUser);
+    studentSpi.getStudentById(request.studentId(), jwtUser);
 
-    Payment payment = paymentMapper.toPayment(input, jwtUser.userId());
+    Payment payment = paymentMapper.toPayment(request, jwtUser.userId());
 
     Payment savedPayment = savePayment(payment);
 
-    return paymentMapper.toGraphql(savedPayment);
+    return paymentMapper.toResponse(savedPayment);
   }
 
   @Transactional
-  public Optional<tech.trenero.backend.codegen.types.Payment> updatePayment(
-      UUID id, UpdatePaymentInput input, DataFetchingEnvironment environment, JwtUser jwtUser) {
-    log.info("Edit payment {}", input);
+  public PaymentResponse updatePayment(UUID id, UpdatePaymentRequest request, JwtUser jwtUser) {
+    log.info("Edit payment {}", request);
+
     return paymentRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
-        .map(pay -> paymentMapper.updatePayment(pay, input, environment))
+        .map(pay -> paymentMapper.updatePayment(pay, request))
         .map(this::savePayment)
-        .map(paymentMapper::toGraphql);
+        .map(paymentMapper::toResponse)
+        .orElseThrow(() -> new EntityNotFoundException("Payment with id=" + id));
   }
 
   @Transactional
-  public Optional<tech.trenero.backend.codegen.types.Payment> softDeletePayment(
-      UUID id, JwtUser jwtUser) {
+  public void softDeletePayment(UUID id, JwtUser jwtUser) {
     log.info("Deleting payment: {}", id);
-    return paymentRepository
+
+    paymentRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
         .map(
             payment -> {
               payment.setDeletedAt(OffsetDateTime.now());
               return savePayment(payment);
             })
-        .map(paymentMapper::toGraphql);
+        .orElseThrow(() -> new EntityNotFoundException("Payment with id=" + id));
   }
 
   private Payment savePayment(Payment payment) {
     log.info("Save payment: {}", payment);
+
     return paymentRepository.saveAndFlush(payment);
   }
 }

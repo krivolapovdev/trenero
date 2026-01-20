@@ -3,10 +3,6 @@ scalar DateTime
 scalar UUID
 scalar BigDecimal
 
-directive @annotate(
-    name: String!
-) repeatable on OBJECT | FIELD_DEFINITION | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-
 type Query {
     students: [Student!]!
     student(id: UUID!): Student

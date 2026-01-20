@@ -20,9 +20,9 @@ public class GoogleAuthService {
   @Value("${oauth2.google.client-id}")
   private String clientId;
 
-  public Optional<GoogleIdToken> verifyIdToken(String idTokenString)
+  public Optional<GoogleIdToken> verifyIdToken(String token)
       throws GeneralSecurityException, IOException {
-    log.info("Verifying idToken={}", idTokenString);
+    log.info("Verifying google token={}", token);
 
     GoogleIdTokenVerifier verifier =
         new GoogleIdTokenVerifier.Builder(
@@ -30,7 +30,7 @@ public class GoogleAuthService {
             .setAudience(Collections.singletonList(clientId))
             .build();
 
-    GoogleIdToken googleIdToken = verifier.verify(idTokenString);
+    GoogleIdToken googleIdToken = verifier.verify(token);
 
     return Optional.ofNullable(googleIdToken);
   }

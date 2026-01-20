@@ -4,8 +4,8 @@ import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import tech.trenero.backend.codegen.types.JwtTokens;
-import tech.trenero.backend.codegen.types.RefreshTokenInput;
+import tech.trenero.backend.auth.internal.request.RefreshTokenRequest;
+import tech.trenero.backend.common.response.JwtTokensResponse;
 import tech.trenero.backend.common.security.JwtTokenProvider;
 import tech.trenero.backend.common.security.JwtUser;
 
@@ -15,19 +15,19 @@ import tech.trenero.backend.common.security.JwtUser;
 public class JwtTokenService {
   private final JwtTokenProvider jwtTokenProvider;
 
-  public JwtTokens createAccessAndRefreshTokens(JwtUser jwtUser) {
+  public JwtTokensResponse createAccessAndRefreshTokens(JwtUser jwtUser) {
     log.info("Creating jwtTokens for user: {}", jwtUser);
 
     String accessToken = jwtTokenProvider.generateAccessToken(jwtUser);
     String refreshToken = jwtTokenProvider.generateRefreshToken(jwtUser);
 
-    return new JwtTokens(accessToken, refreshToken);
+    return new JwtTokensResponse(accessToken, refreshToken);
   }
 
-  public JwtTokens refreshTokens(RefreshTokenInput input) {
-    log.info("Refreshing jwtTokens: {}", input);
+  public JwtTokensResponse refreshTokens(RefreshTokenRequest request) {
+    log.info("Refreshing jwtTokens: {}", request);
 
-    String oldRefreshToken = input.getRefreshToken();
+    String oldRefreshToken = request.refreshToken();
 
     log.info("Refreshing token: {}", oldRefreshToken);
 
