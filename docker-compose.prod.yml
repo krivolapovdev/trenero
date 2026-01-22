@@ -1,15 +1,12 @@
 services:
   db:
-    ports: !reset []
+    restart: unless-stopped
+
+  db-backup:
     restart: unless-stopped
 
   backend:
-    build: !reset null
-    ports: !reset []
-    image: krivolapovdev/backend:${IMAGE_TAG}
     restart: unless-stopped
 
   nginx:
-    build: !reset null
-    image: krivolapovdev/nginx:${IMAGE_TAG}
     restart: unless-stopped

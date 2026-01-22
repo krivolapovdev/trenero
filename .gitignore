@@ -10,3 +10,5 @@
 ### VS Code ###
 .vscode/*
 !.vscode/extensions.json
+
+/backups
