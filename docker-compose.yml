@@ -32,7 +32,7 @@ services:
       - ./backups:/backups
 
   backend:
-    image: krivolapovdev/backend:latest
+    image: krivolapovdev/backend:${IMAGE_TAG:-latest}
     container_name: backend
     depends_on:
       db:
@@ -51,7 +51,7 @@ services:
       retries: 20
 
   nginx:
-    image: krivolapovdev/nginx:latest
+    image: krivolapovdev/nginx:${IMAGE_TAG:-latest}
     container_name: nginx
     ports:
       - "80:80"
