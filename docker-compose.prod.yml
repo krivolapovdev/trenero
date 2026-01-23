@@ -8,5 +8,8 @@ services:
   backend:
     restart: unless-stopped
 
-  nginx:
+  frontend:
+    restart: unless-stopped
+
+  traefik:
     restart: unless-stopped

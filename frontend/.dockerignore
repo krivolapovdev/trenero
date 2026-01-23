@@ -1,5 +1,4 @@
 *
-!nginx.conf
 !web/src
 !web/bun.lock
 !web/bun-env.d.ts

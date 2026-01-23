@@ -6,13 +6,15 @@ services:
       POSTGRES_DB: trenero
       POSTGRES_USER: ${DB_USERNAME:-username}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
-    volumes:
-      - db-data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
       interval: 10s
       timeout: 5s
       retries: 20
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - trenero-network
 
   db-backup:
     image: prodrigestivill/postgres-backup-local:18-alpine-d257e5d
@@ -21,15 +23,22 @@ services:
       db:
         condition: service_healthy
     environment:
-      - POSTGRES_HOST=db
-      - POSTGRES_DB=trenero
-      - POSTGRES_USER=${DB_USERNAME:-username}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
-      - SCHEDULE=@daily
-      - BACKUP_KEEP_DAYS=7
-      - BACKUP_SUFFIX=.sql.gz
+      POSTGRES_HOST: db
+      POSTGRES_DB: trenero
+      POSTGRES_USER: ${DB_USERNAME:-username}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      SCHEDULE: "@daily"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_SUFFIX: ".sql.gz"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
     volumes:
       - ./backups:/backups
+    networks:
+      - trenero-network
 
   backend:
     image: krivolapovdev/backend:${IMAGE_TAG:-latest}
@@ -45,27 +54,62 @@ services:
       GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-ultra-secure-and-ultra-long-secret}
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health" ]
       interval: 10s
       timeout: 5s
       retries: 20
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/graphql`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+      - "traefik.http.routers.backend.middlewares=backend-compress"
+      - "traefik.http.middlewares.backend-compress.compress=true"
+    networks:
+      - trenero-network
 
-  nginx:
-    image: krivolapovdev/nginx:${IMAGE_TAG:-latest}
-    container_name: nginx
+  frontend:
+    image: krivolapovdev/frontend:${IMAGE_TAG:-latest}
+    container_name: frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.frontend.middlewares=frontend-compress"
+      - "traefik.http.middlewares.frontend-compress.compress=true"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks:
+      - trenero-network
+
+  traefik:
+    image: traefik:v3.6.7
+    container_name: traefik
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+      - "--accesslog.format=common"
+      - "--ping=true"
     ports:
       - "80:80"
-      - "443:443"
-    depends_on:
-      db:
-        condition: service_healthy
-      backend:
-        condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost || exit 1" ]
+      test: [ "CMD", "traefik", "healthcheck", "--ping", "--ping.entrypoint=web" ]
       interval: 10s
       timeout: 5s
       retries: 20
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - trenero-network
 
 volumes:
   db-data:
+
+networks:
+  trenero-network:
+    driver: bridge

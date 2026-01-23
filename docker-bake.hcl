@@ -1,7 +1,7 @@
 group "default" {
   targets = [
     "backend",
-    "nginx",
+    "frontend",
   ]
 }
 
@@ -25,11 +25,11 @@ target "backend" {
   ]
 }
 
-target "nginx" {
+target "frontend" {
   context = "./frontend"
   tags = [
-    "${DOCKERHUB_USERNAME}/nginx:${IMAGE_TAG}",
-    "${DOCKERHUB_USERNAME}/nginx:latest"
+    "${DOCKERHUB_USERNAME}/frontend:${IMAGE_TAG}",
+    "${DOCKERHUB_USERNAME}/frontend:latest"
   ]
   platforms = [
     "linux/amd64",

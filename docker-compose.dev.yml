@@ -12,5 +12,10 @@ services:
       - "8080:8080"
     restart: no
 
-  nginx:
+  frontend:
+    ports:
+      - "3000:3000"
+    restart: no
+
+  traefik:
     restart: no

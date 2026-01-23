@@ -14,14 +14,12 @@ ENV NODE_ENV=production
 RUN bun run build
 
 # Run stage
-FROM nginx:1.29.4-alpine3.23
+FROM busybox:1.37.0
 
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist ./
 
-EXPOSE 80
+EXPOSE 3000
 
-EXPOSE 443
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["httpd", "-f", "-p", "3000"]
