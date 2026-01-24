@@ -2,9 +2,9 @@ import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import type { components } from '@/src/api/generated/openapi';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
-import type { GetPaymentQuery } from '@/src/graphql/__generated__/graphql';
 import { formatDateInput } from '@/src/helpers/formatDateInput';
 import { formatPriceInput } from '@/src/helpers/formatPriceInput';
 import { parsePastOrTodayDateFromInput } from '@/src/helpers/parsePastOrTodayDateFromInput';
@@ -12,15 +12,19 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export type PaymentFormValues = {
   amount: number;
-  lessonsPerPayment: number;
+  paidLessons: number;
   date: string;
+};
+
+type PaymentFormInitialData = {
+  payment?: components['schemas']['PaymentResponse'];
 };
 
 type Props = {
   title: string;
   queryLoading: boolean;
   mutationLoading?: boolean;
-  initialData?: Partial<GetPaymentQuery['payment']> | null;
+  initialData?: PaymentFormInitialData | null;
   onSubmit: (values: PaymentFormValues) => void;
   onBack: () => void;
 };
@@ -37,11 +41,11 @@ export const PaymentForm = ({
   const theme = useAppTheme();
 
   const [amount, setAmount] = useState('');
-  const [lessonsPerPayment, setLessonsPerPayment] = useState('');
+  const [paidLessons, setPaidLessons] = useState('');
   const [date, setDate] = useState(dayjs().format('DD/MM/YYYY'));
 
   const handleSubmit = () => {
-    const parsedLessons = Number(lessonsPerPayment);
+    const parsedLessons = Number(paidLessons);
     if (!parsedLessons || Number.isNaN(parsedLessons)) {
       return Alert.alert(t('error'), t('enterLessonsError'));
     }
@@ -53,7 +57,7 @@ export const PaymentForm = ({
 
     const values: PaymentFormValues = {
       amount: Number(amount),
-      lessonsPerPayment: parsedLessons,
+      paidLessons: parsedLessons,
       date: parsedDate.format('YYYY-MM-DD')
     };
 
@@ -63,12 +67,10 @@ export const PaymentForm = ({
   const isLoading = queryLoading || mutationLoading;
 
   useEffect(() => {
-    if (initialData) {
-      setAmount(initialData.amount?.toString() ?? '');
-      setLessonsPerPayment(initialData.lessonsPerPayment?.toString() ?? '');
-      if (initialData.date) {
-        setDate(dayjs(initialData.date).format('DD/MM/YYYY'));
-      }
+    if (initialData?.payment) {
+      setAmount(initialData.payment.amount?.toString() ?? '');
+      setPaidLessons(initialData.payment.paidLessons?.toString() ?? '');
+      setDate(dayjs(initialData.payment.date).format('DD/MM/YYYY'));
     }
   }, [initialData]);
 
@@ -83,7 +85,7 @@ export const PaymentForm = ({
           {
             icon: 'content-save',
             disabled:
-              isLoading || !amount || !lessonsPerPayment || date.length !== 10,
+              isLoading || !amount || !paidLessons || date.length !== 10,
             onPress: handleSubmit
           }
         ]}
@@ -106,12 +108,10 @@ export const PaymentForm = ({
         />
 
         <CustomTextInput
-          label={`${t('lessonsPerPayment')} *`}
+          label={`${t('paidLessons')} *`}
           keyboardType='numeric'
-          value={lessonsPerPayment?.toString() ?? ''}
-          onChangeText={text =>
-            setLessonsPerPayment(text.replaceAll(/\D/g, ''))
-          }
+          value={paidLessons?.toString() ?? ''}
+          onChangeText={text => setPaidLessons(text.replaceAll(/\D/g, ''))}
           disabled={isLoading}
         />
 

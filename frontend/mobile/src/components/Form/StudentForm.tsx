@@ -1,34 +1,34 @@
-import { useQuery } from '@apollo/client/react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { PaperSelect } from 'react-native-paper-select';
 import type { ListItem } from 'react-native-paper-select/src/interface/paperSelect.interface';
+import type { components } from '@/src/api/generated/openapi';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
-import type {
-  GetGroupsQuery,
-  GetStudentQuery
-} from '@/src/graphql/__generated__/graphql';
-import { GET_GROUPS } from '@/src/graphql/queries';
 import { formatDateInput } from '@/src/helpers/formatDateInput';
 import { parsePastOrTodayDateFromInput } from '@/src/helpers/parsePastOrTodayDateFromInput';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export type StudentFormValues = {
   fullName: string;
-  phone?: string | null;
-  note?: string | null;
-  birthdate?: string | null;
-  groupId?: string | null;
+  phone?: string;
+  note?: string;
+  birthdate?: string;
+  groupId?: string;
+};
+
+type StudentFormInitialData = {
+  student?: components['schemas']['StudentResponse'];
+  groups?: components['schemas']['GroupResponse'][];
 };
 
 type Props = {
   title: string;
   queryLoading: boolean;
   mutationLoading?: boolean;
-  initialData?: GetStudentQuery['student'] | null;
+  initialData?: StudentFormInitialData | null;
   onSubmit: (values: StudentFormValues) => void;
   onBack: () => void;
 };
@@ -50,13 +50,6 @@ export const StudentForm = ({
   const [birthdate, setBirthdate] = useState('');
   const [groupId, setGroupId] = useState<string | null>(null);
 
-  const { data: groupsData, loading: groupsLoading } = useQuery<GetGroupsQuery>(
-    GET_GROUPS,
-    {
-      fetchPolicy: 'cache-first'
-    }
-  );
-
   const handleSubmit = () => {
     const trimmedName = fullName.trim();
 
@@ -66,25 +59,26 @@ export const StudentForm = ({
 
     const values: StudentFormValues = {
       fullName: trimmedName,
-      phone: phone.trim() || null,
-      note: note.trim() || null,
+      phone: phone.trim() || undefined,
+      note: note.trim() || undefined,
       birthdate:
-        parsePastOrTodayDateFromInput(birthdate)?.format('YYYY-MM-DD') || null,
-      groupId: groupId || null
+        parsePastOrTodayDateFromInput(birthdate)?.format('YYYY-MM-DD') ||
+        undefined,
+      groupId: groupId || undefined
     };
 
     onSubmit(values);
   };
 
-  const isLoading = queryLoading || mutationLoading || groupsLoading;
+  const isLoading = queryLoading || mutationLoading;
 
   const groupItems: ListItem[] = useMemo(
     () =>
-      groupsData?.groups?.map(group => ({
+      initialData?.groups?.map(group => ({
         _id: group.id,
         value: group.name
       })) ?? [],
-    [groupsData]
+    [initialData]
   );
 
   const selectedGroupItems = useMemo(
@@ -94,13 +88,15 @@ export const StudentForm = ({
 
   useEffect(() => {
     if (initialData) {
-      setFullName(initialData.fullName ?? '');
-      setPhone(initialData.phone ?? '');
-      setNote(initialData.note ?? '');
+      setFullName(initialData.student?.fullName ?? '');
+      setPhone(initialData.student?.phone ?? '');
+      setNote(initialData.student?.note ?? '');
       setBirthdate(
-        initialData.birthdate ? formatDateInput(initialData.birthdate) : ''
+        initialData.student?.birthdate
+          ? formatDateInput(initialData.student?.birthdate)
+          : ''
       );
-      setGroupId(initialData.group?.id ?? null);
+      setGroupId(initialData.student?.groupId ?? null);
     }
   }, [initialData]);
 

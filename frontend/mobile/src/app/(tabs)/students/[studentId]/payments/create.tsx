@@ -1,45 +1,31 @@
-import { useMutation } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { t } from 'i18next';
 import { Alert } from 'react-native';
+import { api } from '@/src/api';
 import {
   PaymentForm,
   type PaymentFormValues
 } from '@/src/components/Form/PaymentForm';
-import { graphql } from '@/src/graphql/__generated__';
-import { GET_STUDENTS } from '@/src/graphql/queries';
-
-const CREATE_PAYMENT = graphql(`
-    mutation CreatePayment($input: CreatePaymentInput!) {
-        createPayment(input: $input) {
-            ...PaymentDetailsFields
-        }
-    }
-`);
 
 export default function CreatePaymentScreen() {
   const router = useRouter();
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
 
-  const [createPayment, { loading }] = useMutation(CREATE_PAYMENT, {
-    refetchQueries: [GET_STUDENTS],
-
-    awaitRefetchQueries: true,
-
-    onCompleted: () => router.back(),
-
-    onError: err => Alert.alert(t('error'), err.message)
-  });
+  const { mutate: createPayment, isPending: createPaymentPending } =
+    api.useMutation('post', '/api/v1/payments', {
+      onSuccess: router.back,
+      onError: err => Alert.alert(t('error'), err)
+    });
 
   const handleSubmit = (values: PaymentFormValues) => {
-    const input = {
-      studentId,
-      ...values
-    };
+    if (createPaymentPending) {
+      return;
+    }
 
-    void createPayment({
-      variables: {
-        input
+    createPayment({
+      body: {
+        studentId,
+        ...values
       }
     });
   };
@@ -49,7 +35,8 @@ export default function CreatePaymentScreen() {
       title={t('addPayment')}
       onSubmit={handleSubmit}
       onBack={() => router.back()}
-      loading={loading}
+      queryLoading={false}
+      mutationLoading={createPaymentPending}
     />
   );
 }

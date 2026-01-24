@@ -1,25 +1,15 @@
-import { useMutation, useQuery } from '@apollo/client/react';
+import { useQueries } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
+import { api } from '@/src/api';
 import { PaymentSheet } from '@/src/components/BottomSheet/PaymentSheet';
 import { VisitCalendar } from '@/src/components/Calendar';
 import { StudentCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentPaymentsTable } from '@/src/components/StudentPaymentsTable';
-import { graphql } from '@/src/graphql/__generated__';
-import { GET_STUDENT } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-
-const DELETE_STUDENT = graphql(`
-    mutation DeleteStudent($id: UUID!) {
-        deleteStudent(id: $id) {
-            id
-        }
-    }
-`);
 
 export default function StudentByIdScreen() {
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
@@ -29,27 +19,34 @@ export default function StudentByIdScreen() {
 
   const [paymentIdSheet, setPaymentIdSheet] = useState<string | null>(null);
 
-  const { data, loading, error, refetch } = useQuery(GET_STUDENT, {
-    variables: { id: studentId },
-    fetchPolicy: __DEV__ ? 'cache-first' : 'cache-and-network'
+  const queries = useQueries({
+    queries: [
+      api.queryOptions('get', `/api/v1/students/{studentId}`, {
+        params: { path: { studentId } }
+      }),
+
+      api.queryOptions('get', `/api/v1/students/{studentId}/payments`, {
+        params: { path: { studentId } }
+      }),
+
+      api.queryOptions('get', `/api/v1/students/{studentId}/visits`, {
+        params: { path: { studentId } }
+      }),
+
+      api.queryOptions('get', `/api/v1/lessons`)
+    ]
   });
 
-  const [deleteStudent, resultDeleteStudent] = useMutation(DELETE_STUDENT, {
-    variables: { id: studentId },
+  const student = queries[0].data;
+  const studentPayments = queries[1].data ?? [];
+  const studentVisits = queries[2].data;
+  const allLessons = queries[3].data;
 
-    update(cache, { data }) {
-      if (!data?.deleteStudent) {
-        return;
-      }
-
-      cache.evict({ id: cache.identify(data.deleteStudent) });
-      cache.gc();
-    },
-
-    onCompleted: router.back,
-
-    onError: err => Alert.alert(t('error'), err.message)
-  });
+  const { mutate: deleteStudent, isPending: deleteStudentPending } =
+    api.useMutation('delete', `/api/v1/students/{studentId}`, {
+      onSuccess: () => router.back(),
+      onError: err => Alert.alert(t('error'), err)
+    });
 
   const handleDeletePress = () => {
     Alert.alert(t('deleteStudent'), t('deleteStudentConfirmation'), [
@@ -57,12 +54,15 @@ export default function StudentByIdScreen() {
       {
         text: t('delete'),
         style: 'destructive',
-        onPress: () => void deleteStudent()
+        onPress: () =>
+          deleteStudent({
+            params: { path: { studentId } }
+          })
       }
     ]);
   };
 
-  const student = data?.student;
+  const isLoading = queries.some(q => q.isFetching) || deleteStudentPending;
 
   return (
     <>
@@ -73,7 +73,7 @@ export default function StudentByIdScreen() {
           {
             icon: 'arrow-left',
             onPress: () => router.back(),
-            disabled: resultDeleteStudent.loading
+            disabled: deleteStudentPending
           }
         ]}
         rightActions={[
@@ -81,17 +81,17 @@ export default function StudentByIdScreen() {
             icon: 'account-cash',
             onPress: () =>
               router.push(`/(tabs)/students/${studentId}/payments/create`),
-            disabled: loading || resultDeleteStudent.loading
+            disabled: isLoading
           },
           {
             icon: 'account-edit',
             onPress: () => router.push(`/(tabs)/students/${studentId}/update`),
-            disabled: loading || resultDeleteStudent.loading
+            disabled: isLoading
           },
           {
             icon: 'trash-can',
             onPress: () => handleDeletePress(),
-            disabled: loading || resultDeleteStudent.loading
+            disabled: isLoading
           }
         ]}
       />
@@ -105,27 +105,28 @@ export default function StudentByIdScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
-            onRefresh={refetch}
+            refreshing={isLoading}
+            onRefresh={() => Promise.all(queries.map(q => q.refetch()))}
           />
         }
         keyboardShouldPersistTaps='handled'
       >
-        <OptionalErrorMessage error={error?.message} />
-
-        {student && (
+        {student && studentPayments && studentVisits && allLessons && (
           <>
             <StudentCard {...student} />
 
             <StudentPaymentsTable
-              payments={student.payments}
+              payments={studentPayments}
               onRowPress={setPaymentIdSheet}
             />
 
-            <VisitCalendar
-              groupId={student?.group?.id ?? ''}
-              visits={student.visits}
-            />
+            {student.groupId && (
+              <VisitCalendar
+                groupId={student.groupId}
+                visits={studentVisits}
+                lessons={allLessons}
+              />
+            )}
           </>
         )}
       </ScrollView>

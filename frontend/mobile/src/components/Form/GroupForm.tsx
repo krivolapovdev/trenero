@@ -1,29 +1,33 @@
-import { useQuery } from '@apollo/client/react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { PaperSelect } from 'react-native-paper-select';
 import type { ListItem } from 'react-native-paper-select/src/interface/paperSelect.interface';
+import type { components } from '@/src/api/generated/openapi';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
-import type { GetGroupQuery } from '@/src/graphql/__generated__/graphql';
-import { GET_STUDENTS } from '@/src/graphql/queries';
 import { formatPriceInput } from '@/src/helpers/formatPriceInput';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export type GroupFormValues = {
   name: string;
-  defaultPrice?: number | null;
-  note?: string | null;
+  defaultPrice?: number;
+  note?: string;
   studentIds: string[];
+};
+
+type GroupFormInitialData = {
+  group?: components['schemas']['GroupResponse'];
+  groupStudents?: components['schemas']['StudentResponse'][];
+  allStudents?: components['schemas']['StudentResponse'][];
 };
 
 type Props = {
   title: string;
   queryLoading: boolean;
   mutationLoading?: boolean;
-  initialData?: Partial<GetGroupQuery['group']> | null;
+  initialData?: GroupFormInitialData | null;
   onSubmit: (values: GroupFormValues) => void;
   onBack: () => void;
 };
@@ -44,24 +48,16 @@ export const GroupForm = ({
   const [note, setNote] = useState('');
   const [selectedStudents, setSelectedStudents] = useState<ListItem[]>([]);
 
-  const { data: studentsData, loading: studentsLoading } = useQuery(
-    GET_STUDENTS,
-    {
-      fetchPolicy: 'cache-first'
-    }
-  );
-
-  const isLoading =
-    queryLoading || (mutationLoading ?? false) || studentsLoading;
+  const isLoading = queryLoading || mutationLoading;
 
   const studentItems: ListItem[] = useMemo(() => {
-    const list = studentsData?.students ?? [];
-    const currentStudentIds = new Set(initialData?.students?.map(s => s.id));
+    const list = initialData?.allStudents ?? [];
+    const currentStudentIds = new Set(initialData?.allStudents?.map(s => s.id));
 
     return list
-      .filter(s => !s.group || currentStudentIds.has(s.id))
+      .filter(s => !s.groupId || currentStudentIds.has(s.id))
       .map(s => ({ _id: s.id, value: s.fullName }));
-  }, [studentsData, initialData?.students]);
+  }, [initialData?.allStudents]);
 
   const handleSubmit = () => {
     const trimmedName = name.trim();
@@ -72,9 +68,9 @@ export const GroupForm = ({
 
     const values: GroupFormValues = {
       name: trimmedName,
-      defaultPrice: Number(defaultPrice) || null,
+      defaultPrice: Number(defaultPrice) || undefined,
       studentIds: selectedStudents.map(s => s._id),
-      note: note?.trim() || null
+      note: note?.trim() || undefined
     };
 
     onSubmit(values);
@@ -82,14 +78,13 @@ export const GroupForm = ({
 
   useEffect(() => {
     if (initialData) {
-      setName(initialData.name ?? '');
-      setDefaultPrice(initialData.defaultPrice?.toString() ?? '');
-      setNote(initialData.note ?? '');
-      if (initialData.students) {
-        setSelectedStudents(
-          initialData.students.map(s => ({ _id: s.id, value: s.fullName }))
-        );
-      }
+      setName(initialData.group?.name ?? '');
+      setDefaultPrice(initialData.group?.defaultPrice?.toString() ?? '');
+      setNote(initialData.group?.note ?? '');
+      setSelectedStudents(
+        initialData.allStudents?.map(s => ({ _id: s.id, value: s.fullName })) ??
+          []
+      );
     }
   }, [initialData]);
 

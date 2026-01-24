@@ -1,29 +1,28 @@
-import { nanoid } from 'nanoid/non-secure';
 import { useTranslation } from 'react-i18next';
-import type { GetGroupsQuery } from '@/src/graphql/__generated__/graphql';
+import type { components } from '@/src/api/generated/openapi';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { EntityCard } from './EntityCard';
 
-type Props = GetGroupsQuery['groups'][number];
+type Props = components['schemas']['GroupResponse'];
 
 export const GroupCard = ({
   id,
   name,
   defaultPrice,
-  note,
-  students
+  note
+  // students
 }: Readonly<Props>) => {
   const { t } = useTranslation();
-  const theme = useAppTheme();
+  const _theme = useAppTheme();
 
-  const badges = [
-    {
-      id: nanoid(),
-      label: `${t('students')}: ${students?.length ?? 0} `,
-      backgroundColor: theme.colors.secondaryContainer,
-      textColor: theme.colors.onSecondaryContainer
-    }
-  ];
+  // const badges = [
+  //   {
+  //     id: nanoid(),
+  //     label: `${t('students')}: ${students?.length ?? 0} `,
+  //     backgroundColor: theme.colors.secondaryContainer,
+  //     textColor: theme.colors.onSecondaryContainer
+  //   }
+  // ];
 
   const subtitle = [
     defaultPrice && `${t('defaultPrice')}: ${defaultPrice}`,
@@ -37,7 +36,7 @@ export const GroupCard = ({
       title={name}
       subtitle={subtitle}
       href={`/(tabs)/groups/${id}`}
-      badges={badges}
+      // badges={badges}
     />
   );
 };

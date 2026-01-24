@@ -61,7 +61,8 @@ export const CustomBottomSheet = ({
 
 const styles = StyleSheet.create({
   contentContainer: {
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 30,
     paddingTop: 0,
     gap: 12
   }

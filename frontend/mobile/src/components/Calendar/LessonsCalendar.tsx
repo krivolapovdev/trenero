@@ -3,14 +3,14 @@ import { useRouter } from 'expo-router';
 import { nanoid } from 'nanoid/non-secure';
 import { memo, useMemo, useState } from 'react';
 import { List } from 'react-native-paper';
+import type { components } from '@/src/api/generated/openapi';
 import { CustomBottomSheet } from '@/src/components/BottomSheet';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
-import type { GetGroupQuery } from '@/src/graphql/__generated__/graphql';
 import { CustomCalendar } from './CustomCalendar';
 
 type Props = {
   groupId: string;
-  lessons: NonNullable<GetGroupQuery['group']>['lessons'];
+  lessons: components['schemas']['LessonResponse'][];
 };
 
 export const LessonsCalendar = memo(({ groupId, lessons }: Readonly<Props>) => {

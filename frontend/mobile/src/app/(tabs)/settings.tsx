@@ -110,6 +110,15 @@ export default function SettingsScreen() {
           >
             Telegram: @krivolapovdev
           </Text>
+
+          <Text
+            style={{ fontWeight: '700' }}
+            onPress={() =>
+              Linking.openURL('mailto:KrivolapovVladislav1998@gmail.com')
+            }
+          >
+            Email: KrivolapovVladislav1998@gmail.com
+          </Text>
         </View>
       </ConfirmDialog>
     </>

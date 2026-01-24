@@ -1,51 +1,57 @@
-import { useMutation, useQuery } from '@apollo/client/react';
+import { useQueries } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { Divider, List, Text } from 'react-native-paper';
+import { api } from '@/src/api';
 import { LessonsCalendar } from '@/src/components/Calendar';
 import { GroupCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
-import { graphql } from '@/src/graphql/__generated__';
-import { GET_GROUP } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
-const DELETE_GROUP = graphql(`
-    mutation DeleteGroup($id: UUID!) {
-        deleteGroup(id: $id) {
-            id
-        }
-    }
-`);
-
 export default function GroupByIdScreen() {
-  const { groupId: id } = useLocalSearchParams<{ groupId: string }>();
+  const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const theme = useAppTheme();
   const router = useRouter();
   const { t } = useTranslation();
 
-  const { data, loading, error, refetch } = useQuery(GET_GROUP, {
-    variables: { id },
-    fetchPolicy: __DEV__ ? 'cache-first' : 'cache-and-network'
+  const queries = useQueries({
+    queries: [
+      api.queryOptions('get', '/api/v1/groups/{groupId}', {
+        params: {
+          path: { groupId }
+        }
+      }),
+
+      api.queryOptions('get', '/api/v1/groups/{groupId}/students', {
+        params: {
+          path: { groupId }
+        }
+      }),
+
+      api.queryOptions('get', '/api/v1/groups/{groupId}/lessons', {
+        params: {
+          path: { groupId }
+        }
+      })
+    ]
   });
 
-  const [deleteGroup, resultDeleteGroup] = useMutation(DELETE_GROUP, {
-    variables: { id },
+  const group = queries[0]?.data;
+  const groupStudents = queries[1]?.data;
+  const groupLessons = queries[2]?.data;
 
-    update(cache, { data }) {
-      if (!data?.deleteGroup) {
-        return;
-      }
+  const queriesFetching = queries.some(q => q.isFetching);
 
-      cache.evict({ id: cache.identify(data.deleteGroup) });
-      cache.gc();
-    },
+  const { mutate: deleteGroup, isPending: mutationLoading } = api.useMutation(
+    'delete',
+    '/api/v1/groups/{groupId}',
+    {
+      onSuccess: router.back,
 
-    onCompleted: () => router.back(),
-
-    onError: err => Alert.alert(t('error'), err.message)
-  });
+      onError: err => Alert.alert(t('error'), err)
+    }
+  );
 
   const handleDeletePress = () => {
     Alert.alert(t('deleteGroup'), t('deleteGroupConfirmation'), [
@@ -53,12 +59,15 @@ export default function GroupByIdScreen() {
       {
         text: t('delete'),
         style: 'destructive',
-        onPress: () => void deleteGroup()
+        onPress: () =>
+          deleteGroup({
+            params: {
+              path: { groupId }
+            }
+          })
       }
     ]);
   };
-
-  const group = data?.group;
 
   return (
     <>
@@ -68,24 +77,24 @@ export default function GroupByIdScreen() {
           {
             icon: 'arrow-left',
             onPress: () => router.back(),
-            disabled: resultDeleteGroup.loading
+            disabled: mutationLoading
           }
         ]}
         rightActions={[
           {
             icon: 'calendar-plus',
-            onPress: () => router.push(`/groups/${id}/lessons/create`),
-            disabled: loading || resultDeleteGroup.loading
+            onPress: () => router.push(`/groups/${groupId}/lessons/create`),
+            disabled: queriesFetching || mutationLoading
           },
           {
             icon: 'account-edit',
-            onPress: () => router.push(`/(tabs)/groups/${id}/update`),
-            disabled: loading || resultDeleteGroup.loading
+            onPress: () => router.push(`/(tabs)/groups/${groupId}/update`),
+            disabled: queriesFetching || mutationLoading
           },
           {
             icon: 'trash-can',
-            onPress: () => handleDeletePress(),
-            disabled: loading || resultDeleteGroup.loading
+            onPress: handleDeletePress,
+            disabled: queriesFetching || mutationLoading
           }
         ]}
       />
@@ -99,23 +108,20 @@ export default function GroupByIdScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
-            onRefresh={refetch}
+            refreshing={queriesFetching || mutationLoading}
+            onRefresh={() => Promise.all(queries.map(q => q.refetch()))}
           />
         }
       >
-        <OptionalErrorMessage error={error?.message} />
-
-        {group && (
+        {group && groupLessons && groupStudents && (
           <>
+            k
             <GroupCard {...group} />
-
             <LessonsCalendar
-              groupId={id}
-              lessons={group.lessons}
+              groupId={groupId}
+              lessons={groupLessons}
             />
-
-            {group.students.length > 0 && (
+            {groupStudents.length > 0 && (
               <List.Section
                 style={{
                   borderRadius: 16,
@@ -133,7 +139,7 @@ export default function GroupByIdScreen() {
 
                 <Divider />
 
-                {group.students.map(student => (
+                {groupStudents.map(student => (
                   <List.Item
                     key={student.fullName}
                     title={student.fullName}

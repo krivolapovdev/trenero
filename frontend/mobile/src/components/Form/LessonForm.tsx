@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
+import type { components } from '@/src/api/generated/openapi';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { StudentVisitPicker } from '@/src/components/StudentVisitPicker';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
-import type { GetLessonQuery } from '@/src/graphql/__generated__/graphql';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export type LessonFormValues = {
@@ -15,11 +15,17 @@ export type LessonFormValues = {
   students: { studentId: string; present: boolean }[];
 };
 
+type LessonFormInitialData = {
+  lesson?: components['schemas']['LessonResponse'];
+  groupStudents?: components['schemas']['StudentResponse'][];
+  visits?: components['schemas']['VisitResponse'][];
+};
+
 type Props = {
   title: string;
   queryLoading: boolean;
   mutationLoading?: boolean;
-  initialData?: Partial<GetLessonQuery['lesson']> | null;
+  initialData?: LessonFormInitialData | null;
   onSubmit: (values: LessonFormValues) => void;
   onBack: () => void;
 };
@@ -63,14 +69,14 @@ export const LessonForm = ({
 
   useEffect(() => {
     if (initialData) {
-      if (initialData.startDateTime) {
-        setStartDateTime(dayjs(initialData.startDateTime));
+      if (initialData.lesson?.startDateTime) {
+        setStartDateTime(dayjs(initialData.lesson.startDateTime));
       }
 
       if (initialData.visits) {
         setVisitStatus(
           Object.fromEntries(
-            initialData.visits.map(a => [a.student.id, a.present])
+            initialData.visits.map(visit => [visit.studentId, visit.present])
           )
         );
       }
@@ -120,7 +126,7 @@ export const LessonForm = ({
 
         <SurfaceCard>
           <StudentVisitPicker
-            students={initialData?.group?.students ?? []}
+            students={initialData?.groupStudents ?? []}
             visitStatus={visitStatus}
             setVisitStatus={setVisitStatus}
             disabled={isLoading}

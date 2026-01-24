@@ -1,24 +1,13 @@
-import { useMutation, useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
+import { api } from '@/src/api';
+import type { components } from '@/src/api/generated/openapi';
 import {
   PaymentForm,
   type PaymentFormValues
 } from '@/src/components/Form/PaymentForm';
-import { graphql } from '@/src/graphql/__generated__';
-import type { UpdatePaymentInput } from '@/src/graphql/__generated__/graphql';
-import { GET_PAYMENT, GET_STUDENTS } from '@/src/graphql/queries';
-
-const UPDATE_PAYMENT = graphql(`
-    mutation UpdatePayment($id: UUID!, $input: UpdatePaymentInput!) {
-        updatePayment(id: $id, input: $input) {
-            ...PaymentDetailsFields
-        }
-    }
-`);
 
 export default function UpdatePaymentScreen() {
   const router = useRouter();
@@ -28,65 +17,58 @@ export default function UpdatePaymentScreen() {
     paymentId: string;
   }>();
 
-  const { data, loading: queryLoading } = useQuery(GET_PAYMENT, {
-    variables: { id: paymentId },
-    fetchPolicy: 'cache-first'
-  });
-
-  const [updatePayment, { loading: mutationLoading }] = useMutation(
-    UPDATE_PAYMENT,
+  const { data: payment, isFetching: queryFetching } = api.useQuery(
+    'get',
+    `/api/v1/payments/{paymentId}`,
     {
-      refetchQueries: [GET_STUDENTS],
-
-      awaitRefetchQueries: true,
-
-      onCompleted: () => router.back(),
-
-      onError: err => Alert.alert('Error', err.message)
+      params: { path: { paymentId } }
     }
   );
-  const handleSubmit = (values: PaymentFormValues) => {
-    const payment = data?.payment;
 
-    if (!payment || queryLoading || mutationLoading) {
+  const { mutate: updatePayment, isPending: updatePaymentPending } =
+    api.useMutation('patch', `/api/v1/payments/{paymentId}`, {
+      onSuccess: router.back,
+      onError: err => Alert.alert('Error', err)
+    });
+
+  const handleSubmit = (values: PaymentFormValues) => {
+    if (!payment || queryFetching || updatePaymentPending) {
       return;
     }
 
-    const input: UpdatePaymentInput = {};
+    const request: components['schemas']['UpdatePaymentRequest'] = {};
 
     if (values.amount !== payment.amount) {
-      input.amount = values.amount;
+      request.amount = values.amount;
     }
 
-    if (values.lessonsPerPayment !== payment.lessonsPerPayment) {
-      input.lessonsPerPayment = values.lessonsPerPayment;
+    if (values.paidLessons !== payment.paidLessons) {
+      request.paidLessons = values.paidLessons;
     }
 
     if (values.date !== payment.date) {
-      input.date = values.date;
+      request.date = values.date;
     }
 
-    if (R.isEmpty(input)) {
+    if (R.isEmpty(request)) {
       router.back();
       return;
     }
 
-    void updatePayment({
-      variables: {
-        id: paymentId,
-        input
-      }
+    updatePayment({
+      params: { path: { paymentId } },
+      body: request
     });
   };
-
-  const initialData = useMemo(() => data?.payment, [data?.payment]);
 
   return (
     <PaymentForm
       title={t('editPayment')}
-      initialData={initialData}
-      queryLoading={queryLoading}
-      mutationLoading={mutationLoading}
+      initialData={{
+        payment
+      }}
+      queryLoading={queryFetching}
+      mutationLoading={updatePaymentPending}
       onBack={router.back}
       onSubmit={handleSubmit}
     />

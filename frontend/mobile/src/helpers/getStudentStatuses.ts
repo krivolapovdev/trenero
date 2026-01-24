@@ -1,11 +1,12 @@
 import dayjs from 'dayjs';
 import * as R from 'remeda';
-import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
+import type { components } from '@/src/api/generated/openapi';
 import type { StudentStatus } from '@/src/types/student';
 
 export function getStudentStatuses(
-  visits: GetStudentsQuery['students'][number]['visits'] = [],
-  payments: GetStudentsQuery['students'][number]['payments'] = []
+  visits: components['schemas']['VisitResponse'][] = [],
+  payments: components['schemas']['PaymentResponse'][] = [],
+  lessons: components['schemas']['LessonResponse'][] = []
 ): Set<StudentStatus> {
   if (visits.length === 0 && payments.length === 0) {
     return new Set(['noActivity']);
@@ -14,7 +15,10 @@ export function getStudentStatuses(
   const statuses = new Set<StudentStatus>();
 
   const lastVisit = R.firstBy(visits, [
-    a => dayjs(a.lesson.startDateTime).valueOf(),
+    visit =>
+      dayjs(
+        lessons.find(lesson => lesson.id === visit.lessonId)?.startDateTime
+      ).valueOf(),
     'desc'
   ]);
 
@@ -22,7 +26,7 @@ export function getStudentStatuses(
     statuses.add(lastVisit.present ? 'present' : 'missing');
   }
 
-  const totalPaid = R.sumBy(payments, p => p.lessonsPerPayment);
+  const totalPaid = R.sumBy(payments, p => p.paidLessons);
 
   statuses.add(visits.length <= totalPaid ? 'paid' : 'unpaid');
 

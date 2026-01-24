@@ -16,46 +16,54 @@ export default function LoginScreen() {
   const [isTermsVisible, setIsTermsVisible] = useState(false);
 
   return (
-    <SafeAreaView
-      style={[
-        styles.safeArea,
-        { backgroundColor: theme.colors.surfaceVariant }
-      ]}
-    >
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <View style={styles.logoContainer}>
-            <Image
-              style={{ width, height: height * 0.3 }}
-              source={require('@/src/assets/images/tiny-people-carrying-key-to-open-padlock.svg')}
-              contentFit='contain'
-            />
-          </View>
-          <SocialButtonsGroup />
-        </View>
+    <>
+      <SafeAreaView
+        style={[
+          styles.safeArea,
+          { backgroundColor: theme.colors.surfaceVariant }
+        ]}
+      >
+        <View style={styles.container}>
+          <View style={styles.content}>
+            <View style={styles.logoContainer}>
+              <Image
+                style={{ width, height: height * 0.3 }}
+                source={require('@/src/assets/images/tiny-people-carrying-key-to-open-padlock.svg')}
+                contentFit='contain'
+              />
+            </View>
 
-        <View style={styles.bottomContainer}>
-          <Divider
-            style={[styles.divider, { backgroundColor: theme.colors.outline }]}
-          />
-          <Text
-            variant='bodySmall'
-            style={{
-              color: theme.colors.onSurfaceVariant,
-              textAlign: 'center'
-            }}
-          >
-            {t('agreeText')}
-          </Text>
-          <Text
-            variant='bodySmall'
-            onPress={() => setIsTermsVisible(true)}
-            style={{ textAlign: 'center' }}
-          >
-            {t('termsPrivacy')}
-          </Text>
+            <SocialButtonsGroup />
+          </View>
+
+          <View style={styles.bottomContainer}>
+            <Divider
+              style={[
+                styles.divider,
+                { backgroundColor: theme.colors.outline }
+              ]}
+            />
+
+            <Text
+              variant='bodySmall'
+              style={{
+                color: theme.colors.onSurfaceVariant,
+                textAlign: 'center'
+              }}
+            >
+              {t('agreeText')}
+            </Text>
+
+            <Text
+              variant='bodySmall'
+              onPress={() => setIsTermsVisible(true)}
+              style={{ textAlign: 'center' }}
+            >
+              {t('termsPrivacy')}
+            </Text>
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
 
       <CustomBottomSheet
         visible={isTermsVisible}
@@ -63,7 +71,7 @@ export default function LoginScreen() {
       >
         <TermsContent />
       </CustomBottomSheet>
-    </SafeAreaView>
+    </>
   );
 }
 

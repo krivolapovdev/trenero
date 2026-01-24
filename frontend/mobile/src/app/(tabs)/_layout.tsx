@@ -2,23 +2,16 @@ import { CommonActions } from '@react-navigation/native';
 import { Redirect, Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { BottomNavigation, Icon } from 'react-native-paper';
-import { LoadingSpinner } from '@/src/components/LoadingSpinner';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { useInitApp } from '@/src/hooks/useInitApp';
 import { useAuthStore } from '@/src/stores/authStore';
 
 export default function TabsLayout() {
   const user = useAuthStore(state => state.user);
-  const { loading } = useInitApp();
   const theme = useAppTheme();
   const { t } = useTranslation();
 
   if (!user) {
     return <Redirect href='/auth' />;
-  }
-
-  if (loading) {
-    return <LoadingSpinner />;
   }
 
   const TabConfig = [

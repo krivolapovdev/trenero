@@ -1,8 +1,8 @@
 import { useDeferredValue, useMemo } from 'react';
-import type { GetGroupsQuery } from '@/src/graphql/__generated__/graphql';
+import type { components } from '@/src/api/generated/openapi';
 
 export function useFilteredGroups(
-  groups: GetGroupsQuery['groups'],
+  groups: components['schemas']['GroupResponse'][],
   searchQuery: string
 ) {
   const deferredQuery = useDeferredValue(searchQuery).trim().toLowerCase();

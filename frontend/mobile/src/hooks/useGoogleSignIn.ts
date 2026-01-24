@@ -1,11 +1,12 @@
-import { useMutation } from '@apollo/client/react';
 import {
   GoogleSignin,
   isErrorWithCode,
   isSuccessResponse,
   statusCodes
 } from '@react-native-google-signin/google-signin';
-import { graphql } from '@/src/graphql/__generated__';
+import { useTranslation } from 'react-i18next';
+import { Alert } from 'react-native';
+import { api } from '@/src/api';
 import { useAuthStore } from '@/src/stores/authStore';
 
 GoogleSignin.configure({
@@ -13,21 +14,6 @@ GoogleSignin.configure({
   iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
   scopes: ['profile', 'email']
 });
-
-const GOOGLE_LOGIN = graphql(`
-    mutation GoogleLogin($input: SocialLoginInput!) {
-        googleLogin(input: $input) {
-            user {
-                id
-                email
-            }
-            jwtTokens {
-                accessToken
-                refreshToken
-            }
-        }
-    }
-`);
 
 const getGoogleErrorMessage = (error: unknown): string => {
   if (isErrorWithCode(error)) {
@@ -48,49 +34,53 @@ const getGoogleErrorMessage = (error: unknown): string => {
     : 'An unexpected error occurred';
 };
 
-export function useGoogleSignIn(
-  setErrorMessage: (message: string | null) => void
-) {
+export function useGoogleSignIn() {
   const setAuth = useAuthStore(state => state.setAuth);
-  const [googleLoginMutation, { loading }] = useMutation(GOOGLE_LOGIN);
+  const { t } = useTranslation();
+
+  const { mutateAsync, isPending } = api.useMutation(
+    'post',
+    '/api/v1/oauth2/google',
+    {
+      onError: err => Alert.alert(t('error'), err)
+    }
+  );
 
   const signIn = async () => {
-    if (loading) {
-      return;
+    await GoogleSignin.hasPlayServices().catch(error => {
+      throw new Error(getGoogleErrorMessage(error));
+    });
+
+    const response = await GoogleSignin.signIn().catch(error => {
+      throw new Error(getGoogleErrorMessage(error));
+    });
+
+    if (!isSuccessResponse(response)) {
+      throw new Error('Google Sign In failed');
     }
 
-    setErrorMessage(null);
-
-    try {
-      await GoogleSignin.hasPlayServices();
-      const response = await GoogleSignin.signIn();
-
-      if (!isSuccessResponse(response)) {
-        setErrorMessage('Google Sign In failed');
-        return;
-      }
-
-      const { idToken } = response.data;
-      if (!idToken) {
-        setErrorMessage('Failed to retrieve Google ID token');
-        return;
-      }
-
-      const { data } = await googleLoginMutation({
-        variables: { input: { idToken } }
-      });
-
-      const payload = data?.googleLogin;
-      if (!payload) {
-        setErrorMessage('Login failed: no data returned');
-        return;
-      }
-
-      await setAuth(payload);
-    } catch (error) {
-      setErrorMessage(getGoogleErrorMessage(error));
+    const { idToken } = response.data;
+    if (!idToken) {
+      throw new Error('Failed to retrieve Google ID token');
     }
+
+    const data = await mutateAsync({
+      body: {
+        token: idToken
+      }
+    });
+
+    if (!data) {
+      throw new Error('Login failed: no data returned');
+    }
+
+    await setAuth(data);
+
+    return data;
   };
 
-  return { signIn, loading };
+  return {
+    signIn,
+    isPending
+  };
 }

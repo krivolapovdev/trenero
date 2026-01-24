@@ -3,10 +3,10 @@ import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { DataTable, useTheme } from 'react-native-paper';
-import type { GetStudentQuery } from '@/src/graphql/__generated__/graphql';
+import type { components } from '@/src/api/generated/openapi';
 
 type Props = {
-  payments: NonNullable<GetStudentQuery['student']>['payments'];
+  payments: components['schemas']['PaymentResponse'][];
   itemsPerPage?: number;
   onRowPress: (id: string) => void;
 };
@@ -72,9 +72,7 @@ export const StudentPaymentsTable = memo(
                 {dayjs(pay.date).format('DD/MM/YYYY')}
               </DataTable.Cell>
 
-              <DataTable.Cell numeric={true}>
-                {pay.lessonsPerPayment}
-              </DataTable.Cell>
+              <DataTable.Cell numeric={true}>{pay.paidLessons}</DataTable.Cell>
 
               <DataTable.Cell numeric={true}>{pay.amount}</DataTable.Cell>
             </DataTable.Row>

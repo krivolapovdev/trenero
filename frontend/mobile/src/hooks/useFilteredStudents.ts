@@ -1,13 +1,12 @@
 import { useDeferredValue, useMemo } from 'react';
-import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
-import { getStudentStatuses } from '@/src/helpers/getStudentStatuses';
+import type { components } from '@/src/api/generated/openapi';
 import type { StudentStatus } from '@/src/types/student';
 
 export function useFilteredStudents(
-  students: GetStudentsQuery['students'],
+  students: components['schemas']['StudentResponse'][],
   searchQuery: string,
   filterGroup: string | null,
-  filterStatus: StudentStatus | null
+  _filterStatus: StudentStatus | null
 ) {
   const deferredQuery = useDeferredValue(searchQuery).trim().toLowerCase();
 
@@ -21,20 +20,20 @@ export function useFilteredStudents(
           return false;
         }
 
-        if (filterGroup && student.group?.id !== filterGroup) {
+        if (filterGroup && student.groupId !== filterGroup) {
           return false;
         }
 
-        if (filterStatus) {
-          const statuses = getStudentStatuses(student.visits, student.payments);
-
-          if (!statuses.has(filterStatus)) {
-            return false;
-          }
-        }
+        // if (filterStatus) {
+        //   const statuses = getStudentStatuses(student.visits, student.payments);
+        //
+        //   if (!statuses.has(filterStatus)) {
+        //     return false;
+        //   }
+        // }
 
         return true;
       }),
-    [students, deferredQuery, filterGroup, filterStatus]
+    [students, deferredQuery, filterGroup]
   );
 }

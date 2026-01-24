@@ -1,95 +1,118 @@
-import { useMutation, useQuery } from '@apollo/client/react';
+import { useQueries } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
+import { api } from '@/src/api';
+import type { components } from '@/src/api/generated/openapi';
 import {
   GroupForm,
   type GroupFormValues
 } from '@/src/components/Form/GroupForm';
-import { graphql } from '@/src/graphql/__generated__';
-import type { UpdateGroupInput } from '@/src/graphql/__generated__/graphql';
-import { GET_GROUP, GET_GROUPS, GET_STUDENTS } from '@/src/graphql/queries';
-
-const UPDATE_GROUP = graphql(`
-    mutation UpdateGroup($id: UUID!, $input: UpdateGroupInput!) {
-        updateGroup(id: $id, input: $input) {
-            ...GroupDetailsFields
-        }
-    }
-`);
 
 export default function UpdateGroupScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
 
-  const { data, loading: queryLoading } = useQuery(GET_GROUP, {
-    variables: { id: groupId },
-    fetchPolicy: 'cache-first'
+  const queries = useQueries({
+    queries: [
+      api.queryOptions('get', '/api/v1/groups/{groupId}', {
+        params: {
+          path: { groupId }
+        }
+      }),
+
+      api.queryOptions('get', '/api/v1/groups/{groupId}/students', {
+        params: {
+          path: { groupId }
+        }
+      }),
+
+      api.queryOptions('get', '/api/v1/groups/{groupId}/lessons', {
+        params: {
+          path: { groupId }
+        }
+      }),
+
+      api.queryOptions('get', '/api/v1/students')
+    ]
   });
 
-  const [updateGroup, { loading: mutationLoading }] = useMutation(
-    UPDATE_GROUP,
+  const queriesLoading = queries.some(q => q.isFetching);
+
+  const group = queries[0]?.data;
+  const groupStudents = queries[1].data;
+  const groupLessons = queries[2].data;
+  const allStudents = queries[3].data;
+
+  const { mutate: updateGroup, isPending: mutationLoading } = api.useMutation(
+    'patch',
+    '/api/v1/groups/{groupId}',
     {
-      refetchQueries: [GET_STUDENTS, GET_GROUPS],
+      onSuccess: router.back,
 
-      awaitRefetchQueries: true,
-
-      onCompleted: () => router.back(),
-
-      onError: err => Alert.alert('Error', err.message)
+      onError: err => Alert.alert('Error', err)
     }
   );
 
   const handleSubmit = (values: GroupFormValues) => {
-    const group = data?.group;
-
-    if (!group || queryLoading || mutationLoading) {
+    if (
+      !group ||
+      !groupStudents ||
+      !groupLessons ||
+      queriesLoading ||
+      mutationLoading
+    ) {
       return;
     }
 
-    const input: UpdateGroupInput = {};
+    const request: components['schemas']['UpdateGroupRequest'] = {};
 
     if (values.name !== group.name) {
-      input.name = values.name;
+      request.name = values.name;
     }
 
     if (values.defaultPrice !== group.defaultPrice) {
-      input.defaultPrice = values.defaultPrice;
+      request.defaultPrice = values.defaultPrice;
     }
 
     if (values.note !== group.note) {
-      input.note = values.note;
+      request.note = values.note;
     }
 
-    const currentStudentIds = group.students?.map(student => student.id) || [];
+    const currentStudentIds = groupStudents.map(student => student.id) ?? [];
 
     if (!R.isDeepEqual(currentStudentIds, values.studentIds)) {
-      input.studentIds = values.studentIds;
+      request.studentIds = values.studentIds;
     }
 
-    if (R.isEmpty(input)) {
+    if (R.isEmpty(request)) {
       router.back();
       return;
     }
 
-    void updateGroup({
-      variables: {
-        id: groupId,
-        input
-      }
+    updateGroup({
+      params: {
+        path: {
+          groupId
+        }
+      },
+      body: request
     });
   };
 
-  const initialData = useMemo(() => data?.group, [data?.group]);
+  const initialData = {
+    group,
+    groupStudents,
+    allStudents
+  };
 
   return (
     <GroupForm
       title={t('editGroup')}
       initialData={initialData}
-      queryLoading={queryLoading}
+      queryLoading={queriesLoading}
       mutationLoading={mutationLoading}
       onBack={router.back}
       onSubmit={handleSubmit}

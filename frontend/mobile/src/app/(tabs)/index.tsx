@@ -1,29 +1,28 @@
-import { useQuery } from '@apollo/client/react';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import * as R from 'remeda';
+import { api } from '@/src/api';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { RoundedBarChart } from '@/src/components/RoundedBarChart';
-import { GET_STUDENTS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export default function StatisticsScreen() {
-  const theme = useAppTheme();
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const [selectedBar, setSelectedBar] = useState(dayjs());
 
-  const { loading, data, error, refetch } = useQuery(GET_STUDENTS, {
-    fetchPolicy: 'cache-first'
-  });
+  const { data, isPending, error, refetch } = api.useQuery(
+    'get',
+    '/api/v1/payments'
+  );
 
   const monthlyData = useMemo(() => {
     const paymentsByMonth = R.pipe(
-      data?.students ?? [],
-      R.flatMap(s => s.payments),
+      data ?? [],
       R.groupBy(p => dayjs(p.date).format('YYYY-MM')),
       R.mapValues(payments => R.sumBy(payments, p => Number(p.amount)))
     );
@@ -53,12 +52,12 @@ export default function StatisticsScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
+            refreshing={isPending}
             onRefresh={refetch}
           />
         }
       >
-        <OptionalErrorMessage error={error?.message} />
+        <OptionalErrorMessage error={error} />
 
         <View
           style={{
