@@ -1,3 +1,5 @@
 package tech.trenero.backend.common.response;
 
-public record LoginResponse(UserResponse user, JwtTokensResponse jwtTokens) {}
+import jakarta.validation.constraints.NotNull;
+
+public record LoginResponse(@NotNull UserResponse user, @NotNull JwtTokensResponse jwtTokens) {}

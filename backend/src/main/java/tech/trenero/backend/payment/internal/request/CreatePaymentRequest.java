@@ -5,4 +5,4 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record CreatePaymentRequest(
-    UUID studentId, BigDecimal amount, Integer lessonsPerPayment, LocalDate date) {}
+    UUID studentId, BigDecimal amount, Integer paidLessons, LocalDate date) {}

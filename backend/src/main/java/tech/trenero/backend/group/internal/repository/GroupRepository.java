@@ -7,10 +7,10 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.graphql.data.GraphQlRepository;
+import org.springframework.stereotype.Repository;
 import tech.trenero.backend.group.internal.entity.Group;
 
-@GraphQlRepository
+@Repository
 public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull UUID> {
   @Query(
       """

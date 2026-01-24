@@ -7,4 +7,6 @@ import tech.trenero.backend.common.security.JwtUser;
 
 public interface PaymentSpi {
   List<PaymentResponse> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser);
+
+  void deletePaymentById(UUID paymentId, JwtUser jwtUser);
 }

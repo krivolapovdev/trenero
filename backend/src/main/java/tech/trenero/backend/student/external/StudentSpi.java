@@ -9,6 +9,8 @@ import tech.trenero.backend.common.security.JwtUser;
 public interface StudentSpi {
   StudentResponse getStudentById(UUID studentId, JwtUser jwtUser) throws EntityNotFoundException;
 
+  List<StudentResponse> getStudentsByGroupId(UUID groupId, JwtUser jwtUser);
+
   void assignGroupToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser);
 
   void editStudentsGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser);

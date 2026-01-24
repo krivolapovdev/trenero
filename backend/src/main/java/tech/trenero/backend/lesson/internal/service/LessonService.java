@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.response.LessonResponse;
+import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupSpi;
 import tech.trenero.backend.lesson.external.LessonSpi;
@@ -52,6 +53,11 @@ public class LessonService implements LessonSpi {
     return lessonRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
         .map(lessonMapper::toResponse)
         .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<VisitResponse> getVisitsByLessonId(UUID lessonId, JwtUser jwtUser) {
+    return visitSpi.getVisitsByLessonId(lessonId, jwtUser);
   }
 
   @Transactional
@@ -102,8 +108,12 @@ public class LessonService implements LessonSpi {
         .orElseThrow(() -> new EntityNotFoundException("Lesson not found for id=" + lessonId));
   }
 
-  @Transactional
-  public void softDeleteLesson(UUID lessonId, JwtUser jwtUser) {
+  @Override
+  public void deleteLesson(UUID lessonId, JwtUser jwtUser) {
+    softDeleteLesson(lessonId, jwtUser);
+  }
+
+  private void softDeleteLesson(UUID lessonId, JwtUser jwtUser) {
     log.info("Soft deleting lesson: {}", lessonId);
 
     visitSpi.removeVisitsByLessonId(lessonId, jwtUser);

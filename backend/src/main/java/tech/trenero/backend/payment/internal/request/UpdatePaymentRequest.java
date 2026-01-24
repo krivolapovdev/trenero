@@ -5,4 +5,4 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 public record UpdatePaymentRequest(
-    Optional<BigDecimal> amount, Optional<Integer> lessonsPerPayment, Optional<LocalDate> date) {}
+    Optional<BigDecimal> amount, Optional<Integer> paidLessons, Optional<LocalDate> date) {}

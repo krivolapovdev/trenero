@@ -24,7 +24,7 @@ public interface PaymentMapper {
 
     request.amount().ifPresent(payment::setAmount);
 
-    request.lessonsPerPayment().ifPresent(payment::setPaidLessons);
+    request.paidLessons().ifPresent(payment::setPaidLessons);
 
     return payment;
   }

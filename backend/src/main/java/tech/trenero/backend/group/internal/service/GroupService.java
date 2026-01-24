@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.response.GroupResponse;
+import tech.trenero.backend.common.response.LessonResponse;
+import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupSpi;
 import tech.trenero.backend.group.internal.entity.Group;
@@ -17,6 +19,7 @@ import tech.trenero.backend.group.internal.mapper.GroupMapper;
 import tech.trenero.backend.group.internal.repository.GroupRepository;
 import tech.trenero.backend.group.internal.request.CreateGroupRequest;
 import tech.trenero.backend.group.internal.request.UpdateGroupRequest;
+import tech.trenero.backend.lesson.external.LessonSpi;
 import tech.trenero.backend.student.external.StudentSpi;
 
 @Service
@@ -26,6 +29,7 @@ public class GroupService implements GroupSpi {
   private final GroupRepository groupRepository;
   private final GroupMapper groupMapper;
   @Lazy private final StudentSpi studentSpi;
+  @Lazy private final LessonSpi lessonSpi;
 
   @Transactional(readOnly = true)
   public List<GroupResponse> getAllGroups(JwtUser jwtUser) {
@@ -44,6 +48,16 @@ public class GroupService implements GroupSpi {
         .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
   }
 
+  @Transactional(readOnly = true)
+  public List<StudentResponse> getStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
+    return studentSpi.getStudentsByGroupId(groupId, jwtUser);
+  }
+
+  @Transactional(readOnly = true)
+  public List<LessonResponse> getLessonsByGroupId(UUID groupId, JwtUser jwtUser) {
+    return lessonSpi.getLessonsByGroupId(groupId, jwtUser);
+  }
+
   @Transactional
   public GroupResponse createGroup(CreateGroupRequest request, JwtUser jwtUser) {
     log.info("Creating group: name='{}', ownerId={}", request.name(), jwtUser.userId());
@@ -58,6 +72,7 @@ public class GroupService implements GroupSpi {
 
   @Transactional
   public GroupResponse updateGroup(UUID groupId, UpdateGroupRequest request, JwtUser jwtUser) {
+    log.info("Updating group: name='{}', ownerId={}", request.name(), jwtUser.userId());
 
     if (request.studentIds().isPresent()) {
       studentSpi.editStudentsGroup(groupId, request.studentIds().get(), jwtUser);
@@ -85,6 +100,11 @@ public class GroupService implements GroupSpi {
               return saveGroup(group);
             })
         .orElseThrow(() -> new EntityNotFoundException("Group not found: " + id));
+  }
+
+  @Transactional
+  public void deleteGroupLesson(UUID lessonId, JwtUser jwtUser) {
+    lessonSpi.deleteLesson(lessonId, jwtUser);
   }
 
   private Group saveGroup(Group group) {

@@ -9,15 +9,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.trenero.backend.common.response.PaymentResponse;
 import tech.trenero.backend.common.response.StudentResponse;
+import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupSpi;
+import tech.trenero.backend.payment.external.PaymentSpi;
 import tech.trenero.backend.student.external.StudentSpi;
 import tech.trenero.backend.student.internal.entity.Student;
 import tech.trenero.backend.student.internal.mapper.StudentMapper;
 import tech.trenero.backend.student.internal.repository.StudentRepository;
 import tech.trenero.backend.student.internal.request.CreateStudentRequest;
 import tech.trenero.backend.student.internal.request.UpdateStudentRequest;
+import tech.trenero.backend.visit.external.VisitSpi;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,8 @@ public class StudentService implements StudentSpi {
   private final StudentRepository studentRepository;
   private final StudentMapper studentMapper;
   @Lazy private final GroupSpi groupSpi;
+  @Lazy private final PaymentSpi paymentSpi;
+  @Lazy private final VisitSpi visitSpi;
 
   @Transactional(readOnly = true)
   public List<StudentResponse> getAllStudents(JwtUser jwtUser) {
@@ -49,6 +55,25 @@ public class StudentService implements StudentSpi {
   public List<StudentResponse> getStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
     log.info("Getting students by groupId={} for ownerId={}", groupId, jwtUser.userId());
     return studentRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
+        .map(studentMapper::toResponse)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<PaymentResponse> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser) {
+    return paymentSpi.getPaymentsByStudentId(studentId, jwtUser);
+  }
+
+  @Transactional(readOnly = true)
+  public List<VisitResponse> getVisitsByStudentId(UUID studentId, JwtUser jwtUser) {
+    return visitSpi.getVisitsByStudentId(studentId, jwtUser);
+  }
+
+  @Transactional(readOnly = true)
+  public List<StudentResponse> getStudentListByIds(List<UUID> studentIds, JwtUser jwtUser) {
+    log.info("Getting students by ids={} for ownerId={}", studentIds, jwtUser.userId());
+
+    return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
         .map(studentMapper::toResponse)
         .toList();
   }
@@ -96,21 +121,9 @@ public class StudentService implements StudentSpi {
     log.info("Updated {} students with empty groupId", updatedCount);
   }
 
-  @Transactional(readOnly = true)
-  public List<StudentResponse> getStudentListByIds(List<UUID> studentIds, JwtUser jwtUser) {
-    log.info("Getting students by ids={} for ownerId={}", studentIds, jwtUser.userId());
-
-    return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
-        .map(studentMapper::toResponse)
-        .toList();
-  }
-
   @Transactional
   public StudentResponse updateStudent(
       UUID studentId, UpdateStudentRequest request, JwtUser jwtUser) {
-    log.info(
-        "Updating student ID: {} for user: {}. Input: {}", studentId, jwtUser.userId(), request);
-
     return studentRepository
         .findByIdAndOwnerId(studentId, jwtUser.userId())
         .map(student -> studentMapper.updateStudent(student, request))
@@ -131,6 +144,11 @@ public class StudentService implements StudentSpi {
               return saveStudent(student);
             })
         .orElseThrow(() -> new EntityNotFoundException("Student not found with id=" + studentId));
+  }
+
+  @Transactional
+  public void deleteStudentPayment(UUID paymentId, JwtUser jwtUser) {
+    paymentSpi.deletePaymentById(paymentId, jwtUser);
   }
 
   private Student saveStudent(Student student) {

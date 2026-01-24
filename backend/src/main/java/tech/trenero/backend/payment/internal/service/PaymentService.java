@@ -30,7 +30,6 @@ public class PaymentService implements PaymentSpi {
   @Transactional(readOnly = true)
   public List<PaymentResponse> getAllPayments(JwtUser jwtUser) {
     log.info("Get payments for user {}", jwtUser.userId());
-
     return paymentRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(paymentMapper::toResponse)
         .toList();
@@ -39,7 +38,6 @@ public class PaymentService implements PaymentSpi {
   @Transactional(readOnly = true)
   public PaymentResponse getPaymentById(UUID id, JwtUser jwtUser) {
     log.info("Get status of payment with id {}", id);
-
     return paymentRepository
         .findByIdAndOwnerId(id, jwtUser.userId())
         .map(paymentMapper::toResponse)
@@ -49,7 +47,6 @@ public class PaymentService implements PaymentSpi {
   @Transactional(readOnly = true)
   public List<PaymentResponse> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser) {
     log.info("Getting payments by studentId={}", studentId);
-
     return paymentRepository.findAllByStudentId(studentId, jwtUser.userId()).stream()
         .map(paymentMapper::toResponse)
         .toList();
@@ -69,34 +66,40 @@ public class PaymentService implements PaymentSpi {
   }
 
   @Transactional
-  public PaymentResponse updatePayment(UUID id, UpdatePaymentRequest request, JwtUser jwtUser) {
+  public PaymentResponse updatePayment(
+      UUID paymentId, UpdatePaymentRequest request, JwtUser jwtUser) {
     log.info("Edit payment {}", request);
-
     return paymentRepository
-        .findByIdAndOwnerId(id, jwtUser.userId())
+        .findByIdAndOwnerId(paymentId, jwtUser.userId())
         .map(pay -> paymentMapper.updatePayment(pay, request))
         .map(this::savePayment)
         .map(paymentMapper::toResponse)
-        .orElseThrow(() -> new EntityNotFoundException("Payment with id=" + id));
+        .orElseThrow(
+            () -> new EntityNotFoundException("Payment not found with paymentId=" + paymentId));
   }
 
+  @Override
   @Transactional
-  public void softDeletePayment(UUID id, JwtUser jwtUser) {
-    log.info("Deleting payment: {}", id);
+  public void deletePaymentById(UUID paymentId, JwtUser jwtUser) {
+    softDeletePayment(paymentId, jwtUser);
+  }
+
+  private void softDeletePayment(UUID paymentId, JwtUser jwtUser) {
+    log.info("Deleting payment: {}", paymentId);
 
     paymentRepository
-        .findByIdAndOwnerId(id, jwtUser.userId())
+        .findByIdAndOwnerId(paymentId, jwtUser.userId())
         .map(
             payment -> {
               payment.setDeletedAt(OffsetDateTime.now());
               return savePayment(payment);
             })
-        .orElseThrow(() -> new EntityNotFoundException("Payment with id=" + id));
+        .orElseThrow(
+            () -> new EntityNotFoundException("Payment not found with paymentId=" + paymentId));
   }
 
   private Payment savePayment(Payment payment) {
     log.info("Save payment: {}", payment);
-
     return paymentRepository.saveAndFlush(payment);
   }
 }

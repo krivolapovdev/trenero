@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import tech.trenero.backend.common.response.LessonResponse;
+import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.lesson.internal.request.CreateLessonRequest;
 import tech.trenero.backend.lesson.internal.request.UpdateLessonRequest;
@@ -36,10 +37,18 @@ public class LessonController {
     return lessonService.getAllLessons(jwtUser);
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/{lessonId}")
   @PreAuthorize("isAuthenticated()")
-  public LessonResponse getLesson(@PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return lessonService.getLessonById(id, jwtUser);
+  public LessonResponse getLesson(
+      @PathVariable("lessonId") UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return lessonService.getLessonById(lessonId, jwtUser);
+  }
+
+  @GetMapping("/{lessonId}/visits")
+  @PreAuthorize("isAuthenticated()")
+  public List<VisitResponse> getLessonVisits(
+      @PathVariable("lessonId") UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return lessonService.getVisitsByLessonId(lessonId, jwtUser);
   }
 
   @PostMapping
@@ -50,19 +59,20 @@ public class LessonController {
     return lessonService.createLesson(request, jwtUser);
   }
 
-  @PatchMapping("/{id}")
+  @PatchMapping("/{lessonId}")
   @PreAuthorize("isAuthenticated()")
   public LessonResponse updateLesson(
-      @PathVariable UUID id,
+      @PathVariable("lessonId") UUID lessonId,
       @RequestBody @Valid UpdateLessonRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return lessonService.updateLesson(id, request, jwtUser);
+    return lessonService.updateLesson(lessonId, request, jwtUser);
   }
 
-  @DeleteMapping("/{id}")
+  @DeleteMapping("/{lessonId}")
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteLesson(@PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    lessonService.softDeleteLesson(id, jwtUser);
+  public void deleteLesson(
+      @PathVariable("lessonId") UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
+    lessonService.deleteLesson(lessonId, jwtUser);
   }
 }

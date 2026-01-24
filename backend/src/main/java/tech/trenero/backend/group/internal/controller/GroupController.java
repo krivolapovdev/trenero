@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import tech.trenero.backend.common.response.GroupResponse;
+import tech.trenero.backend.common.response.LessonResponse;
+import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.internal.request.CreateGroupRequest;
 import tech.trenero.backend.group.internal.request.UpdateGroupRequest;
@@ -36,10 +38,25 @@ public class GroupController {
     return groupService.getAllGroups(jwtUser);
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/{groupId}")
   @PreAuthorize("isAuthenticated()")
-  public GroupResponse getGroup(@PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.getGroupById(id, jwtUser);
+  public GroupResponse getGroup(
+      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getGroupById(groupId, jwtUser);
+  }
+
+  @GetMapping("/{groupId}/students")
+  @PreAuthorize("isAuthenticated()")
+  public List<StudentResponse> getGroupStudents(
+      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getStudentsByGroupId(groupId, jwtUser);
+  }
+
+  @GetMapping("/{groupId}/lessons")
+  @PreAuthorize("isAuthenticated()")
+  public List<LessonResponse> getGroupLessons(
+      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getLessonsByGroupId(groupId, jwtUser);
   }
 
   @PostMapping
@@ -50,19 +67,20 @@ public class GroupController {
     return groupService.createGroup(request, jwtUser);
   }
 
-  @PatchMapping("/{id}")
+  @PatchMapping("/{groupId}")
   @PreAuthorize("isAuthenticated()")
   public GroupResponse updateGroup(
-      @PathVariable UUID id,
+      @PathVariable("groupId") UUID groupId,
       @RequestBody @Valid UpdateGroupRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.updateGroup(id, request, jwtUser);
+    return groupService.updateGroup(groupId, request, jwtUser);
   }
 
-  @DeleteMapping("/{id}")
+  @DeleteMapping("/{groupId}")
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteGroup(@PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    groupService.softDeleteGroup(id, jwtUser);
+  public void deleteGroup(
+      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+    groupService.softDeleteGroup(groupId, jwtUser);
   }
 }

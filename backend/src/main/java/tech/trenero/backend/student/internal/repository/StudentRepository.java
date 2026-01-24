@@ -8,11 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.graphql.data.GraphQlRepository;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.student.internal.entity.Student;
 
-@GraphQlRepository
+@Repository
 public interface StudentRepository extends JpaRepository<@NonNull Student, @NonNull UUID> {
   @Query(
       """

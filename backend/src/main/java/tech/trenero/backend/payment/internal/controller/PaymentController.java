@@ -36,11 +36,11 @@ public class PaymentController {
     return paymentService.getAllPayments(jwtUser);
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/{paymentId}")
   @PreAuthorize("isAuthenticated()")
   public PaymentResponse getPayment(
-      @PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return paymentService.getPaymentById(id, jwtUser);
+      @PathVariable("paymentId") UUID paymentId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return paymentService.getPaymentById(paymentId, jwtUser);
   }
 
   @PostMapping
@@ -51,19 +51,20 @@ public class PaymentController {
     return paymentService.createPayment(request, jwtUser);
   }
 
-  @PatchMapping("/{id}")
+  @PatchMapping("/{paymentId}")
   @PreAuthorize("isAuthenticated()")
   public PaymentResponse updatePayment(
-      @PathVariable UUID id,
+      @PathVariable("paymentId") UUID paymentId,
       @RequestBody @Valid UpdatePaymentRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return paymentService.updatePayment(id, request, jwtUser);
+    return paymentService.updatePayment(paymentId, request, jwtUser);
   }
 
-  @DeleteMapping("/{id}")
+  @DeleteMapping("/{paymentId}")
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deletePayment(@PathVariable UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    paymentService.softDeletePayment(id, jwtUser);
+  public void deletePayment(
+      @PathVariable UUID paymentId, @AuthenticationPrincipal JwtUser jwtUser) {
+    paymentService.deletePaymentById(paymentId, jwtUser);
   }
 }
