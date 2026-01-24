@@ -16,7 +16,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 import tech.trenero.backend.common.enums.OAuth2Provider;
 
 @Entity
@@ -32,7 +34,12 @@ public class OAuth2User {
   private UUID id;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "provider", nullable = false, updatable = false)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+  @Column(
+      name = "provider",
+      columnDefinition = "oauth2_provider",
+      nullable = false,
+      updatable = false)
   @NonNull
   private OAuth2Provider provider;
 
