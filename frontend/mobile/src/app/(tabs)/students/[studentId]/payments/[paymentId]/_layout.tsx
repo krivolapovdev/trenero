@@ -13,7 +13,7 @@ export default function PaymentByIdLayout() {
       />
 
       <Stack.Screen
-        name='edit'
+        name='update'
         options={{ headerShown: false }}
       />
     </Stack>
