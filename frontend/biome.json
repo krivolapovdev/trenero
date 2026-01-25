@@ -7,7 +7,6 @@
     "ignoreUnknown": true,
     "includes": [
       "./**",
-      "!!**/__generated__",
       "!!**/.expo",
       "!!**/android",
       "!!**/ios"
