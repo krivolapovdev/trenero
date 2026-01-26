@@ -10,29 +10,26 @@ import { CustomCalendar } from './CustomCalendar';
 
 type Props = {
   groupId: string;
-  visits: components['schemas']['VisitResponse'][];
-  lessons: components['schemas']['LessonResponse'][];
+  visitsWithLesson: components['schemas']['VisitWithLessonResponse'][];
 };
 
 export const VisitCalendar = memo(
-  ({ groupId, visits, lessons }: Readonly<Props>) => {
+  ({ groupId, visitsWithLesson }: Readonly<Props>) => {
     const router = useRouter();
 
     const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
 
     const items = useMemo(
       () =>
-        [...visits]
+        [...visitsWithLesson]
           .map(visit => ({
-            date: dayjs(
-              lessons.find(l => l.id === visit.lessonId)?.startDateTime
-            ),
-            color: visit.present ? 'green' : '#fc975c',
-            isPresent: visit.present,
-            lessonId: visit.lessonId
+            date: dayjs(visit.lesson.startDateTime),
+            color: visit.visit.present ? 'green' : '#fc975c',
+            isPresent: visit.visit.present,
+            lessonId: visit.visit.lessonId
           }))
           .sort((a, b) => a.date.diff(b.date)),
-      [visits, lessons.find]
+      [visitsWithLesson]
     );
 
     return (

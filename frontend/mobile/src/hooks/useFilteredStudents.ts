@@ -3,10 +3,10 @@ import type { components } from '@/src/api/generated/openapi';
 import type { StudentStatus } from '@/src/types/student';
 
 export function useFilteredStudents(
-  students: components['schemas']['StudentResponse'][],
+  students: components['schemas']['StudentOverviewResponse'][],
   searchQuery: string,
   filterGroup: string | null,
-  _filterStatus: StudentStatus | null
+  filterStatus: StudentStatus | null
 ) {
   const deferredQuery = useDeferredValue(searchQuery).trim().toLowerCase();
 
@@ -24,16 +24,14 @@ export function useFilteredStudents(
           return false;
         }
 
-        // if (filterStatus) {
-        //   const statuses = getStudentStatuses(student.visits, student.payments);
-        //
-        //   if (!statuses.has(filterStatus)) {
-        //     return false;
-        //   }
-        // }
+        if (filterStatus) {
+          if (!student.statuses?.includes(filterStatus)) {
+            return false;
+          }
+        }
 
         return true;
       }),
-    [students, deferredQuery, filterGroup]
+    [students, deferredQuery, filterGroup, filterStatus]
   );
 }

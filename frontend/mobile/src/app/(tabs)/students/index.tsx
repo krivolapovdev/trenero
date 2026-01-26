@@ -1,6 +1,5 @@
 import { LegendList, type LegendListRef } from '@legendapp/list';
 import { useScrollToTop } from '@react-navigation/native';
-import { useQueries } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,38 +13,34 @@ import { useFilteredStudents } from '@/src/hooks/useFilteredStudents';
 import type { StudentStatus } from '@/src/types/student';
 
 export default function StudentsScreen() {
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [filterKey, setFilterKey] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterKey, setFilterKey] = useState(0);
   const [filterGroup, setFilterGroup] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<StudentStatus | null>(null);
 
   const theme = useAppTheme();
   const router = useRouter();
   const { t } = useTranslation();
+
   const listRef = useRef<LegendListRef | null>(null);
   useScrollToTop(listRef);
 
-  const queries = useQueries({
-    queries: [
-      api.queryOptions('get', '/api/v1/students'),
-
-      api.queryOptions('get', '/api/v1/groups')
-    ]
-  });
-
-  const students = queries[0].data;
-  const groups = queries[1].data;
+  const {
+    data: studentsWrapper,
+    isPending: studentPending,
+    refetch
+  } = api.useQuery('get', '/api/v1/students/overview');
 
   const filteredStudents = useFilteredStudents(
-    students ?? [],
+    studentsWrapper?.students ?? [],
     searchQuery,
     filterGroup,
     filterStatus
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: components['schemas']['StudentResponse'] }) => (
-      <StudentCard {...item} />
+    (props: { item: components['schemas']['StudentOverviewResponse'] }) => (
+      <StudentCard student={props.item} />
     ),
     []
   );
@@ -56,8 +51,10 @@ export default function StudentsScreen() {
     setFilterStatus(null);
     setFilterKey(key => key + 1);
 
-    void Promise.all(queries.map(q => q.refetch()));
-  }, [queries.map]);
+    void refetch();
+  }, [refetch]);
+
+  console.log(studentsWrapper?.students[0].statuses);
 
   return (
     <>
@@ -79,7 +76,7 @@ export default function StudentsScreen() {
         keyExtractor={item => item.id}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
-        refreshing={queries.some(q => q.isFetching)}
+        refreshing={studentPending}
         onRefresh={fetchStudents}
         keyboardShouldPersistTaps='handled'
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
@@ -97,7 +94,7 @@ export default function StudentsScreen() {
             setFilterGroup={setFilterGroup}
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
-            groups={groups ?? []}
+            groups={studentsWrapper?.allGroups ?? []}
           />
         }
       />

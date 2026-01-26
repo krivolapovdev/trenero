@@ -1,4 +1,3 @@
-import { useQueries } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
@@ -15,36 +14,17 @@ export default function UpdateGroupScreen() {
   const { t } = useTranslation();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
 
-  const queries = useQueries({
-    queries: [
-      api.queryOptions('get', '/api/v1/groups/{groupId}', {
-        params: {
-          path: { groupId }
+  const { data: group, isPending: groupPending } = api.useQuery(
+    'get',
+    '/api/v1/groups/{groupId}/update',
+    {
+      params: {
+        path: {
+          groupId
         }
-      }),
-
-      api.queryOptions('get', '/api/v1/groups/{groupId}/students', {
-        params: {
-          path: { groupId }
-        }
-      }),
-
-      api.queryOptions('get', '/api/v1/groups/{groupId}/lessons', {
-        params: {
-          path: { groupId }
-        }
-      }),
-
-      api.queryOptions('get', '/api/v1/students')
-    ]
-  });
-
-  const queriesLoading = queries.some(q => q.isFetching);
-
-  const group = queries[0]?.data;
-  const groupStudents = queries[1].data;
-  const groupLessons = queries[2].data;
-  const allStudents = queries[3].data;
+      }
+    }
+  );
 
   const { mutate: updateGroup, isPending: mutationLoading } = api.useMutation(
     'patch',
@@ -57,13 +37,7 @@ export default function UpdateGroupScreen() {
   );
 
   const handleSubmit = (values: GroupFormValues) => {
-    if (
-      !group ||
-      !groupStudents ||
-      !groupLessons ||
-      queriesLoading ||
-      mutationLoading
-    ) {
+    if (!group || groupPending || mutationLoading) {
       return;
     }
 
@@ -81,7 +55,7 @@ export default function UpdateGroupScreen() {
       request.note = values.note;
     }
 
-    const currentStudentIds = groupStudents.map(student => student.id) ?? [];
+    const currentStudentIds = group.groupStudents.map(student => student.id);
 
     if (!R.isDeepEqual(currentStudentIds, values.studentIds)) {
       request.studentIds = values.studentIds;
@@ -102,17 +76,13 @@ export default function UpdateGroupScreen() {
     });
   };
 
-  const initialData = {
-    group,
-    groupStudents,
-    allStudents
-  };
-
   return (
     <GroupForm
       title={t('editGroup')}
-      initialData={initialData}
-      queryLoading={queriesLoading}
+      initialData={{
+        group
+      }}
+      queryLoading={groupPending}
       mutationLoading={mutationLoading}
       onBack={router.back}
       onSubmit={handleSubmit}

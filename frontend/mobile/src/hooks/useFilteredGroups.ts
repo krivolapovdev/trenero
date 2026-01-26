@@ -2,7 +2,7 @@ import { useDeferredValue, useMemo } from 'react';
 import type { components } from '@/src/api/generated/openapi';
 
 export function useFilteredGroups(
-  groups: components['schemas']['GroupResponse'][],
+  groups: components['schemas']['GroupOverviewResponse'][],
   searchQuery: string
 ) {
   const deferredQuery = useDeferredValue(searchQuery).trim().toLowerCase();

@@ -16,9 +16,7 @@ export type LessonFormValues = {
 };
 
 type LessonFormInitialData = {
-  lesson?: components['schemas']['LessonResponse'];
-  groupStudents?: components['schemas']['StudentResponse'][];
-  visits?: components['schemas']['VisitResponse'][];
+  lesson?: Partial<components['schemas']['LessonUpdateDetailsResponse']>;
 };
 
 type Props = {
@@ -68,15 +66,18 @@ export const LessonForm = ({
   };
 
   useEffect(() => {
-    if (initialData) {
-      if (initialData.lesson?.startDateTime) {
+    if (initialData?.lesson) {
+      if (initialData.lesson.startDateTime) {
         setStartDateTime(dayjs(initialData.lesson.startDateTime));
       }
 
-      if (initialData.visits) {
+      if (initialData.lesson.studentVisits) {
         setVisitStatus(
           Object.fromEntries(
-            initialData.visits.map(visit => [visit.studentId, visit.present])
+            initialData.lesson.studentVisits.map(visit => [
+              visit.studentId,
+              visit.present
+            ])
           )
         );
       }
@@ -126,7 +127,7 @@ export const LessonForm = ({
 
         <SurfaceCard>
           <StudentVisitPicker
-            students={initialData?.groupStudents ?? []}
+            students={initialData?.lesson?.groupStudents ?? []}
             visitStatus={visitStatus}
             setVisitStatus={setVisitStatus}
             disabled={isLoading}

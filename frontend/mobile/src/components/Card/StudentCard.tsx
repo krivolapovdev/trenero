@@ -1,93 +1,87 @@
 import dayjs from 'dayjs';
+import { nanoid } from 'nanoid/non-secure';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { components } from '@/src/api/generated/openapi';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { EntityCard } from './EntityCard';
 
-type Props = components['schemas']['StudentResponse'];
+type Props = {
+  student: components['schemas']['StudentOverviewResponse'];
+};
 
-export const StudentCard = ({
-  id,
-  fullName,
-  // group,
-  phone,
-  birthdate,
-  note
-  // payments,
-  // visits
-}: Readonly<Props>) => {
+export const StudentCard = ({ student }: Readonly<Props>) => {
   const { t } = useTranslation();
-  const _theme = useAppTheme();
-  // const statuses = getStudentStatuses(visits, payments);
-  //
-  // const badges = useMemo(() => {
-  //   const result = [];
-  //
-  //   if (statuses.has('noActivity')) {
-  //     result.push({
-  //       id: nanoid(),
-  //       label: t('studentStatus.noActivity'),
-  //       backgroundColor: theme.colors.primary,
-  //       textColor: theme.colors.onPrimary
-  //     });
-  //     return result;
-  //   }
-  //
-  //   if (statuses.has('present')) {
-  //     result.push({
-  //       id: nanoid(),
-  //       label: t('studentStatus.present'),
-  //       backgroundColor: theme.colors.secondaryContainer,
-  //       textColor: theme.colors.onSecondaryContainer
-  //     });
-  //   }
-  //
-  //   if (statuses.has('missing')) {
-  //     result.push({
-  //       id: nanoid(),
-  //       label: t('studentStatus.missing'),
-  //       backgroundColor: theme.colors.errorContainer,
-  //       textColor: theme.colors.onErrorContainer
-  //     });
-  //   }
-  //
-  //   if (statuses.has('paid')) {
-  //     result.push({
-  //       id: nanoid(),
-  //       label: t('studentStatus.paid'),
-  //       backgroundColor: theme.colors.secondaryContainer,
-  //       textColor: theme.colors.onSecondaryContainer
-  //     });
-  //   }
-  //
-  //   if (statuses.has('unpaid')) {
-  //     result.push({
-  //       id: nanoid(),
-  //       label: t('studentStatus.unpaid'),
-  //       backgroundColor: theme.colors.tertiary,
-  //       textColor: theme.colors.onTertiary
-  //     });
-  //   }
-  //
-  //   return result;
-  // }, [statuses, theme, t]);
+  const theme = useAppTheme();
+
+  const badges = useMemo(() => {
+    const result = [];
+
+    if (student.statuses?.includes('INACTIVE')) {
+      result.push({
+        id: nanoid(),
+        label: t('studentStatus.inactive'),
+        backgroundColor: theme.colors.primary,
+        textColor: theme.colors.onPrimary
+      });
+      return result;
+    }
+
+    if (student?.statuses?.includes('PRESENT')) {
+      result.push({
+        id: nanoid(),
+        label: t('studentStatus.present'),
+        backgroundColor: theme.colors.secondaryContainer,
+        textColor: theme.colors.onSecondaryContainer
+      });
+    }
+
+    if (student.statuses?.includes('MISSING')) {
+      result.push({
+        id: nanoid(),
+        label: t('studentStatus.missing'),
+        backgroundColor: theme.colors.errorContainer,
+        textColor: theme.colors.onErrorContainer
+      });
+    }
+
+    if (student.statuses?.includes('PAID')) {
+      result.push({
+        id: nanoid(),
+        label: t('studentStatus.paid'),
+        backgroundColor: theme.colors.secondaryContainer,
+        textColor: theme.colors.onSecondaryContainer
+      });
+    }
+
+    if (student.statuses?.includes('UNPAID')) {
+      result.push({
+        id: nanoid(),
+        label: t('studentStatus.unpaid'),
+        backgroundColor: theme.colors.tertiary,
+        textColor: theme.colors.onTertiary
+      });
+    }
+
+    return result;
+  }, [student.statuses, theme, t]);
 
   const subtitle = [
-    // group && `${t('groupLabel')}: ${group?.name ?? t('unassigned')}`,
-    phone && `${t('phoneLabel')}: ${phone}`,
-    birthdate &&
-      `${t('birthdateLabel')}: ${dayjs(birthdate).format('DD/MM/YYYY')}`,
-    note && `${t('noteLabel')}: ${note}`
+    student.studentGroup && `${t('group')}: ${student.studentGroup.name}`,
+    student.phone && `${t('phone')}: ${student.phone}`,
+    student.birthdate &&
+      `${t('birthdate')}: ${dayjs(student.birthdate).format('DD/MM/YYYY')}`,
+    student.note && `${t('note')}: ${student.note}`
   ]
     .filter(Boolean)
     .join('\n');
 
   return (
     <EntityCard
-      title={fullName}
+      title={student.fullName}
       subtitle={subtitle}
-      href={`/(tabs)/students/${id}`}
-      // badges={badges}
+      href={`/(tabs)/students/${student.id}`}
+      badges={badges}
     />
   );
 };

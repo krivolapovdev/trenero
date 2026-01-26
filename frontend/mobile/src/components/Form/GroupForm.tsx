@@ -18,9 +18,7 @@ export type GroupFormValues = {
 };
 
 type GroupFormInitialData = {
-  group?: components['schemas']['GroupResponse'];
-  groupStudents?: components['schemas']['StudentResponse'][];
-  allStudents?: components['schemas']['StudentResponse'][];
+  group?: components['schemas']['GroupUpdateDetailsResponse'];
 };
 
 type Props = {
@@ -51,13 +49,15 @@ export const GroupForm = ({
   const isLoading = queryLoading || mutationLoading;
 
   const studentItems: ListItem[] = useMemo(() => {
-    const list = initialData?.allStudents ?? [];
-    const currentStudentIds = new Set(initialData?.allStudents?.map(s => s.id));
+    const list = initialData?.group?.allStudents ?? [];
+    const currentStudentIds = new Set(
+      initialData?.group?.allStudents?.map(s => s.id)
+    );
 
     return list
       .filter(s => !s.groupId || currentStudentIds.has(s.id))
       .map(s => ({ _id: s.id, value: s.fullName }));
-  }, [initialData?.allStudents]);
+  }, [initialData?.group]);
 
   const handleSubmit = () => {
     const trimmedName = name.trim();
@@ -82,8 +82,10 @@ export const GroupForm = ({
       setDefaultPrice(initialData.group?.defaultPrice?.toString() ?? '');
       setNote(initialData.group?.note ?? '');
       setSelectedStudents(
-        initialData.allStudents?.map(s => ({ _id: s.id, value: s.fullName })) ??
-          []
+        initialData.group?.allStudents?.map(s => ({
+          _id: s.id,
+          value: s.fullName
+        })) ?? []
       );
     }
   }, [initialData]);

@@ -1,4 +1,3 @@
-import { useQueries } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,28 +18,17 @@ export default function StudentByIdScreen() {
 
   const [paymentIdSheet, setPaymentIdSheet] = useState<string | null>(null);
 
-  const queries = useQueries({
-    queries: [
-      api.queryOptions('get', `/api/v1/students/{studentId}`, {
-        params: { path: { studentId } }
-      }),
-
-      api.queryOptions('get', `/api/v1/students/{studentId}/payments`, {
-        params: { path: { studentId } }
-      }),
-
-      api.queryOptions('get', `/api/v1/students/{studentId}/visits`, {
-        params: { path: { studentId } }
-      }),
-
-      api.queryOptions('get', `/api/v1/lessons`)
-    ]
+  const {
+    data: student,
+    isPending: studentPending,
+    refetch
+  } = api.useQuery('get', '/api/v1/students/{studentId}/details', {
+    params: {
+      path: {
+        studentId
+      }
+    }
   });
-
-  const student = queries[0].data;
-  const studentPayments = queries[1].data ?? [];
-  const studentVisits = queries[2].data;
-  const allLessons = queries[3].data;
 
   const { mutate: deleteStudent, isPending: deleteStudentPending } =
     api.useMutation('delete', `/api/v1/students/{studentId}`, {
@@ -62,8 +50,6 @@ export default function StudentByIdScreen() {
     ]);
   };
 
-  const isLoading = queries.some(q => q.isFetching) || deleteStudentPending;
-
   return (
     <>
       <CustomAppbar
@@ -81,17 +67,17 @@ export default function StudentByIdScreen() {
             icon: 'account-cash',
             onPress: () =>
               router.push(`/(tabs)/students/${studentId}/payments/create`),
-            disabled: isLoading
+            disabled: studentPending
           },
           {
             icon: 'account-edit',
             onPress: () => router.push(`/(tabs)/students/${studentId}/update`),
-            disabled: isLoading
+            disabled: studentPending
           },
           {
             icon: 'trash-can',
             onPress: () => handleDeletePress(),
-            disabled: isLoading
+            disabled: studentPending
           }
         ]}
       />
@@ -105,26 +91,25 @@ export default function StudentByIdScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={isLoading}
-            onRefresh={() => Promise.all(queries.map(q => q.refetch()))}
+            refreshing={studentPending}
+            onRefresh={refetch}
           />
         }
         keyboardShouldPersistTaps='handled'
       >
-        {student && studentPayments && studentVisits && allLessons && (
+        {student && (
           <>
-            <StudentCard {...student} />
+            <StudentCard student={student} />
 
             <StudentPaymentsTable
-              payments={studentPayments}
+              payments={student?.studentPayments ?? []}
               onRowPress={setPaymentIdSheet}
             />
 
             {student.groupId && (
               <VisitCalendar
                 groupId={student.groupId}
-                visits={studentVisits}
-                lessons={allLessons}
+                visitsWithLesson={student?.studentVisits ?? []}
               />
             )}
           </>

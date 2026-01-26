@@ -1,4 +1,3 @@
-import { useQueries } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
@@ -15,33 +14,17 @@ export default function GroupByIdScreen() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  const queries = useQueries({
-    queries: [
-      api.queryOptions('get', '/api/v1/groups/{groupId}', {
-        params: {
-          path: { groupId }
-        }
-      }),
-
-      api.queryOptions('get', '/api/v1/groups/{groupId}/students', {
-        params: {
-          path: { groupId }
-        }
-      }),
-
-      api.queryOptions('get', '/api/v1/groups/{groupId}/lessons', {
-        params: {
-          path: { groupId }
-        }
-      })
-    ]
+  const {
+    data: group,
+    isPending: groupPending,
+    refetch
+  } = api.useQuery('get', '/api/v1/groups/{groupId}/details', {
+    params: {
+      path: {
+        groupId
+      }
+    }
   });
-
-  const group = queries[0]?.data;
-  const groupStudents = queries[1]?.data;
-  const groupLessons = queries[2]?.data;
-
-  const queriesFetching = queries.some(q => q.isFetching);
 
   const { mutate: deleteGroup, isPending: mutationLoading } = api.useMutation(
     'delete',
@@ -84,17 +67,17 @@ export default function GroupByIdScreen() {
           {
             icon: 'calendar-plus',
             onPress: () => router.push(`/groups/${groupId}/lessons/create`),
-            disabled: queriesFetching || mutationLoading
+            disabled: groupPending || mutationLoading
           },
           {
             icon: 'account-edit',
             onPress: () => router.push(`/(tabs)/groups/${groupId}/update`),
-            disabled: queriesFetching || mutationLoading
+            disabled: groupPending || mutationLoading
           },
           {
             icon: 'trash-can',
             onPress: handleDeletePress,
-            disabled: queriesFetching || mutationLoading
+            disabled: groupPending || mutationLoading
           }
         ]}
       />
@@ -108,20 +91,24 @@ export default function GroupByIdScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={queriesFetching || mutationLoading}
-            onRefresh={() => Promise.all(queries.map(q => q.refetch()))}
+            refreshing={groupPending || mutationLoading}
+            onRefresh={refetch}
           />
         }
       >
-        {group && groupLessons && groupStudents && (
+        {group && (
           <>
-            k
-            <GroupCard {...group} />
+            <GroupCard
+              {...group}
+              studentsCount={group.groupStudents.length}
+            />
+
             <LessonsCalendar
               groupId={groupId}
-              lessons={groupLessons}
+              lessons={group.groupLessons}
             />
-            {groupStudents.length > 0 && (
+
+            {group.groupStudents.length > 0 && (
               <List.Section
                 style={{
                   borderRadius: 16,
@@ -139,7 +126,7 @@ export default function GroupByIdScreen() {
 
                 <Divider />
 
-                {groupStudents.map(student => (
+                {group.groupStudents.map(student => (
                   <List.Item
                     key={student.fullName}
                     title={student.fullName}

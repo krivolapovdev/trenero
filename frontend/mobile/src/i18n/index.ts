@@ -36,10 +36,8 @@ const resources = {
       deleteStudent: 'Delete student',
       deleteStudentConfirmation:
         'Are you sure you want to delete this student?',
-      groupLabel: 'Group',
-      phoneLabel: 'Phone',
-      birthdateLabel: 'Birthdate',
-      noteLabel: 'Note',
+      phone: 'Phone',
+      birthdate: 'Birthdate',
       termsTitle: 'Terms & Privacy Policy',
       agreeText: 'By continuing, you agree to our',
       termsPrivacy: 'Terms & Privacy Policy',
@@ -59,7 +57,7 @@ const resources = {
       enterLessonsError: 'Please enter the number of lessons',
       invalidDateError: 'Invalid date format',
       studentStatus: {
-        noActivity: 'No activity',
+        inactive: 'No activity',
         present: 'Present',
         missing: 'Missing',
         paid: 'Paid',
@@ -117,10 +115,8 @@ const resources = {
       deleteStudent: 'Удалить ученика',
       deleteStudentConfirmation:
         'Вы уверены, что хотите удалить этого ученика?',
-      groupLabel: 'Группа',
-      phoneLabel: 'Телефон',
-      birthdateLabel: 'Дата рождения',
-      noteLabel: 'Заметка',
+      phone: 'Телефон',
+      birthdate: 'Дата рождения',
       agreeText: 'Продолжая, вы соглашаетесь с нашими',
       termsPrivacy: 'Правилами и Политикой конфиденциальности',
       termsTitle: 'Правила и Политика конфиденциальности',
@@ -140,7 +136,7 @@ const resources = {
       enterLessonsError: 'Пожалуйста, введите количество занятий',
       invalidDateError: 'Неверный формат даты',
       studentStatus: {
-        noActivity: 'Нет активности',
+        inactive: 'Нет активности',
         present: 'Посетил',
         missing: 'Пропустил',
         paid: 'Оплачено',

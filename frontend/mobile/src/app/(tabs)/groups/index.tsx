@@ -24,7 +24,7 @@ export default function GroupsScreen() {
 
   const { data, isPending, error, refetch } = api.useQuery(
     'get',
-    '/api/v1/groups'
+    '/api/v1/groups/overview'
   );
 
   const filteredGroups = useFilteredGroups(data ?? [], searchQuery);
@@ -35,7 +35,7 @@ export default function GroupsScreen() {
   }, [refetch]);
 
   const renderItem = useCallback(
-    ({ item }: { item: components['schemas']['GroupResponse'] }) => (
+    ({ item }: { item: components['schemas']['GroupOverviewResponse'] }) => (
       <GroupCard {...item} />
     ),
     []

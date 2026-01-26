@@ -38,14 +38,14 @@ export default function CreateLessonScreen() {
     });
   };
 
-  const initialData = {
-    groupStudents
-  };
-
   return (
     <LessonForm
       title={t('addLesson')}
-      initialData={initialData}
+      initialData={{
+        lesson: {
+          groupStudents
+        }
+      }}
       onSubmit={handleSubmit}
       onBack={router.back}
       queryLoading={groupStudentsLoading}
