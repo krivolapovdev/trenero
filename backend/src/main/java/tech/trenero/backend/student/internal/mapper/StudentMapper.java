@@ -6,7 +6,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.ReportingPolicy;
 import tech.trenero.backend.common.response.StudentResponse;
-import tech.trenero.backend.student.internal.entity.Student;
+import tech.trenero.backend.student.internal.model.Student;
 import tech.trenero.backend.student.internal.request.CreateStudentRequest;
 import tech.trenero.backend.student.internal.request.UpdateStudentRequest;
 

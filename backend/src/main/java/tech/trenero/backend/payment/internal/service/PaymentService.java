@@ -3,7 +3,9 @@ package tech.trenero.backend.payment.internal.service;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -25,6 +27,7 @@ import tech.trenero.backend.student.external.StudentSpi;
 public class PaymentService implements PaymentSpi {
   private final PaymentRepository paymentRepository;
   private final PaymentMapper paymentMapper;
+
   @Lazy private final StudentSpi studentSpi;
 
   @Transactional(readOnly = true)
@@ -50,6 +53,15 @@ public class PaymentService implements PaymentSpi {
     return paymentRepository.findAllByStudentId(studentId, jwtUser.userId()).stream()
         .map(paymentMapper::toResponse)
         .toList();
+  }
+
+  @Override
+  public Map<UUID, List<PaymentResponse>> getPaymentsByStudentIds(
+      List<UUID> studentIds, JwtUser jwtUser) {
+    log.info("Getting payments by studentIds {}", studentIds);
+    return paymentRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
+        .map(paymentMapper::toResponse)
+        .collect(Collectors.groupingBy(PaymentResponse::studentId));
   }
 
   @Transactional

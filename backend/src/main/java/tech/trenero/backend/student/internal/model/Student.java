@@ -1,4 +1,4 @@
-package tech.trenero.backend.student.internal.entity;
+package tech.trenero.backend.student.internal.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

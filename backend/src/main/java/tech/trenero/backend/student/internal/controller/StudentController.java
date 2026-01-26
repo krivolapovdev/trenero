@@ -23,6 +23,8 @@ import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.student.internal.request.CreateStudentRequest;
 import tech.trenero.backend.student.internal.request.UpdateStudentRequest;
+import tech.trenero.backend.student.internal.response.StudentDetailsResponse;
+import tech.trenero.backend.student.internal.response.StudentsOverviewWrapperResponse;
 import tech.trenero.backend.student.internal.service.StudentService;
 
 @RestController
@@ -35,7 +37,14 @@ public class StudentController {
   @GetMapping
   @PreAuthorize("isAuthenticated()")
   public List<StudentResponse> getStudents(@AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.getAllStudents(jwtUser);
+    return studentService.getStudents(jwtUser);
+  }
+
+  @GetMapping("/overview")
+  @PreAuthorize("isAuthenticated()")
+  public StudentsOverviewWrapperResponse getStudentsOverview(
+      @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.getStudentsOverview(jwtUser);
   }
 
   @GetMapping("/{studentId}")
@@ -43,6 +52,13 @@ public class StudentController {
   public StudentResponse getStudent(
       @PathVariable("studentId") UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.getStudentById(studentId, jwtUser);
+  }
+
+  @GetMapping("/{studentId}/details")
+  @PreAuthorize("isAuthenticated()")
+  public StudentDetailsResponse getStudentDetails(
+      @PathVariable("studentId") UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.getStudentDetailsById(studentId, jwtUser);
   }
 
   @GetMapping("/{studentId}/payments")

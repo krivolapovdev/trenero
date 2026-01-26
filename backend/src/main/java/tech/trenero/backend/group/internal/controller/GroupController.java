@@ -23,6 +23,9 @@ import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.internal.request.CreateGroupRequest;
 import tech.trenero.backend.group.internal.request.UpdateGroupRequest;
+import tech.trenero.backend.group.internal.response.GroupDetailsResponse;
+import tech.trenero.backend.group.internal.response.GroupOverviewResponse;
+import tech.trenero.backend.group.internal.response.GroupUpdateDetailsResponse;
 import tech.trenero.backend.group.internal.service.GroupService;
 
 @RestController
@@ -38,11 +41,31 @@ public class GroupController {
     return groupService.getAllGroups(jwtUser);
   }
 
+  @GetMapping("/overview")
+  @PreAuthorize("isAuthenticated()")
+  public List<GroupOverviewResponse> getGroupsOverview(@AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getGroupsOverview(jwtUser);
+  }
+
   @GetMapping("/{groupId}")
   @PreAuthorize("isAuthenticated()")
   public GroupResponse getGroup(
       @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.getGroupById(groupId, jwtUser);
+  }
+
+  @GetMapping("/{groupId}/details")
+  @PreAuthorize("isAuthenticated()")
+  public GroupDetailsResponse getGroupDetails(
+      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getGroupDetailsById(groupId, jwtUser);
+  }
+
+  @GetMapping("/{groupId}/update")
+  @PreAuthorize("isAuthenticated()")
+  public GroupUpdateDetailsResponse getGroupUpdateDetails(
+      @AuthenticationPrincipal JwtUser jwtUser, @PathVariable UUID groupId) {
+    return groupService.getGroupUpdateDetailsById(groupId, jwtUser);
   }
 
   @GetMapping("/{groupId}/students")

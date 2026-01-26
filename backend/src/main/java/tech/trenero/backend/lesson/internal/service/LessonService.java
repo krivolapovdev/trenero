@@ -3,6 +3,7 @@ package tech.trenero.backend.lesson.internal.service;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.response.LessonResponse;
+import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupSpi;
@@ -19,6 +21,9 @@ import tech.trenero.backend.lesson.internal.mapper.LessonMapper;
 import tech.trenero.backend.lesson.internal.repository.LessonRepository;
 import tech.trenero.backend.lesson.internal.request.CreateLessonRequest;
 import tech.trenero.backend.lesson.internal.request.UpdateLessonRequest;
+import tech.trenero.backend.lesson.internal.response.LessonDetailsResponse;
+import tech.trenero.backend.lesson.internal.response.LessonUpdateDetailsResponse;
+import tech.trenero.backend.student.external.StudentSpi;
 import tech.trenero.backend.visit.external.VisitSpi;
 
 @Service
@@ -27,7 +32,10 @@ import tech.trenero.backend.visit.external.VisitSpi;
 public class LessonService implements LessonSpi {
   private final LessonRepository lessonRepository;
   private final LessonMapper lessonMapper;
+
+  @Lazy private final LessonService self;
   @Lazy private final VisitSpi visitSpi;
+  @Lazy private final StudentSpi studentSpi;
   @Lazy private final GroupSpi groupSpi;
 
   @Transactional(readOnly = true)
@@ -38,6 +46,22 @@ public class LessonService implements LessonSpi {
         .toList();
   }
 
+  @Override
+  public LessonResponse getLastGroupLesson(UUID groupId, JwtUser jwtUser) {
+    log.info("Getting last lesson for ownerId={}", jwtUser.userId());
+    return lessonRepository
+        .findLastGroupLesson(groupId, jwtUser.userId())
+        .map(lessonMapper::toResponse)
+        .orElseThrow(
+            () -> new EntityNotFoundException("Last group lesson not found groupId=" + groupId));
+  }
+
+  @Override
+  public Map<UUID, LessonResponse> getLastGroupLessonsByGroupIds(
+      List<UUID> groupIds, JwtUser jwtUser) {
+    return Map.of();
+  }
+
   @Transactional(readOnly = true)
   public LessonResponse getLessonById(UUID lessonId, JwtUser jwtUser) {
     log.info("Getting lesson by id={} for ownerId={}", lessonId, jwtUser.userId());
@@ -45,6 +69,31 @@ public class LessonService implements LessonSpi {
         .findByIdAndOwnerId(lessonId, jwtUser.userId())
         .map(lessonMapper::toResponse)
         .orElseThrow(() -> new EntityNotFoundException("Lesson not found for id=" + lessonId));
+  }
+
+  @Transactional(readOnly = true)
+  public LessonDetailsResponse getLessonDetailsById(UUID lessonId, JwtUser jwtUser) {
+    log.info("Getting lesson details for lessonId={} and userId={}", lessonId, jwtUser.userId());
+
+    LessonResponse lesson = self.getLessonById(lessonId, jwtUser);
+    List<VisitResponse> visits = visitSpi.getVisitsByLessonId(lessonId, jwtUser);
+    List<StudentResponse> groupStudents =
+        studentSpi.getStudentsByGroupId(lesson.groupId(), jwtUser);
+
+    return new LessonDetailsResponse(lesson, visits, groupStudents);
+  }
+
+  @Transactional(readOnly = true)
+  public LessonUpdateDetailsResponse getLessonUpdateDetailsById(UUID lessonId, JwtUser jwtUser) {
+    log.info(
+        "Getting lesson update details for lessonId={} and userId={}", lessonId, jwtUser.userId());
+
+    LessonResponse lesson = self.getLessonById(lessonId, jwtUser);
+    List<VisitResponse> visits = visitSpi.getVisitsByLessonId(lessonId, jwtUser);
+    List<StudentResponse> groupStudents =
+        studentSpi.getStudentsByGroupId(lesson.groupId(), jwtUser);
+
+    return new LessonUpdateDetailsResponse(lesson, visits, groupStudents);
   }
 
   @Transactional(readOnly = true)

@@ -3,7 +3,9 @@ package tech.trenero.backend.visit.internal.service;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -25,6 +27,7 @@ import tech.trenero.backend.visit.internal.request.UpdateVisitRequest;
 public class VisitService implements VisitSpi {
   private final VisitRepository visitRepository;
   private final VisitMapper visitMapper;
+
   @Lazy private final LessonSpi lessonSpi;
 
   @Transactional(readOnly = true)
@@ -50,6 +53,33 @@ public class VisitService implements VisitSpi {
     return visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId()).stream()
         .map(visitMapper::toResponse)
         .toList();
+  }
+
+  @Override
+  public Map<UUID, List<VisitResponse>> getVisitsByStudentIds(
+      List<UUID> studentIds, JwtUser jwtUser) {
+    log.info("Getting visits by studentIds for ownerId={}", jwtUser.userId());
+
+    List<Visit> visits =
+        visitRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.userId());
+
+    return visits.stream()
+        .map(visitMapper::toResponse)
+        .collect(Collectors.groupingBy(VisitResponse::studentId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public VisitResponse getVisitByLessonIdAndStudentId(
+      UUID lessonId, UUID studentId, JwtUser jwtUser) {
+    log.info("Getting visit by lessonId={} and studentId={}", lessonId, studentId);
+    return visitRepository
+        .findByLessonIdAndStudentIdAndOwnerId(lessonId, studentId, jwtUser.userId())
+        .map(visitMapper::toResponse)
+        .orElseThrow(
+            () ->
+                new EntityNotFoundException(
+                    "Visit not found for lessonId=" + lessonId + "  and studentId=" + studentId));
   }
 
   @Transactional(readOnly = true)
