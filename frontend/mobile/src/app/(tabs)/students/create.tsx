@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
@@ -11,15 +12,26 @@ import {
 export default function CreateStudentScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const { data: groups, isPending: groupsPending } = api.useQuery(
+  const { data: groups, isLoading: groupsLoading } = api.useQuery(
     'get',
     '/api/v1/groups'
   );
 
   const { mutate: createStudent, isPending: createStudentPending } =
     api.useMutation('post', '/api/v1/students', {
-      onSuccess: data => router.replace(`/(tabs)/students/${data.id}`),
+      onSuccess: data => {
+        router.replace(`/(tabs)/students/${data.id}`);
+
+        void queryClient.invalidateQueries(
+          api.queryOptions('get', '/api/v1/groups/overview')
+        );
+
+        void queryClient.invalidateQueries(
+          api.queryOptions('get', '/api/v1/students/overview')
+        );
+      },
 
       onError: err => Alert.alert(t('error'), err)
     });
@@ -51,7 +63,7 @@ export default function CreateStudentScreen() {
       title={t('addStudent')}
       onSubmit={handleSubmit}
       onBack={router.back}
-      queryLoading={groupsPending}
+      queryLoading={groupsLoading}
       mutationLoading={createStudentPending}
       initialData={initialData}
     />

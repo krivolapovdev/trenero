@@ -54,8 +54,6 @@ export default function StudentsScreen() {
     void refetch();
   }, [refetch]);
 
-  console.log(studentsWrapper?.students[0].statuses);
-
   return (
     <>
       <CustomAppbar

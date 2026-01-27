@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
@@ -13,6 +14,7 @@ export default function UpdateGroupScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
+  const queryClient = useQueryClient();
 
   const { data: group, isPending: groupPending } = api.useQuery(
     'get',
@@ -26,18 +28,32 @@ export default function UpdateGroupScreen() {
     }
   );
 
-  const { mutate: updateGroup, isPending: mutationLoading } = api.useMutation(
+  const { mutate: updateGroup, isPending: mutationPending } = api.useMutation(
     'patch',
     '/api/v1/groups/{groupId}',
     {
-      onSuccess: router.back,
+      onSuccess: async _data => {
+        await queryClient.invalidateQueries(
+          api.queryOptions('get', '/api/v1/groups/{groupId}/details', {
+            params: { path: { groupId } }
+          })
+        );
+
+        await queryClient.invalidateQueries(
+          api.queryOptions('get', '/api/v1/groups/{groupId}/update', {
+            params: { path: { groupId } }
+          })
+        );
+
+        router.back();
+      },
 
       onError: err => Alert.alert('Error', err)
     }
   );
 
   const handleSubmit = (values: GroupFormValues) => {
-    if (!group || groupPending || mutationLoading) {
+    if (!group || groupPending || mutationPending) {
       return;
     }
 
@@ -83,7 +99,7 @@ export default function UpdateGroupScreen() {
         group
       }}
       queryLoading={groupPending}
-      mutationLoading={mutationLoading}
+      mutationLoading={mutationPending}
       onBack={router.back}
       onSubmit={handleSubmit}
     />

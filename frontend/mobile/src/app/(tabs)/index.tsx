@@ -11,7 +11,7 @@ import { RoundedBarChart } from '@/src/components/RoundedBarChart';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useInitApp } from '@/src/hooks/useInitApp';
 
-export default function StatisticsScreen() {
+export default function MetricsScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const [selectedBar, setSelectedBar] = useState(dayjs());
@@ -40,7 +40,7 @@ export default function StatisticsScreen() {
   return (
     <>
       <CustomAppbar
-        title={t('statistics')}
+        title={t('metrics')}
         mode='center-aligned'
       />
 

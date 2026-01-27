@@ -22,7 +22,7 @@ export default function GroupsScreen() {
   const listRef = useRef<LegendListRef | null>(null);
   useScrollToTop(listRef);
 
-  const { data, isPending, error, refetch } = api.useQuery(
+  const { data, isFetching, error, refetch } = api.useQuery(
     'get',
     '/api/v1/groups/overview'
   );
@@ -61,7 +61,7 @@ export default function GroupsScreen() {
         keyExtractor={item => item.id}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
-        refreshing={isPending}
+        refreshing={isFetching}
         onRefresh={fetchGroups}
         keyboardShouldPersistTaps='handled'
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}

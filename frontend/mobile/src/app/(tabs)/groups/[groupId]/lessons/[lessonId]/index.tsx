@@ -1,4 +1,3 @@
-import { useQueries } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -18,30 +17,18 @@ export default function LessonByIdScreen() {
     lessonId: string;
   }>();
 
-  const queries = useQueries({
-    queries: [
-      api.queryOptions('get', '/api/v1/lessons/{lessonId}', {
-        params: { path: { lessonId } }
-      }),
-
-      api.queryOptions('get', '/api/v1/lessons/{lessonId}/visits', {
-        params: { path: { lessonId } }
-      }),
-
-      api.queryOptions('get', '/api/v1/groups/{groupId}/students', {
-        params: { path: { groupId } }
-      }),
-
-      api.queryOptions('get', '/api/v1/students')
-    ]
+  const {
+    data: lesson,
+    isPending: lessonPending,
+    refetch: lessonRefetch,
+    isFetching: lessonFetching
+  } = api.useQuery('get', '/api/v1/lessons/{lessonId}/details', {
+    params: {
+      path: {
+        lessonId
+      }
+    }
   });
-
-  const lesson = queries[0]?.data;
-  const lessonVisits = queries[1]?.data ?? [];
-  const groupStudents = queries[2]?.data ?? [];
-  const allStudents = queries[3]?.data ?? [];
-
-  const queriesFetching = queries.some(q => q.isFetching);
 
   const { mutate: deleteLesson, isPending: deleteLessonPending } =
     api.useMutation('delete', `/api/v1/lessons/{lessonId}`, {
@@ -67,7 +54,7 @@ export default function LessonByIdScreen() {
     ]);
   };
 
-  const isLoading = queriesFetching || deleteLessonPending;
+  const isLoading = lessonPending || deleteLessonPending;
 
   return (
     <>
@@ -102,12 +89,12 @@ export default function LessonByIdScreen() {
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
         refreshControl={
           <RefreshControl
-            refreshing={queriesFetching}
-            onRefresh={() => Promise.all(queries.map(q => q.refetch()))}
+            refreshing={lessonFetching}
+            onRefresh={lessonRefetch}
           />
         }
       >
-        {lesson && lessonVisits && groupStudents && allStudents && (
+        {lesson && (
           <>
             <SurfaceCard
               style={{
@@ -127,12 +114,13 @@ export default function LessonByIdScreen() {
             </SurfaceCard>
 
             <SurfaceCard style={{ padding: 0 }}>
-              {lessonVisits.map(visit => (
+              {lesson.studentVisits.map(visit => (
                 <List.Item
                   key={visit.id}
                   title={
-                    allStudents.find(student => visit.studentId === student.id)
-                      ?.fullName ?? ''
+                    lesson.groupStudents.find(
+                      student => visit.studentId === student.id
+                    )?.fullName ?? ''
                   }
                   right={() => (
                     <List.Icon

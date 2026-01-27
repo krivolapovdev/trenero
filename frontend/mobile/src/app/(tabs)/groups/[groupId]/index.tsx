@@ -16,7 +16,8 @@ export default function GroupByIdScreen() {
 
   const {
     data: group,
-    isPending: groupPending,
+    isLoading: groupLoading,
+    isRefetching: groupRefetching,
     refetch
   } = api.useQuery('get', '/api/v1/groups/{groupId}/details', {
     params: {
@@ -67,17 +68,17 @@ export default function GroupByIdScreen() {
           {
             icon: 'calendar-plus',
             onPress: () => router.push(`/groups/${groupId}/lessons/create`),
-            disabled: groupPending || mutationLoading
+            disabled: groupLoading || mutationLoading
           },
           {
             icon: 'account-edit',
             onPress: () => router.push(`/(tabs)/groups/${groupId}/update`),
-            disabled: groupPending || mutationLoading
+            disabled: groupLoading || mutationLoading
           },
           {
             icon: 'trash-can',
             onPress: handleDeletePress,
-            disabled: groupPending || mutationLoading
+            disabled: groupLoading || mutationLoading
           }
         ]}
       />
@@ -91,7 +92,7 @@ export default function GroupByIdScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={groupPending || mutationLoading}
+            refreshing={groupRefetching || mutationLoading}
             onRefresh={refetch}
           />
         }

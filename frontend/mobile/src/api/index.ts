@@ -1,7 +1,18 @@
+import { QueryClient } from '@tanstack/query-core';
 import createFetchClient, { type Middleware } from 'openapi-fetch';
 import createClient from 'openapi-react-query';
 import type { paths } from '@/src/api/generated/openapi';
 import { useAuthStore } from '@/src/stores/authStore';
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      staleTime: 60_000
+    }
+  }
+});
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:8080';
 

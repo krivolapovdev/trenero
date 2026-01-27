@@ -1,15 +1,13 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { QueryClient } from '@tanstack/query-core';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import ErrorBoundary from 'react-native-error-boundary';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
+import { queryClient } from '@/src/api';
 import { logError } from '@/src/helpers/logError';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-
-const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const theme = useAppTheme();

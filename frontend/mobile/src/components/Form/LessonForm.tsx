@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
@@ -28,149 +28,151 @@ type Props = {
   onBack: () => void;
 };
 
-export const LessonForm = ({
-  title,
-  queryLoading,
-  mutationLoading = false,
-  initialData,
-  onSubmit,
-  onBack
-}: Readonly<Props>) => {
-  const { i18n } = useTranslation();
-  const theme = useAppTheme();
+export const LessonForm = memo(
+  ({
+    title,
+    queryLoading,
+    mutationLoading = false,
+    initialData,
+    onSubmit,
+    onBack
+  }: Readonly<Props>) => {
+    const { i18n } = useTranslation();
+    const theme = useAppTheme();
 
-  const [startDateTime, setStartDateTime] = useState(dayjs());
-  const [visitStatus, setVisitStatus] = useState<Record<string, boolean>>({});
+    const [startDateTime, setStartDateTime] = useState(dayjs());
+    const [visitStatus, setVisitStatus] = useState<Record<string, boolean>>({});
 
-  const [visibleTimePicker, setVisibleTimePicker] = useState(false);
-  const [visibleDatePicker, setVisibleDatePicker] = useState(false);
+    const [visibleTimePicker, setVisibleTimePicker] = useState(false);
+    const [visibleDatePicker, setVisibleDatePicker] = useState(false);
 
-  const isLoading = queryLoading || mutationLoading;
+    const isLoading = queryLoading || mutationLoading;
 
-  const handleSubmit = () => {
-    if (isLoading) {
-      return;
-    }
-
-    const students = Object.entries(visitStatus).map(
-      ([studentId, present]) => ({
-        studentId,
-        present
-      })
-    );
-
-    onSubmit({
-      startDateTime: startDateTime.toISOString(),
-      students
-    });
-  };
-
-  useEffect(() => {
-    if (initialData?.lesson) {
-      if (initialData.lesson.startDateTime) {
-        setStartDateTime(dayjs(initialData.lesson.startDateTime));
+    const handleSubmit = () => {
+      if (isLoading) {
+        return;
       }
 
-      if (initialData.lesson.studentVisits) {
-        setVisitStatus(
-          Object.fromEntries(
-            initialData.lesson.studentVisits.map(visit => [
-              visit.studentId,
-              visit.present
-            ])
-          )
-        );
-      }
-    }
-  }, [initialData]);
+      const students = Object.entries(visitStatus).map(
+        ([studentId, present]) => ({
+          studentId,
+          present
+        })
+      );
 
-  return (
-    <>
-      <CustomAppbar
-        title={title}
-        leftActions={[
-          { icon: 'arrow-left', onPress: onBack, disabled: mutationLoading }
-        ]}
-        rightActions={[
-          {
-            icon: 'content-save',
-            disabled: isLoading,
-            onPress: handleSubmit
-          }
-        ]}
-      />
+      onSubmit({
+        startDateTime: startDateTime.toISOString(),
+        students
+      });
+    };
 
-      <ScrollView
-        contentContainerStyle={styles.container}
-        style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
-        refreshControl={<RefreshControl refreshing={isLoading} />}
-      >
-        <SurfaceCard style={styles.dateTimeRow}>
-          <Text
-            variant='bodyLarge'
-            onPress={() => setVisibleDatePicker(true)}
-            style={{ color: theme.colors.primary }}
-            disabled={isLoading}
-          >
-            {startDateTime.format('DD/MM/YYYY')}
-          </Text>
+    useEffect(() => {
+      if (initialData?.lesson) {
+        if (initialData.lesson.startDateTime) {
+          setStartDateTime(dayjs(initialData.lesson.startDateTime));
+        }
 
-          <Text
-            variant='bodyLarge'
-            onPress={() => setVisibleTimePicker(true)}
-            style={{ color: theme.colors.primary }}
-            disabled={isLoading}
-          >
-            {startDateTime.format('HH:mm')}
-          </Text>
-        </SurfaceCard>
-
-        <SurfaceCard>
-          <StudentVisitPicker
-            students={initialData?.lesson?.groupStudents ?? []}
-            visitStatus={visitStatus}
-            setVisitStatus={setVisitStatus}
-            disabled={isLoading}
-          />
-        </SurfaceCard>
-      </ScrollView>
-
-      <TimePickerModal
-        locale={i18n.language}
-        visible={visibleTimePicker}
-        onDismiss={() => setVisibleTimePicker(false)}
-        onConfirm={({ hours, minutes }) => {
-          setStartDateTime(prev =>
-            prev.set('hours', hours).set('minutes', minutes)
+        if (initialData.lesson.studentVisits) {
+          setVisitStatus(
+            Object.fromEntries(
+              initialData.lesson.studentVisits.map(visit => [
+                visit.studentId,
+                visit.present
+              ])
+            )
           );
-          setVisibleTimePicker(false);
-        }}
-        hours={startDateTime.hour()}
-        minutes={startDateTime.minute()}
-        use24HourClock={true}
-      />
+        }
+      }
+    }, [initialData]);
 
-      <DatePickerModal
-        locale={i18n.language}
-        mode='single'
-        visible={visibleDatePicker}
-        onDismiss={() => setVisibleDatePicker(false)}
-        date={startDateTime.toDate()}
-        onConfirm={({ date }) => {
-          if (date) {
+    return (
+      <>
+        <CustomAppbar
+          title={title}
+          leftActions={[
+            { icon: 'arrow-left', onPress: onBack, disabled: mutationLoading }
+          ]}
+          rightActions={[
+            {
+              icon: 'content-save',
+              disabled: isLoading,
+              onPress: handleSubmit
+            }
+          ]}
+        />
+
+        <ScrollView
+          contentContainerStyle={styles.container}
+          style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
+          refreshControl={<RefreshControl refreshing={isLoading} />}
+        >
+          <SurfaceCard style={styles.dateTimeRow}>
+            <Text
+              variant='bodyLarge'
+              onPress={() => setVisibleDatePicker(true)}
+              style={{ color: theme.colors.primary }}
+              disabled={isLoading}
+            >
+              {startDateTime.format('DD/MM/YYYY')}
+            </Text>
+
+            <Text
+              variant='bodyLarge'
+              onPress={() => setVisibleTimePicker(true)}
+              style={{ color: theme.colors.primary }}
+              disabled={isLoading}
+            >
+              {startDateTime.format('HH:mm')}
+            </Text>
+          </SurfaceCard>
+
+          <SurfaceCard>
+            <StudentVisitPicker
+              students={initialData?.lesson?.groupStudents ?? []}
+              visitStatus={visitStatus}
+              setVisitStatus={setVisitStatus}
+              disabled={isLoading}
+            />
+          </SurfaceCard>
+        </ScrollView>
+
+        <TimePickerModal
+          locale={i18n.language}
+          visible={visibleTimePicker}
+          onDismiss={() => setVisibleTimePicker(false)}
+          onConfirm={({ hours, minutes }) => {
             setStartDateTime(prev =>
-              prev
-                .set('date', date.getDate())
-                .set('month', date.getMonth())
-                .set('year', date.getFullYear())
+              prev.set('hours', hours).set('minutes', minutes)
             );
-          }
-          setVisibleDatePicker(false);
-        }}
-      />
-    </>
-  );
-};
+            setVisibleTimePicker(false);
+          }}
+          hours={startDateTime.hour()}
+          minutes={startDateTime.minute()}
+          use24HourClock={true}
+        />
+
+        <DatePickerModal
+          locale={i18n.language}
+          mode='single'
+          visible={visibleDatePicker}
+          onDismiss={() => setVisibleDatePicker(false)}
+          date={startDateTime.toDate()}
+          onConfirm={({ date }) => {
+            if (date) {
+              setStartDateTime(prev =>
+                prev
+                  .set('date', date.getDate())
+                  .set('month', date.getMonth())
+                  .set('year', date.getFullYear())
+              );
+            }
+            setVisibleDatePicker(false);
+          }}
+        />
+      </>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: { padding: 16, gap: 16 },

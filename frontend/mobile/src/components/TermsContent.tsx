@@ -8,13 +8,6 @@ export const TermsContent = () => {
   return (
     <View style={{ gap: 14, paddingVertical: 10 }}>
       <Text
-        variant='titleLarge'
-        style={{ textAlign: 'center' }}
-      >
-        {t('termsTitle')}
-      </Text>
-
-      <Text
         variant='bodyMedium'
         style={{ textAlign: 'justify' }}
       >

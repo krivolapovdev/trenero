@@ -17,7 +17,7 @@ export default function TabsLayout() {
   const TabConfig = [
     {
       name: 'index',
-      title: t('statistics'),
+      title: t('metrics'),
       icon: 'chart-box',
       iconOutline: 'chart-box-outline'
     },
