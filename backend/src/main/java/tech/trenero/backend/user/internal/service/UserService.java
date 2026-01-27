@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.trenero.backend.common.enums.OAuth2Provider;
+import tech.trenero.backend.common.model.OAuth2Provider;
 import tech.trenero.backend.common.response.UserResponse;
 import tech.trenero.backend.user.external.UserSpi;
 import tech.trenero.backend.user.internal.entity.OAuth2User;

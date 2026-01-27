@@ -115,11 +115,11 @@ public class GroupService implements GroupSpi {
     log.info("Creating group: name='{}', ownerId={}", request.name(), jwtUser.userId());
 
     Group group = groupMapper.toGroup(request, jwtUser.userId());
-    Group saveGroup = saveGroup(group);
+    Group savedGroup = saveGroup(group);
 
-    studentSpi.assignGroupToStudents(saveGroup.getId(), request.studentIds(), jwtUser);
+    studentSpi.assignGroupToStudents(savedGroup.getId(), request.studentIds(), jwtUser);
 
-    return groupMapper.toResponse(saveGroup);
+    return groupMapper.toResponse(savedGroup);
   }
 
   @Transactional

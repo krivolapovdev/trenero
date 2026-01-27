@@ -2,6 +2,7 @@ package tech.trenero.backend.lesson.external;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import tech.trenero.backend.common.response.LessonResponse;
 import tech.trenero.backend.common.security.JwtUser;
@@ -9,7 +10,7 @@ import tech.trenero.backend.common.security.JwtUser;
 public interface LessonSpi {
   List<LessonResponse> getAllLessons(JwtUser jwtUser);
 
-  LessonResponse getLastGroupLesson(UUID groupId, JwtUser jwtUser);
+  Optional<LessonResponse> getLastGroupLesson(UUID groupId, JwtUser jwtUser);
 
   Map<UUID, LessonResponse> getLastGroupLessonsByGroupIds(List<UUID> groupIds, JwtUser jwtUser);
 

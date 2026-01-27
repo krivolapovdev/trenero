@@ -5,6 +5,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -154,15 +155,17 @@ public class StudentService implements StudentSpi {
 
     GroupResponse studentGroup =
         student.groupId() != null ? groupSpi.getGroupById(student.groupId(), jwtUser) : null;
-    LessonResponse lastLesson =
-        student.groupId() != null ? lessonSpi.getLastGroupLesson(student.groupId(), jwtUser) : null;
+
+    Optional<LessonResponse> lastGroupLesson =
+        lessonSpi.getLastGroupLesson(student.groupId(), jwtUser);
 
     List<VisitResponse> studentVisits = visitSpi.getVisitsByStudentId(studentId, jwtUser);
     List<PaymentResponse> studentPayments = paymentSpi.getPaymentsByStudentId(studentId, jwtUser);
     List<LessonResponse> allLessons = lessonSpi.getLessonsByGroupId(student.groupId(), jwtUser);
 
     Set<StudentStatus> studentStatuses =
-        studentStatusService.getStudentStatuses(studentVisits, studentPayments, lastLesson);
+        studentStatusService.getStudentStatuses(
+            studentVisits, studentPayments, lastGroupLesson.orElse(null));
 
     List<VisitWithLessonResponse> visitsWithLessons =
         studentVisits.stream()

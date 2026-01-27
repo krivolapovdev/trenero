@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import tech.trenero.backend.common.enums.OAuth2Provider;
+import tech.trenero.backend.common.model.OAuth2Provider;
 
 @Entity
 @Table(name = "oauth2_users", schema = "users_module")

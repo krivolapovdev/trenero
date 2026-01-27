@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,13 +48,11 @@ public class LessonService implements LessonSpi {
   }
 
   @Override
-  public LessonResponse getLastGroupLesson(UUID groupId, JwtUser jwtUser) {
+  public Optional<LessonResponse> getLastGroupLesson(UUID groupId, JwtUser jwtUser) {
     log.info("Getting last lesson for ownerId={}", jwtUser.userId());
     return lessonRepository
         .findLastGroupLesson(groupId, jwtUser.userId())
-        .map(lessonMapper::toResponse)
-        .orElseThrow(
-            () -> new EntityNotFoundException("Last group lesson not found groupId=" + groupId));
+        .map(lessonMapper::toResponse);
   }
 
   @Override
