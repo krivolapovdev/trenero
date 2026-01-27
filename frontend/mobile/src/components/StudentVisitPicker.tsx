@@ -1,4 +1,3 @@
-// src/components/StudentSelection.tsx
 import {
   type Dispatch,
   memo,
@@ -10,10 +9,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Button, Switch, Text } from 'react-native-paper';
-import type { GetGroupQuery } from '@/src/graphql/__generated__/graphql';
+import type { components } from '@/src/api/generated/openapi';
 
 type Props = {
-  students: NonNullable<GetGroupQuery['group']>['students'];
+  students: components['schemas']['StudentResponse'][];
   visitStatus: Record<string, boolean>;
   setVisitStatus: Dispatch<SetStateAction<Record<string, boolean>>>;
   disabled?: boolean;

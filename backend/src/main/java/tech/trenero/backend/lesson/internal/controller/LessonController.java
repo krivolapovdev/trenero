@@ -1,64 +1,94 @@
 package tech.trenero.backend.lesson.internal.controller;
 
-import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import tech.trenero.backend.codegen.types.CreateLessonInput;
-import tech.trenero.backend.codegen.types.Lesson;
-import tech.trenero.backend.codegen.types.UpdateLessonInput;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import tech.trenero.backend.common.response.LessonResponse;
+import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.lesson.internal.request.CreateLessonRequest;
+import tech.trenero.backend.lesson.internal.request.UpdateLessonRequest;
+import tech.trenero.backend.lesson.internal.response.LessonDetailsResponse;
+import tech.trenero.backend.lesson.internal.response.LessonUpdateDetailsResponse;
 import tech.trenero.backend.lesson.internal.service.LessonService;
 
-@Controller
+@RestController
+@RequestMapping("/api/v1/lessons")
 @RequiredArgsConstructor
 @Validated
 public class LessonController {
   private final LessonService lessonService;
 
-  @QueryMapping
+  @GetMapping
   @PreAuthorize("isAuthenticated()")
-  public List<Lesson> lessons(@AuthenticationPrincipal JwtUser jwtUser) {
+  public List<LessonResponse> getLessons(@AuthenticationPrincipal JwtUser jwtUser) {
     return lessonService.getAllLessons(jwtUser);
   }
 
-  @QueryMapping
+  @GetMapping("/{lessonId}")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Lesson> lesson(
-      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return lessonService.findLessonById(id, jwtUser);
+  public LessonResponse getLesson(
+      @PathVariable("lessonId") UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return lessonService.getLessonById(lessonId, jwtUser);
   }
 
-  @MutationMapping
+  @GetMapping("/{lessonId}/details")
   @PreAuthorize("isAuthenticated()")
-  public Lesson createLesson(
-      @Argument("input") @Valid CreateLessonInput input, @AuthenticationPrincipal JwtUser jwtUser) {
-    return lessonService.createLesson(input, jwtUser);
+  public LessonDetailsResponse getLessonDetails(
+      @PathVariable UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return lessonService.getLessonDetailsById(lessonId, jwtUser);
   }
 
-  @MutationMapping
+  @GetMapping("/{lessonId}/update")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Lesson> updateLesson(
-      @Argument("id") UUID id,
-      @Argument("input") @Valid UpdateLessonInput input,
-      DataFetchingEnvironment environment,
+  public LessonUpdateDetailsResponse getLessonUpdateDetails(
+      @PathVariable UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return lessonService.getLessonUpdateDetailsById(lessonId, jwtUser);
+  }
+
+  @GetMapping("/{lessonId}/visits")
+  @PreAuthorize("isAuthenticated()")
+  public List<VisitResponse> getLessonVisits(
+      @PathVariable("lessonId") UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return lessonService.getVisitsByLessonId(lessonId, jwtUser);
+  }
+
+  @PostMapping
+  @PreAuthorize("isAuthenticated()")
+  @ResponseStatus(HttpStatus.CREATED)
+  public LessonResponse createLesson(
+      @RequestBody @Valid CreateLessonRequest request, @AuthenticationPrincipal JwtUser jwtUser) {
+    return lessonService.createLesson(request, jwtUser);
+  }
+
+  @PatchMapping("/{lessonId}")
+  @PreAuthorize("isAuthenticated()")
+  public LessonResponse updateLesson(
+      @PathVariable("lessonId") UUID lessonId,
+      @RequestBody @Valid UpdateLessonRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return lessonService.updateLesson(id, input, environment, jwtUser);
+    return lessonService.updateLesson(lessonId, request, jwtUser);
   }
 
-  @MutationMapping
+  @DeleteMapping("/{lessonId}")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Lesson> deleteLesson(
-      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return lessonService.softDeleteLesson(id, jwtUser);
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteLesson(
+      @PathVariable("lessonId") UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
+    lessonService.deleteLesson(lessonId, jwtUser);
   }
 }

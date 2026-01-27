@@ -1,101 +1,83 @@
-import { useMutation, useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
+import { api } from '@/src/api';
+import type { components } from '@/src/api/generated/openapi';
 import {
   LessonForm,
   type LessonFormValues
 } from '@/src/components/Form/LessonForm';
-import { graphql } from '@/src/graphql/__generated__';
-import type { UpdateLessonInput } from '@/src/graphql/__generated__/graphql';
-import { GET_GROUP, GET_LESSON, GET_STUDENTS } from '@/src/graphql/queries';
-
-const UPDATE_LESSON = graphql(`
-    mutation UpdateLesson($id: UUID!, $input: UpdateLessonInput!) {
-        updateLesson(id: $id, input: $input) {
-            ...LessonDetailsFields
-        }
-    }
-`);
 
 export default function UpdateLessonScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { groupId, lessonId } = useLocalSearchParams<{
+  const { lessonId } = useLocalSearchParams<{
     groupId: string;
     lessonId: string;
   }>();
 
-  const { data, loading: queryLoading } = useQuery(GET_LESSON, {
-    variables: { id: lessonId }
-  });
-
-  const [updateLesson, { loading: mutationLoading }] = useMutation(
-    UPDATE_LESSON,
+  const { data: lesson, isPending: lessonLoading } = api.useQuery(
+    'get',
+    '/api/v1/lessons/{lessonId}/update',
     {
-      refetchQueries: [
-        {
-          query: GET_GROUP,
-          variables: { id: groupId }
-        },
-        GET_STUDENTS
-      ],
-
-      awaitRefetchQueries: true,
-
-      onCompleted: () => router.back(),
-
-      onError: err => Alert.alert(t('error'), err.message)
+      params: {
+        path: {
+          lessonId
+        }
+      }
     }
   );
 
-  const handleSubmit = (values: LessonFormValues) => {
-    const lesson = data?.lesson;
+  const { mutate: updateLesson, isPending: updateLessonPending } =
+    api.useMutation('patch', '/api/v1/lessons/{lessonId}', {
+      onSuccess: router.back,
+      onError: err => Alert.alert(t('error'), err)
+    });
 
-    if (!lesson || queryLoading || mutationLoading) {
+  const handleSubmit = (values: LessonFormValues) => {
+    if (!lesson || lessonLoading || updateLessonPending) {
       return;
     }
 
-    const input: UpdateLessonInput = {};
+    const request: components['schemas']['UpdateLessonRequest'] = {};
 
     if (values.startDateTime !== lesson.startDateTime) {
-      input.startDateTime = values.startDateTime;
+      request.startDateTime = values.startDateTime;
     }
 
-    const currentStudents = lesson.visits.map(a => ({
-      studentId: a.student.id,
-      present: a.present
+    const currentStudents = lesson.studentVisits.map(visit => ({
+      studentId: visit.studentId,
+      present: visit.present
     }));
 
     if (!R.isDeepEqual(currentStudents, values.students)) {
-      input.students = values.students;
+      request.students = values.students;
     }
 
-    if (R.isEmpty(input)) {
+    if (R.isEmpty(request)) {
       router.back();
       return;
     }
 
-    void updateLesson({
-      variables: {
-        id: lessonId,
-        input: {
-          ...values
+    updateLesson({
+      params: {
+        path: {
+          lessonId
         }
-      }
+      },
+      body: request
     });
   };
-
-  const initialData = useMemo(() => data?.lesson, [data?.lesson]);
 
   return (
     <LessonForm
       title={t('editLesson')}
-      initialData={initialData}
-      queryLoading={queryLoading}
-      mutationLoading={mutationLoading}
+      initialData={{
+        lesson
+      }}
+      queryLoading={lessonLoading}
+      mutationLoading={updateLessonPending}
       onBack={router.back}
       onSubmit={handleSubmit}
     />

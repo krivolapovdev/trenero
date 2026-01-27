@@ -1,63 +1,70 @@
 package tech.trenero.backend.visit.internal.controller;
 
-import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import tech.trenero.backend.codegen.types.CreateVisitInput;
-import tech.trenero.backend.codegen.types.UpdateVisitInput;
-import tech.trenero.backend.codegen.types.Visit;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.visit.internal.request.CreateVisitRequest;
+import tech.trenero.backend.visit.internal.request.UpdateVisitRequest;
 import tech.trenero.backend.visit.internal.service.VisitService;
 
-@Controller
+@RestController
+@RequestMapping("/api/v1/visits")
 @RequiredArgsConstructor
 @Validated
 public class VisitController {
   private final VisitService visitService;
 
-  @QueryMapping
+  @GetMapping
   @PreAuthorize("isAuthenticated()")
-  public List<Visit> visits(@AuthenticationPrincipal JwtUser jwtUser) {
+  public List<VisitResponse> getVisits(@AuthenticationPrincipal JwtUser jwtUser) {
     return visitService.getAllVisits(jwtUser);
   }
 
-  @QueryMapping
+  @GetMapping("/{visitId}")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Visit> visit(@Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return visitService.findVisitById(id, jwtUser);
+  public VisitResponse getVisit(
+      @PathVariable("visitId") UUID visitId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return visitService.getVisitById(visitId, jwtUser);
   }
 
-  @MutationMapping
+  @PostMapping
   @PreAuthorize("isAuthenticated()")
-  public Visit createVisit(
-      @Argument("input") @Valid CreateVisitInput input, @AuthenticationPrincipal JwtUser jwtUser) {
-    return visitService.createVisit(input, jwtUser);
+  @ResponseStatus(HttpStatus.CREATED)
+  public VisitResponse createVisit(
+      @RequestBody @Valid CreateVisitRequest request, @AuthenticationPrincipal JwtUser jwtUser) {
+    return visitService.createVisit(request, jwtUser);
   }
 
-  @MutationMapping
+  @PatchMapping("/{visitId}")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Visit> updateVisit(
-      @Argument("id") UUID id,
-      @Argument("input") @Valid UpdateVisitInput input,
-      DataFetchingEnvironment environment,
+  public VisitResponse updateVisit(
+      @PathVariable("visitId") UUID visitId,
+      @RequestBody @Valid UpdateVisitRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return visitService.updateVisit(id, input, environment, jwtUser);
+    return visitService.updateVisit(visitId, request, jwtUser);
   }
 
-  @MutationMapping
+  @DeleteMapping("/{visitId}")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Visit> deleteVisit(
-      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return visitService.softDeleteVisit(id, jwtUser);
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteVisit(
+      @PathVariable("visitId") UUID visitId, @AuthenticationPrincipal JwtUser jwtUser) {
+    visitService.softDeleteVisit(visitId, jwtUser);
   }
 }

@@ -14,30 +14,45 @@ import tech.trenero.backend.payment.internal.entity.Payment;
 public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonNull UUID> {
   @Query(
       """
-          SELECT p
-          FROM Payment AS p
-          WHERE p.ownerId = :ownerId
-            AND p.deletedAt IS NULL
-          ORDER BY p.createdAt DESC""")
+      SELECT p
+      FROM Payment AS p
+      WHERE p.ownerId = :ownerId
+        AND p.deletedAt IS NULL
+      ORDER BY p.createdAt DESC
+      """)
   List<Payment> findAllByOwnerId(@Param("ownerId") UUID ownerId);
 
   @Query(
       """
-          SELECT p
-          FROM Payment AS p
-          WHERE p.ownerId = :ownerId
-            AND p.studentId = :studentId
-            AND p.deletedAt IS NULL
-          ORDER BY p.createdAt DESC""")
+      SELECT p
+      FROM Payment AS p
+      WHERE p.ownerId = :ownerId
+        AND p.studentId = :studentId
+        AND p.deletedAt IS NULL
+      ORDER BY p.createdAt DESC
+      """)
   List<Payment> findAllByStudentId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 
   @Query(
       """
-          SELECT p
-          FROM Payment AS p
-          WHERE p.id = :id
-            AND p.ownerId = :ownerId
-            AND p.deletedAt IS NULL""")
+      SELECT p
+      FROM Payment AS p
+      WHERE p.id = :id
+        AND p.ownerId = :ownerId
+        AND p.deletedAt IS NULL
+      """)
   Optional<Payment> findByIdAndOwnerId(@Param("id") UUID id, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+      SELECT p
+      FROM Payment p
+      WHERE p.ownerId = :ownerId
+        AND p.studentId IN :studentIds
+        AND p.deletedAt IS NULL
+      ORDER BY p.createdAt DESC
+      """)
+  List<Payment> findAllByStudentIdsAndOwnerId(
+      @Param("studentIds") List<UUID> studentIds, @Param("ownerId") UUID ownerId);
 }

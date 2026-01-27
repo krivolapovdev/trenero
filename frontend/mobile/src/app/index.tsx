@@ -20,10 +20,8 @@ export default function Index() {
       try {
         setLoading(true);
 
-        const lang =
-          (await AsyncStorage.getItem('language')) ??
-          getLocales()?.[0]?.languageCode ??
-          'en';
+        const storedLang = await AsyncStorage.getItem('language');
+        const lang = storedLang ?? getLocales()?.[0]?.languageCode ?? 'en';
 
         dayjs.locale(lang);
 
@@ -38,6 +36,8 @@ export default function Index() {
         LocaleConfig.defaultLocale = lang;
 
         await initI18n(lang);
+      } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }

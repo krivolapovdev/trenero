@@ -2,41 +2,32 @@ import dayjs from 'dayjs';
 import { nanoid } from 'nanoid/non-secure';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
-import { getStudentStatuses } from '@/src/helpers/getStudentStatuses';
+import type { components } from '@/src/api/generated/openapi';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { EntityCard } from './EntityCard';
 
-type Props = GetStudentsQuery['students'][number];
+type Props = {
+  student: components['schemas']['StudentOverviewResponse'];
+};
 
-export const StudentCard = ({
-  id,
-  fullName,
-  group,
-  phone,
-  birthdate,
-  note,
-  payments,
-  visits
-}: Readonly<Props>) => {
+export const StudentCard = ({ student }: Readonly<Props>) => {
   const { t } = useTranslation();
   const theme = useAppTheme();
-  const statuses = getStudentStatuses(visits, payments);
 
   const badges = useMemo(() => {
     const result = [];
 
-    if (statuses.has('noActivity')) {
+    if (student.statuses?.includes('INACTIVE')) {
       result.push({
         id: nanoid(),
-        label: t('studentStatus.noActivity'),
+        label: t('studentStatus.inactive'),
         backgroundColor: theme.colors.primary,
         textColor: theme.colors.onPrimary
       });
       return result;
     }
 
-    if (statuses.has('present')) {
+    if (student?.statuses?.includes('PRESENT')) {
       result.push({
         id: nanoid(),
         label: t('studentStatus.present'),
@@ -45,7 +36,7 @@ export const StudentCard = ({
       });
     }
 
-    if (statuses.has('missing')) {
+    if (student.statuses?.includes('MISSING')) {
       result.push({
         id: nanoid(),
         label: t('studentStatus.missing'),
@@ -54,7 +45,7 @@ export const StudentCard = ({
       });
     }
 
-    if (statuses.has('paid')) {
+    if (student.statuses?.includes('PAID')) {
       result.push({
         id: nanoid(),
         label: t('studentStatus.paid'),
@@ -63,7 +54,7 @@ export const StudentCard = ({
       });
     }
 
-    if (statuses.has('unpaid')) {
+    if (student.statuses?.includes('UNPAID')) {
       result.push({
         id: nanoid(),
         label: t('studentStatus.unpaid'),
@@ -73,23 +64,23 @@ export const StudentCard = ({
     }
 
     return result;
-  }, [statuses, theme, t]);
+  }, [student.statuses, theme, t]);
 
   const subtitle = [
-    group && `${t('groupLabel')}: ${group?.name ?? t('unassigned')}`,
-    phone && `${t('phoneLabel')}: ${phone}`,
-    birthdate &&
-      `${t('birthdateLabel')}: ${dayjs(birthdate).format('DD/MM/YYYY')}`,
-    note && `${t('noteLabel')}: ${note}`
+    student.studentGroup && `${t('group')}: ${student.studentGroup.name}`,
+    student.phone && `${t('phone')}: ${student.phone}`,
+    student.birthdate &&
+      `${t('birthdate')}: ${dayjs(student.birthdate).format('DD/MM/YYYY')}`,
+    student.note && `${t('note')}: ${student.note}`
   ]
     .filter(Boolean)
     .join('\n');
 
   return (
     <EntityCard
-      title={fullName}
+      title={student.fullName}
       subtitle={subtitle}
-      href={`/(tabs)/students/${id}`}
+      href={`/(tabs)/students/${student.id}`}
       badges={badges}
     />
   );

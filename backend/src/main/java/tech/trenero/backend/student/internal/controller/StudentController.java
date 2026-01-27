@@ -1,65 +1,112 @@
 package tech.trenero.backend.student.internal.controller;
 
-import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import tech.trenero.backend.codegen.types.CreateStudentInput;
-import tech.trenero.backend.codegen.types.Student;
-import tech.trenero.backend.codegen.types.UpdateStudentInput;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import tech.trenero.backend.common.response.PaymentResponse;
+import tech.trenero.backend.common.response.StudentResponse;
+import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.student.internal.request.CreateStudentRequest;
+import tech.trenero.backend.student.internal.request.UpdateStudentRequest;
+import tech.trenero.backend.student.internal.response.StudentDetailsResponse;
+import tech.trenero.backend.student.internal.response.StudentsOverviewWrapperResponse;
 import tech.trenero.backend.student.internal.service.StudentService;
 
-@Controller
+@RestController
+@RequestMapping("/api/v1/students")
 @RequiredArgsConstructor
 @Validated
 public class StudentController {
   private final StudentService studentService;
 
-  @QueryMapping
+  @GetMapping
   @PreAuthorize("isAuthenticated()")
-  public List<Student> students(@AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.getAllStudents(jwtUser);
+  public List<StudentResponse> getStudents(@AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.getStudents(jwtUser);
   }
 
-  @QueryMapping
+  @GetMapping("/overview")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Student> student(
-      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.findStudentById(id, jwtUser);
-  }
-
-  @MutationMapping
-  @PreAuthorize("isAuthenticated()")
-  public Student createStudent(
-      @Argument("input") @Valid CreateStudentInput input,
+  public StudentsOverviewWrapperResponse getStudentsOverview(
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.createStudent(input, jwtUser);
+    return studentService.getStudentsOverview(jwtUser);
   }
 
-  @MutationMapping
+  @GetMapping("/{studentId}")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Student> updateStudent(
-      @Argument("id") UUID id,
-      @Argument("input") @Valid UpdateStudentInput input,
-      DataFetchingEnvironment environment,
+  public StudentResponse getStudent(
+      @PathVariable("studentId") UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.getStudentById(studentId, jwtUser);
+  }
+
+  @GetMapping("/{studentId}/details")
+  @PreAuthorize("isAuthenticated()")
+  public StudentDetailsResponse getStudentDetails(
+      @PathVariable("studentId") UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.getStudentDetailsById(studentId, jwtUser);
+  }
+
+  @GetMapping("/{studentId}/payments")
+  @PreAuthorize("isAuthenticated()")
+  public List<PaymentResponse> getStudentPayments(
+      @PathVariable("studentId") UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.getPaymentsByStudentId(studentId, jwtUser);
+  }
+
+  @GetMapping("/{studentId}/visits")
+  @PreAuthorize("isAuthenticated()")
+  public List<VisitResponse> getStudentVisits(
+      @PathVariable("studentId") UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.getVisitsByStudentId(studentId, jwtUser);
+  }
+
+  @PostMapping
+  @PreAuthorize("isAuthenticated()")
+  @ResponseStatus(HttpStatus.CREATED)
+  public StudentResponse createStudent(
+      @RequestBody @Valid CreateStudentRequest request, @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentService.createStudent(request, jwtUser);
+  }
+
+  @PatchMapping("/{studentId}")
+  @PreAuthorize("isAuthenticated()")
+  public StudentResponse updateStudent(
+      @PathVariable("studentId") UUID studentId,
+      @RequestBody @Valid UpdateStudentRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.updateStudent(id, input, environment, jwtUser);
+    return studentService.updateStudent(studentId, request, jwtUser);
   }
 
-  @MutationMapping
+  @DeleteMapping("/{studentId}")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Student> deleteStudent(
-      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.softDeleteStudent(id, jwtUser);
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteStudent(
+      @PathVariable("studentId") UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+    studentService.softDeleteStudent(studentId, jwtUser);
+  }
+
+  @DeleteMapping("/{studentId}/payments/{paymentId}")
+  @PreAuthorize("isAuthenticated()")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteStudentPayment(
+      @PathVariable("studentId") UUID ignoredStudentId,
+      @PathVariable("paymentId") UUID paymentId,
+      @AuthenticationPrincipal JwtUser jwtUser) {
+    studentService.deleteStudentPayment(paymentId, jwtUser);
   }
 }

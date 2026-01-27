@@ -1,10 +1,9 @@
 import { useDeferredValue, useMemo } from 'react';
-import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
-import { getStudentStatuses } from '@/src/helpers/getStudentStatuses';
+import type { components } from '@/src/api/generated/openapi';
 import type { StudentStatus } from '@/src/types/student';
 
 export function useFilteredStudents(
-  students: GetStudentsQuery['students'],
+  students: components['schemas']['StudentOverviewResponse'][],
   searchQuery: string,
   filterGroup: string | null,
   filterStatus: StudentStatus | null
@@ -21,14 +20,12 @@ export function useFilteredStudents(
           return false;
         }
 
-        if (filterGroup && student.group?.id !== filterGroup) {
+        if (filterGroup && student.groupId !== filterGroup) {
           return false;
         }
 
         if (filterStatus) {
-          const statuses = getStudentStatuses(student.visits, student.payments);
-
-          if (!statuses.has(filterStatus)) {
+          if (!student.statuses?.includes(filterStatus)) {
             return false;
           }
         }

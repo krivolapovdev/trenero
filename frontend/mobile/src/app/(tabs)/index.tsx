@@ -1,46 +1,46 @@
-import { useQuery } from '@apollo/client/react';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import * as R from 'remeda';
+import { api } from '@/src/api';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { LoadingSpinner } from '@/src/components/LoadingSpinner';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { RoundedBarChart } from '@/src/components/RoundedBarChart';
-import { GET_STUDENTS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useInitApp } from '@/src/hooks/useInitApp';
 
-export default function StatisticsScreen() {
-  const theme = useAppTheme();
+export default function MetricsScreen() {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const [selectedBar, setSelectedBar] = useState(dayjs());
+  const { isLoading } = useInitApp();
 
-  const { loading, data, error, refetch } = useQuery(GET_STUDENTS, {
-    fetchPolicy: 'cache-first'
-  });
+  const { data, isPending, error, refetch } = api.useQuery(
+    'get',
+    '/api/v1/metrics/payments/monthly'
+  );
 
   const monthlyData = useMemo(() => {
-    const paymentsByMonth = R.pipe(
-      data?.students ?? [],
-      R.flatMap(s => s.payments),
-      R.groupBy(p => dayjs(p.date).format('YYYY-MM')),
-      R.mapValues(payments => R.sumBy(payments, p => Number(p.amount)))
-    );
+    if (!data) {
+      return [];
+    }
 
-    return R.range(0, 6).map(i => {
-      const month = dayjs().subtract(5 - i, 'month');
-      return {
-        date: month,
-        value: paymentsByMonth[month.format('YYYY-MM')] ?? 0
-      };
-    });
+    return data.map(item => ({
+      date: dayjs(item.month),
+      value: Number(item.total)
+    }));
   }, [data]);
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <>
       <CustomAppbar
-        title={t('statistics')}
+        title={t('metrics')}
         mode='center-aligned'
       />
 
@@ -53,12 +53,12 @@ export default function StatisticsScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
+            refreshing={isPending}
             onRefresh={refetch}
           />
         }
       >
-        <OptionalErrorMessage error={error?.message} />
+        <OptionalErrorMessage error={error} />
 
         <View
           style={{

@@ -1,11 +1,11 @@
-import { ApolloProvider } from '@apollo/client/react';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import ErrorBoundary from 'react-native-error-boundary';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
-import { client } from '@/src/graphql';
+import { queryClient } from '@/src/api';
 import { logError } from '@/src/helpers/logError';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
@@ -14,7 +14,7 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary onError={logError}>
-      <ApolloProvider client={client}>
+      <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView>
           <BottomSheetModalProvider>
             <PaperProvider theme={theme}>
@@ -33,7 +33,7 @@ export default function RootLayout() {
             </PaperProvider>
           </BottomSheetModalProvider>
         </GestureHandlerRootView>
-      </ApolloProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

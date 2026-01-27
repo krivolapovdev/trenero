@@ -1,6 +1,4 @@
+import type { components } from '@/src/api/generated/openapi';
+
 export type StudentStatus =
-  | 'noActivity'
-  | 'present'
-  | 'missing'
-  | 'paid'
-  | 'unpaid';
+  components['schemas']['StudentOverviewResponse']['statuses'][number];

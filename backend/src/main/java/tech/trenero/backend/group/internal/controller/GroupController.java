@@ -1,63 +1,109 @@
 package tech.trenero.backend.group.internal.controller;
 
-import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import tech.trenero.backend.codegen.types.CreateGroupInput;
-import tech.trenero.backend.codegen.types.Group;
-import tech.trenero.backend.codegen.types.UpdateGroupInput;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import tech.trenero.backend.common.response.GroupResponse;
+import tech.trenero.backend.common.response.LessonResponse;
+import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.group.internal.request.CreateGroupRequest;
+import tech.trenero.backend.group.internal.request.UpdateGroupRequest;
+import tech.trenero.backend.group.internal.response.GroupDetailsResponse;
+import tech.trenero.backend.group.internal.response.GroupOverviewResponse;
+import tech.trenero.backend.group.internal.response.GroupUpdateDetailsResponse;
 import tech.trenero.backend.group.internal.service.GroupService;
 
-@Controller
+@RestController
+@RequestMapping("/api/v1/groups")
 @RequiredArgsConstructor
 @Validated
 public class GroupController {
   private final GroupService groupService;
 
-  @QueryMapping
+  @GetMapping
   @PreAuthorize("isAuthenticated()")
-  public List<Group> groups(@AuthenticationPrincipal JwtUser jwtUser) {
+  public List<GroupResponse> getGroups(@AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.getAllGroups(jwtUser);
   }
 
-  @QueryMapping
+  @GetMapping("/overview")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Group> group(@Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.findGroupById(id, jwtUser);
+  public List<GroupOverviewResponse> getGroupsOverview(@AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getGroupsOverview(jwtUser);
   }
 
-  @MutationMapping
+  @GetMapping("/{groupId}")
   @PreAuthorize("isAuthenticated()")
-  public Group createGroup(
-      @Argument("input") @Valid CreateGroupInput input, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.createGroup(input, jwtUser);
+  public GroupResponse getGroup(
+      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getGroupById(groupId, jwtUser);
   }
 
-  @MutationMapping
+  @GetMapping("/{groupId}/details")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Group> updateGroup(
-      @Argument("id") UUID id,
-      @Argument("input") @Valid UpdateGroupInput input,
-      DataFetchingEnvironment environment,
+  public GroupDetailsResponse getGroupDetails(
+      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getGroupDetailsById(groupId, jwtUser);
+  }
+
+  @GetMapping("/{groupId}/update")
+  @PreAuthorize("isAuthenticated()")
+  public GroupUpdateDetailsResponse getGroupUpdateDetails(
+      @AuthenticationPrincipal JwtUser jwtUser, @PathVariable UUID groupId) {
+    return groupService.getGroupUpdateDetailsById(groupId, jwtUser);
+  }
+
+  @GetMapping("/{groupId}/students")
+  @PreAuthorize("isAuthenticated()")
+  public List<StudentResponse> getGroupStudents(
+      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getStudentsByGroupId(groupId, jwtUser);
+  }
+
+  @GetMapping("/{groupId}/lessons")
+  @PreAuthorize("isAuthenticated()")
+  public List<LessonResponse> getGroupLessons(
+      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getLessonsByGroupId(groupId, jwtUser);
+  }
+
+  @PostMapping
+  @PreAuthorize("isAuthenticated()")
+  @ResponseStatus(HttpStatus.CREATED)
+  public GroupResponse createGroup(
+      @RequestBody @Valid CreateGroupRequest request, @AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.createGroup(request, jwtUser);
+  }
+
+  @PatchMapping("/{groupId}")
+  @PreAuthorize("isAuthenticated()")
+  public GroupResponse updateGroup(
+      @PathVariable("groupId") UUID groupId,
+      @RequestBody @Valid UpdateGroupRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.updateGroup(id, input, environment, jwtUser);
+    return groupService.updateGroup(groupId, request, jwtUser);
   }
 
-  @MutationMapping
+  @DeleteMapping("/{groupId}")
   @PreAuthorize("isAuthenticated()")
-  public Optional<Group> deleteGroup(
-      @Argument("id") UUID id, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.softDeleteGroup(id, jwtUser);
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteGroup(
+      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+    groupService.softDeleteGroup(groupId, jwtUser);
   }
 }

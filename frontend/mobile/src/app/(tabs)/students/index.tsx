@@ -1,45 +1,46 @@
-import { useQuery } from '@apollo/client/react';
 import { LegendList, type LegendListRef } from '@legendapp/list';
 import { useScrollToTop } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { api } from '@/src/api';
+import type { components } from '@/src/api/generated/openapi';
 import { StudentCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentSearchbarWithFilter } from '@/src/components/Searchbar';
-import type { GetStudentsQuery } from '@/src/graphql/__generated__/graphql';
-import { GET_STUDENTS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useFilteredStudents } from '@/src/hooks/useFilteredStudents';
 import type { StudentStatus } from '@/src/types/student';
 
 export default function StudentsScreen() {
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [filterKey, setFilterKey] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterKey, setFilterKey] = useState(0);
   const [filterGroup, setFilterGroup] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<StudentStatus | null>(null);
 
   const theme = useAppTheme();
   const router = useRouter();
   const { t } = useTranslation();
+
   const listRef = useRef<LegendListRef | null>(null);
   useScrollToTop(listRef);
 
-  const { data, loading, error, refetch } = useQuery(GET_STUDENTS, {
-    fetchPolicy: 'cache-first'
-  });
+  const {
+    data: studentsWrapper,
+    isPending: studentPending,
+    refetch
+  } = api.useQuery('get', '/api/v1/students/overview');
 
   const filteredStudents = useFilteredStudents(
-    data?.students ?? [],
+    studentsWrapper?.students ?? [],
     searchQuery,
     filterGroup,
     filterStatus
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: GetStudentsQuery['students'][number] }) => (
-      <StudentCard {...item} />
+    (props: { item: components['schemas']['StudentOverviewResponse'] }) => (
+      <StudentCard student={props.item} />
     ),
     []
   );
@@ -49,7 +50,8 @@ export default function StudentsScreen() {
     setFilterGroup(null);
     setFilterStatus(null);
     setFilterKey(key => key + 1);
-    refetch();
+
+    void refetch();
   }, [refetch]);
 
   return (
@@ -72,7 +74,7 @@ export default function StudentsScreen() {
         keyExtractor={item => item.id}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
-        refreshing={loading}
+        refreshing={studentPending}
         onRefresh={fetchStudents}
         keyboardShouldPersistTaps='handled'
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
@@ -81,19 +83,17 @@ export default function StudentsScreen() {
         recycleItems={true}
         maintainVisibleContentPosition={false}
         ListHeaderComponent={
-          <>
-            <StudentSearchbarWithFilter
-              key={filterKey}
-              value={searchQuery}
-              onChange={setSearchQuery}
-              onClearIconPress={() => setSearchQuery('')}
-              filterGroup={filterGroup}
-              setFilterGroup={setFilterGroup}
-              filterStatus={filterStatus}
-              setFilterStatus={setFilterStatus}
-            />
-            <OptionalErrorMessage error={error?.message} />
-          </>
+          <StudentSearchbarWithFilter
+            key={filterKey}
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onClearIconPress={() => setSearchQuery('')}
+            filterGroup={filterGroup}
+            setFilterGroup={setFilterGroup}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            groups={studentsWrapper?.allGroups ?? []}
+          />
         }
       />
     </>

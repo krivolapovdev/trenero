@@ -1,17 +1,22 @@
 package tech.trenero.backend.lesson.external;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import tech.trenero.backend.codegen.types.Lesson;
+import tech.trenero.backend.common.response.LessonResponse;
 import tech.trenero.backend.common.security.JwtUser;
 
 public interface LessonSpi {
-  List<Lesson> getLessonsByGroupId(UUID groupId, JwtUser jwtUser);
+  List<LessonResponse> getAllLessons(JwtUser jwtUser);
 
-  Optional<Lesson> findLessonById(UUID lessonId, JwtUser jwtUser);
+  Optional<LessonResponse> getLastGroupLesson(UUID groupId, JwtUser jwtUser);
 
-  @SuppressWarnings("UnusedReturnValue")
-  Lesson getLessonById(UUID lessonId, JwtUser jwtUser) throws EntityNotFoundException;
+  Map<UUID, LessonResponse> getLastGroupLessonsByGroupIds(List<UUID> groupIds, JwtUser jwtUser);
+
+  LessonResponse getLessonById(UUID lessonId, JwtUser jwtUser);
+
+  List<LessonResponse> getLessonsByGroupId(UUID groupId, JwtUser jwtUser);
+
+  void deleteLesson(UUID lessonId, JwtUser jwtUser);
 }

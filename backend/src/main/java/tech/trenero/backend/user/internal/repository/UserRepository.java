@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import tech.trenero.backend.common.enums.OAuth2Provider;
+import tech.trenero.backend.common.model.OAuth2Provider;
 import tech.trenero.backend.user.internal.entity.OAuth2User;
 
 @Repository

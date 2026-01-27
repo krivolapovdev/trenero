@@ -1,55 +1,30 @@
 package tech.trenero.backend.payment.internal.mapper;
 
-import static tech.trenero.backend.codegen.DgsConstants.UPDATEPAYMENTINPUT.Amount;
-import static tech.trenero.backend.codegen.DgsConstants.UPDATEPAYMENTINPUT.Date;
-import static tech.trenero.backend.codegen.DgsConstants.UPDATEPAYMENTINPUT.LessonsPerPayment;
-
-import graphql.schema.DataFetchingEnvironment;
-import java.util.Map;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
-import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
-import tech.trenero.backend.codegen.types.CreatePaymentInput;
-import tech.trenero.backend.codegen.types.Student;
-import tech.trenero.backend.codegen.types.UpdatePaymentInput;
+import tech.trenero.backend.common.response.PaymentResponse;
 import tech.trenero.backend.payment.internal.entity.Payment;
+import tech.trenero.backend.payment.internal.request.CreatePaymentRequest;
+import tech.trenero.backend.payment.internal.request.UpdatePaymentRequest;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PaymentMapper {
-  @Mapping(target = "student", source = "studentId", qualifiedByName = "studentFromId")
-  tech.trenero.backend.codegen.types.Payment toGraphql(Payment payment);
-
-  @Named("studentFromId")
-  default Student studentFromId(UUID studentId) {
-    return Student.newBuilder().id(studentId).build();
-  }
+  PaymentResponse toResponse(Payment payment);
 
   @Mapping(target = "ownerId", expression = "java(ownerId)")
-  Payment toPayment(CreatePaymentInput input, UUID ownerId);
+  Payment toPayment(CreatePaymentRequest request, UUID ownerId);
 
-  default Payment updatePayment(
-      Payment payment, UpdatePaymentInput input, DataFetchingEnvironment environment) {
-    if (payment == null || input == null || environment == null) {
+  default Payment updatePayment(Payment payment, UpdatePaymentRequest request) {
+    if (payment == null || request == null) {
       return payment;
     }
 
-    Map<String, Object> inputMap = environment.getArgument("input");
-    if (inputMap == null) {
-      return payment;
-    }
+    request.amount().ifPresent(payment::setAmount);
 
-    Map<String, Runnable> updates =
-        Map.of(
-            Amount, () -> payment.setAmount(input.getAmount()),
-            LessonsPerPayment, () -> payment.setLessonsPerPayment(input.getLessonsPerPayment()),
-            Date, () -> payment.setDate(input.getDate()));
-
-    updates.entrySet().stream()
-        .filter(entry -> inputMap.containsKey(entry.getKey()))
-        .forEach(entry -> entry.getValue().run());
+    request.paidLessons().ifPresent(payment::setPaidLessons);
 
     return payment;
   }

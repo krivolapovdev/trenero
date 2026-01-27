@@ -1,6 +1,6 @@
 package tech.trenero.backend.auth.internal.service;
 
-import static tech.trenero.backend.common.enums.OAuth2Provider.GOOGLE;
+import static tech.trenero.backend.common.model.OAuth2Provider.GOOGLE;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import java.util.Optional;
@@ -9,10 +9,10 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import tech.trenero.backend.codegen.types.JwtTokens;
-import tech.trenero.backend.codegen.types.LoginPayload;
-import tech.trenero.backend.codegen.types.SocialLoginInput;
-import tech.trenero.backend.codegen.types.User;
+import tech.trenero.backend.auth.internal.request.OAuth2LoginRequest;
+import tech.trenero.backend.common.response.JwtTokensResponse;
+import tech.trenero.backend.common.response.LoginResponse;
+import tech.trenero.backend.common.response.UserResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.user.external.UserSpi;
 
@@ -25,10 +25,10 @@ public class OAuth2Service {
   @Lazy private final UserSpi userSpi;
 
   @SneakyThrows
-  public LoginPayload googleLogin(SocialLoginInput request) {
+  public LoginResponse googleLogin(OAuth2LoginRequest request) {
     log.info("Google login request: {}", request);
 
-    Optional<GoogleIdToken> googleIdToken = googleAuthService.verifyIdToken(request.getIdToken());
+    Optional<GoogleIdToken> googleIdToken = googleAuthService.verifyIdToken(request.token());
 
     if (googleIdToken.isEmpty()) {
       throw new IllegalArgumentException("Invalid ID token");
@@ -38,15 +38,15 @@ public class OAuth2Service {
     String providerId = payload.getSubject();
     String email = payload.getEmail();
 
-    User user = userSpi.getOrCreateUserFromOAuth2(GOOGLE, providerId, email);
+    UserResponse user = userSpi.getOrCreateUserFromOAuth2(GOOGLE, providerId, email);
 
-    JwtUser jwtUser = new JwtUser(user.getId(), email);
-    JwtTokens tokens = jwtTokenService.createAccessAndRefreshTokens(jwtUser);
+    JwtUser jwtUser = new JwtUser(user.id(), email);
+    JwtTokensResponse tokens = jwtTokenService.createAccessAndRefreshTokens(jwtUser);
 
-    return new LoginPayload(user, tokens);
+    return new LoginResponse(user, tokens);
   }
 
-  public LoginPayload appleLogin(SocialLoginInput request) {
+  public LoginResponse appleLogin(OAuth2LoginRequest request) {
     log.info("Apple login request: {}", request);
     return null;
   }

@@ -1,19 +1,10 @@
-import { useMutation } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert, View } from 'react-native';
 import { Button } from 'react-native-paper';
+import { api } from '@/src/api';
 import { CustomBottomSheet } from '@/src/components/BottomSheet/CustomBottomSheet';
-import { graphql } from '@/src/graphql/__generated__';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-
-const DELETE_PAYMENT = graphql(`
-    mutation DeletePayment($id: UUID!) {
-        deletePayment(id: $id) {
-            id
-        }
-    }
-`);
 
 type Props = {
   paymentId: string;
@@ -33,22 +24,11 @@ export const PaymentSheet = ({
     studentId: string;
   }>();
 
-  const [deletePayment, { loading }] = useMutation(DELETE_PAYMENT, {
-    variables: { id: paymentId },
-
-    update(cache, { data }) {
-      if (!data?.deletePayment) {
-        return;
-      }
-
-      cache.evict({ id: cache.identify(data.deletePayment) });
-      cache.gc();
-    },
-
-    onCompleted: onDismiss,
-
-    onError: err => Alert.alert(t('error'), err.message)
-  });
+  const { mutate: deletePayment, isPending: deletePaymentPending } =
+    api.useMutation('delete', `/api/v1/payments/{paymentId}`, {
+      onSuccess: onDismiss,
+      onError: err => Alert.alert(t('error'), err)
+    });
 
   return (
     <CustomBottomSheet
@@ -66,7 +46,7 @@ export const PaymentSheet = ({
             );
             onDismiss();
           }}
-          disabled={loading}
+          disabled={deletePaymentPending}
         >
           {t('edit')}
         </Button>
@@ -75,9 +55,13 @@ export const PaymentSheet = ({
           mode='contained-tonal'
           textColor={theme.colors.error}
           buttonColor={theme.colors.tertiaryContainer}
-          onPress={() => void deletePayment()}
-          disabled={loading}
-          loading={loading}
+          onPress={() =>
+            deletePayment({
+              params: { path: { paymentId } }
+            })
+          }
+          disabled={deletePaymentPending}
+          loading={deletePaymentPending}
         >
           {t('delete')}
         </Button>

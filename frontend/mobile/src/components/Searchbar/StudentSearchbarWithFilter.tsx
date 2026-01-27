@@ -1,11 +1,10 @@
-import { useQuery } from '@apollo/client/react';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
+import type { components } from '@/src/api/generated/openapi';
 import { CustomBottomSheet } from '@/src/components/BottomSheet/CustomBottomSheet';
 import { SearchbarWithFilter } from '@/src/components/Searchbar/SearchbarWithFilter';
-import { GET_GROUPS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import type { StudentStatus } from '@/src/types/student';
 import { FilterAccordion } from './FilterAccordion';
@@ -24,6 +23,8 @@ type Props = {
 
   filterStatus: StudentStatus | null;
   setFilterStatus: (status: StudentStatus | null) => void;
+
+  groups: components['schemas']['GroupResponse'][];
 };
 
 export const StudentSearchbarWithFilter = memo(
@@ -34,7 +35,8 @@ export const StudentSearchbarWithFilter = memo(
     filterGroup,
     setFilterGroup,
     filterStatus,
-    setFilterStatus
+    setFilterStatus,
+    groups
   }: Readonly<Props>) => {
     const { t } = useTranslation();
     const theme = useAppTheme();
@@ -46,17 +48,12 @@ export const StudentSearchbarWithFilter = memo(
     const [draftGroup, setDraftGroup] = useState<string | null>(null);
     const [draftStatus, setDraftStatus] = useState<StudentStatus | null>(null);
 
-    const { data } = useQuery(GET_GROUPS, {
-      fetchPolicy: 'cache-first'
-    });
-
     const groupItems = useMemo(
       () => [
         ALL_ITEM,
-        ...(data?.groups.map(group => ({ id: group.id, name: group.name })) ??
-          [])
+        ...(groups.map(group => ({ id: group.id, name: group.name })) ?? [])
       ],
-      [data]
+      [groups.map]
     );
 
     const statusItems = useMemo(

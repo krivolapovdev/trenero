@@ -14,40 +14,70 @@ import tech.trenero.backend.visit.internal.entity.Visit;
 public interface VisitRepository extends JpaRepository<@NonNull Visit, @NonNull UUID> {
   @Query(
       """
-        SELECT a
-        FROM Visit AS a
-        WHERE a.ownerId = :ownerId
-          AND a.deletedAt IS NULL
-        ORDER BY a.createdAt DESC""")
+      SELECT v
+      FROM Visit AS v
+      WHERE v.ownerId = :ownerId
+        AND v.deletedAt IS NULL
+      ORDER BY v.createdAt DESC
+      """)
   List<Visit> findAllByOwnerId(@Param("ownerId") UUID ownerId);
 
   @Query(
       """
-        SELECT a
-        FROM Visit AS a
-        WHERE a.id = :visitId
-          AND a.ownerId = :ownerId
-          AND a.deletedAt IS NULL""")
+      SELECT v
+      FROM Visit AS v
+      WHERE v.id = :visitId
+        AND v.ownerId = :ownerId
+        AND v.deletedAt IS NULL
+      """)
   Optional<Visit> findByIdAndOwnerId(
       @Param("visitId") UUID visitId, @Param("ownerId") UUID ownerId);
 
   @Query(
       """
-        SELECT a
-        FROM Visit AS a
-        WHERE a.ownerId = :ownerId
-          AND a.studentId = :studentId
-          AND a.deletedAt IS NULL""")
+      SELECT v
+      FROM Visit AS v
+      WHERE v.lessonId = :lessonId
+        AND v.studentId = :studentId
+        AND v.ownerId = :ownerId
+        AND v.deletedAt IS NULL
+      """)
+  Optional<Visit> findByLessonIdAndStudentIdAndOwnerId(
+      @Param("lessonId") UUID lessonId,
+      @Param("studentId") UUID studentId,
+      @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+      SELECT v
+      FROM Visit AS v
+      WHERE v.ownerId = :ownerId
+        AND v.studentId = :studentId
+        AND v.deletedAt IS NULL
+      """)
   List<Visit> findAllByStudentIdAndOwnerId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 
   @Query(
       """
-        SELECT a
-        FROM Visit AS a
-        WHERE a.ownerId = :ownerId
-          AND a.lessonId = :lessonId
-          AND a.deletedAt IS NULL""")
+      SELECT v
+      FROM Visit AS v
+      WHERE v.ownerId = :ownerId
+        AND v.lessonId = :lessonId
+        AND v.deletedAt IS NULL
+      """)
   List<Visit> findAllByLessonIdAndOwnerId(
       @Param("lessonId") UUID lessonId, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+      SELECT v
+      FROM Visit v
+      WHERE v.ownerId = :ownerId
+        AND v.studentId IN :studentIds
+        AND v.deletedAt IS NULL
+      ORDER BY v.createdAt DESC
+      """)
+  List<Visit> findAllByStudentIdsAndOwnerId(
+      @Param("studentIds") List<UUID> studentIds, @Param("ownerId") UUID ownerId);
 }

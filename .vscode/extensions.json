@@ -2,11 +2,6 @@
   "recommendations": [
     "biomejs.biome",
     "editorconfig.editorconfig",
-    "bradlc.vscode-tailwindcss",
-    "streetsidesoftware.code-spell-checker",
-    "irongeek.vscode-env",
-    "meganrogge.template-string-converter",
-    "yzhang.markdown-all-in-one",
     "expo.vscode-expo-tools"
   ]
 }

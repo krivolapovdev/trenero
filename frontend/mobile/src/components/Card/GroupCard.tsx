@@ -1,17 +1,17 @@
 import { nanoid } from 'nanoid/non-secure';
 import { useTranslation } from 'react-i18next';
-import type { GetGroupsQuery } from '@/src/graphql/__generated__/graphql';
+import type { components } from '@/src/api/generated/openapi';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { EntityCard } from './EntityCard';
 
-type Props = GetGroupsQuery['groups'][number];
+type Props = components['schemas']['GroupOverviewResponse'];
 
 export const GroupCard = ({
   id,
   name,
   defaultPrice,
   note,
-  students
+  studentsCount
 }: Readonly<Props>) => {
   const { t } = useTranslation();
   const theme = useAppTheme();
@@ -19,7 +19,7 @@ export const GroupCard = ({
   const badges = [
     {
       id: nanoid(),
-      label: `${t('students')}: ${students?.length ?? 0} `,
+      label: `${t('students')}: ${studentsCount}`,
       backgroundColor: theme.colors.secondaryContainer,
       textColor: theme.colors.onSecondaryContainer
     }

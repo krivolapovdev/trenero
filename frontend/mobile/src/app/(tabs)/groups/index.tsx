@@ -1,15 +1,14 @@
-import { useQuery } from '@apollo/client/react';
 import { LegendList, type LegendListRef } from '@legendapp/list';
 import { useScrollToTop } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Searchbar } from 'react-native-paper';
+import { api } from '@/src/api';
+import type { components } from '@/src/api/generated/openapi';
 import { GroupCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
-import type { GetGroupsQuery } from '@/src/graphql/__generated__/graphql';
-import { GET_GROUPS } from '@/src/graphql/queries';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useFilteredGroups } from '@/src/hooks/useFilteredGroups';
 
@@ -23,19 +22,20 @@ export default function GroupsScreen() {
   const listRef = useRef<LegendListRef | null>(null);
   useScrollToTop(listRef);
 
-  const { loading, data, error, refetch } = useQuery(GET_GROUPS, {
-    fetchPolicy: 'cache-first'
-  });
+  const { data, isFetching, error, refetch } = api.useQuery(
+    'get',
+    '/api/v1/groups/overview'
+  );
 
-  const filteredGroups = useFilteredGroups(data?.groups ?? [], searchQuery);
+  const filteredGroups = useFilteredGroups(data ?? [], searchQuery);
 
   const fetchGroups = useCallback(() => {
     setSearchQuery('');
-    refetch();
+    void refetch();
   }, [refetch]);
 
   const renderItem = useCallback(
-    ({ item }: { item: GetGroupsQuery['groups'][number] }) => (
+    ({ item }: { item: components['schemas']['GroupOverviewResponse'] }) => (
       <GroupCard {...item} />
     ),
     []
@@ -61,7 +61,7 @@ export default function GroupsScreen() {
         keyExtractor={item => item.id}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
-        refreshing={loading}
+        refreshing={isFetching}
         onRefresh={fetchGroups}
         keyboardShouldPersistTaps='handled'
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
@@ -79,7 +79,7 @@ export default function GroupsScreen() {
               onClearIconPress={() => setSearchQuery('')}
             />
 
-            <OptionalErrorMessage error={error?.message} />
+            <OptionalErrorMessage error={error} />
           </>
         }
       />
