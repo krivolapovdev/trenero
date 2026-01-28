@@ -28,7 +28,6 @@ services:
       POSTGRES_USER: ${DB_USERNAME:-username}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
       SCHEDULE: "@daily"
-      BACKUP_KEEP_DAYS: 7
       BACKUP_SUFFIX: ".sql.gz"
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080" ]
