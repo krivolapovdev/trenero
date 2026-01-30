@@ -59,7 +59,7 @@ services:
       retries: 20
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=PathPrefix(`/graphql`)"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
       - "traefik.http.routers.backend.middlewares=backend-compress"
       - "traefik.http.middlewares.backend-compress.compress=true"
