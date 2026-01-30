@@ -22,7 +22,7 @@ type PaymentFormInitialData = {
 
 type Props = {
   title: string;
-  queryLoading: boolean;
+  queryLoading?: boolean;
   mutationLoading?: boolean;
   initialData?: PaymentFormInitialData | null;
   onSubmit: (values: PaymentFormValues) => void;

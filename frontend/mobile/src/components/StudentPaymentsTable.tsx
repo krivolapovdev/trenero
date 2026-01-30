@@ -59,7 +59,7 @@ export const StudentPaymentsTable = memo(
               textStyle={{ fontSize: 15 }}
               numeric={true}
             >
-              💲
+              🪙
             </DataTable.Title>
           </DataTable.Header>
 

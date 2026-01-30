@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
+import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { Text } from 'react-native-paper';
@@ -10,30 +11,30 @@ import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { RoundedBarChart } from '@/src/components/RoundedBarChart';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useInitApp } from '@/src/hooks/useInitApp';
+import { useMetricsStore } from '@/src/stores/metricsStore';
 
 export default function MetricsScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const [selectedBar, setSelectedBar] = useState(dayjs());
-  const { isLoading } = useInitApp();
+  const { loading: isInitLoading } = useInitApp();
+  const metrics = useMetricsStore(state => state.allMetrics);
+  const setAllMetrics = useMetricsStore(state => state.setAllMetrics);
 
-  const { data, isPending, error, refetch } = api.useQuery(
-    'get',
-    '/api/v1/metrics/payments/monthly'
+  const { loading, execute, error } = useAsyncCallback(() =>
+    api.GET('/api/v1/metrics/payments/monthly')
   );
 
-  const monthlyData = useMemo(() => {
-    if (!data) {
-      return [];
-    }
+  const monthlyData = useMemo(
+    () =>
+      metrics.map(m => ({
+        date: dayjs(m.date),
+        value: m.total
+      })),
+    [metrics]
+  );
 
-    return data.map(item => ({
-      date: dayjs(item.month),
-      value: Number(item.total)
-    }));
-  }, [data]);
-
-  if (isLoading) {
+  if (isInitLoading) {
     return <LoadingSpinner />;
   }
 
@@ -53,12 +54,18 @@ export default function MetricsScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={isPending}
-            onRefresh={refetch}
+            refreshing={loading}
+            onRefresh={() =>
+              execute().then(({ data }) => {
+                if (data) {
+                  setAllMetrics(data);
+                }
+              })
+            }
           />
         }
       >
-        <OptionalErrorMessage error={error} />
+        <OptionalErrorMessage error={error?.message} />
 
         <View
           style={{

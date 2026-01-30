@@ -4,8 +4,8 @@ import {
   isSuccessResponse,
   statusCodes
 } from '@react-native-google-signin/google-signin';
+import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
 import { api } from '@/src/api';
 import { useAuthStore } from '@/src/stores/authStore';
 
@@ -38,15 +38,7 @@ export function useGoogleSignIn() {
   const setAuth = useAuthStore(state => state.setAuth);
   const { t } = useTranslation();
 
-  const { mutateAsync, isPending } = api.useMutation(
-    'post',
-    '/api/v1/oauth2/google',
-    {
-      onError: err => Alert.alert(t('error'), err)
-    }
-  );
-
-  const signIn = async () => {
+  const { execute: signIn, loading: isLoading } = useAsyncCallback(async () => {
     await GoogleSignin.hasPlayServices().catch(error => {
       throw new Error(getGoogleErrorMessage(error));
     });
@@ -64,23 +56,21 @@ export function useGoogleSignIn() {
       throw new Error('Failed to retrieve Google ID token');
     }
 
-    const data = await mutateAsync({
-      body: {
-        token: idToken
-      }
+    const { data, error } = await api.POST('/api/v1/oauth2/google', {
+      body: { token: idToken }
     });
 
-    if (!data) {
+    if (!data || error) {
       throw new Error('Login failed: no data returned');
     }
 
     await setAuth(data);
 
     return data;
-  };
+  });
 
   return {
     signIn,
-    isPending
+    isLoading
   };
 }

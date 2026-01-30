@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useAsync } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
@@ -8,39 +9,52 @@ import {
   LessonForm,
   type LessonFormValues
 } from '@/src/components/Form/LessonForm';
+import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
+import { useGroupsStore } from '@/src/stores/groupsStore';
+import type { ApiError } from '@/src/types/error';
+
+type UpdateLessonRequest = components['schemas']['UpdateLessonRequest'];
 
 export default function UpdateLessonScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { lessonId } = useLocalSearchParams<{
+  const { groupId, lessonId } = useLocalSearchParams<{
     groupId: string;
     lessonId: string;
   }>();
 
-  const { data: lesson, isPending: lessonLoading } = api.useQuery(
-    'get',
-    '/api/v1/lessons/{lessonId}/update',
-    {
-      params: {
-        path: {
-          lessonId
+  const removeGroup = useGroupsStore(state => state.removeGroup);
+
+  const { loading: lessonLoading, result } = useAsync(
+    () =>
+      api.GET('/api/v1/lessons/{lessonId}/details', {
+        params: {
+          path: {
+            lessonId
+          }
         }
-      }
-    }
+      }),
+    [lessonId]
   );
 
-  const { mutate: updateLesson, isPending: updateLessonPending } =
-    api.useMutation('patch', '/api/v1/lessons/{lessonId}', {
-      onSuccess: router.back,
-      onError: err => Alert.alert(t('error'), err)
-    });
+  const lesson = result?.data;
 
-  const handleSubmit = (values: LessonFormValues) => {
-    if (!lesson || lessonLoading || updateLessonPending) {
+  const { execute: updateLesson, loading: updateLessonLoading } =
+    useCustomAsyncCallback((request: UpdateLessonRequest) =>
+      api.PATCH('/api/v1/lessons/{lessonId}', {
+        params: {
+          path: { lessonId }
+        },
+        body: request
+      })
+    );
+
+  const handleSubmit = async (values: LessonFormValues) => {
+    if (!lesson || lessonLoading || updateLessonLoading) {
       return;
     }
 
-    const request: components['schemas']['UpdateLessonRequest'] = {};
+    const request: UpdateLessonRequest = {};
 
     if (values.startDateTime !== lesson.startDateTime) {
       request.startDateTime = values.startDateTime;
@@ -60,14 +74,14 @@ export default function UpdateLessonScreen() {
       return;
     }
 
-    updateLesson({
-      params: {
-        path: {
-          lessonId
-        }
-      },
-      body: request
-    });
+    try {
+      await updateLesson(request);
+      removeGroup(groupId);
+      router.back();
+    } catch (err) {
+      const errorData = err as ApiError;
+      Alert.alert(t('error'), errorData.detail);
+    }
   };
 
   return (
@@ -77,7 +91,7 @@ export default function UpdateLessonScreen() {
         lesson
       }}
       queryLoading={lessonLoading}
-      mutationLoading={updateLessonPending}
+      mutationLoading={updateLessonLoading}
       onBack={router.back}
       onSubmit={handleSubmit}
     />

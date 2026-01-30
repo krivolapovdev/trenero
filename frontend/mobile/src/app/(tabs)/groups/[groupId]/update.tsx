@@ -1,80 +1,59 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
 import { api } from '@/src/api';
-import type { components } from '@/src/api/generated/openapi';
 import {
   GroupForm,
   type GroupFormValues
 } from '@/src/components/Form/GroupForm';
+import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
+import { useGroupsStore } from '@/src/stores/groupsStore';
+import type { ApiError } from '@/src/types/error';
+
+type UpdateGroupRequest = {
+  name?: string | null;
+  defaultPrice?: number | null;
+  note?: string | null;
+  studentIds?: string[] | null;
+};
 
 export default function UpdateGroupScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
-  const queryClient = useQueryClient();
 
-  const { data: group, isPending: groupPending } = api.useQuery(
-    'get',
-    '/api/v1/groups/{groupId}/update',
-    {
-      params: {
-        path: {
-          groupId
-        }
-      }
-    }
-  );
+  const recentGroups = useGroupsStore(state => state.recentGroups);
+  const removeGroup = useGroupsStore(state => state.removeGroup);
+  const group = recentGroups.find(group => group.id === groupId);
 
-  const { mutate: updateGroup, isPending: mutationPending } = api.useMutation(
-    'patch',
-    '/api/v1/groups/{groupId}',
-    {
-      onSuccess: async _data => {
-        await queryClient.invalidateQueries(
-          api.queryOptions('get', '/api/v1/groups/{groupId}/details', {
-            params: { path: { groupId } }
-          })
-        );
+  const { execute: updateGroup, loading: updateGroupLoading } =
+    useCustomAsyncCallback((request: UpdateGroupRequest) =>
+      api.PATCH('/api/v1/groups/{groupId}', {
+        params: {
+          path: { groupId }
+        },
+        body: request
+      })
+    );
 
-        await queryClient.invalidateQueries(
-          api.queryOptions('get', '/api/v1/groups/{groupId}/update', {
-            params: { path: { groupId } }
-          })
-        );
-
-        router.back();
-      },
-
-      onError: err => Alert.alert('Error', err)
-    }
-  );
-
-  const handleSubmit = (values: GroupFormValues) => {
-    if (!group || groupPending || mutationPending) {
+  const handleSubmit = async (values: GroupFormValues) => {
+    if (!group || updateGroupLoading) {
       return;
     }
 
-    const request: components['schemas']['UpdateGroupRequest'] = {};
+    const request: UpdateGroupRequest = {};
 
     if (values.name !== group.name) {
-      request.name = values.name;
+      request.name = values.name ?? null;
     }
 
     if (values.defaultPrice !== group.defaultPrice) {
-      request.defaultPrice = values.defaultPrice;
+      request.defaultPrice = values.defaultPrice ?? null;
     }
 
     if (values.note !== group.note) {
-      request.note = values.note;
-    }
-
-    const currentStudentIds = group.groupStudents.map(student => student.id);
-
-    if (!R.isDeepEqual(currentStudentIds, values.studentIds)) {
-      request.studentIds = values.studentIds;
+      request.note = values.note ?? null;
     }
 
     if (R.isEmpty(request)) {
@@ -82,14 +61,14 @@ export default function UpdateGroupScreen() {
       return;
     }
 
-    updateGroup({
-      params: {
-        path: {
-          groupId
-        }
-      },
-      body: request
-    });
+    try {
+      await updateGroup(request);
+      removeGroup(groupId);
+      router.back();
+    } catch (err) {
+      const errorData = err as ApiError;
+      Alert.alert(t('error'), errorData.detail);
+    }
   };
 
   return (
@@ -98,8 +77,7 @@ export default function UpdateGroupScreen() {
       initialData={{
         group
       }}
-      queryLoading={groupPending}
-      mutationLoading={mutationPending}
+      mutationLoading={updateGroupLoading}
       onBack={router.back}
       onSubmit={handleSubmit}
     />

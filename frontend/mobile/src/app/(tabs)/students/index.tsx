@@ -2,14 +2,18 @@ import { LegendList, type LegendListRef } from '@legendapp/list';
 import { useScrollToTop } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
+import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/src/api';
 import type { components } from '@/src/api/generated/openapi';
 import { StudentCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentSearchbarWithFilter } from '@/src/components/Searchbar';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useFilteredStudents } from '@/src/hooks/useFilteredStudents';
+import { useGroupsStore } from '@/src/stores/groupsStore';
+import { useStudentsStore } from '@/src/stores/studentsStore';
 import type { StudentStatus } from '@/src/types/student';
 
 export default function StudentsScreen() {
@@ -25,14 +29,16 @@ export default function StudentsScreen() {
   const listRef = useRef<LegendListRef | null>(null);
   useScrollToTop(listRef);
 
-  const {
-    data: studentsWrapper,
-    isPending: studentPending,
-    refetch
-  } = api.useQuery('get', '/api/v1/students/overview');
+  const students = useStudentsStore(state => state.allStudents);
+  const groups = useGroupsStore(state => state.allGroups);
+  const setAllStudents = useStudentsStore(state => state.setAllStudents);
+
+  const { loading, execute, error } = useAsyncCallback(() =>
+    api.GET('/api/v1/students/overview')
+  );
 
   const filteredStudents = useFilteredStudents(
-    studentsWrapper?.students ?? [],
+    students,
     searchQuery,
     filterGroup,
     filterStatus
@@ -45,14 +51,17 @@ export default function StudentsScreen() {
     []
   );
 
-  const fetchStudents = useCallback(() => {
+  const refreshData = useCallback(async () => {
     setSearchQuery('');
     setFilterGroup(null);
     setFilterStatus(null);
     setFilterKey(key => key + 1);
 
-    void refetch();
-  }, [refetch]);
+    const { data } = await execute();
+    if (data) {
+      setAllStudents(data);
+    }
+  }, [execute, setAllStudents]);
 
   return (
     <>
@@ -68,14 +77,16 @@ export default function StudentsScreen() {
         ]}
       />
 
+      <OptionalErrorMessage error={error?.message} />
+
       <LegendList
         ref={listRef}
         data={filteredStudents}
         keyExtractor={item => item.id}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
-        refreshing={studentPending}
-        onRefresh={fetchStudents}
+        refreshing={loading}
+        onRefresh={refreshData}
         keyboardShouldPersistTaps='handled'
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
         contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
@@ -92,7 +103,7 @@ export default function StudentsScreen() {
             setFilterGroup={setFilterGroup}
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
-            groups={studentsWrapper?.allGroups ?? []}
+            groups={groups}
           />
         }
       />

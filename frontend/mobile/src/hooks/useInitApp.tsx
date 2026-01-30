@@ -1,20 +1,43 @@
-import { useQueries } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useAsync } from 'react-async-hook';
 import { api } from '@/src/api';
+import { useGroupsStore } from '@/src/stores/groupsStore';
+import { useMetricsStore } from '@/src/stores/metricsStore';
+import { useStudentsStore } from '@/src/stores/studentsStore';
 
 export function useInitApp() {
-  const queries = useQueries({
-    queries: [
-      api.queryOptions('get', '/api/v1/metrics/payments/monthly'),
+  const setAllMetrics = useMetricsStore(state => state.setAllMetrics);
+  const setAllGroups = useGroupsStore(state => state.setAllGroups);
+  const setAllStudents = useStudentsStore(state => state.setAllStudents);
 
-      api.queryOptions('get', '/api/v1/groups/overview'),
+  const { result, loading } = useAsync(async () => {
+    const [metrics, groups, students] = await Promise.all([
+      api.GET('/api/v1/metrics/payments/monthly'),
+      api.GET('/api/v1/groups/overview'),
+      api.GET('/api/v1/students/overview')
+    ]);
+    return { metrics, groups, students };
+  }, []);
 
-      api.queryOptions('get', '/api/v1/students/overview')
-    ]
-  });
+  useEffect(() => {
+    if (result?.metrics?.data) {
+      setAllMetrics(result.metrics.data);
+    }
+  }, [setAllMetrics, result?.metrics.data]);
 
-  const isLoading = queries.some(q => q.isLoading);
+  useEffect(() => {
+    if (result?.students?.data) {
+      setAllStudents(result.students.data);
+    }
+  }, [result?.students.data, setAllStudents]);
+
+  useEffect(() => {
+    if (result?.groups?.data) {
+      setAllGroups(result.groups.data);
+    }
+  }, [result?.groups.data, setAllGroups]);
 
   return {
-    isLoading
+    loading
   };
 }

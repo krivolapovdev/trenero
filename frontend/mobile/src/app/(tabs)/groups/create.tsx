@@ -1,48 +1,42 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import { api } from '@/src/api';
+import type { components } from '@/src/api/generated/openapi';
 import {
   GroupForm,
   type GroupFormValues
 } from '@/src/components/Form/GroupForm';
+import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
+import type { ApiError } from '@/src/types/error';
+
+type CreateGroupRequest = components['schemas']['CreateGroupRequest'];
 
 export default function CreateGroupScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const queryClient = useQueryClient();
 
-  const { mutate: createGroup, isPending: mutationPending } = api.useMutation(
-    'post',
-    '/api/v1/groups',
-    {
-      onSuccess: data => {
-        router.replace(`/(tabs)/groups/${data.id}`);
+  const { execute: createGroup, loading: createGroupLoading } =
+    useCustomAsyncCallback((body: CreateGroupRequest) =>
+      api.POST('/api/v1/groups', { body })
+    );
 
-        void queryClient.invalidateQueries(
-          api.queryOptions('get', '/api/v1/groups/overview')
-        );
-
-        void queryClient.invalidateQueries(
-          api.queryOptions('get', '/api/v1/students/overview')
-        );
-      },
-
-      onError: error => Alert.alert('Error', error)
-    }
-  );
-
-  const handleSubmit = (values: GroupFormValues) => {
-    if (mutationPending) {
+  const handleSubmit = async (values: GroupFormValues) => {
+    if (createGroupLoading) {
       return;
     }
 
-    createGroup({
-      body: {
-        ...values
-      }
-    });
+    const request: CreateGroupRequest = {
+      ...values
+    };
+
+    try {
+      const data = await createGroup(request);
+      router.replace(`/(tabs)/groups/${data.id}`);
+    } catch (err) {
+      const errorData = err as ApiError;
+      Alert.alert(t('error'), errorData.detail);
+    }
   };
 
   return (
@@ -50,7 +44,7 @@ export default function CreateGroupScreen() {
       title={t('addGroup')}
       onSubmit={handleSubmit}
       onBack={router.back}
-      queryLoading={mutationPending}
+      mutationLoading={createGroupLoading}
     />
   );
 }

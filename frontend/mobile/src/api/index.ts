@@ -1,29 +1,16 @@
-import { QueryClient } from '@tanstack/query-core';
-import createFetchClient, { type Middleware } from 'openapi-fetch';
-import createClient from 'openapi-react-query';
+import createFetchClient from 'openapi-fetch';
+import createClient, { type Middleware } from 'openapi-fetch';
 import type { paths } from '@/src/api/generated/openapi';
 import { useAuthStore } from '@/src/stores/authStore';
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-      staleTime: 60_000
-    }
-  }
-});
-
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:8080';
 
-const authClient = createFetchClient<paths>({
-  baseUrl: BASE_URL
-});
-const fetchClient = createFetchClient<paths>({
-  baseUrl: BASE_URL
-});
-
 let refreshPromise: Promise<string | null> | null = null;
+
+type CustomRequest = Request & {
+  _bodyInit?: BodyInit;
+  _bodyText?: string;
+};
 
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
@@ -34,7 +21,7 @@ const authMiddleware: Middleware = {
     return request;
   },
 
-  async onResponse({ request, response }) {
+  async onResponse({ request, response, options }) {
     if (response.status !== 401 && response.status !== 403) {
       return response;
     }
@@ -57,15 +44,33 @@ const authMiddleware: Middleware = {
       return response;
     }
 
-    const retryRequest = request.clone();
-    retryRequest.headers.set('Authorization', `Bearer ${newAccessToken}`);
-    return fetch(retryRequest);
+    const headers = new Headers(request.headers);
+    headers.set('Authorization', `Bearer ${newAccessToken}`);
+
+    const requestInit: RequestInit = {
+      method: request.method,
+      headers: headers
+    };
+
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      const castedRequest = request as CustomRequest;
+      requestInit.body = castedRequest._bodyText ?? castedRequest._bodyInit;
+    }
+
+    return fetch(request.url, requestInit);
   }
 };
 
-fetchClient.use(authMiddleware);
+export const api = createClient<paths>({
+  baseUrl: BASE_URL,
+  cache: 'no-cache'
+});
 
-export const api = createClient(fetchClient);
+api.use(authMiddleware);
+
+const authClient = createFetchClient<paths>({
+  baseUrl: BASE_URL
+});
 
 async function refreshAccessToken(): Promise<string | null> {
   const store = useAuthStore.getState();

@@ -20,13 +20,13 @@ export type StudentFormValues = {
 };
 
 type StudentFormInitialData = {
-  student?: components['schemas']['StudentResponse'];
-  groups?: components['schemas']['GroupResponse'][];
+  student?: components['schemas']['StudentDetailsResponse'];
+  allGroups?: components['schemas']['GroupResponse'][];
 };
 
 type Props = {
   title: string;
-  queryLoading: boolean;
+  queryLoading?: boolean;
   mutationLoading?: boolean;
   initialData?: StudentFormInitialData | null;
   onSubmit: (values: StudentFormValues) => void;
@@ -75,7 +75,7 @@ export const StudentForm = memo(
 
     const groupItems: ListItem[] = useMemo(
       () =>
-        initialData?.groups?.map(group => ({
+        initialData?.allGroups?.map(group => ({
           _id: group.id,
           value: group.name
         })) ?? [],

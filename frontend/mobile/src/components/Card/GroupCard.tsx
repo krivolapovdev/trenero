@@ -11,7 +11,7 @@ export const GroupCard = ({
   name,
   defaultPrice,
   note,
-  studentsCount
+  groupStudents
 }: Readonly<Props>) => {
   const { t } = useTranslation();
   const theme = useAppTheme();
@@ -19,7 +19,7 @@ export const GroupCard = ({
   const badges = [
     {
       id: nanoid(),
-      label: `${t('students')}: ${studentsCount}`,
+      label: `${t('students')}: ${groupStudents.length}`,
       backgroundColor: theme.colors.secondaryContainer,
       textColor: theme.colors.onSecondaryContainer
     }

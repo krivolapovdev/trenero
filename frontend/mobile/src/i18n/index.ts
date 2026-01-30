@@ -78,7 +78,8 @@ const resources = {
       confirmLogout: 'Confirm Logout',
       logoutMessage: 'Are you sure you want to logout?',
       contactMessage:
-        'Do you have questions regarding our services or suggestions for future improvements? We are committed to providing the best experience possible and welcome your communication. Please use the following contact information to get in touch with our team:'
+        'Do you have questions regarding our services or suggestions for future improvements? We are committed to providing the best experience possible and welcome your communication. Please use the following contact information to get in touch with our team:',
+      unexpectedError: 'Something went wrong...'
     }
   },
   ru: {
@@ -157,7 +158,8 @@ const resources = {
       confirmLogout: 'Подтвердите выход',
       logoutMessage: 'Вы уверены, что хотите выйти?',
       contactMessage:
-        'Есть вопросы по нашим услугам или предложения по улучшению? Мы стремимся предоставить наилучший опыт и приветствуем ваше сообщение. Пожалуйста, используйте следующую контактную информацию для связи с нашей командой:'
+        'Есть вопросы по нашим услугам или предложения по улучшению? Мы стремимся предоставить наилучший опыт и приветствуем ваше сообщение. Пожалуйста, используйте следующую контактную информацию для связи с нашей командой:',
+      unexpectedError: 'Непредвиденная ошибка...'
     }
   }
 } as const;

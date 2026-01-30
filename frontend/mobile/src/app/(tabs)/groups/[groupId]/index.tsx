@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { Divider, List, Text } from 'react-native-paper';
@@ -6,7 +7,11 @@ import { api } from '@/src/api';
 import { LessonsCalendar } from '@/src/components/Calendar';
 import { GroupCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
+import { useGroupsStore } from '@/src/stores/groupsStore';
+import type { ApiError } from '@/src/types/error';
 
 export default function GroupByIdScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
@@ -14,44 +19,64 @@ export default function GroupByIdScreen() {
   const router = useRouter();
   const { t } = useTranslation();
 
+  const recentGroups = useGroupsStore(state => state.recentGroups);
+  const addGroup = useGroupsStore(state => state.addGroup);
+  const removeGroup = useGroupsStore(state => state.removeGroup);
+  const group = recentGroups.find(g => g.id === groupId);
+
   const {
-    data: group,
-    isLoading: groupLoading,
-    isRefetching: groupRefetching,
-    refetch
-  } = api.useQuery('get', '/api/v1/groups/{groupId}/details', {
-    params: {
-      path: {
-        groupId
-      }
-    }
-  });
-
-  const { mutate: deleteGroup, isPending: mutationLoading } = api.useMutation(
-    'delete',
-    '/api/v1/groups/{groupId}',
-    {
-      onSuccess: router.back,
-
-      onError: err => Alert.alert(t('error'), err)
-    }
+    execute: fetchGroup,
+    loading: groupLoading,
+    error
+  } = useCustomAsyncCallback(() =>
+    api.GET('/api/v1/groups/{groupId}/details', {
+      params: { path: { groupId } }
+    })
   );
 
-  const handleDeletePress = () => {
+  const { execute: deleteGroup, loading: mutationLoading } =
+    useCustomAsyncCallback(() =>
+      api.DELETE(`/api/v1/groups/{groupId}`, {
+        params: {
+          path: {
+            groupId
+          }
+        }
+      })
+    );
+
+  const handleDelete = () => {
     Alert.alert(t('deleteGroup'), t('deleteGroupConfirmation'), [
       { text: t('cancel'), style: 'cancel' },
       {
         text: t('delete'),
         style: 'destructive',
         onPress: () =>
-          deleteGroup({
-            params: {
-              path: { groupId }
-            }
-          })
+          void deleteGroup({})
+            .then(() => removeGroup(groupId))
+            .then(() => router.back())
+            .catch(err => Alert.alert(t('error'), err))
       }
     ]);
   };
+
+  const refreshData = useCallback(async () => {
+    try {
+      const data = await fetchGroup({});
+      if (data) {
+        addGroup(data);
+      }
+    } catch (err) {
+      const errorData = err as ApiError;
+      Alert.alert(t('error'), errorData.detail);
+    }
+  }, [fetchGroup, addGroup, t]);
+
+  useEffect(() => {
+    if (!group) {
+      void refreshData();
+    }
+  }, [group, refreshData]);
 
   return (
     <>
@@ -77,7 +102,7 @@ export default function GroupByIdScreen() {
           },
           {
             icon: 'trash-can',
-            onPress: handleDeletePress,
+            onPress: handleDelete,
             disabled: groupLoading || mutationLoading
           }
         ]}
@@ -92,17 +117,16 @@ export default function GroupByIdScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={groupRefetching || mutationLoading}
-            onRefresh={refetch}
+            refreshing={groupLoading || mutationLoading}
+            onRefresh={refreshData}
           />
         }
       >
+        <OptionalErrorMessage error={error?.message} />
+
         {group && (
           <>
-            <GroupCard
-              {...group}
-              studentsCount={group.groupStudents.length}
-            />
+            <GroupCard {...group} />
 
             <LessonsCalendar
               groupId={groupId}

@@ -8,7 +8,7 @@ export function SocialButtonsGroup() {
 
   const google = useGoogleSignIn();
   // const apple = useAppleSignIn(setErrorMessage);
-  const disabled = google?.isPending;
+  const disabled = google?.isLoading;
 
   return (
     <View style={styles.buttonsContainer}>
@@ -23,7 +23,7 @@ export function SocialButtonsGroup() {
       <SocialAuthButton
         label={t('signInWithGoogle')}
         icon='google'
-        loading={google.isPending}
+        loading={google.isLoading}
         onPress={async () => {
           await google.signIn();
         }}

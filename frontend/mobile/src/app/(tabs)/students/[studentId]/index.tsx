@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { api } from '@/src/api';
@@ -7,8 +7,12 @@ import { PaymentSheet } from '@/src/components/BottomSheet/PaymentSheet';
 import { VisitCalendar } from '@/src/components/Calendar';
 import { StudentCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentPaymentsTable } from '@/src/components/StudentPaymentsTable';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
+import { useStudentsStore } from '@/src/stores/studentsStore';
+import type { ApiError } from '@/src/types/error';
 
 export default function StudentByIdScreen() {
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
@@ -18,23 +22,27 @@ export default function StudentByIdScreen() {
 
   const [paymentIdSheet, setPaymentIdSheet] = useState<string | null>(null);
 
-  const {
-    data: student,
-    isPending: studentPending,
-    refetch
-  } = api.useQuery('get', '/api/v1/students/{studentId}/details', {
-    params: {
-      path: {
-        studentId
-      }
-    }
-  });
+  const recentStudents = useStudentsStore(state => state.recentStudents);
+  const addStudent = useStudentsStore(state => state.addStudent);
+  const removeStudent = useStudentsStore(state => state.removeStudent);
+  const student = recentStudents.find(s => s.id === studentId);
 
-  const { mutate: deleteStudent, isPending: deleteStudentPending } =
-    api.useMutation('delete', `/api/v1/students/{studentId}`, {
-      onSuccess: () => router.back(),
-      onError: err => Alert.alert(t('error'), err)
-    });
+  const {
+    execute: fetchStudent,
+    loading: studentLoading,
+    error
+  } = useCustomAsyncCallback(() =>
+    api.GET('/api/v1/students/{studentId}/details', {
+      params: { path: { studentId } }
+    })
+  );
+
+  const { execute: deleteStudent, loading: deleteLoading } =
+    useCustomAsyncCallback(() =>
+      api.DELETE('/api/v1/students/{studentId}', {
+        params: { path: { studentId } }
+      })
+    );
 
   const handleDeletePress = () => {
     Alert.alert(t('deleteStudent'), t('deleteStudentConfirmation'), [
@@ -43,12 +51,31 @@ export default function StudentByIdScreen() {
         text: t('delete'),
         style: 'destructive',
         onPress: () =>
-          deleteStudent({
-            params: { path: { studentId } }
-          })
+          void deleteStudent({})
+            .then(() => removeStudent(studentId))
+            .then(() => router.back())
+            .catch(err => Alert.alert(t('error'), err.message))
       }
     ]);
   };
+
+  const refreshData = useCallback(async () => {
+    try {
+      const data = await fetchStudent({});
+      if (data) {
+        addStudent(data);
+      }
+    } catch (err) {
+      const errorData = err as ApiError;
+      Alert.alert(t('error'), errorData.detail);
+    }
+  }, [fetchStudent, addStudent, t]);
+
+  useEffect(() => {
+    if (!student) {
+      void refreshData();
+    }
+  }, [student, refreshData]);
 
   return (
     <>
@@ -59,7 +86,7 @@ export default function StudentByIdScreen() {
           {
             icon: 'arrow-left',
             onPress: () => router.back(),
-            disabled: deleteStudentPending
+            disabled: deleteLoading
           }
         ]}
         rightActions={[
@@ -67,17 +94,17 @@ export default function StudentByIdScreen() {
             icon: 'account-cash',
             onPress: () =>
               router.push(`/(tabs)/students/${studentId}/payments/create`),
-            disabled: studentPending
+            disabled: studentLoading
           },
           {
             icon: 'account-edit',
             onPress: () => router.push(`/(tabs)/students/${studentId}/update`),
-            disabled: studentPending
+            disabled: studentLoading
           },
           {
             icon: 'trash-can',
             onPress: () => handleDeletePress(),
-            disabled: studentPending
+            disabled: studentLoading
           }
         ]}
       />
@@ -91,12 +118,14 @@ export default function StudentByIdScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={studentPending}
-            onRefresh={refetch}
+            refreshing={studentLoading}
+            onRefresh={refreshData}
           />
         }
         keyboardShouldPersistTaps='handled'
       >
+        <OptionalErrorMessage error={error?.message} />
+
         {student && (
           <>
             <StudentCard student={student} />

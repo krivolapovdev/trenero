@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert, View } from 'react-native';
 import { Button } from 'react-native-paper';
@@ -24,11 +25,12 @@ export const PaymentSheet = ({
     studentId: string;
   }>();
 
-  const { mutate: deletePayment, isPending: deletePaymentPending } =
-    api.useMutation('delete', `/api/v1/payments/{paymentId}`, {
-      onSuccess: onDismiss,
-      onError: err => Alert.alert(t('error'), err)
-    });
+  const { execute: deletePayment, loading: deletePaymentPending } =
+    useAsyncCallback(() =>
+      api.DELETE('/api/v1/payments/{paymentId}', {
+        params: { path: { paymentId } }
+      })
+    );
 
   return (
     <CustomBottomSheet
@@ -56,9 +58,9 @@ export const PaymentSheet = ({
           textColor={theme.colors.error}
           buttonColor={theme.colors.tertiaryContainer}
           onPress={() =>
-            deletePayment({
-              params: { path: { paymentId } }
-            })
+            void deletePayment()
+              .then(() => router.back())
+              .catch(err => Alert.alert(t('error'), err.message))
           }
           disabled={deletePaymentPending}
           loading={deletePaymentPending}

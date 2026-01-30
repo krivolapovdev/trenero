@@ -3,56 +3,68 @@ import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
 import { api } from '@/src/api';
-import type { components } from '@/src/api/generated/openapi';
 import {
   StudentForm,
   type StudentFormValues
 } from '@/src/components/Form/StudentForm';
+import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
+import { useGroupsStore } from '@/src/stores/groupsStore';
+import { useStudentsStore } from '@/src/stores/studentsStore';
+import type { ApiError } from '@/src/types/error';
+
+type UpdateStudentRequest = {
+  fullName?: string | null;
+  phone?: string | null;
+  note?: string | null;
+  birthdate?: string | null;
+  groupId?: string | null;
+};
 
 export default function UpdateStudentScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
 
-  const { data: student, isFetching: queryFetching } = api.useQuery(
-    'get',
-    `/api/v1/students/{studentId}`,
-    {
-      params: { path: { studentId } }
-    }
-  );
+  const recentStudents = useStudentsStore(state => state.recentStudents);
+  const removeStudent = useStudentsStore(state => state.removeStudent);
+  const allGroups = useGroupsStore(state => state.allGroups);
+  const student = recentStudents.find(s => s.id === studentId);
 
-  const { mutate: updateStudent, isPending: updateStudentPending } =
-    api.useMutation('patch', `/api/v1/students/{studentId}`, {
-      onSuccess: router.back,
-      onError: err => Alert.alert(t('error'), err)
-    });
+  const { execute: updateStudent, loading: updateStudentLoading } =
+    useCustomAsyncCallback((request: UpdateStudentRequest) =>
+      api.PATCH('/api/v1/students/{studentId}', {
+        params: {
+          path: { studentId }
+        },
+        body: request
+      })
+    );
 
-  const handleSubmit = (values: StudentFormValues) => {
-    if (!student || queryFetching || updateStudentPending) {
+  const handleSubmit = async (values: StudentFormValues) => {
+    if (!student || updateStudentLoading) {
       return;
     }
 
-    const request: components['schemas']['UpdateStudentRequest'] = {};
+    const request: UpdateStudentRequest = {};
 
     if (values.fullName !== student.fullName) {
-      request.fullName = values.fullName;
+      request.fullName = values.fullName ?? null;
     }
 
     if (values.phone !== student.phone) {
-      request.phone = values.phone;
+      request.phone = values.phone ?? null;
     }
 
     if (values.note !== student.note) {
-      request.note = values.note;
+      request.note = values.note ?? null;
     }
 
     if (values.birthdate !== student.birthdate) {
-      request.birthdate = values.birthdate;
+      request.birthdate = values.birthdate ?? null;
     }
 
     if (values.groupId !== student.groupId) {
-      request.groupId = values.groupId;
+      request.groupId = values.groupId ?? null;
     }
 
     if (R.isEmpty(request)) {
@@ -60,24 +72,26 @@ export default function UpdateStudentScreen() {
       return;
     }
 
-    updateStudent({
-      params: {
-        path: {
-          studentId
-        }
-      },
-      body: request
-    });
+    try {
+      await updateStudent(request);
+
+      removeStudent(studentId);
+
+      router.back();
+    } catch (err) {
+      const errorData = err as ApiError;
+      Alert.alert(t('error'), errorData.detail);
+    }
   };
 
   return (
     <StudentForm
       title={t('editStudent')}
       initialData={{
-        student
+        student,
+        allGroups
       }}
-      queryLoading={queryFetching}
-      mutationLoading={updateStudentPending}
+      mutationLoading={updateStudentLoading}
       onBack={router.back}
       onSubmit={handleSubmit}
     />

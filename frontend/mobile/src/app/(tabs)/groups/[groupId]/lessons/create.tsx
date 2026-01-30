@@ -2,42 +2,54 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import { api } from '@/src/api';
+import type { components } from '@/src/api/generated/openapi';
 import {
   LessonForm,
   type LessonFormValues
 } from '@/src/components/Form/LessonForm';
+import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
+import { useGroupsStore } from '@/src/stores/groupsStore';
+import type { ApiError } from '@/src/types/error';
+
+type CreateLessonRequest = components['schemas']['CreateLessonRequest'];
 
 export default function CreateLessonScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
 
-  const { data: groupStudents, isLoading: groupStudentsLoading } = api.useQuery(
-    'get',
-    `/api/v1/groups/{groupId}/students`,
-    {
-      params: {
-        path: {
-          groupId
-        }
-      }
+  const allGroups = useGroupsStore(state => state.allGroups);
+  const removeGroup = useGroupsStore(state => state.removeGroup);
+  const groupStudents = allGroups.find(
+    group => group.id === groupId
+  )?.groupStudents;
+
+  const { execute: createLesson, loading: createLessonLoading } =
+    useCustomAsyncCallback((request: CreateLessonRequest) =>
+      api.POST('/api/v1/lessons', {
+        body: request
+      })
+    );
+
+  const handleSubmit = async (values: LessonFormValues) => {
+    if (createLessonLoading) {
+      return;
     }
-  );
 
-  const { mutate: createLesson, isPending: createLessonPending } =
-    api.useMutation('post', '/api/v1/lessons', {
-      onSuccess: router.back,
-      onError: error => Alert.alert(t('error'), error)
-    });
+    const request: CreateLessonRequest = {
+      groupId,
+      ...values
+    };
 
-  const handleSubmit = (values: LessonFormValues) => {
-    createLesson({
-      body: {
-        ...values
-      }
-    });
+    try {
+      await createLesson(request);
+      removeGroup(groupId);
+      router.back();
+    } catch (err) {
+      const errorData = err as ApiError;
+      Alert.alert(t('error'), errorData.detail);
+    }
   };
-
   return (
     <LessonForm
       title={t('addLesson')}
@@ -48,8 +60,7 @@ export default function CreateLessonScreen() {
       }}
       onSubmit={handleSubmit}
       onBack={router.back}
-      queryLoading={groupStudentsLoading}
-      mutationLoading={createLessonPending}
+      mutationLoading={createLessonLoading}
     />
   );
 }

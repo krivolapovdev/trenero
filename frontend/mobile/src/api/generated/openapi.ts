@@ -308,22 +308,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/lessons/{lessonId}/update': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations['getLessonUpdateDetails'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/lessons/{lessonId}/details': {
     parameters: {
       query?: never;
@@ -332,22 +316,6 @@ export interface paths {
       cookie?: never;
     };
     get: operations['getLessonDetails'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/groups/{groupId}/update': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations['getGroupUpdateDetails'];
     put?: never;
     post?: never;
     delete?: never;
@@ -482,12 +450,12 @@ export interface components {
     };
     CreatePaymentRequest: {
       /** Format: uuid */
-      studentId?: string;
-      amount?: number;
+      studentId: string;
+      amount: number;
       /** Format: int32 */
-      paidLessons?: number;
+      paidLessons: number;
       /** Format: date */
-      date?: string;
+      date: string;
     };
     PaymentResponse: {
       /** Format: uuid */
@@ -520,9 +488,9 @@ export interface components {
     };
     CreateLessonRequest: {
       /** Format: uuid */
-      groupId?: string;
+      groupId: string;
       /** Format: date-time */
-      startDateTime?: string;
+      startDateTime: string;
       students?: components['schemas']['LessonStudentRequest'][];
     };
     LessonStudentRequest: {
@@ -561,15 +529,6 @@ export interface components {
     UpdateVisitRequest: {
       present?: boolean;
     };
-    UpdateStudentRequest: {
-      fullName?: string;
-      /** Format: date */
-      birthdate?: string;
-      phone?: string;
-      note?: string;
-      /** Format: uuid */
-      groupId?: string;
-    };
     UpdatePaymentRequest: {
       amount?: number;
       /** Format: int32 */
@@ -581,12 +540,6 @@ export interface components {
       /** Format: date-time */
       startDateTime?: string;
       students?: components['schemas']['LessonStudentRequest'][];
-    };
-    UpdateGroupRequest: {
-      name?: string;
-      defaultPrice?: number;
-      note?: string;
-      studentIds?: string[];
     };
     StudentDetailsResponse: {
       /** Format: uuid */
@@ -624,25 +577,10 @@ export interface components {
       studentGroup?: components['schemas']['GroupResponse'];
       statuses: ('INACTIVE' | 'PRESENT' | 'MISSING' | 'PAID' | 'UNPAID')[];
     };
-    StudentsOverviewWrapperResponse: {
-      students: components['schemas']['StudentOverviewResponse'][];
-      allGroups: components['schemas']['GroupResponse'][];
-    };
     MonthlyPaymentMetricResponse: {
-      month: string;
+      /** Format: date */
+      date: string;
       total: number;
-    };
-    LessonUpdateDetailsResponse: {
-      /** Format: uuid */
-      id: string;
-      /** Format: uuid */
-      groupId: string;
-      /** Format: date-time */
-      startDateTime: string;
-      /** Format: date-time */
-      createdAt: string;
-      studentVisits: components['schemas']['VisitResponse'][];
-      groupStudents: components['schemas']['StudentResponse'][];
     };
     LessonDetailsResponse: {
       /** Format: uuid */
@@ -655,17 +593,6 @@ export interface components {
       createdAt: string;
       studentVisits: components['schemas']['VisitResponse'][];
       groupStudents: components['schemas']['StudentResponse'][];
-    };
-    GroupUpdateDetailsResponse: {
-      /** Format: uuid */
-      id: string;
-      name: string;
-      defaultPrice?: number;
-      note?: string;
-      /** Format: date-time */
-      createdAt: string;
-      groupStudents: components['schemas']['StudentResponse'][];
-      allStudents: components['schemas']['StudentResponse'][];
     };
     GroupDetailsResponse: {
       /** Format: uuid */
@@ -686,8 +613,7 @@ export interface components {
       note?: string;
       /** Format: date-time */
       createdAt: string;
-      /** Format: int32 */
-      studentsCount: number;
+      groupStudents: components['schemas']['StudentResponse'][];
     };
   };
   responses: never;
@@ -1111,7 +1037,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdateStudentRequest'];
+        'application/json': {
+          [key: string]: unknown;
+        };
       };
     };
     responses: {
@@ -1315,7 +1243,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdateGroupRequest'];
+        'application/json': {
+          [key: string]: unknown;
+        };
       };
     };
     responses: {
@@ -1411,7 +1341,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['StudentsOverviewWrapperResponse'];
+          '*/*': components['schemas']['StudentOverviewResponse'][];
         };
       };
     };
@@ -1458,28 +1388,6 @@ export interface operations {
       };
     };
   };
-  getLessonUpdateDetails: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        lessonId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          '*/*': components['schemas']['LessonUpdateDetailsResponse'];
-        };
-      };
-    };
-  };
   getLessonDetails: {
     parameters: {
       query?: never;
@@ -1498,28 +1406,6 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['LessonDetailsResponse'];
-        };
-      };
-    };
-  };
-  getGroupUpdateDetails: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        groupId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          '*/*': components['schemas']['GroupUpdateDetailsResponse'];
         };
       };
     };

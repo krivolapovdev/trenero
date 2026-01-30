@@ -1,9 +1,7 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { TextInput } from 'react-native-paper';
-import { PaperSelect } from 'react-native-paper-select';
-import type { ListItem } from 'react-native-paper-select/src/interface/paperSelect.interface';
 import type { components } from '@/src/api/generated/openapi';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
@@ -14,16 +12,16 @@ export type GroupFormValues = {
   name: string;
   defaultPrice?: number;
   note?: string;
-  studentIds: string[];
 };
 
 type GroupFormInitialData = {
-  group?: components['schemas']['GroupUpdateDetailsResponse'];
+  group?: components['schemas']['GroupDetailsResponse'];
+  allStudents?: components['schemas']['StudentOverviewResponse'][];
 };
 
 type Props = {
   title: string;
-  queryLoading: boolean;
+  queryLoading?: boolean;
   mutationLoading?: boolean;
   initialData?: GroupFormInitialData | null;
   onSubmit: (values: GroupFormValues) => void;
@@ -45,20 +43,8 @@ export const GroupForm = memo(
     const [name, setName] = useState('');
     const [defaultPrice, setDefaultPrice] = useState('');
     const [note, setNote] = useState('');
-    const [selectedStudents, setSelectedStudents] = useState<ListItem[]>([]);
 
     const isLoading = queryLoading || mutationLoading;
-
-    const studentItems: ListItem[] = useMemo(() => {
-      const list = initialData?.group?.allStudents ?? [];
-      const currentStudentIds = new Set(
-        initialData?.group?.allStudents?.map(s => s.id)
-      );
-
-      return list
-        .filter(s => !s.groupId || currentStudentIds.has(s.id))
-        .map(s => ({ _id: s.id, value: s.fullName }));
-    }, [initialData?.group]);
 
     const handleSubmit = () => {
       const trimmedName = name.trim();
@@ -70,7 +56,6 @@ export const GroupForm = memo(
       const values: GroupFormValues = {
         name: trimmedName,
         defaultPrice: Number(defaultPrice) || undefined,
-        studentIds: selectedStudents.map(s => s._id),
         note: note?.trim() || undefined
       };
 
@@ -82,12 +67,6 @@ export const GroupForm = memo(
         setName(initialData.group?.name ?? '');
         setDefaultPrice(initialData.group?.defaultPrice?.toString() ?? '');
         setNote(initialData.group?.note ?? '');
-        setSelectedStudents(
-          initialData.group?.allStudents?.map(s => ({
-            _id: s.id,
-            value: s.fullName
-          })) ?? []
-        );
       }
     }, [initialData]);
 
@@ -145,26 +124,6 @@ export const GroupForm = memo(
             multiline={true}
             right={<TextInput.Affix text={`${note.length}/1023`} />}
             disabled={isLoading}
-          />
-
-          <PaperSelect
-            label={t('students')}
-            textInputMode='outlined'
-            value={
-              selectedStudents.length > 0
-                ? `${selectedStudents.length} selected`
-                : ''
-            }
-            arrayList={studentItems}
-            selectedArrayList={selectedStudents}
-            textInputOutlineStyle={{ borderRadius: 10, borderWidth: 0 }}
-            searchText={t('search')}
-            selectAllText={t('selectAll')}
-            dialogCloseButtonText={t('close')}
-            dialogDoneButtonText={t('ok')}
-            multiEnable={true}
-            disabled={isLoading}
-            onSelection={value => setSelectedStudents(value.selectedList)}
           />
         </ScrollView>
       </>

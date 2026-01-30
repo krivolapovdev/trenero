@@ -16,12 +16,12 @@ export type LessonFormValues = {
 };
 
 type LessonFormInitialData = {
-  lesson?: Partial<components['schemas']['LessonUpdateDetailsResponse']>;
+  lesson?: Partial<components['schemas']['LessonDetailsResponse']>;
 };
 
 type Props = {
   title: string;
-  queryLoading: boolean;
+  queryLoading?: boolean;
   mutationLoading?: boolean;
   initialData?: LessonFormInitialData | null;
   onSubmit: (values: LessonFormValues) => void;
