@@ -21,10 +21,8 @@ import tech.trenero.backend.group.internal.entity.Group;
 import tech.trenero.backend.group.internal.mapper.GroupMapper;
 import tech.trenero.backend.group.internal.repository.GroupRepository;
 import tech.trenero.backend.group.internal.request.CreateGroupRequest;
-import tech.trenero.backend.group.internal.request.UpdateGroupRequest;
 import tech.trenero.backend.group.internal.response.GroupDetailsResponse;
 import tech.trenero.backend.group.internal.response.GroupOverviewResponse;
-import tech.trenero.backend.group.internal.response.GroupUpdateDetailsResponse;
 import tech.trenero.backend.lesson.external.LessonSpi;
 import tech.trenero.backend.student.external.StudentSpi;
 
@@ -51,12 +49,17 @@ public class GroupService implements GroupSpi {
   public List<GroupOverviewResponse> getGroupsOverview(JwtUser jwtUser) {
     log.info("Getting groups overview for ownerId={}", jwtUser.userId());
 
-    return self.getAllGroups(jwtUser).stream()
+    List<GroupResponse> allGroups = self.getAllGroups(jwtUser);
+    List<UUID> groupIds = allGroups.stream().map(GroupResponse::id).toList();
+
+    Map<UUID, List<StudentResponse>> groupStudents =
+        studentSpi.getStudentsByGroupIds(groupIds, jwtUser);
+
+    return allGroups.stream()
         .map(
-            group -> {
-              int count = studentSpi.countStudentsByGroupId(group.id(), jwtUser);
-              return groupMapper.toGroupOverviewResponse(group, count);
-            })
+            group ->
+                groupMapper.toGroupOverviewResponse(
+                    group, groupStudents.getOrDefault(group.id(), List.of())))
         .toList();
   }
 
@@ -78,17 +81,6 @@ public class GroupService implements GroupSpi {
     List<LessonResponse> groupLessons = lessonSpi.getLessonsByGroupId(groupId, jwtUser);
 
     return groupMapper.toGroupDetailsResponse(group, groupStudents, groupLessons);
-  }
-
-  @Transactional(readOnly = true)
-  public GroupUpdateDetailsResponse getGroupUpdateDetailsById(UUID groupId, JwtUser jwtUser) {
-    log.info("Getting group update overview for id={}", groupId);
-
-    GroupResponse group = self.getGroupById(groupId, jwtUser);
-    List<StudentResponse> groupStudents = studentSpi.getStudentsByGroupId(groupId, jwtUser);
-    List<StudentResponse> allStudents = studentSpi.getStudents(jwtUser);
-
-    return groupMapper.toGroupUpdateDetailsResponse(group, groupStudents, allStudents);
   }
 
   @Override
@@ -117,22 +109,22 @@ public class GroupService implements GroupSpi {
     Group group = groupMapper.toGroup(request, jwtUser.userId());
     Group savedGroup = saveGroup(group);
 
-    studentSpi.assignGroupToStudents(savedGroup.getId(), request.studentIds(), jwtUser);
+    studentSpi.setGroupIdToStudents(savedGroup.getId(), request.studentIds(), jwtUser);
 
     return groupMapper.toResponse(savedGroup);
   }
 
   @Transactional
-  public GroupResponse updateGroup(UUID groupId, UpdateGroupRequest request, JwtUser jwtUser) {
-    log.info("Updating group: name='{}', ownerId={}", request.name(), jwtUser.userId());
+  public GroupResponse updateGroup(UUID groupId, Map<String, Object> updates, JwtUser jwtUser) {
+    log.info("Updating group: groupId='{}', ownerId={}", groupId, jwtUser.userId());
 
-    if (request.studentIds().isPresent()) {
-      studentSpi.editStudentsGroup(groupId, request.studentIds().get(), jwtUser);
-    }
+    //    if (request.studentIds().isPresent()) {
+    //      studentSpi.setGroupIdToStudents(groupId, request.studentIds().get(), jwtUser);
+    //    }
 
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
-        .map(group -> groupMapper.updateGroup(group, request))
+        .map(group -> groupMapper.updateGroup(group, updates))
         .map(this::saveGroup)
         .map(groupMapper::toResponse)
         .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));

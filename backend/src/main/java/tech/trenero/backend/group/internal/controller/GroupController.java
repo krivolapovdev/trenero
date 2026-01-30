@@ -2,6 +2,7 @@ package tech.trenero.backend.group.internal.controller;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,10 +23,8 @@ import tech.trenero.backend.common.response.LessonResponse;
 import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.internal.request.CreateGroupRequest;
-import tech.trenero.backend.group.internal.request.UpdateGroupRequest;
 import tech.trenero.backend.group.internal.response.GroupDetailsResponse;
 import tech.trenero.backend.group.internal.response.GroupOverviewResponse;
-import tech.trenero.backend.group.internal.response.GroupUpdateDetailsResponse;
 import tech.trenero.backend.group.internal.service.GroupService;
 
 @RestController
@@ -61,13 +60,6 @@ public class GroupController {
     return groupService.getGroupDetailsById(groupId, jwtUser);
   }
 
-  @GetMapping("/{groupId}/update")
-  @PreAuthorize("isAuthenticated()")
-  public GroupUpdateDetailsResponse getGroupUpdateDetails(
-      @AuthenticationPrincipal JwtUser jwtUser, @PathVariable UUID groupId) {
-    return groupService.getGroupUpdateDetailsById(groupId, jwtUser);
-  }
-
   @GetMapping("/{groupId}/students")
   @PreAuthorize("isAuthenticated()")
   public List<StudentResponse> getGroupStudents(
@@ -94,9 +86,9 @@ public class GroupController {
   @PreAuthorize("isAuthenticated()")
   public GroupResponse updateGroup(
       @PathVariable("groupId") UUID groupId,
-      @RequestBody @Valid UpdateGroupRequest request,
+      @RequestBody Map<String, Object> updates,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.updateGroup(groupId, request, jwtUser);
+    return groupService.updateGroup(groupId, updates, jwtUser);
   }
 
   @DeleteMapping("/{groupId}")

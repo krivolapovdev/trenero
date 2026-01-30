@@ -23,8 +23,8 @@ public interface PaymentMapper {
     }
 
     request.amount().ifPresent(payment::setAmount);
-
     request.paidLessons().ifPresent(payment::setPaidLessons);
+    request.date().ifPresent(payment::setDate);
 
     return payment;
   }

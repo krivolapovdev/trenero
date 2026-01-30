@@ -62,7 +62,7 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
   @Transactional
   @Query(
       """
-      UPDATE Student s
+      UPDATE Student AS s
       SET s.groupId = :groupId
       WHERE s.id IN :studentIds
         AND s.ownerId = :ownerId
@@ -76,10 +76,22 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
   @Query(
       """
       SELECT COUNT(s)
-      FROM Student s
+      FROM Student AS s
       WHERE s.groupId = :groupId
         AND s.ownerId = :ownerId
         AND s.deletedAt IS NULL
       """)
   int countByGroupIdAndOwnerId(@Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+       SELECT s
+       FROM Student AS s
+       WHERE s.ownerId = :ownerId
+         AND s.groupId IN :groupIds
+         AND s.deletedAt IS NULL
+       ORDER BY s.createdAt DESC
+       """)
+  List<Student> findAllByGroupIdsAndOwnerId(
+      @Param("groupIds") List<UUID> groupIds, @Param("ownerId") UUID ownerId);
 }

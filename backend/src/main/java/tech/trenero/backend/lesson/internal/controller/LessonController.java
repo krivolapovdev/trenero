@@ -23,7 +23,6 @@ import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.lesson.internal.request.CreateLessonRequest;
 import tech.trenero.backend.lesson.internal.request.UpdateLessonRequest;
 import tech.trenero.backend.lesson.internal.response.LessonDetailsResponse;
-import tech.trenero.backend.lesson.internal.response.LessonUpdateDetailsResponse;
 import tech.trenero.backend.lesson.internal.service.LessonService;
 
 @RestController
@@ -51,13 +50,6 @@ public class LessonController {
   public LessonDetailsResponse getLessonDetails(
       @PathVariable UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
     return lessonService.getLessonDetailsById(lessonId, jwtUser);
-  }
-
-  @GetMapping("/{lessonId}/update")
-  @PreAuthorize("isAuthenticated()")
-  public LessonUpdateDetailsResponse getLessonUpdateDetails(
-      @PathVariable UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
-    return lessonService.getLessonUpdateDetailsById(lessonId, jwtUser);
   }
 
   @GetMapping("/{lessonId}/visits")

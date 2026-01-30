@@ -23,7 +23,6 @@ import tech.trenero.backend.lesson.internal.repository.LessonRepository;
 import tech.trenero.backend.lesson.internal.request.CreateLessonRequest;
 import tech.trenero.backend.lesson.internal.request.UpdateLessonRequest;
 import tech.trenero.backend.lesson.internal.response.LessonDetailsResponse;
-import tech.trenero.backend.lesson.internal.response.LessonUpdateDetailsResponse;
 import tech.trenero.backend.student.external.StudentSpi;
 import tech.trenero.backend.visit.external.VisitSpi;
 
@@ -80,19 +79,6 @@ public class LessonService implements LessonSpi {
         studentSpi.getStudentsByGroupId(lesson.groupId(), jwtUser);
 
     return new LessonDetailsResponse(lesson, visits, groupStudents);
-  }
-
-  @Transactional(readOnly = true)
-  public LessonUpdateDetailsResponse getLessonUpdateDetailsById(UUID lessonId, JwtUser jwtUser) {
-    log.info(
-        "Getting lesson update details for lessonId={} and userId={}", lessonId, jwtUser.userId());
-
-    LessonResponse lesson = self.getLessonById(lessonId, jwtUser);
-    List<VisitResponse> visits = visitSpi.getVisitsByLessonId(lessonId, jwtUser);
-    List<StudentResponse> groupStudents =
-        studentSpi.getStudentsByGroupId(lesson.groupId(), jwtUser);
-
-    return new LessonUpdateDetailsResponse(lesson, visits, groupStudents);
   }
 
   @Transactional(readOnly = true)

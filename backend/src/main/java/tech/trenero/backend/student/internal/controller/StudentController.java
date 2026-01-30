@@ -2,6 +2,7 @@ package tech.trenero.backend.student.internal.controller;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,9 +23,8 @@ import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.student.internal.request.CreateStudentRequest;
-import tech.trenero.backend.student.internal.request.UpdateStudentRequest;
 import tech.trenero.backend.student.internal.response.StudentDetailsResponse;
-import tech.trenero.backend.student.internal.response.StudentsOverviewWrapperResponse;
+import tech.trenero.backend.student.internal.response.StudentOverviewResponse;
 import tech.trenero.backend.student.internal.service.StudentService;
 
 @RestController
@@ -42,7 +42,7 @@ public class StudentController {
 
   @GetMapping("/overview")
   @PreAuthorize("isAuthenticated()")
-  public StudentsOverviewWrapperResponse getStudentsOverview(
+  public List<StudentOverviewResponse> getStudentsOverview(
       @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.getStudentsOverview(jwtUser);
   }
@@ -87,9 +87,9 @@ public class StudentController {
   @PreAuthorize("isAuthenticated()")
   public StudentResponse updateStudent(
       @PathVariable("studentId") UUID studentId,
-      @RequestBody @Valid UpdateStudentRequest request,
+      @RequestBody Map<String, Object> updates,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentService.updateStudent(studentId, request, jwtUser);
+    return studentService.updateStudent(studentId, updates, jwtUser);
   }
 
   @DeleteMapping("/{studentId}")

@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -28,10 +29,8 @@ import tech.trenero.backend.student.internal.model.Student;
 import tech.trenero.backend.student.internal.model.StudentStatus;
 import tech.trenero.backend.student.internal.repository.StudentRepository;
 import tech.trenero.backend.student.internal.request.CreateStudentRequest;
-import tech.trenero.backend.student.internal.request.UpdateStudentRequest;
 import tech.trenero.backend.student.internal.response.StudentDetailsResponse;
 import tech.trenero.backend.student.internal.response.StudentOverviewResponse;
-import tech.trenero.backend.student.internal.response.StudentsOverviewWrapperResponse;
 import tech.trenero.backend.student.internal.response.VisitWithLessonResponse;
 import tech.trenero.backend.visit.external.VisitSpi;
 
@@ -58,15 +57,13 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public StudentsOverviewWrapperResponse getStudentsOverview(JwtUser jwtUser) {
+  public List<StudentOverviewResponse> getStudentsOverview(JwtUser jwtUser) {
     log.info("Getting students overview for ownerId={}", jwtUser.userId());
-
-    List<GroupResponse> allGroups = groupSpi.getAllGroups(jwtUser);
 
     List<StudentResponse> students = self.getStudents(jwtUser);
 
     if (students.isEmpty()) {
-      return new StudentsOverviewWrapperResponse(List.of(), allGroups);
+      return List.of();
     }
 
     List<UUID> groupIds =
@@ -85,29 +82,25 @@ public class StudentService implements StudentSpi {
     Map<UUID, LessonResponse> lessonMap =
         lessonSpi.getLastGroupLessonsByGroupIds(groupIds, jwtUser);
 
-    List<StudentOverviewResponse> studentOverviewResponses =
-        students.stream()
-            .map(
-                student -> {
-                  List<VisitResponse> studentVisits =
-                      visitsMap.getOrDefault(student.id(), List.of());
+    return students.stream()
+        .map(
+            student -> {
+              List<VisitResponse> studentVisits = visitsMap.getOrDefault(student.id(), List.of());
 
-                  List<PaymentResponse> studentPayments =
-                      paymentsMap.getOrDefault(student.id(), List.of());
+              List<PaymentResponse> studentPayments =
+                  paymentsMap.getOrDefault(student.id(), List.of());
 
-                  LessonResponse lastLesson = lessonMap.get(student.id());
+              LessonResponse lastLesson = lessonMap.get(student.id());
 
-                  Set<StudentStatus> statuses =
-                      studentStatusService.getStudentStatuses(
-                          studentVisits, studentPayments, lastLesson);
+              Set<StudentStatus> statuses =
+                  studentStatusService.getStudentStatuses(
+                      studentVisits, studentPayments, lastLesson);
 
-                  GroupResponse group = groupsMap.get(student.groupId());
+              GroupResponse group = groupsMap.get(student.groupId());
 
-                  return new StudentOverviewResponse(student, group, statuses);
-                })
-            .toList();
-
-    return new StudentsOverviewWrapperResponse(studentOverviewResponses, allGroups);
+              return new StudentOverviewResponse(student, group, statuses);
+            })
+        .toList();
   }
 
   @Transactional(readOnly = true)
@@ -126,6 +119,19 @@ public class StudentService implements StudentSpi {
     return studentRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
         .map(studentMapper::toResponse)
         .toList();
+  }
+
+  @Override
+  public Map<UUID, List<StudentResponse>> getStudentsByGroupIds(
+      List<UUID> groupIds, JwtUser jwtUser) {
+    log.info("Getting students by groupIds for ownerId={}", jwtUser.userId());
+
+    List<Student> students =
+        studentRepository.findAllByGroupIdsAndOwnerId(groupIds, jwtUser.userId());
+
+    return students.stream()
+        .map(studentMapper::toResponse)
+        .collect(Collectors.groupingBy(StudentResponse::groupId));
   }
 
   @Transactional(readOnly = true)
@@ -199,7 +205,7 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional
-  public void assignGroupToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
+  public void setGroupIdToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
     log.info(
         "Assign groupId={} to students={} for ownerId={}", groupId, studentIds, jwtUser.userId());
 
@@ -212,19 +218,14 @@ public class StudentService implements StudentSpi {
   }
 
   @Override
-  public void editStudentsGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {}
-
-  @Override
-  public void removeGroupFromStudents(UUID groupId, JwtUser jwtUser) {}
-
-  @Override
-  public int countStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
-    log.info("Counting students by groupId={} for ownerId={}", groupId, jwtUser.userId());
-    return studentRepository.countByGroupIdAndOwnerId(groupId, jwtUser.userId());
-  }
-
   @Transactional
-  public void removeGroupFromStudents(List<UUID> studentIds, JwtUser jwtUser) {
+  public void removeGroupFromStudents(UUID groupId, JwtUser jwtUser) {
+    log.info("Removing groupId={} for students for ownerId={}", groupId, jwtUser.userId());
+
+    List<StudentResponse> studentsByGroupId = self.getStudentsByGroupId(groupId, jwtUser);
+
+    List<UUID> studentIds = studentsByGroupId.stream().map(StudentResponse::id).toList();
+
     log.info("Remove from group from students={} for ownerId={}", studentIds, jwtUser.userId());
 
     int updatedCount = studentRepository.setGroupIdForStudents(null, studentIds, jwtUser.userId());
@@ -234,10 +235,10 @@ public class StudentService implements StudentSpi {
 
   @Transactional
   public StudentResponse updateStudent(
-      UUID studentId, UpdateStudentRequest request, JwtUser jwtUser) {
+      UUID studentId, Map<String, Object> updates, JwtUser jwtUser) {
     return studentRepository
         .findByIdAndOwnerId(studentId, jwtUser.userId())
-        .map(student -> studentMapper.updateStudent(student, request))
+        .map(student -> studentMapper.updateStudent(student, updates))
         .map(this::saveStudent)
         .map(studentMapper::toResponse)
         .orElseThrow(() -> new EntityNotFoundException("Student not found with id=" + studentId));
