@@ -7,10 +7,19 @@ import org.mapstruct.ReportingPolicy;
 import tech.trenero.backend.common.response.StudentPaymentResponse;
 import tech.trenero.backend.common.response.TransactionResponse;
 import tech.trenero.backend.payment.internal.domain.StudentPayment;
+import tech.trenero.backend.payment.internal.domain.Transaction;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface StudentPaymentMapper {
   StudentPaymentResponse toResponse(StudentPayment studentPayment);
+
+  @Mapping(target = "id", source = "payment.transactionId")
+  @Mapping(target = "studentId", source = "payment.studentId")
+  @Mapping(target = "paidLessons", source = "payment.paidLessons")
+  @Mapping(target = "amount", source = "tx.amount")
+  @Mapping(target = "date", source = "tx.date")
+  @Mapping(target = "createdAt", source = "tx.createdAt")
+  StudentPaymentResponse toResponse(StudentPayment payment, Transaction tx);
 
   @Mapping(target = "id", source = "payment.transactionId")
   @Mapping(target = "studentId", source = "payment.studentId")

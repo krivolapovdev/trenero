@@ -28,7 +28,6 @@ import tech.trenero.backend.payment.internal.repository.TransactionRepository;
 public class TransactionService implements TransactionSpi {
   @Lazy private final TransactionRepository transactionRepository;
   @Lazy private final TransactionMapper transactionMapper;
-  @Lazy private final TransactionService self;
 
   @Transactional(readOnly = true)
   public List<TransactionResponse> getAllTransactions(JwtUser jwtUser) {

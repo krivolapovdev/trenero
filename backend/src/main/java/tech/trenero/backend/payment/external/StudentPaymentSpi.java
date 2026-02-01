@@ -7,12 +7,12 @@ import tech.trenero.backend.common.response.StudentPaymentResponse;
 import tech.trenero.backend.common.security.JwtUser;
 
 public interface StudentPaymentSpi {
-  List<StudentPaymentResponse> getAllPayments(JwtUser jwtUser);
+  List<StudentPaymentResponse> getAllStudentPayments(JwtUser jwtUser);
 
-  List<StudentPaymentResponse> getPaymentsByStudentId(UUID studentId, JwtUser jwtUser);
+  List<StudentPaymentResponse> getStudentPaymentsByStudentId(UUID studentId, JwtUser jwtUser);
 
-  Map<UUID, List<StudentPaymentResponse>> getPaymentsByStudentIds(
+  Map<UUID, List<StudentPaymentResponse>> getStudentPaymentsByStudentIds(
       List<UUID> studentIds, JwtUser jwtUser);
 
-  void deletePaymentById(UUID paymentId, JwtUser jwtUser);
+  void deleteStudentPaymentById(UUID paymentId, JwtUser jwtUser);
 }

@@ -33,14 +33,14 @@ public class StudentPaymentController {
   @GetMapping
   @PreAuthorize("isAuthenticated()")
   public List<StudentPaymentResponse> getPayments(@AuthenticationPrincipal JwtUser jwtUser) {
-    return studentPaymentService.getAllPayments(jwtUser);
+    return studentPaymentService.getAllStudentPayments(jwtUser);
   }
 
   @GetMapping("/{paymentId}")
   @PreAuthorize("isAuthenticated()")
   public StudentPaymentResponse getPayment(
       @PathVariable("paymentId") UUID paymentId, @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentPaymentService.getPaymentById(paymentId, jwtUser);
+    return studentPaymentService.getStudentPaymentById(paymentId, jwtUser);
   }
 
   @PostMapping
@@ -49,7 +49,7 @@ public class StudentPaymentController {
   public StudentPaymentResponse createPayment(
       @RequestBody @Valid CreateStudentPaymentRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentPaymentService.createPayment(request, jwtUser);
+    return studentPaymentService.createStudentPayment(request, jwtUser);
   }
 
   @PatchMapping("/{paymentId}")
@@ -58,7 +58,7 @@ public class StudentPaymentController {
       @PathVariable("paymentId") UUID paymentId,
       @RequestBody @Valid UpdatePaymentRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return studentPaymentService.updatePayment(paymentId, request, jwtUser);
+    return studentPaymentService.updateStudentPayment(paymentId, request, jwtUser);
   }
 
   @DeleteMapping("/{paymentId}")
@@ -66,6 +66,6 @@ public class StudentPaymentController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deletePayment(
       @PathVariable UUID paymentId, @AuthenticationPrincipal JwtUser jwtUser) {
-    studentPaymentService.deletePaymentById(paymentId, jwtUser);
+    studentPaymentService.deleteStudentPaymentById(paymentId, jwtUser);
   }
 }

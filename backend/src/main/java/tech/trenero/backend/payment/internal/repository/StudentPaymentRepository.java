@@ -16,51 +16,46 @@ public interface StudentPaymentRepository
   @Query(
       """
       SELECT sp
-      FROM StudentPayment sp
-      WHERE sp.studentId IN :studentIds
+      FROM StudentPayment AS sp
+      JOIN FETCH sp.transaction AS t
+      WHERE t.ownerId = :ownerId
+        AND t.deletedAt IS NULL
       """)
-  List<StudentPayment> findAllByStudentIds(@Param("studentIds") List<UUID> studentIds);
-
-  @Query(
-      """
-      SELECT sp
-      FROM StudentPayment sp
-      WHERE sp.transactionId IN :transactionIds
-      """)
-  List<StudentPayment> findAllByTransactionIds(@Param("transactionIds") List<UUID> transactionIds);
-
-  @Query(
-      """
-      SELECT sp
-      FROM StudentPayment sp
-      WHERE sp.studentId = :studentId
-      """)
-  List<StudentPayment> findAllByStudentId(@Param("studentId") UUID studentId);
+  List<StudentPayment> findAllByOwnerId(@Param("ownerId") UUID ownerId);
 
   @Query(
       """
       SELECT sp
       FROM StudentPayment AS sp
-      JOIN Transaction AS t
-      ON t.id = sp.transactionId
+      JOIN FETCH sp.transaction AS t
+      WHERE sp.studentId = :studentId
+        AND t.ownerId = :ownerId
+        AND t.deletedAt IS NULL
+      """)
+  List<StudentPayment> findAllByStudentIdAndOwnerId(
+      @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+      SELECT sp
+      FROM StudentPayment AS sp
+      JOIN FETCH sp.transaction AS t
       WHERE t.id = :transactionId
         AND t.ownerId = :ownerId
         AND t.deletedAt IS NULL
       """)
-  Optional<StudentPayment> findByTransactionIdAndTransactionOwnerId(
+  Optional<StudentPayment> findByTransactionIdAndOwnerId(
       @Param("transactionId") UUID transactionId, @Param("ownerId") UUID ownerId);
 
   @Query(
       """
       SELECT sp
       FROM StudentPayment AS sp
-      JOIN Transaction AS t
-      ON t.id = sp.transactionId
-      WHERE t.ownerId = :ownerId
-        AND sp.studentId IN :studentIds
+      JOIN FETCH sp.transaction AS t
+      WHERE sp.studentId IN :studentIds
+        AND t.ownerId = :ownerId
         AND t.deletedAt IS NULL
-      ORDER BY t.createdAt DESC
       """)
-  List<StudentPayment> findAllByStudentIdsAndTransactionOwnerId(
+  List<StudentPayment> findAllByStudentIdsAndOwnerId(
       @Param("studentIds") List<UUID> studentIds, @Param("ownerId") UUID ownerId);
 }

@@ -83,7 +83,7 @@ public class StudentService implements StudentSpi {
     Map<UUID, List<VisitResponse>> visitsMap = visitSpi.getVisitsByStudentIds(studentIds, jwtUser);
 
     Map<UUID, List<StudentPaymentResponse>> paymentsMap =
-        studentPaymentSpi.getPaymentsByStudentIds(studentIds, jwtUser);
+        studentPaymentSpi.getStudentPaymentsByStudentIds(studentIds, jwtUser);
 
     Map<UUID, LessonResponse> groupLessonMap =
         lessonSpi.getLastGroupLessonsByGroupIds(groupIds, jwtUser);
@@ -149,7 +149,7 @@ public class StudentService implements StudentSpi {
 
     List<VisitResponse> studentVisits = visitSpi.getVisitsByStudentId(studentId, jwtUser);
     List<StudentPaymentResponse> studentPayments =
-        studentPaymentSpi.getPaymentsByStudentId(studentId, jwtUser);
+        studentPaymentSpi.getStudentPaymentsByStudentId(studentId, jwtUser);
     List<LessonResponse> allLessons =
         (groupId != null) ? lessonSpi.getLessonsByGroupId(groupId, jwtUser) : List.of();
 
@@ -223,7 +223,7 @@ public class StudentService implements StudentSpi {
 
   @Transactional
   public void deleteStudentPayment(UUID paymentId, JwtUser jwtUser) {
-    studentPaymentSpi.deletePaymentById(paymentId, jwtUser);
+    studentPaymentSpi.deleteStudentPaymentById(paymentId, jwtUser);
   }
 
   private Student saveStudent(Student student) {
