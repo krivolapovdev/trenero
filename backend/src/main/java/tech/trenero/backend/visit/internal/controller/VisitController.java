@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import tech.trenero.backend.common.request.CreateVisitRequest;
 import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.visit.internal.request.CreateVisitRequest;
 import tech.trenero.backend.visit.internal.request.UpdateVisitRequest;
 import tech.trenero.backend.visit.internal.service.VisitService;
 

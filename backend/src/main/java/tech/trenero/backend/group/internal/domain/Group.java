@@ -1,4 +1,4 @@
-package tech.trenero.backend.group.internal.entity;
+package tech.trenero.backend.group.internal.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,7 +25,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Builder
 public class Group {
   @Id
-  @Column(name = "id", updatable = false, nullable = false)
+  @Column(name = "id", nullable = false, updatable = false)
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 

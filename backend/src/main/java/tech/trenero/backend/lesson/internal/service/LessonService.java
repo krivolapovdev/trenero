@@ -6,18 +6,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.trenero.backend.common.request.CreateVisitRequest;
+import tech.trenero.backend.common.response.GroupStudentResponse;
 import tech.trenero.backend.common.response.LessonResponse;
-import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupSpi;
+import tech.trenero.backend.group.external.GroupStudentSpi;
 import tech.trenero.backend.lesson.external.LessonSpi;
-import tech.trenero.backend.lesson.internal.entity.Lesson;
+import tech.trenero.backend.lesson.internal.domain.Lesson;
 import tech.trenero.backend.lesson.internal.mapper.LessonMapper;
 import tech.trenero.backend.lesson.internal.repository.LessonRepository;
 import tech.trenero.backend.lesson.internal.request.CreateLessonRequest;
@@ -30,12 +34,12 @@ import tech.trenero.backend.visit.external.VisitSpi;
 @Slf4j
 @RequiredArgsConstructor
 public class LessonService implements LessonSpi {
-  private final LessonRepository lessonRepository;
-  private final LessonMapper lessonMapper;
-
+  @Lazy private final LessonRepository lessonRepository;
+  @Lazy private final LessonMapper lessonMapper;
   @Lazy private final LessonService self;
   @Lazy private final VisitSpi visitSpi;
   @Lazy private final StudentSpi studentSpi;
+  @Lazy private final GroupStudentSpi groupStudentSpi;
   @Lazy private final GroupSpi groupSpi;
 
   @Transactional(readOnly = true)
@@ -47,6 +51,7 @@ public class LessonService implements LessonSpi {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<LessonResponse> getLastGroupLesson(UUID groupId, JwtUser jwtUser) {
     log.info("Getting last lesson for ownerId={}", jwtUser.userId());
     return lessonRepository
@@ -55,9 +60,14 @@ public class LessonService implements LessonSpi {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Map<UUID, LessonResponse> getLastGroupLessonsByGroupIds(
       List<UUID> groupIds, JwtUser jwtUser) {
-    return Map.of();
+    log.info("Getting last lessons for {} groups, ownerId={}", groupIds.size(), jwtUser.userId());
+
+    return lessonRepository.findLastLessonsByGroupIdsAndOwnerId(groupIds, jwtUser.userId()).stream()
+        .map(lessonMapper::toResponse)
+        .collect(Collectors.toMap(LessonResponse::groupId, Function.identity()));
   }
 
   @Transactional(readOnly = true)
@@ -75,8 +85,8 @@ public class LessonService implements LessonSpi {
 
     LessonResponse lesson = self.getLessonById(lessonId, jwtUser);
     List<VisitResponse> visits = visitSpi.getVisitsByLessonId(lessonId, jwtUser);
-    List<StudentResponse> groupStudents =
-        studentSpi.getStudentsByGroupId(lesson.groupId(), jwtUser);
+    List<GroupStudentResponse> groupStudents =
+        groupStudentSpi.getStudentsByGroupId(lesson.groupId(), jwtUser);
 
     return new LessonDetailsResponse(lesson, visits, groupStudents);
   }
@@ -107,15 +117,11 @@ public class LessonService implements LessonSpi {
     Lesson lesson = lessonMapper.toLesson(request, jwtUser.userId());
     Lesson savedLesson = saveLesson(lesson);
 
-    //    List<CreateVisitRequest> visitInputList =
-    //        request.students().stream()
-    //            .map(
-    //                status ->
-    //                    new CreateVisitRequest(
-    //                        savedLesson.getId(), status.studentId(), status.present()))
-    //            .toList();
-
-    //    visitSpi.createVisits(savedLesson.getId(), request.groupId(), visitInputList, jwtUser);
+    request.students().stream()
+        .map(
+            status ->
+                new CreateVisitRequest(savedLesson.getId(), status.studentId(), status.present()))
+        .forEach(req -> visitSpi.createVisit(req, jwtUser));
 
     return lessonMapper.toResponse(savedLesson);
   }
@@ -124,15 +130,14 @@ public class LessonService implements LessonSpi {
   public LessonResponse updateLesson(UUID lessonId, UpdateLessonRequest request, JwtUser jwtUser) {
     log.info("Editing lesson by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
 
-    //    if (request.students().isPresent()) {
-    //      List<CreateVisitRequest> visitInputList =
-    //          request.students().stream()
-    //              .map(status -> new CreateVisitRequest(lessonId, status.studentId(),
-    // status.present()))
-    //              .toList();
-    //
-    //      visitSpi.editVisitsByLessonId(lessonId, visitInputList, jwtUser);
-    //    }
+    if (request.students() != null) {
+      List<CreateVisitRequest> visitInputList =
+          request.students().stream()
+              .map(status -> new CreateVisitRequest(lessonId, status.studentId(), status.present()))
+              .toList();
+
+      visitSpi.updateVisitsByLessonId(lessonId, visitInputList, jwtUser);
+    }
 
     return lessonRepository
         .findByIdAndOwnerId(lessonId, jwtUser.userId())

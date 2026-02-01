@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Set;
 import tech.trenero.backend.common.response.GroupResponse;
 import tech.trenero.backend.common.response.StudentResponse;
-import tech.trenero.backend.student.internal.model.StudentStatus;
+import tech.trenero.backend.student.internal.domain.StudentStatus;
 
 public record StudentOverviewResponse(
     @JsonUnwrapped StudentResponse student,

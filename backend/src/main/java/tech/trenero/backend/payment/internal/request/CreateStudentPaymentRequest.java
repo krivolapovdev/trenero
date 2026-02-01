@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public record CreatePaymentRequest(
+public record CreateStudentPaymentRequest(
     @NotNull UUID studentId,
     @NotNull BigDecimal amount,
     @NotNull Integer paidLessons,

@@ -6,7 +6,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.ReportingPolicy;
 import tech.trenero.backend.common.response.LessonResponse;
-import tech.trenero.backend.lesson.internal.entity.Lesson;
+import tech.trenero.backend.lesson.internal.domain.Lesson;
 import tech.trenero.backend.lesson.internal.request.CreateLessonRequest;
 import tech.trenero.backend.lesson.internal.request.UpdateLessonRequest;
 
@@ -22,7 +22,9 @@ public interface LessonMapper {
       return lesson;
     }
 
-    request.startDateTime().ifPresent(lesson::setStartDateTime);
+    if (request.startDateTime() != null) {
+      lesson.setStartDateTime(request.startDateTime());
+    }
 
     return lesson;
   }

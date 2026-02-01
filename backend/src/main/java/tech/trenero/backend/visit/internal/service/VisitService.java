@@ -5,20 +5,21 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.trenero.backend.common.request.CreateVisitRequest;
 import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.lesson.external.LessonSpi;
 import tech.trenero.backend.visit.external.VisitSpi;
-import tech.trenero.backend.visit.internal.entity.Visit;
+import tech.trenero.backend.visit.internal.domain.Visit;
 import tech.trenero.backend.visit.internal.mapper.VisitMapper;
 import tech.trenero.backend.visit.internal.repository.VisitRepository;
-import tech.trenero.backend.visit.internal.request.CreateVisitRequest;
 import tech.trenero.backend.visit.internal.request.UpdateVisitRequest;
 
 @Service
@@ -137,11 +138,61 @@ public class VisitService implements VisitSpi {
     visitRepository.saveAllAndFlush(visitList);
   }
 
+  @Override
+  @Transactional
+  public void removeVisitsByLessonId(UUID lessonId, JwtUser jwtUser) {
+    log.info(
+        "Removing (soft delete) all visits for lessonId={} for ownerId={}",
+        lessonId,
+        jwtUser.userId());
+
+    List<Visit> visits = visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId());
+
+    OffsetDateTime now = OffsetDateTime.now();
+
+    visits.forEach(visit -> visit.setDeletedAt(now));
+
+    visitRepository.saveAllAndFlush(visits);
+  }
+
+  @Override
+  @Transactional
+  public void updateVisitsByLessonId(
+      UUID lessonId, List<CreateVisitRequest> requests, JwtUser jwtUser) {
+    log.info("Syncing visits for lessonId={} for ownerId={}", lessonId, jwtUser.userId());
+
+    List<Visit> existingVisits =
+        visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId());
+
+    Map<UUID, Visit> existingMap =
+        existingVisits.stream().collect(Collectors.toMap(Visit::getStudentId, Function.identity()));
+
+    List<UUID> incomingStudentIds = requests.stream().map(CreateVisitRequest::studentId).toList();
+
+    requests.forEach(
+        req -> {
+          if (existingMap.containsKey(req.studentId())) {
+            Visit visit = existingMap.get(req.studentId());
+            visit.setPresent(req.present());
+            visit.setDeletedAt(null);
+          } else {
+            Visit newVisit = visitMapper.toVisit(req, jwtUser.userId());
+            existingVisits.add(newVisit);
+          }
+        });
+
+    existingVisits.forEach(
+        visit -> {
+          if (!incomingStudentIds.contains(visit.getStudentId())) {
+            visit.setDeletedAt(OffsetDateTime.now());
+          }
+        });
+
+    visitRepository.saveAllAndFlush(existingVisits);
+  }
+
   private Visit saveVisit(Visit visit) {
     log.info("Saving visit: {}", visit);
     return visitRepository.saveAndFlush(visit);
   }
-
-  @Override
-  public void removeVisitsByLessonId(UUID lessonId, JwtUser jwtUser) {}
 }

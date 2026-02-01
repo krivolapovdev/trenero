@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import tech.trenero.backend.common.response.GroupResponse;
-import tech.trenero.backend.common.response.LessonResponse;
-import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.internal.request.CreateGroupRequest;
 import tech.trenero.backend.group.internal.response.GroupDetailsResponse;
@@ -58,20 +56,6 @@ public class GroupController {
   public GroupDetailsResponse getGroupDetails(
       @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.getGroupDetailsById(groupId, jwtUser);
-  }
-
-  @GetMapping("/{groupId}/students")
-  @PreAuthorize("isAuthenticated()")
-  public List<StudentResponse> getGroupStudents(
-      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.getStudentsByGroupId(groupId, jwtUser);
-  }
-
-  @GetMapping("/{groupId}/lessons")
-  @PreAuthorize("isAuthenticated()")
-  public List<LessonResponse> getGroupLessons(
-      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.getLessonsByGroupId(groupId, jwtUser);
   }
 
   @PostMapping

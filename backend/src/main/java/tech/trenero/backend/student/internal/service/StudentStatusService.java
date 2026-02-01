@@ -7,16 +7,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tech.trenero.backend.common.response.LessonResponse;
-import tech.trenero.backend.common.response.PaymentResponse;
+import tech.trenero.backend.common.response.StudentPaymentResponse;
 import tech.trenero.backend.common.response.VisitResponse;
-import tech.trenero.backend.student.internal.model.StudentStatus;
+import tech.trenero.backend.student.internal.domain.StudentStatus;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class StudentStatusService {
   public Set<StudentStatus> getStudentStatuses(
-      List<VisitResponse> visits, List<PaymentResponse> payments, LessonResponse lastLesson) {
+      List<VisitResponse> visits,
+      List<StudentPaymentResponse> payments,
+      LessonResponse lastLesson) {
     log.info("Getting students statuses");
 
     visits = visits == null ? List.of() : visits;
@@ -38,7 +40,7 @@ public class StudentStatusService {
                       lastVisit.present() ? StudentStatus.PRESENT : StudentStatus.MISSING));
     }
 
-    int totalPaidLessons = payments.stream().mapToInt(PaymentResponse::paidLessons).sum();
+    int totalPaidLessons = payments.stream().mapToInt(StudentPaymentResponse::paidLessons).sum();
     int totalVisits = visits.size();
 
     statuses.add(totalVisits <= totalPaidLessons ? StudentStatus.PAID : StudentStatus.UNPAID);

@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.ReportingPolicy;
 import tech.trenero.backend.common.response.StudentResponse;
-import tech.trenero.backend.student.internal.model.Student;
+import tech.trenero.backend.student.internal.domain.Student;
 import tech.trenero.backend.student.internal.request.CreateStudentRequest;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -38,11 +38,6 @@ public interface StudentMapper {
     if (updates.containsKey("birthdate")) {
       Object date = updates.get("birthdate");
       student.setBirthdate(date != null ? LocalDate.parse(date.toString()) : null);
-    }
-
-    if (updates.containsKey("groupId")) {
-      Object groupId = updates.get("groupId");
-      student.setGroupId(groupId != null ? UUID.fromString(groupId.toString()) : null);
     }
 
     return student;

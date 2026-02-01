@@ -17,47 +17,48 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import tech.trenero.backend.common.response.PaymentResponse;
+import tech.trenero.backend.common.response.StudentPaymentResponse;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.payment.internal.request.CreatePaymentRequest;
+import tech.trenero.backend.payment.internal.request.CreateStudentPaymentRequest;
 import tech.trenero.backend.payment.internal.request.UpdatePaymentRequest;
-import tech.trenero.backend.payment.internal.service.PaymentService;
+import tech.trenero.backend.payment.internal.service.StudentPaymentService;
 
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 @Validated
-public class PaymentController {
-  private final PaymentService paymentService;
+public class StudentPaymentController {
+  private final StudentPaymentService studentPaymentService;
 
   @GetMapping
   @PreAuthorize("isAuthenticated()")
-  public List<PaymentResponse> getPayments(@AuthenticationPrincipal JwtUser jwtUser) {
-    return paymentService.getAllPayments(jwtUser);
+  public List<StudentPaymentResponse> getPayments(@AuthenticationPrincipal JwtUser jwtUser) {
+    return studentPaymentService.getAllPayments(jwtUser);
   }
 
   @GetMapping("/{paymentId}")
   @PreAuthorize("isAuthenticated()")
-  public PaymentResponse getPayment(
+  public StudentPaymentResponse getPayment(
       @PathVariable("paymentId") UUID paymentId, @AuthenticationPrincipal JwtUser jwtUser) {
-    return paymentService.getPaymentById(paymentId, jwtUser);
+    return studentPaymentService.getPaymentById(paymentId, jwtUser);
   }
 
   @PostMapping
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.CREATED)
-  public PaymentResponse createPayment(
-      @RequestBody @Valid CreatePaymentRequest request, @AuthenticationPrincipal JwtUser jwtUser) {
-    return paymentService.createPayment(request, jwtUser);
+  public StudentPaymentResponse createPayment(
+      @RequestBody @Valid CreateStudentPaymentRequest request,
+      @AuthenticationPrincipal JwtUser jwtUser) {
+    return studentPaymentService.createPayment(request, jwtUser);
   }
 
   @PatchMapping("/{paymentId}")
   @PreAuthorize("isAuthenticated()")
-  public PaymentResponse updatePayment(
+  public StudentPaymentResponse updatePayment(
       @PathVariable("paymentId") UUID paymentId,
       @RequestBody @Valid UpdatePaymentRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return paymentService.updatePayment(paymentId, request, jwtUser);
+    return studentPaymentService.updatePayment(paymentId, request, jwtUser);
   }
 
   @DeleteMapping("/{paymentId}")
@@ -65,6 +66,6 @@ public class PaymentController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deletePayment(
       @PathVariable UUID paymentId, @AuthenticationPrincipal JwtUser jwtUser) {
-    paymentService.deletePaymentById(paymentId, jwtUser);
+    studentPaymentService.deletePaymentById(paymentId, jwtUser);
   }
 }

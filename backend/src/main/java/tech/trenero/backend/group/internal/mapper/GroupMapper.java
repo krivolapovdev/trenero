@@ -9,9 +9,10 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.ReportingPolicy;
 import tech.trenero.backend.common.response.GroupResponse;
+import tech.trenero.backend.common.response.GroupStudentResponse;
 import tech.trenero.backend.common.response.LessonResponse;
 import tech.trenero.backend.common.response.StudentResponse;
-import tech.trenero.backend.group.internal.entity.Group;
+import tech.trenero.backend.group.internal.domain.Group;
 import tech.trenero.backend.group.internal.request.CreateGroupRequest;
 import tech.trenero.backend.group.internal.response.GroupDetailsResponse;
 import tech.trenero.backend.group.internal.response.GroupOverviewResponse;
@@ -27,14 +28,6 @@ public interface GroupMapper {
     if (group == null || updates == null) {
       return group;
     }
-
-    //    System.out.println("request.defaultPrice() = " + request.defaultPrice);
-    //    System.out.println("(request.defaultPrice() == null) = " + (request.defaultPrice ==
-    // null));
-
-    //    request.name().ifPresent(group::setName);
-    //    request.defaultPrice().ifPresent(group::setDefaultPrice);
-    //    request.note.ifPresent(group::setNote);
 
     if (updates.containsKey("name")) {
       group.setName((String) updates.get("name"));
@@ -54,7 +47,7 @@ public interface GroupMapper {
 
   @Mapping(target = "groupStudents", source = "groupStudents")
   GroupOverviewResponse toGroupOverviewResponse(
-      GroupResponse group, List<StudentResponse> groupStudents);
+      GroupResponse group, List<GroupStudentResponse> groupStudents);
 
   @Mapping(target = "groupStudents", source = "groupStudents")
   @Mapping(target = "groupLessons", source = "groupLessons")

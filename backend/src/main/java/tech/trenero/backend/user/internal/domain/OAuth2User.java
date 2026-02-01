@@ -1,7 +1,9 @@
-package tech.trenero.backend.lesson.internal.entity;
+package tech.trenero.backend.user.internal.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,31 +16,40 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
+import tech.trenero.backend.common.domain.OAuth2Provider;
 
 @Entity
-@Table(name = "lessons", schema = "lessons_module")
+@Table(name = "oauth2_users", schema = "users_module")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Lesson {
+public class OAuth2User {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @Column(name = "owner_id", nullable = false, updatable = false)
+  @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+  @Column(
+      name = "provider",
+      columnDefinition = "oauth2_provider",
+      nullable = false,
+      updatable = false)
   @NonNull
-  private UUID ownerId;
+  private OAuth2Provider provider;
 
-  @Column(name = "group_id", nullable = false, updatable = false)
+  @Column(name = "provider_id", nullable = false, updatable = false)
   @NonNull
-  private UUID groupId;
+  private String providerId;
 
-  @Column(name = "start_date_time", nullable = false)
+  @Column(name = "email", nullable = false)
   @NonNull
-  private OffsetDateTime startDateTime;
+  private String email;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)

@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import tech.trenero.backend.lesson.internal.entity.Lesson;
+import tech.trenero.backend.lesson.internal.domain.Lesson;
 
 @Repository
 public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNull UUID> {

@@ -1,4 +1,4 @@
-package tech.trenero.backend.student.internal.model;
+package tech.trenero.backend.student.internal.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -45,9 +45,6 @@ public class Student {
 
   @Column(name = "note")
   private String note;
-
-  @Column(name = "group_id")
-  private UUID groupId;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)

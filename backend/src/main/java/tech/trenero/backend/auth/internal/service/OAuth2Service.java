@@ -1,6 +1,6 @@
 package tech.trenero.backend.auth.internal.service;
 
-import static tech.trenero.backend.common.model.OAuth2Provider.GOOGLE;
+import static tech.trenero.backend.common.domain.OAuth2Provider.GOOGLE;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package tech.trenero.backend.visit.internal.request;
+package tech.trenero.backend.common.request;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;

@@ -1,4 +1,4 @@
-package tech.trenero.backend.payment.internal.entity;
+package tech.trenero.backend.visit.internal.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -6,8 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -19,12 +17,12 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "payments", schema = "payments_module")
+@Table(name = "visits", schema = "visits_module")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Payment {
+public class Visit {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -34,21 +32,16 @@ public class Payment {
   @NonNull
   private UUID ownerId;
 
+  @Column(name = "lesson_id", nullable = false, updatable = false)
+  @NonNull
+  private UUID lessonId;
+
   @Column(name = "student_id", nullable = false, updatable = false)
   @NonNull
   private UUID studentId;
 
-  @Column(name = "amount", nullable = false)
-  @NonNull
-  private BigDecimal amount;
-
-  @Column(name = "paid_lessons", nullable = false)
-  @NonNull
-  private Integer paidLessons;
-
-  @Column(name = "date", nullable = false)
-  @NonNull
-  private LocalDate date;
+  @Column(name = "present", nullable = false)
+  private boolean present;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)

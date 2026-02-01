@@ -1,14 +1,15 @@
 package tech.trenero.backend.common.response;
 
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import tech.trenero.backend.common.domain.TransactionType;
 
-public record StudentResponse(
+public record TransactionResponse(
     @NotNull UUID id,
-    @NotNull String fullName,
-    LocalDate birthdate,
-    String phone,
-    String note,
+    @NotNull BigDecimal amount,
+    @NotNull LocalDate date,
+    @NotNull TransactionType type,
     @NotNull OffsetDateTime createdAt) {}

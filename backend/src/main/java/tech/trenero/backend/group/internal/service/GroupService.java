@@ -13,11 +13,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.response.GroupResponse;
+import tech.trenero.backend.common.response.GroupStudentResponse;
 import tech.trenero.backend.common.response.LessonResponse;
 import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.group.external.GroupSpi;
-import tech.trenero.backend.group.internal.entity.Group;
+import tech.trenero.backend.group.internal.domain.Group;
 import tech.trenero.backend.group.internal.mapper.GroupMapper;
 import tech.trenero.backend.group.internal.repository.GroupRepository;
 import tech.trenero.backend.group.internal.request.CreateGroupRequest;
@@ -30,12 +31,12 @@ import tech.trenero.backend.student.external.StudentSpi;
 @Slf4j
 @RequiredArgsConstructor
 public class GroupService implements GroupSpi {
-  private final GroupRepository groupRepository;
-  private final GroupMapper groupMapper;
-
+  @Lazy private final GroupRepository groupRepository;
+  @Lazy private final GroupMapper groupMapper;
   @Lazy private final GroupService self;
-  @Lazy private final StudentSpi studentSpi;
+  @Lazy private final GroupStudentService groupStudentService;
   @Lazy private final LessonSpi lessonSpi;
+  @Lazy private final StudentSpi studentSpi;
 
   @Transactional(readOnly = true)
   public List<GroupResponse> getAllGroups(JwtUser jwtUser) {
@@ -52,8 +53,8 @@ public class GroupService implements GroupSpi {
     List<GroupResponse> allGroups = self.getAllGroups(jwtUser);
     List<UUID> groupIds = allGroups.stream().map(GroupResponse::id).toList();
 
-    Map<UUID, List<StudentResponse>> groupStudents =
-        studentSpi.getStudentsByGroupIds(groupIds, jwtUser);
+    Map<UUID, List<GroupStudentResponse>> groupStudents =
+        groupStudentService.getStudentsByGroupIds(groupIds, jwtUser);
 
     return allGroups.stream()
         .map(
@@ -76,8 +77,17 @@ public class GroupService implements GroupSpi {
   public GroupDetailsResponse getGroupDetailsById(UUID groupId, JwtUser jwtUser) {
     log.info("Getting group details by id={} for ownerId={}", groupId, jwtUser.userId());
 
+    List<UUID> studentIds =
+        groupStudentService.getStudentsByGroupId(groupId, jwtUser).stream()
+            .map(GroupStudentResponse::studentId)
+            .toList();
+
+    Map<UUID, List<StudentResponse>> studentsMap = studentSpi.getStudentsByIds(studentIds, jwtUser);
+
+    List<StudentResponse> groupStudents =
+        studentsMap.values().stream().flatMap(List::stream).toList();
+
     GroupResponse group = self.getGroupById(groupId, jwtUser);
-    List<StudentResponse> groupStudents = studentSpi.getStudentsByGroupId(groupId, jwtUser);
     List<LessonResponse> groupLessons = lessonSpi.getLessonsByGroupId(groupId, jwtUser);
 
     return groupMapper.toGroupDetailsResponse(group, groupStudents, groupLessons);
@@ -92,24 +102,14 @@ public class GroupService implements GroupSpi {
         .collect(Collectors.toMap(GroupResponse::id, Function.identity()));
   }
 
-  @Transactional(readOnly = true)
-  public List<StudentResponse> getStudentsByGroupId(UUID groupId, JwtUser jwtUser) {
-    return studentSpi.getStudentsByGroupId(groupId, jwtUser);
-  }
-
-  @Transactional(readOnly = true)
-  public List<LessonResponse> getLessonsByGroupId(UUID groupId, JwtUser jwtUser) {
-    return lessonSpi.getLessonsByGroupId(groupId, jwtUser);
-  }
-
   @Transactional
   public GroupResponse createGroup(CreateGroupRequest request, JwtUser jwtUser) {
     log.info("Creating group: name='{}', ownerId={}", request.name(), jwtUser.userId());
 
     Group group = groupMapper.toGroup(request, jwtUser.userId());
-    Group savedGroup = saveGroup(group);
+    Group savedGroup = self.saveGroup(group);
 
-    studentSpi.setGroupIdToStudents(savedGroup.getId(), request.studentIds(), jwtUser);
+    groupStudentService.addStudentsToGroup(savedGroup.getId(), request.studentIds(), jwtUser);
 
     return groupMapper.toResponse(savedGroup);
   }
@@ -117,10 +117,6 @@ public class GroupService implements GroupSpi {
   @Transactional
   public GroupResponse updateGroup(UUID groupId, Map<String, Object> updates, JwtUser jwtUser) {
     log.info("Updating group: groupId='{}', ownerId={}", groupId, jwtUser.userId());
-
-    //    if (request.studentIds().isPresent()) {
-    //      studentSpi.setGroupIdToStudents(groupId, request.studentIds().get(), jwtUser);
-    //    }
 
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
@@ -131,27 +127,23 @@ public class GroupService implements GroupSpi {
   }
 
   @Transactional
-  public void softDeleteGroup(UUID id, JwtUser jwtUser) {
-    log.info("Deleting group: {}", id);
+  public void softDeleteGroup(UUID groupId, JwtUser jwtUser) {
+    log.info("Deleting group: {}", groupId);
 
-    studentSpi.removeGroupFromStudents(id, jwtUser);
+    groupStudentService.removeAllStudentsFromGroup(groupId, jwtUser);
 
     groupRepository
-        .findByIdAndOwnerId(id, jwtUser.userId())
+        .findByIdAndOwnerId(groupId, jwtUser.userId())
         .map(
             group -> {
               group.setDeletedAt(OffsetDateTime.now());
-              return saveGroup(group);
+              return self.saveGroup(group);
             })
-        .orElseThrow(() -> new EntityNotFoundException("Group not found: " + id));
+        .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
   }
 
   @Transactional
-  public void deleteGroupLesson(UUID lessonId, JwtUser jwtUser) {
-    lessonSpi.deleteLesson(lessonId, jwtUser);
-  }
-
-  private Group saveGroup(Group group) {
+  public Group saveGroup(Group group) {
     log.info("Saving group: {}", group);
     return groupRepository.saveAndFlush(group);
   }

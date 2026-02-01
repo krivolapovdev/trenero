@@ -7,15 +7,9 @@ import tech.trenero.backend.common.response.StudentResponse;
 import tech.trenero.backend.common.security.JwtUser;
 
 public interface StudentSpi {
-  List<StudentResponse> getStudents(JwtUser jwtUser);
+  List<StudentResponse> getAllStudents(JwtUser jwtUser);
 
   StudentResponse getStudentById(UUID studentId, JwtUser jwtUser);
 
-  List<StudentResponse> getStudentsByGroupId(UUID groupId, JwtUser jwtUser);
-
-  Map<UUID, List<StudentResponse>> getStudentsByGroupIds(List<UUID> groupIds, JwtUser jwtUser);
-
-  void setGroupIdToStudents(UUID groupId, List<UUID> studentIds, JwtUser jwtUser);
-
-  void removeGroupFromStudents(UUID groupId, JwtUser jwtUser);
+  Map<UUID, List<StudentResponse>> getStudentsByIds(List<UUID> studentIds, JwtUser jwtUser);
 }
