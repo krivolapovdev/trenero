@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.domain.TransactionType;
 import tech.trenero.backend.common.response.TransactionResponse;
 import tech.trenero.backend.common.security.JwtUser;
+import tech.trenero.backend.payment.external.TransactionSpi;
 import tech.trenero.backend.payment.internal.domain.Transaction;
 import tech.trenero.backend.payment.internal.mapper.TransactionMapper;
 import tech.trenero.backend.payment.internal.repository.TransactionRepository;
@@ -24,7 +25,7 @@ import tech.trenero.backend.payment.internal.repository.TransactionRepository;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TransactionService {
+public class TransactionService implements TransactionSpi {
   @Lazy private final TransactionRepository transactionRepository;
   @Lazy private final TransactionMapper transactionMapper;
   @Lazy private final TransactionService self;
