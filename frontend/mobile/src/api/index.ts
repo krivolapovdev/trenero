@@ -21,7 +21,7 @@ const authMiddleware: Middleware = {
     return request;
   },
 
-  async onResponse({ request, response, options }) {
+  async onResponse({ request, response }) {
     if (response.status !== 401 && response.status !== 403) {
       return response;
     }

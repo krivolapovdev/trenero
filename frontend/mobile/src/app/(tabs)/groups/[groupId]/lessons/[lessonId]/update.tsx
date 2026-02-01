@@ -11,6 +11,7 @@ import {
 } from '@/src/components/Form/LessonForm';
 import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
 import { useGroupsStore } from '@/src/stores/groupsStore';
+import { useStudentsStore } from '@/src/stores/studentsStore';
 import type { ApiError } from '@/src/types/error';
 
 type UpdateLessonRequest = components['schemas']['UpdateLessonRequest'];
@@ -24,6 +25,12 @@ export default function UpdateLessonScreen() {
   }>();
 
   const removeGroup = useGroupsStore(state => state.removeGroup);
+  const refreshStudents = useStudentsStore(state => state.refreshStudents);
+  const isRefreshing = useStudentsStore(state => state.isRefreshing);
+  const allGroups = useGroupsStore(state => state.allGroups);
+  const groupStudents = allGroups.find(
+    group => group.id === groupId
+  )?.groupStudents;
 
   const { loading: lessonLoading, result } = useAsync(
     () =>
@@ -76,6 +83,7 @@ export default function UpdateLessonScreen() {
 
     try {
       await updateLesson(request);
+      await refreshStudents();
       removeGroup(groupId);
       router.back();
     } catch (err) {
@@ -88,10 +96,11 @@ export default function UpdateLessonScreen() {
     <LessonForm
       title={t('editLesson')}
       initialData={{
-        lesson
+        lesson,
+        groupStudents
       }}
       queryLoading={lessonLoading}
-      mutationLoading={updateLessonLoading}
+      mutationLoading={updateLessonLoading || isRefreshing}
       onBack={router.back}
       onSubmit={handleSubmit}
     />

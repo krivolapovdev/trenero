@@ -212,38 +212,6 @@ export interface paths {
     patch: operations['updateGroup'];
     trace?: never;
   };
-  '/api/v1/students/{studentId}/visits': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations['getStudentVisits'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/students/{studentId}/payments': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations['getStudentPayments'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/students/{studentId}/details': {
     parameters: {
       query?: never;
@@ -316,38 +284,6 @@ export interface paths {
       cookie?: never;
     };
     get: operations['getLessonDetails'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/groups/{groupId}/students': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations['getGroupStudents'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/groups/{groupId}/lessons': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations['getGroupLessons'];
     put?: never;
     post?: never;
     delete?: never;
@@ -443,12 +379,10 @@ export interface components {
       birthdate?: string;
       phone?: string;
       note?: string;
-      /** Format: uuid */
-      groupId?: string;
       /** Format: date-time */
       createdAt: string;
     };
-    CreatePaymentRequest: {
+    CreateStudentPaymentRequest: {
       /** Format: uuid */
       studentId: string;
       amount: number;
@@ -457,7 +391,7 @@ export interface components {
       /** Format: date */
       date: string;
     };
-    PaymentResponse: {
+    StudentPaymentResponse: {
       /** Format: uuid */
       id: string;
       /** Format: uuid */
@@ -549,13 +483,11 @@ export interface components {
       birthdate?: string;
       phone?: string;
       note?: string;
-      /** Format: uuid */
-      groupId?: string;
       /** Format: date-time */
       createdAt: string;
       studentGroup?: components['schemas']['GroupResponse'];
       studentVisits: components['schemas']['VisitWithLessonResponse'][];
-      studentPayments: components['schemas']['PaymentResponse'][];
+      studentPayments: components['schemas']['StudentPaymentResponse'][];
       statuses: ('INACTIVE' | 'PRESENT' | 'MISSING' | 'PAID' | 'UNPAID')[];
     };
     VisitWithLessonResponse: {
@@ -570,8 +502,6 @@ export interface components {
       birthdate?: string;
       phone?: string;
       note?: string;
-      /** Format: uuid */
-      groupId?: string;
       /** Format: date-time */
       createdAt: string;
       studentGroup?: components['schemas']['GroupResponse'];
@@ -581,6 +511,18 @@ export interface components {
       /** Format: date */
       date: string;
       total: number;
+    };
+    GroupStudentResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      groupId: string;
+      /** Format: uuid */
+      studentId: string;
+      /** Format: date-time */
+      joinedAt: string;
+      /** Format: date-time */
+      leftAt?: string;
     };
     LessonDetailsResponse: {
       /** Format: uuid */
@@ -592,7 +534,7 @@ export interface components {
       /** Format: date-time */
       createdAt: string;
       studentVisits: components['schemas']['VisitResponse'][];
-      groupStudents: components['schemas']['StudentResponse'][];
+      groupStudents: components['schemas']['GroupStudentResponse'][];
     };
     GroupDetailsResponse: {
       /** Format: uuid */
@@ -727,7 +669,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['PaymentResponse'][];
+          '*/*': components['schemas']['StudentPaymentResponse'][];
         };
       };
     };
@@ -741,7 +683,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreatePaymentRequest'];
+        'application/json': components['schemas']['CreateStudentPaymentRequest'];
       };
     };
     responses: {
@@ -751,7 +693,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['PaymentResponse'];
+          '*/*': components['schemas']['StudentPaymentResponse'];
         };
       };
     };
@@ -1071,7 +1013,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['PaymentResponse'];
+          '*/*': components['schemas']['StudentPaymentResponse'];
         };
       };
     };
@@ -1117,7 +1059,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['PaymentResponse'];
+          '*/*': components['schemas']['StudentPaymentResponse'];
         };
       };
     };
@@ -1260,50 +1202,6 @@ export interface operations {
       };
     };
   };
-  getStudentVisits: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        studentId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          '*/*': components['schemas']['VisitResponse'][];
-        };
-      };
-    };
-  };
-  getStudentPayments: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        studentId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          '*/*': components['schemas']['PaymentResponse'][];
-        };
-      };
-    };
-  };
   getStudentDetails: {
     parameters: {
       query?: never;
@@ -1406,50 +1304,6 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['LessonDetailsResponse'];
-        };
-      };
-    };
-  };
-  getGroupStudents: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        groupId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          '*/*': components['schemas']['StudentResponse'][];
-        };
-      };
-    };
-  };
-  getGroupLessons: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        groupId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          '*/*': components['schemas']['LessonResponse'][];
         };
       };
     };

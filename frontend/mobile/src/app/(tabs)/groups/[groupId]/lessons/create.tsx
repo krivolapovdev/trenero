@@ -9,6 +9,7 @@ import {
 } from '@/src/components/Form/LessonForm';
 import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
 import { useGroupsStore } from '@/src/stores/groupsStore';
+import { useStudentsStore } from '@/src/stores/studentsStore';
 import type { ApiError } from '@/src/types/error';
 
 type CreateLessonRequest = components['schemas']['CreateLessonRequest'];
@@ -18,8 +19,10 @@ export default function CreateLessonScreen() {
   const { t } = useTranslation();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
 
-  const allGroups = useGroupsStore(state => state.allGroups);
   const removeGroup = useGroupsStore(state => state.removeGroup);
+  const refreshStudents = useStudentsStore(state => state.refreshStudents);
+  const isRefreshing = useStudentsStore(state => state.isRefreshing);
+  const allGroups = useGroupsStore(state => state.allGroups);
   const groupStudents = allGroups.find(
     group => group.id === groupId
   )?.groupStudents;
@@ -43,6 +46,7 @@ export default function CreateLessonScreen() {
 
     try {
       await createLesson(request);
+      await refreshStudents();
       removeGroup(groupId);
       router.back();
     } catch (err) {
@@ -50,17 +54,16 @@ export default function CreateLessonScreen() {
       Alert.alert(t('error'), errorData.detail);
     }
   };
+
   return (
     <LessonForm
       title={t('addLesson')}
       initialData={{
-        lesson: {
-          groupStudents
-        }
+        groupStudents
       }}
       onSubmit={handleSubmit}
       onBack={router.back}
-      mutationLoading={createLessonLoading}
+      mutationLoading={createLessonLoading || isRefreshing}
     />
   );
 }

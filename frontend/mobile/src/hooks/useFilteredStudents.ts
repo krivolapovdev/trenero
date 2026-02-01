@@ -20,7 +20,7 @@ export function useFilteredStudents(
           return false;
         }
 
-        if (filterGroup && student.groupId !== filterGroup) {
+        if (filterGroup && student.studentGroup?.id !== filterGroup) {
           return false;
         }
 

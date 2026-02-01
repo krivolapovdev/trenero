@@ -17,7 +17,7 @@ export type PaymentFormValues = {
 };
 
 type PaymentFormInitialData = {
-  payment?: components['schemas']['PaymentResponse'];
+  payment?: Partial<components['schemas']['StudentPaymentResponse']>;
 };
 
 type Props = {

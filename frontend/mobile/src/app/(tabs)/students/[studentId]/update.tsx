@@ -63,7 +63,7 @@ export default function UpdateStudentScreen() {
       request.birthdate = values.birthdate ?? null;
     }
 
-    if (values.groupId !== student.groupId) {
+    if (values.groupId !== student.studentGroup?.id) {
       request.groupId = values.groupId ?? null;
     }
 

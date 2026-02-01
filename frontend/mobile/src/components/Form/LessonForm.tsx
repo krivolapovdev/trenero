@@ -17,6 +17,7 @@ export type LessonFormValues = {
 
 type LessonFormInitialData = {
   lesson?: Partial<components['schemas']['LessonDetailsResponse']>;
+  groupStudents?: components['schemas']['StudentResponse'][];
 };
 
 type Props = {
@@ -128,7 +129,7 @@ export const LessonForm = memo(
 
           <SurfaceCard>
             <StudentVisitPicker
-              students={initialData?.lesson?.groupStudents ?? []}
+              students={initialData?.groupStudents ?? []}
               visitStatus={visitStatus}
               setVisitStatus={setVisitStatus}
               disabled={isLoading}

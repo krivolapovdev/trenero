@@ -9,21 +9,28 @@ import {
   type PaymentFormValues
 } from '@/src/components/Form/PaymentForm';
 import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
+import { useGroupsStore } from '@/src/stores/groupsStore';
 import { useMetricsStore } from '@/src/stores/metricsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
 import type { ApiError } from '@/src/types/error';
 
-type CreatePaymentRequest = components['schemas']['CreatePaymentRequest'];
+type CreateStudentPaymentRequest =
+  components['schemas']['CreateStudentPaymentRequest'];
 
 export default function CreatePaymentScreen() {
   const router = useRouter();
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
 
+  const recentStudents = useStudentsStore(state => state.recentStudents);
+  const student = recentStudents.find(student => student.id === studentId);
   const removeStudent = useStudentsStore(state => state.removeStudent);
   const adjustMetricTotal = useMetricsStore(state => state.adjustMetricTotal);
+  const allGroups = useGroupsStore(state => state.allGroups);
+  const group = allGroups.find(g => g.id === student?.studentGroup?.id);
+  const defaultPrice = group?.defaultPrice;
 
   const { execute: createPayment, loading: createPaymentLoading } =
-    useCustomAsyncCallback((request: CreatePaymentRequest) =>
+    useCustomAsyncCallback((request: CreateStudentPaymentRequest) =>
       api.POST('/api/v1/payments', {
         body: request
       })
@@ -34,7 +41,7 @@ export default function CreatePaymentScreen() {
       return;
     }
 
-    const request: CreatePaymentRequest = {
+    const request: CreateStudentPaymentRequest = {
       studentId,
       ...values
     };
@@ -56,6 +63,11 @@ export default function CreatePaymentScreen() {
       onSubmit={handleSubmit}
       onBack={() => router.back()}
       mutationLoading={createPaymentLoading}
+      initialData={{
+        payment: {
+          amount: defaultPrice
+        }
+      }}
     />
   );
 }

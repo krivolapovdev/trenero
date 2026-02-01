@@ -53,7 +53,7 @@ export const StudentSearchbarWithFilter = memo(
         ALL_ITEM,
         ...(groups.map(group => ({ id: group.id, name: group.name })) ?? [])
       ],
-      [groups.map]
+      [groups]
     );
 
     const statusItems = useMemo(

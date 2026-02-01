@@ -63,6 +63,7 @@ export default function StudentByIdScreen() {
     try {
       const data = await fetchStudent({});
       if (data) {
+        console.log(data);
         addStudent(data);
       }
     } catch (err) {
@@ -135,9 +136,9 @@ export default function StudentByIdScreen() {
               onRowPress={setPaymentIdSheet}
             />
 
-            {student.groupId && (
+            {student.studentGroup && (
               <VisitCalendar
-                groupId={student.groupId}
+                groupId={student.studentGroup.id}
                 visitsWithLesson={student?.studentVisits ?? []}
               />
             )}

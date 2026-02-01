@@ -6,7 +6,7 @@ import { DataTable, useTheme } from 'react-native-paper';
 import type { components } from '@/src/api/generated/openapi';
 
 type Props = {
-  payments: components['schemas']['PaymentResponse'][];
+  payments: components['schemas']['StudentPaymentResponse'][];
   itemsPerPage?: number;
   onRowPress: (id: string) => void;
 };
