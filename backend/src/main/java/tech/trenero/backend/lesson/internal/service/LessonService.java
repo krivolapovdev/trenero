@@ -27,7 +27,6 @@ import tech.trenero.backend.lesson.internal.repository.LessonRepository;
 import tech.trenero.backend.lesson.internal.request.CreateLessonRequest;
 import tech.trenero.backend.lesson.internal.request.UpdateLessonRequest;
 import tech.trenero.backend.lesson.internal.response.LessonDetailsResponse;
-import tech.trenero.backend.student.external.StudentSpi;
 import tech.trenero.backend.visit.external.VisitSpi;
 
 @Service
@@ -38,7 +37,6 @@ public class LessonService implements LessonSpi {
   @Lazy private final LessonMapper lessonMapper;
   @Lazy private final LessonService self;
   @Lazy private final VisitSpi visitSpi;
-  @Lazy private final StudentSpi studentSpi;
   @Lazy private final GroupStudentSpi groupStudentSpi;
   @Lazy private final GroupSpi groupSpi;
 
