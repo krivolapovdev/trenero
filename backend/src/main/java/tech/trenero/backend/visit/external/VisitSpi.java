@@ -1,5 +1,6 @@
 package tech.trenero.backend.visit.external;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -21,4 +22,6 @@ public interface VisitSpi {
   void updateVisitsByLessonId(UUID lessonId, List<CreateVisitRequest> visits, JwtUser jwtUser);
 
   VisitResponse createVisit(CreateVisitRequest request, JwtUser jwtUser);
+
+  void syncStudentVisits(UUID studentId, UUID groupId, OffsetDateTime joinedAt, JwtUser jwtUser);
 }

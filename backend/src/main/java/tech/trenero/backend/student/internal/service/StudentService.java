@@ -136,11 +136,10 @@ public class StudentService implements StudentSpi {
 
     StudentResponse student = self.getStudentById(studentId, jwtUser);
 
-    UUID groupId =
-        groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream()
-            .findFirst()
-            .map(GroupStudentResponse::groupId)
-            .orElse(null);
+    Optional<GroupStudentResponse> optionalGroupStudentResponse =
+        groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst();
+
+    UUID groupId = optionalGroupStudentResponse.map(GroupStudentResponse::groupId).orElse(null);
 
     GroupResponse studentGroup = (groupId != null) ? groupSpi.getGroupById(groupId, jwtUser) : null;
 
@@ -170,7 +169,12 @@ public class StudentService implements StudentSpi {
             .toList();
 
     return new StudentDetailsResponse(
-        student, studentGroup, visitsWithLessons, studentPayments, studentStatuses);
+        student,
+        visitsWithLessons,
+        studentPayments,
+        studentStatuses,
+        studentGroup,
+        optionalGroupStudentResponse.orElse(null));
   }
 
   @Transactional
@@ -182,7 +186,11 @@ public class StudentService implements StudentSpi {
     Student savedStudent = saveStudent(student);
 
     if (request.groupId() != null) {
-      groupStudentSpi.addStudentToGroup(savedStudent.getId(), request.groupId(), jwtUser);
+      groupStudentSpi.addStudentToGroup(
+          savedStudent.getId(), request.groupId(), request.joinedAt(), jwtUser);
+
+      visitSpi.syncStudentVisits(
+          savedStudent.getId(), request.groupId(), request.joinedAt(), jwtUser);
     }
 
     return studentMapper.toResponse(savedStudent);
@@ -193,18 +201,46 @@ public class StudentService implements StudentSpi {
       UUID studentId, Map<String, Object> updates, JwtUser jwtUser) {
     log.info("Updating student: {}", studentId);
 
-    if (updates.containsKey("groupId")) {
-      UUID groupId = UUID.fromString(updates.get("groupId").toString());
-      groupStudentSpi.removeStudentFromGroup(studentId, groupId, jwtUser);
-      groupStudentSpi.addStudentToGroup(studentId, groupId, jwtUser);
+    final String JOINED_AT = "joinedAt";
+    final String GROUP_ID = "groupId";
+
+    Student student =
+        studentRepository
+            .findByIdAndOwnerId(studentId, jwtUser.userId())
+            .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+
+    GroupStudentResponse currentLink =
+        groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst().orElse(null);
+
+    UUID currentGroupId = currentLink != null ? currentLink.groupId() : null;
+
+    OffsetDateTime newJoinedAt =
+        updates.containsKey(JOINED_AT)
+            ? OffsetDateTime.parse(updates.get(JOINED_AT).toString())
+            : OffsetDateTime.now();
+
+    if (updates.containsKey(GROUP_ID)) {
+      Object rawId = updates.get(GROUP_ID);
+      UUID newGroupId = rawId != null ? UUID.fromString(rawId.toString()) : null;
+
+      if (currentGroupId != null && !currentGroupId.equals(newGroupId)) {
+        groupStudentSpi.removeStudentFromGroup(studentId, currentGroupId, jwtUser);
+      }
+
+      if (newGroupId != null && !newGroupId.equals(currentGroupId)) {
+        groupStudentSpi.addStudentToGroup(studentId, newGroupId, newJoinedAt, jwtUser);
+        visitSpi.syncStudentVisits(studentId, newGroupId, newJoinedAt, jwtUser);
+      }
+    } else if (updates.containsKey(JOINED_AT)
+        && currentGroupId != null
+        && !newJoinedAt.equals(currentLink.joinedAt())) {
+      groupStudentSpi.removeStudentFromGroup(studentId, currentGroupId, jwtUser);
+      groupStudentSpi.addStudentToGroup(studentId, currentGroupId, newJoinedAt, jwtUser);
+      visitSpi.syncStudentVisits(studentId, currentGroupId, newJoinedAt, jwtUser);
     }
 
-    return studentRepository
-        .findByIdAndOwnerId(studentId, jwtUser.userId())
-        .map(student -> studentMapper.updateStudent(student, updates))
-        .map(this::saveStudent)
-        .map(studentMapper::toResponse)
-        .orElseThrow(() -> new EntityNotFoundException("Student not found with id=" + studentId));
+    Student updatedStudent = studentMapper.updateStudent(student, updates);
+    return studentMapper.toResponse(saveStudent(updatedStudent));
   }
 
   @Transactional

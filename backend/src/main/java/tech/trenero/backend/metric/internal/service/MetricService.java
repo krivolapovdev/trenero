@@ -1,7 +1,7 @@
 package tech.trenero.backend.metric.internal.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,17 +27,21 @@ public class MetricService {
   public List<MonthlyPaymentMetricResponse> getMonthlyStatistics(JwtUser jwtUser) {
     log.info("Calculating monthly payment statistics for userId={}", jwtUser.userId());
 
-    LocalDate startMonth = LocalDate.now().minusMonths(6);
-    LocalDate endMonth = LocalDate.now();
+    YearMonth endMonth = YearMonth.now();
+    YearMonth startMonth = endMonth.minusMonths(6);
 
     List<TransactionResponse> transactions = transactionSpi.getAllTransactions(jwtUser);
 
-    Map<LocalDate, BigDecimal> totalByMonth =
+    Map<YearMonth, BigDecimal> totalByMonth =
         transactions.stream()
-            .filter(p -> !p.date().isBefore(startMonth) && !p.date().isAfter(endMonth))
+            .filter(
+                t -> {
+                  YearMonth txMonth = YearMonth.from(t.date());
+                  return !txMonth.isBefore(startMonth) && !txMonth.isAfter(endMonth);
+                })
             .collect(
                 Collectors.groupingBy(
-                    TransactionResponse::date,
+                    t -> YearMonth.from(t.date()),
                     Collectors.mapping(
                         t -> t.type() == TransactionType.INCOME ? t.amount() : t.amount().negate(),
                         Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));

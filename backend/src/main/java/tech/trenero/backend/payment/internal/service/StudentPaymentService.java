@@ -15,6 +15,7 @@ import tech.trenero.backend.common.response.StudentPaymentResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.payment.external.StudentPaymentSpi;
 import tech.trenero.backend.payment.internal.domain.StudentPayment;
+import tech.trenero.backend.payment.internal.domain.Transaction;
 import tech.trenero.backend.payment.internal.mapper.StudentPaymentMapper;
 import tech.trenero.backend.payment.internal.repository.StudentPaymentRepository;
 import tech.trenero.backend.payment.internal.request.CreateStudentPaymentRequest;
@@ -79,20 +80,20 @@ public class StudentPaymentService implements StudentPaymentSpi {
 
     studentSpi.getStudentById(request.studentId(), jwtUser);
 
-    var transactionResponse =
-        transactionService.createTransaction(
+    Transaction transaction =
+        transactionService.createTransactionEntity(
             jwtUser.userId(), request.amount(), TransactionType.INCOME, request.date());
 
     StudentPayment studentPayment =
         StudentPayment.builder()
-            .transactionId(transactionResponse.id())
+            .transaction(transaction)
             .studentId(request.studentId())
             .paidLessons(request.paidLessons())
             .build();
 
     StudentPayment saved = saveStudentPayment(studentPayment);
 
-    return paymentMapper.toResponse(saved, transactionResponse);
+    return paymentMapper.toResponse(saved, transaction);
   }
 
   @Transactional
@@ -109,7 +110,10 @@ public class StudentPaymentService implements StudentPaymentSpi {
     var updatedTx =
         transactionService.updateTransaction(paymentId, request.amount(), request.date(), jwtUser);
 
-    payment.setPaidLessons(request.paidLessons());
+    if (request.paidLessons() != null) {
+      payment.setPaidLessons(request.paidLessons());
+    }
+
     StudentPayment saved = saveStudentPayment(payment);
 
     return paymentMapper.toResponse(saved, updatedTx);

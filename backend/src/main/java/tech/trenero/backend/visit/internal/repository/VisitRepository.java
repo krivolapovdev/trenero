@@ -72,7 +72,7 @@ public interface VisitRepository extends JpaRepository<@NonNull Visit, @NonNull 
   @Query(
       """
       SELECT v
-      FROM Visit v
+      FROM Visit AS v
       WHERE v.ownerId = :ownerId
         AND v.studentId IN :studentIds
         AND v.deletedAt IS NULL
@@ -80,4 +80,18 @@ public interface VisitRepository extends JpaRepository<@NonNull Visit, @NonNull 
       """)
   List<Visit> findAllByStudentIdsAndOwnerId(
       @Param("studentIds") List<UUID> studentIds, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+      SELECT v
+      FROM Visit AS v
+      WHERE v.studentId = :studentId
+        AND v.lessonId IN :lessonIds
+        AND v.ownerId = :ownerId
+        AND v.deletedAt IS NULL
+      """)
+  List<Visit> findAllByStudentIdAndLessonIds(
+      @Param("studentId") UUID studentId,
+      @Param("lessonIds") List<UUID> lessonIds,
+      @Param("ownerId") UUID ownerId);
 }

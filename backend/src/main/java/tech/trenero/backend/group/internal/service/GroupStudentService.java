@@ -53,7 +53,9 @@ public class GroupStudentService implements GroupStudentSpi {
   }
 
   @Transactional
-  public GroupStudentResponse addStudentToGroup(UUID studentId, UUID groupId, JwtUser jwtUser) {
+  @Override
+  public GroupStudentResponse addStudentToGroup(
+      UUID studentId, UUID groupId, OffsetDateTime joinedAt, JwtUser jwtUser) {
     log.info("Adding studentId={} to groupId={}", studentId, groupId);
 
     groupService.getGroupById(groupId, jwtUser);
@@ -63,7 +65,7 @@ public class GroupStudentService implements GroupStudentSpi {
             .studentId(studentId)
             .groupId(groupId)
             .ownerId(jwtUser.userId())
-            .joinedAt(OffsetDateTime.now())
+            .joinedAt(joinedAt)
             .build();
 
     GroupStudent savedGroupStudent = self.saveGroupStudent(groupStudent);
@@ -84,7 +86,7 @@ public class GroupStudentService implements GroupStudentSpi {
   @Transactional
   public void addStudentsToGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
     for (UUID studentId : studentIds) {
-      self.addStudentToGroup(studentId, groupId, jwtUser);
+      self.addStudentToGroup(studentId, groupId, OffsetDateTime.now(), jwtUser);
     }
   }
 

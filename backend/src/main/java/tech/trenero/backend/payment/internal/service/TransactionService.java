@@ -28,6 +28,7 @@ import tech.trenero.backend.payment.internal.repository.TransactionRepository;
 public class TransactionService implements TransactionSpi {
   @Lazy private final TransactionRepository transactionRepository;
   @Lazy private final TransactionMapper transactionMapper;
+  @Lazy private final TransactionService self;
 
   @Transactional(readOnly = true)
   public List<TransactionResponse> getAllTransactions(JwtUser jwtUser) {
@@ -55,16 +56,21 @@ public class TransactionService implements TransactionSpi {
   }
 
   @Transactional
-  public TransactionResponse createTransaction(
+  public Transaction createTransactionEntity(
       UUID ownerId, BigDecimal amount, TransactionType type, LocalDate date) {
     log.info("Creating transaction for ownerId={} amount={} type={}", ownerId, amount, type);
 
     Transaction transaction =
         Transaction.builder().ownerId(ownerId).type(type).amount(amount).date(date).build();
 
-    Transaction savedTransaction = saveTransaction(transaction);
+    return saveTransaction(transaction);
+  }
 
-    return transactionMapper.toResponse(savedTransaction);
+  @Transactional
+  public TransactionResponse createTransaction(
+      UUID ownerId, BigDecimal amount, TransactionType type, LocalDate date) {
+    Transaction saved = self.createTransactionEntity(ownerId, amount, type, date);
+    return transactionMapper.toResponse(saved);
   }
 
   @Transactional
@@ -79,12 +85,21 @@ public class TransactionService implements TransactionSpi {
                 () ->
                     new EntityNotFoundException("Transaction not found with id=" + transactionId));
 
-    transaction.setAmount(amount);
-    transaction.setDate(date);
+    if (amount != null) {
+      transaction.setAmount(amount);
+    }
 
-    log.info("Updated transaction {}: amount={}, date={}", transactionId, amount, date);
+    if (date != null) {
+      transaction.setDate(date);
+    }
 
     Transaction savedTransaction = saveTransaction(transaction);
+
+    log.info(
+        "Updated transaction {}: amount={}, date={}",
+        transactionId,
+        savedTransaction.getAmount(),
+        savedTransaction.getDate());
 
     return transactionMapper.toResponse(savedTransaction);
   }

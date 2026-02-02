@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.trenero.backend.common.request.CreateVisitRequest;
+import tech.trenero.backend.common.response.LessonResponse;
 import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.lesson.external.LessonSpi;
@@ -61,10 +63,7 @@ public class VisitService implements VisitSpi {
       List<UUID> studentIds, JwtUser jwtUser) {
     log.info("Getting visits by studentIds for ownerId={}", jwtUser.userId());
 
-    List<Visit> visits =
-        visitRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.userId());
-
-    return visits.stream()
+    return visitRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
         .map(visitMapper::toResponse)
         .collect(Collectors.groupingBy(VisitResponse::studentId));
   }
@@ -117,6 +116,42 @@ public class VisitService implements VisitSpi {
         .map(this::saveVisit)
         .map(visitMapper::toResponse)
         .orElseThrow(() -> new EntityNotFoundException("Visit not found with id: " + visitId));
+  }
+
+  @Transactional
+  @Override
+  public void syncStudentVisits(
+      UUID studentId, UUID groupId, OffsetDateTime joinedAt, JwtUser jwtUser) {
+    log.info("Syncing student visits for studentId={} for groupId={}", studentId, groupId);
+
+    List<LessonResponse> lessons =
+        lessonSpi.getLessonsByGroupId(groupId, jwtUser).stream()
+            .filter(lesson -> !lesson.startDateTime().isBefore(joinedAt))
+            .toList();
+
+    if (lessons.isEmpty()) {
+      return;
+    }
+
+    List<UUID> lessonIds = lessons.stream().map(LessonResponse::id).toList();
+
+    Set<UUID> existingLessonIds =
+        visitRepository
+            .findAllByStudentIdAndLessonIds(studentId, lessonIds, jwtUser.userId())
+            .stream()
+            .map(Visit::getLessonId)
+            .collect(Collectors.toSet());
+
+    List<Visit> newVisits =
+        lessons.stream()
+            .filter(lesson -> !existingLessonIds.contains(lesson.id()))
+            .map(
+                lesson ->
+                    visitMapper.toVisit(
+                        new CreateVisitRequest(lesson.id(), studentId, false), jwtUser.userId()))
+            .toList();
+
+    visitRepository.saveAll(newVisits);
   }
 
   @Transactional
