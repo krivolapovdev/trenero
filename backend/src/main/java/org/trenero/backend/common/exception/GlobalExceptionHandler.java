@@ -30,22 +30,22 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(JwtException.class)
-  public ResponseStatusException handleUnauthorizedException(JwtException e) {
+  public ResponseStatusException handleUnauthorizedException(Exception e) {
     return buildResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
   }
 
   @ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
-  public ResponseStatusException handleForbiddenException(AuthorizationDeniedException e) {
+  public ResponseStatusException handleForbiddenException(Exception e) {
     return buildResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage(), e);
   }
 
   @ExceptionHandler({EntityNotFoundException.class, NoResourceFoundException.class})
-  public ResponseStatusException handleNotFoundException(RuntimeException e) {
+  public ResponseStatusException handleNotFoundException(Exception e) {
     return buildResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
   }
 
   @ExceptionHandler(DataIntegrityViolationException.class)
-  public ResponseStatusException handleConflictException(DataIntegrityViolationException e) {
+  public ResponseStatusException handleConflictException(Exception e) {
     return buildResponseStatusException(HttpStatus.CONFLICT, e.getMessage(), e);
   }
 
