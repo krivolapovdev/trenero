@@ -22,4 +22,4 @@ COPY --from=build /app/dist ./
 
 EXPOSE 3000
 
-CMD ["httpd", "-f", "-p", "3000"]
+CMD ["httpd", "-f", "-v", "-p", "3000"]
