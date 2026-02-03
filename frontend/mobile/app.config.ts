@@ -12,7 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   newArchEnabled: true,
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'tech.trenero'
+    bundleIdentifier: 'org.trenero'
   },
   android: {
     adaptiveIcon: {
@@ -21,7 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './src/assets/images/icon-monochrome.png'
     },
     predictiveBackGestureEnabled: false,
-    package: 'tech.trenero'
+    package: 'org.trenero'
   },
   plugins: [
     'expo-router',
