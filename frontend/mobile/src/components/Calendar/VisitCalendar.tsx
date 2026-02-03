@@ -6,6 +6,7 @@ import { List } from 'react-native-paper';
 import type { components } from '@/src/api/generated/openapi';
 import { CustomBottomSheet } from '@/src/components/BottomSheet';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
+import { VisitStatusColor, VisitStatusIcon } from '@/src/types/visit';
 import { CustomCalendar } from './CustomCalendar';
 
 type Props = {
@@ -22,12 +23,16 @@ export const VisitCalendar = memo(
     const items = useMemo(
       () =>
         [...visitsWithLesson]
-          .map(visit => ({
-            date: dayjs(visit.lesson.startDateTime),
-            color: visit.visit.present ? 'green' : '#fc975c',
-            isPresent: visit.visit.present,
-            lessonId: visit.visit.lessonId
-          }))
+          .filter(value => value.visit.status !== 'UNMARKED')
+          .map(item => {
+            const status = item.visit.status;
+            return {
+              date: dayjs(item.lesson.startDateTime),
+              color: VisitStatusColor[status],
+              status: status,
+              lessonId: item.visit.lessonId
+            };
+          })
           .sort((a, b) => a.date.diff(b.date)),
       [visitsWithLesson]
     );
@@ -62,8 +67,8 @@ export const VisitCalendar = memo(
                     title={item.date.format('HH:mm')}
                     right={() => (
                       <List.Icon
-                        icon='circle-medium'
-                        color={item.isPresent ? 'green' : 'orange'}
+                        icon={VisitStatusIcon[item.status]}
+                        color={VisitStatusColor[item.status]}
                       />
                     )}
                     onPress={() => {

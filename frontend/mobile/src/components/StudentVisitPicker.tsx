@@ -8,13 +8,20 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
-import { Button, Switch, Text } from 'react-native-paper';
+import { Button, IconButton, Text, TouchableRipple } from 'react-native-paper';
 import type { components } from '@/src/api/generated/openapi';
+import {
+  type VisitStatus,
+  VisitStatusColor,
+  VisitStatusIcon
+} from '@/src/types/visit';
+
+const STATUS_ORDER: VisitStatus[] = ['UNMARKED', 'PRESENT', 'ABSENT', 'FREE'];
 
 type Props = {
   students: components['schemas']['StudentResponse'][];
-  visitStatus: Record<string, boolean>;
-  setVisitStatus: Dispatch<SetStateAction<Record<string, boolean>>>;
+  visitStatus: Record<string, VisitStatus>;
+  setVisitStatus: Dispatch<SetStateAction<Record<string, VisitStatus>>>;
   disabled?: boolean;
 };
 
@@ -27,29 +34,46 @@ export const StudentVisitPicker = memo(
   }: Readonly<Props>) => {
     const { t } = useTranslation();
 
-    const anyPresent = useMemo(
-      () => Object.values(visitStatus).some(Boolean),
+    const hasMarked = useMemo(
+      () =>
+        Object.values(visitStatus).some(
+          status => status !== 'UNMARKED' && status !== 'ABSENT'
+        ),
       [visitStatus]
     );
 
     const selectAll = useCallback(() => {
       setVisitStatus(
-        Object.fromEntries(students.map(student => [student.id, true]))
+        Object.fromEntries(students.map(student => [student.id, 'PRESENT']))
       );
     }, [setVisitStatus, students.map]);
 
     const unselectAll = useCallback(() => {
       setVisitStatus(
-        Object.fromEntries(students.map(student => [student.id, false]))
+        Object.fromEntries(students.map(student => [student.id, 'ABSENT']))
       );
     }, [setVisitStatus, students.map]);
 
+    const toggleStatus = useCallback(
+      (studentId: string) => {
+        if (disabled) {
+          return;
+        }
+
+        setVisitStatus(prev => {
+          const currentStatus = prev[studentId] ?? 'UNMARKED';
+          const currentIndex = STATUS_ORDER.indexOf(currentStatus);
+          const nextIndex = (currentIndex + 1) % STATUS_ORDER.length;
+          return { ...prev, [studentId]: STATUS_ORDER[nextIndex] };
+        });
+      },
+      [disabled, setVisitStatus]
+    );
+
     useEffect(() => {
-      setVisitStatus((prev: Record<string, boolean>) => {
+      setVisitStatus(prev => {
         if (Object.keys(prev).length === 0 && students.length > 0) {
-          return Object.fromEntries(
-            students.map(student => [student.id, false])
-          );
+          return Object.fromEntries(students.map(s => [s.id, 'UNMARKED']));
         }
         return prev;
       });
@@ -73,35 +97,58 @@ export const StudentVisitPicker = memo(
 
           <Button
             mode='text'
-            onPress={anyPresent ? unselectAll : selectAll}
+            onPress={hasMarked ? unselectAll : selectAll}
             disabled={disabled}
           >
-            {anyPresent ? t('unselectAll') : t('selectAll')}
+            {hasMarked ? t('unselectAll') : t('selectAll')}
           </Button>
         </View>
 
-        {students.map(student => (
-          <View
-            key={student.id}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingVertical: 8
-            }}
-          >
-            <Text>{student.fullName}</Text>
+        {students.map(student => {
+          const status = visitStatus[student.id] ?? 'UNMARKED';
+          const isUnmarked = status === 'UNMARKED';
 
-            <Switch
-              value={visitStatus[student.id] ?? false}
-              style={{ padding: 0 }}
+          return (
+            <TouchableRipple
+              key={student.id}
+              onPress={() => toggleStatus(student.id)}
               disabled={disabled}
-              onValueChange={value =>
-                setVisitStatus(prev => ({ ...prev, [student.id]: value }))
-              }
-            />
-          </View>
-        ))}
+              rippleColor='rgba(0, 0, 0, .05)'
+              style={{ borderRadius: 8 }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingLeft: 12,
+                  height: 52
+                }}
+              >
+                <Text
+                  variant='bodyLarge'
+                  style={[
+                    { flex: 1, fontSize: 16 },
+                    isUnmarked && {
+                      textDecorationLine: 'line-through',
+                      opacity: 0.5
+                    }
+                  ]}
+                  numberOfLines={1}
+                >
+                  {student.fullName}
+                </Text>
+
+                <IconButton
+                  icon={VisitStatusIcon[status]}
+                  iconColor={VisitStatusColor[status]}
+                  size={28}
+                  style={{ margin: 0 }}
+                />
+              </View>
+            </TouchableRipple>
+          );
+        })}
       </View>
     );
   }

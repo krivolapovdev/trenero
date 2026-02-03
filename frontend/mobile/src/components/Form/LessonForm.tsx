@@ -9,10 +9,14 @@ import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { StudentVisitPicker } from '@/src/components/StudentVisitPicker';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import type { VisitStatus } from '@/src/types/visit';
 
 export type LessonFormValues = {
   startDateTime: string;
-  students: { studentId: string; present: boolean }[];
+  students: {
+    studentId: string;
+    status: VisitStatus;
+  }[];
 };
 
 type LessonFormInitialData = {
@@ -42,7 +46,9 @@ export const LessonForm = memo(
     const theme = useAppTheme();
 
     const [startDateTime, setStartDateTime] = useState(dayjs());
-    const [visitStatus, setVisitStatus] = useState<Record<string, boolean>>({});
+    const [visitStatus, setVisitStatus] = useState<Record<string, VisitStatus>>(
+      {}
+    );
 
     const [visibleTimePicker, setVisibleTimePicker] = useState(false);
     const [visibleDatePicker, setVisibleDatePicker] = useState(false);
@@ -55,9 +61,9 @@ export const LessonForm = memo(
       }
 
       const students = Object.entries(visitStatus).map(
-        ([studentId, present]) => ({
+        ([studentId, status]) => ({
           studentId,
-          present
+          status
         })
       );
 
@@ -78,7 +84,7 @@ export const LessonForm = memo(
             Object.fromEntries(
               initialData.lesson.studentVisits.map(visit => [
                 visit.studentId,
-                visit.present
+                visit.status
               ])
             )
           );

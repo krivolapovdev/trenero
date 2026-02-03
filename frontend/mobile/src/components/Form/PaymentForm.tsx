@@ -86,7 +86,10 @@ export const PaymentForm = memo(
             {
               icon: 'content-save',
               disabled:
-                isLoading || !amount || !paidLessons || date.length !== 10,
+                isLoading ||
+                !amount ||
+                Number(paidLessons) <= 0 ||
+                date.length !== 10,
               onPress: handleSubmit
             }
           ]}

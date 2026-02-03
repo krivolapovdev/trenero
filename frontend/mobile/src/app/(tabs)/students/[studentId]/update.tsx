@@ -18,6 +18,7 @@ type UpdateStudentRequest = {
   note?: string | null;
   birthdate?: string | null;
   groupId?: string | null;
+  joinedAt?: string | null;
 };
 
 export default function UpdateStudentScreen() {
@@ -28,6 +29,7 @@ export default function UpdateStudentScreen() {
   const recentStudents = useStudentsStore(state => state.recentStudents);
   const removeStudent = useStudentsStore(state => state.removeStudent);
   const allGroups = useGroupsStore(state => state.allGroups);
+  const updateGroup = useGroupsStore(state => state.updateGroup);
   const student = recentStudents.find(s => s.id === studentId);
 
   const { execute: updateStudent, loading: updateStudentLoading } =
@@ -73,9 +75,36 @@ export default function UpdateStudentScreen() {
     }
 
     try {
-      await updateStudent(request);
+      const updatedStudent = await updateStudent(request);
 
       removeStudent(studentId);
+
+      const oldGroupId = student.studentGroup?.id;
+      const currentGroupId =
+        'groupId' in request ? request.groupId : oldGroupId;
+
+      if (oldGroupId && oldGroupId !== currentGroupId) {
+        const oldGroup = allGroups.find(g => g.id === oldGroupId);
+        if (oldGroup) {
+          updateGroup(oldGroupId, {
+            groupStudents: oldGroup.groupStudents.filter(
+              s => s.id !== studentId
+            )
+          });
+        }
+      }
+
+      if (currentGroupId) {
+        const targetGroup = allGroups.find(g => g.id === currentGroupId);
+        if (targetGroup) {
+          const otherStudents = targetGroup.groupStudents.filter(
+            s => s.id !== studentId
+          );
+          updateGroup(currentGroupId, {
+            groupStudents: [...otherStudents, updatedStudent]
+          });
+        }
+      }
 
       router.back();
     } catch (err) {

@@ -69,7 +69,7 @@ export default function UpdateLessonScreen() {
 
     const currentStudents = lesson.studentVisits.map(visit => ({
       studentId: visit.studentId,
-      present: visit.present
+      status: visit.status
     }));
 
     if (!R.isDeepEqual(currentStudents, values.students)) {

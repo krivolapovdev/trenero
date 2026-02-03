@@ -93,7 +93,10 @@ export default function GroupByIdScreen() {
           {
             icon: 'calendar-plus',
             onPress: () => router.push(`/groups/${groupId}/lessons/create`),
-            disabled: groupLoading || mutationLoading
+            disabled:
+              groupLoading ||
+              mutationLoading ||
+              group?.groupStudents.length === 0
           },
           {
             icon: 'account-edit',

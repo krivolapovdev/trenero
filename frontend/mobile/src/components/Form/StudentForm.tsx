@@ -178,9 +178,8 @@ export const StudentForm = memo(
             multiEnable={false}
             disabled={isLoading}
             onSelection={value => {
-              if (value?.selectedList?.length > 0) {
-                setGroupId(value.selectedList[0]._id);
-              }
+              const selectedId = value.selectedList?.[0]?._id ?? null;
+              setGroupId(selectedId === groupId ? null : selectedId);
             }}
           />
         </ScrollView>

@@ -260,22 +260,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/lessons/{lessonId}/visits': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations['getLessonVisits'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/lessons/{lessonId}/details': {
     parameters: {
       query?: never;
@@ -324,22 +308,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/students/{studentId}/payments/{paymentId}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete: operations['deleteStudentPayment'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -354,7 +322,8 @@ export interface components {
     VisitResponse: {
       /** Format: uuid */
       id: string;
-      present: boolean;
+      /** @enum {string} */
+      status: 'PRESENT' | 'ABSENT' | 'UNMARKED' | 'FREE';
       /** Format: uuid */
       lessonId: string;
       /** Format: uuid */
@@ -425,12 +394,13 @@ export interface components {
       groupId: string;
       /** Format: date-time */
       startDateTime: string;
-      students?: components['schemas']['LessonStudentRequest'][];
+      students?: components['schemas']['StudentVisit'][];
     };
-    LessonStudentRequest: {
+    StudentVisit: {
       /** Format: uuid */
       studentId?: string;
-      present?: boolean;
+      /** @enum {string} */
+      status?: 'PRESENT' | 'ABSENT' | 'UNMARKED' | 'FREE';
     };
     LessonResponse: {
       /** Format: uuid */
@@ -460,9 +430,6 @@ export interface components {
       /** Format: date-time */
       createdAt: string;
     };
-    UpdateVisitRequest: {
-      present?: boolean;
-    };
     UpdatePaymentRequest: {
       amount?: number;
       /** Format: int32 */
@@ -473,7 +440,17 @@ export interface components {
     UpdateLessonRequest: {
       /** Format: date-time */
       startDateTime?: string;
-      students?: components['schemas']['LessonStudentRequest'][];
+      students?: components['schemas']['StudentVisit'][];
+    };
+    GroupStudentResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      groupId: string;
+      /** Format: uuid */
+      studentId: string;
+      /** Format: date-time */
+      leftAt?: string;
     };
     StudentDetailsResponse: {
       /** Format: uuid */
@@ -485,10 +462,11 @@ export interface components {
       note?: string;
       /** Format: date-time */
       createdAt: string;
-      studentGroup?: components['schemas']['GroupResponse'];
       studentVisits: components['schemas']['VisitWithLessonResponse'][];
       studentPayments: components['schemas']['StudentPaymentResponse'][];
       statuses: ('INACTIVE' | 'PRESENT' | 'MISSING' | 'PAID' | 'UNPAID')[];
+      studentGroup?: components['schemas']['GroupResponse'];
+      groupStudentResponse?: components['schemas']['GroupStudentResponse'];
     };
     VisitWithLessonResponse: {
       visit: components['schemas']['VisitResponse'];
@@ -508,21 +486,8 @@ export interface components {
       statuses: ('INACTIVE' | 'PRESENT' | 'MISSING' | 'PAID' | 'UNPAID')[];
     };
     MonthlyPaymentMetricResponse: {
-      /** Format: date */
       date: string;
       total: number;
-    };
-    GroupStudentResponse: {
-      /** Format: uuid */
-      id: string;
-      /** Format: uuid */
-      groupId: string;
-      /** Format: uuid */
-      studentId: string;
-      /** Format: date-time */
-      joinedAt: string;
-      /** Format: date-time */
-      leftAt?: string;
     };
     LessonDetailsResponse: {
       /** Format: uuid */
@@ -911,7 +876,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdateVisitRequest'];
+        'application/json': {
+          [key: string]: unknown;
+        };
       };
     };
     responses: {
@@ -1264,28 +1231,6 @@ export interface operations {
       };
     };
   };
-  getLessonVisits: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        lessonId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          '*/*': components['schemas']['VisitResponse'][];
-        };
-      };
-    };
-  };
   getLessonDetails: {
     parameters: {
       query?: never;
@@ -1347,27 +1292,6 @@ export interface operations {
         content: {
           '*/*': components['schemas']['GroupOverviewResponse'][];
         };
-      };
-    };
-  };
-  deleteStudentPayment: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        studentId: string;
-        paymentId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description No Content */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
       };
     };
   };
