@@ -1,8 +1,0 @@
-package tech.trenero.backend.user.external;
-
-import tech.trenero.backend.common.domain.OAuth2Provider;
-import tech.trenero.backend.common.response.UserResponse;
-
-public interface UserSpi {
-  UserResponse getOrCreateUserFromOAuth2(OAuth2Provider provider, String providerId, String email);
-}

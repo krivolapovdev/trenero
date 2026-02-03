@@ -5,7 +5,7 @@ plugins {
     id("com.diffplug.spotless") version "8.1.0"
 }
 
-group = "tech.trenero"
+group = "org.trenero"
 description = "backend"
 version = "1.0.0"
 
