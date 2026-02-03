@@ -5,8 +5,4 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record GroupStudentResponse(
-    @NotNull UUID id,
-    @NotNull UUID groupId,
-    @NotNull UUID studentId,
-    @NotNull OffsetDateTime joinedAt,
-    OffsetDateTime leftAt) {}
+    @NotNull UUID id, @NotNull UUID groupId, @NotNull UUID studentId, OffsetDateTime leftAt) {}

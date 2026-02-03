@@ -2,6 +2,8 @@ package tech.trenero.backend.visit.internal.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,7 +16,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
+import tech.trenero.backend.common.domain.VisitStatus;
 
 @Entity
 @Table(name = "visits", schema = "visits_module")
@@ -40,8 +45,10 @@ public class Visit {
   @NonNull
   private UUID studentId;
 
-  @Column(name = "present", nullable = false)
-  private boolean present;
+  @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+  @Column(name = "status", columnDefinition = "visits_module.visit_status", nullable = false)
+  private VisitStatus status;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)

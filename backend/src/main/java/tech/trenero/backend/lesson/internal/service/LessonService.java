@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
@@ -13,7 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.trenero.backend.common.request.CreateVisitRequest;
+import tech.trenero.backend.common.domain.StudentVisit;
+import tech.trenero.backend.common.domain.VisitStatus;
 import tech.trenero.backend.common.response.GroupStudentResponse;
 import tech.trenero.backend.common.response.LessonResponse;
 import tech.trenero.backend.common.response.VisitResponse;
@@ -110,31 +112,43 @@ public class LessonService implements LessonSpi {
         request.startDateTime(),
         jwtUser.userId());
 
-    groupSpi.getGroupById(request.groupId(), jwtUser);
-
     Lesson lesson = lessonMapper.toLesson(request, jwtUser.userId());
     Lesson savedLesson = saveLesson(lesson);
 
-    request.students().stream()
-        .map(
-            status ->
-                new CreateVisitRequest(savedLesson.getId(), status.studentId(), status.present()))
-        .forEach(req -> visitSpi.createVisit(req, jwtUser));
+    List<StudentVisit> studentVisitList =
+        groupStudentSpi.getStudentsByGroupId(request.groupId(), jwtUser).stream()
+            .filter(Objects::nonNull)
+            .map(
+                res -> {
+                  VisitStatus status =
+                      request.students().stream()
+                          .filter(Objects::nonNull)
+                          .filter(req -> req.studentId().equals(res.studentId()))
+                          .findFirst()
+                          .map(StudentVisit::status)
+                          .orElse(VisitStatus.UNMARKED);
+
+                  return new StudentVisit(res.studentId(), status);
+                })
+            .toList();
+
+    visitSpi.createVisits(lesson.getId(), studentVisitList, jwtUser);
 
     return lessonMapper.toResponse(savedLesson);
   }
 
   @Transactional
   public LessonResponse updateLesson(UUID lessonId, UpdateLessonRequest request, JwtUser jwtUser) {
-    log.info("Editing lesson by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
+    log.info("Updating lesson by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
 
-    if (request.students() != null) {
-      List<CreateVisitRequest> visitInputList =
+    if (request.students() != null && !request.students().isEmpty()) {
+      List<StudentVisit> visitUpdateList =
           request.students().stream()
-              .map(status -> new CreateVisitRequest(lessonId, status.studentId(), status.present()))
+              .filter(Objects::nonNull)
+              .map(req -> new StudentVisit(req.studentId(), req.status()))
               .toList();
 
-      visitSpi.updateVisitsByLessonId(lessonId, visitInputList, jwtUser);
+      visitSpi.updateVisitsByLessonId(lessonId, visitUpdateList, jwtUser);
     }
 
     return lessonRepository

@@ -37,7 +37,7 @@ public class OAuth2User {
   @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(
       name = "provider",
-      columnDefinition = "oauth2_provider",
+      columnDefinition = "users_module.oauth2_provider",
       nullable = false,
       updatable = false)
   @NonNull

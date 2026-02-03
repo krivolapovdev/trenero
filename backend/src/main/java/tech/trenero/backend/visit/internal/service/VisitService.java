@@ -13,8 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.trenero.backend.common.domain.StudentVisit;
 import tech.trenero.backend.common.request.CreateVisitRequest;
-import tech.trenero.backend.common.response.LessonResponse;
 import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.lesson.external.LessonSpi;
@@ -22,7 +22,6 @@ import tech.trenero.backend.visit.external.VisitSpi;
 import tech.trenero.backend.visit.internal.domain.Visit;
 import tech.trenero.backend.visit.internal.mapper.VisitMapper;
 import tech.trenero.backend.visit.internal.repository.VisitRepository;
-import tech.trenero.backend.visit.internal.request.UpdateVisitRequest;
 
 @Service
 @Slf4j
@@ -109,7 +108,7 @@ public class VisitService implements VisitSpi {
   }
 
   @Transactional
-  public VisitResponse updateVisit(UUID visitId, UpdateVisitRequest request, JwtUser jwtUser) {
+  public VisitResponse updateVisit(UUID visitId, Map<String, Object> request, JwtUser jwtUser) {
     return visitRepository
         .findByIdAndOwnerId(visitId, jwtUser.userId())
         .map(visit -> visitMapper.updateVisit(visit, request))
@@ -118,40 +117,29 @@ public class VisitService implements VisitSpi {
         .orElseThrow(() -> new EntityNotFoundException("Visit not found with id: " + visitId));
   }
 
-  @Transactional
   @Override
-  public void syncStudentVisits(
-      UUID studentId, UUID groupId, OffsetDateTime joinedAt, JwtUser jwtUser) {
-    log.info("Syncing student visits for studentId={} for groupId={}", studentId, groupId);
+  public void createVisits(UUID lessonId, List<StudentVisit> studentVisitList, JwtUser jwtUser) {
+    UUID ownerId = jwtUser.userId();
 
-    List<LessonResponse> lessons =
-        lessonSpi.getLessonsByGroupId(groupId, jwtUser).stream()
-            .filter(lesson -> !lesson.startDateTime().isBefore(joinedAt))
-            .toList();
+    log.info(
+        "Initializing attendance snapshot for lessonId='{}', participants count={}, ownerId={}",
+        lessonId,
+        studentVisitList.size(),
+        ownerId);
 
-    if (lessons.isEmpty()) {
-      return;
-    }
-
-    List<UUID> lessonIds = lessons.stream().map(LessonResponse::id).toList();
-
-    Set<UUID> existingLessonIds =
-        visitRepository
-            .findAllByStudentIdAndLessonIds(studentId, lessonIds, jwtUser.userId())
-            .stream()
-            .map(Visit::getLessonId)
-            .collect(Collectors.toSet());
-
-    List<Visit> newVisits =
-        lessons.stream()
-            .filter(lesson -> !existingLessonIds.contains(lesson.id()))
+    List<Visit> visits =
+        studentVisitList.stream()
             .map(
-                lesson ->
-                    visitMapper.toVisit(
-                        new CreateVisitRequest(lesson.id(), studentId, false), jwtUser.userId()))
+                sv ->
+                    Visit.builder()
+                        .ownerId(ownerId)
+                        .lessonId(lessonId)
+                        .studentId(sv.studentId())
+                        .status(sv.status())
+                        .build())
             .toList();
 
-    visitRepository.saveAll(newVisits);
+    visitRepository.saveAllAndFlush(visits);
   }
 
   @Transactional
@@ -192,38 +180,40 @@ public class VisitService implements VisitSpi {
 
   @Override
   @Transactional
-  public void updateVisitsByLessonId(
-      UUID lessonId, List<CreateVisitRequest> requests, JwtUser jwtUser) {
-    log.info("Syncing visits for lessonId={} for ownerId={}", lessonId, jwtUser.userId());
+  public void updateVisitsByLessonId(UUID lessonId, List<StudentVisit> requests, JwtUser jwtUser) {
+    log.info("Updating visits for lessonId={} for ownerId={}", lessonId, jwtUser.userId());
 
-    List<Visit> existingVisits =
+    List<Visit> lessonVisits =
         visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId());
 
-    Map<UUID, Visit> existingMap =
-        existingVisits.stream().collect(Collectors.toMap(Visit::getStudentId, Function.identity()));
+    Map<UUID, Visit> studentVisitMap =
+        lessonVisits.stream().collect(Collectors.toMap(Visit::getStudentId, Function.identity()));
 
-    List<UUID> incomingStudentIds = requests.stream().map(CreateVisitRequest::studentId).toList();
+    Set<UUID> incomingStudentIds =
+        requests.stream().map(StudentVisit::studentId).collect(Collectors.toSet());
 
     requests.forEach(
         req -> {
-          if (existingMap.containsKey(req.studentId())) {
-            Visit visit = existingMap.get(req.studentId());
-            visit.setPresent(req.present());
-            visit.setDeletedAt(null);
+          if (studentVisitMap.containsKey(req.studentId())) {
+            Visit visit = studentVisitMap.get(req.studentId());
+            visit.setStatus(req.status());
           } else {
-            Visit newVisit = visitMapper.toVisit(req, jwtUser.userId());
-            existingVisits.add(newVisit);
+            Visit newVisit =
+                Visit.builder()
+                    .ownerId(jwtUser.userId())
+                    .lessonId(lessonId)
+                    .studentId(req.studentId())
+                    .status(req.status())
+                    .build();
+            lessonVisits.add(newVisit);
           }
         });
 
-    existingVisits.forEach(
-        visit -> {
-          if (!incomingStudentIds.contains(visit.getStudentId())) {
-            visit.setDeletedAt(OffsetDateTime.now());
-          }
-        });
+    lessonVisits.stream()
+        .filter(visit -> !incomingStudentIds.contains(visit.getStudentId()))
+        .forEach(visit -> visit.setDeletedAt(OffsetDateTime.now()));
 
-    visitRepository.saveAllAndFlush(existingVisits);
+    visitRepository.saveAllAndFlush(lessonVisits);
   }
 
   private Visit saveVisit(Visit visit) {

@@ -36,12 +36,6 @@ public class GroupStudent {
   @Column(name = "student_id", nullable = false, updatable = false)
   private UUID studentId;
 
-  @Column(name = "joined_at", nullable = false)
-  private OffsetDateTime joinedAt;
-
-  @Column(name = "left_at")
-  private OffsetDateTime leftAt;
-
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;

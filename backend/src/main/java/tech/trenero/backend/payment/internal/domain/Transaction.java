@@ -39,7 +39,11 @@ public class Transaction {
 
   @Enumerated(EnumType.STRING)
   @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-  @Column(name = "type", columnDefinition = "transaction_type", nullable = false, updatable = false)
+  @Column(
+      name = "type",
+      columnDefinition = "payments_module.transaction_type",
+      nullable = false,
+      updatable = false)
   private TransactionType type;
 
   @Column(name = "amount", nullable = false)

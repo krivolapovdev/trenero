@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import tech.trenero.backend.common.response.LessonResponse;
-import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
 import tech.trenero.backend.lesson.internal.request.CreateLessonRequest;
 import tech.trenero.backend.lesson.internal.request.UpdateLessonRequest;
@@ -50,13 +49,6 @@ public class LessonController {
   public LessonDetailsResponse getLessonDetails(
       @PathVariable UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
     return lessonService.getLessonDetailsById(lessonId, jwtUser);
-  }
-
-  @GetMapping("/{lessonId}/visits")
-  @PreAuthorize("isAuthenticated()")
-  public List<VisitResponse> getLessonVisits(
-      @PathVariable("lessonId") UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
-    return lessonService.getVisitsByLessonId(lessonId, jwtUser);
   }
 
   @PostMapping

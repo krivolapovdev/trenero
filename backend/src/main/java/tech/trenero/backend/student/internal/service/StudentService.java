@@ -186,11 +186,7 @@ public class StudentService implements StudentSpi {
     Student savedStudent = saveStudent(student);
 
     if (request.groupId() != null) {
-      groupStudentSpi.addStudentToGroup(
-          savedStudent.getId(), request.groupId(), request.joinedAt(), jwtUser);
-
-      visitSpi.syncStudentVisits(
-          savedStudent.getId(), request.groupId(), request.joinedAt(), jwtUser);
+      groupStudentSpi.addStudentToGroup(savedStudent.getId(), request.groupId(), jwtUser);
     }
 
     return studentMapper.toResponse(savedStudent);
@@ -201,42 +197,27 @@ public class StudentService implements StudentSpi {
       UUID studentId, Map<String, Object> updates, JwtUser jwtUser) {
     log.info("Updating student: {}", studentId);
 
-    final String JOINED_AT = "joinedAt";
-    final String GROUP_ID = "groupId";
-
     Student student =
         studentRepository
             .findByIdAndOwnerId(studentId, jwtUser.userId())
             .orElseThrow(() -> new EntityNotFoundException("Student not found"));
 
-    GroupStudentResponse currentLink =
-        groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst().orElse(null);
+    if (updates.containsKey("groupId")) {
 
-    UUID currentGroupId = currentLink != null ? currentLink.groupId() : null;
+      Optional<GroupStudentResponse> optionalGroupStudentResponse =
+          groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst();
 
-    OffsetDateTime newJoinedAt =
-        updates.containsKey(JOINED_AT)
-            ? OffsetDateTime.parse(updates.get(JOINED_AT).toString())
-            : OffsetDateTime.now();
+      optionalGroupStudentResponse.ifPresent(
+          groupStudentResponse ->
+              groupStudentSpi.removeStudentFromGroup(
+                  studentId, groupStudentResponse.groupId(), jwtUser));
 
-    if (updates.containsKey(GROUP_ID)) {
-      Object rawId = updates.get(GROUP_ID);
-      UUID newGroupId = rawId != null ? UUID.fromString(rawId.toString()) : null;
+      Object rawGroupId = updates.get("groupId");
 
-      if (currentGroupId != null && !currentGroupId.equals(newGroupId)) {
-        groupStudentSpi.removeStudentFromGroup(studentId, currentGroupId, jwtUser);
+      if (rawGroupId != null && !rawGroupId.toString().isBlank()) {
+        UUID groupId = UUID.fromString(rawGroupId.toString());
+        groupStudentSpi.addStudentToGroup(studentId, groupId, jwtUser);
       }
-
-      if (newGroupId != null && !newGroupId.equals(currentGroupId)) {
-        groupStudentSpi.addStudentToGroup(studentId, newGroupId, newJoinedAt, jwtUser);
-        visitSpi.syncStudentVisits(studentId, newGroupId, newJoinedAt, jwtUser);
-      }
-    } else if (updates.containsKey(JOINED_AT)
-        && currentGroupId != null
-        && !newJoinedAt.equals(currentLink.joinedAt())) {
-      groupStudentSpi.removeStudentFromGroup(studentId, currentGroupId, jwtUser);
-      groupStudentSpi.addStudentToGroup(studentId, currentGroupId, newJoinedAt, jwtUser);
-      visitSpi.syncStudentVisits(studentId, currentGroupId, newJoinedAt, jwtUser);
     }
 
     Student updatedStudent = studentMapper.updateStudent(student, updates);

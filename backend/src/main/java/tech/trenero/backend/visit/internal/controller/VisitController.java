@@ -2,6 +2,7 @@ package tech.trenero.backend.visit.internal.controller;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import tech.trenero.backend.common.request.CreateVisitRequest;
 import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
-import tech.trenero.backend.visit.internal.request.UpdateVisitRequest;
 import tech.trenero.backend.visit.internal.service.VisitService;
 
 @RestController
@@ -55,9 +55,9 @@ public class VisitController {
   @PreAuthorize("isAuthenticated()")
   public VisitResponse updateVisit(
       @PathVariable("visitId") UUID visitId,
-      @RequestBody @Valid UpdateVisitRequest request,
+      @RequestBody @Valid Map<String, Object> updates,
       @AuthenticationPrincipal JwtUser jwtUser) {
-    return visitService.updateVisit(visitId, request, jwtUser);
+    return visitService.updateVisit(visitId, updates, jwtUser);
   }
 
   @DeleteMapping("/{visitId}")

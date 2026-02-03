@@ -6,6 +6,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import tech.trenero.backend.common.domain.VisitStatus;
 import tech.trenero.backend.common.response.LessonResponse;
 import tech.trenero.backend.common.response.StudentPaymentResponse;
 import tech.trenero.backend.common.response.VisitResponse;
@@ -24,7 +25,10 @@ public class StudentStatusService {
     visits = visits == null ? List.of() : visits;
     payments = payments == null ? List.of() : payments;
 
-    if (visits.isEmpty() && payments.isEmpty()) {
+    boolean allVisitsUnmarked =
+        visits.stream().allMatch(visit -> visit.status().equals(VisitStatus.UNMARKED));
+
+    if ((visits.isEmpty() || allVisitsUnmarked) && payments.isEmpty()) {
       return Set.of(StudentStatus.INACTIVE);
     }
 
@@ -35,15 +39,24 @@ public class StudentStatusService {
           .filter(v -> v.lessonId().equals(lastLesson.id()))
           .findFirst()
           .ifPresent(
-              lastVisit ->
-                  statuses.add(
-                      lastVisit.present() ? StudentStatus.PRESENT : StudentStatus.MISSING));
+              lastVisit -> {
+                VisitStatus status = lastVisit.status();
+                if (status == VisitStatus.PRESENT || status == VisitStatus.FREE) {
+                  statuses.add(StudentStatus.PRESENT);
+                } else if (status == VisitStatus.ABSENT) {
+                  statuses.add(StudentStatus.MISSING);
+                }
+              });
     }
 
-    int totalPaidLessons = payments.stream().mapToInt(StudentPaymentResponse::paidLessons).sum();
-    int totalVisits = visits.size();
+    long billableVisits =
+        visits.stream()
+            .filter(v -> v.status() == VisitStatus.PRESENT || v.status() == VisitStatus.ABSENT)
+            .count();
 
-    statuses.add(totalVisits <= totalPaidLessons ? StudentStatus.PAID : StudentStatus.UNPAID);
+    int totalPaidLessons = payments.stream().mapToInt(StudentPaymentResponse::paidLessons).sum();
+
+    statuses.add(billableVisits <= totalPaidLessons ? StudentStatus.PAID : StudentStatus.UNPAID);
 
     return statuses;
   }

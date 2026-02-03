@@ -1,9 +1,9 @@
 package tech.trenero.backend.visit.external;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import tech.trenero.backend.common.domain.StudentVisit;
 import tech.trenero.backend.common.request.CreateVisitRequest;
 import tech.trenero.backend.common.response.VisitResponse;
 import tech.trenero.backend.common.security.JwtUser;
@@ -19,9 +19,9 @@ public interface VisitSpi {
 
   void removeVisitsByLessonId(UUID lessonId, JwtUser jwtUser);
 
-  void updateVisitsByLessonId(UUID lessonId, List<CreateVisitRequest> visits, JwtUser jwtUser);
+  void updateVisitsByLessonId(UUID lessonId, List<StudentVisit> visits, JwtUser jwtUser);
 
   VisitResponse createVisit(CreateVisitRequest request, JwtUser jwtUser);
 
-  void syncStudentVisits(UUID studentId, UUID groupId, OffsetDateTime joinedAt, JwtUser jwtUser);
+  void createVisits(UUID lessonId, List<StudentVisit> studentVisitList, JwtUser jwtUser);
 }

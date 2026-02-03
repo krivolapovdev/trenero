@@ -1,6 +1,5 @@
 package tech.trenero.backend.group.internal.service;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -54,8 +53,7 @@ public class GroupStudentService implements GroupStudentSpi {
 
   @Transactional
   @Override
-  public GroupStudentResponse addStudentToGroup(
-      UUID studentId, UUID groupId, OffsetDateTime joinedAt, JwtUser jwtUser) {
+  public GroupStudentResponse addStudentToGroup(UUID studentId, UUID groupId, JwtUser jwtUser) {
     log.info("Adding studentId={} to groupId={}", studentId, groupId);
 
     groupService.getGroupById(groupId, jwtUser);
@@ -65,7 +63,6 @@ public class GroupStudentService implements GroupStudentSpi {
             .studentId(studentId)
             .groupId(groupId)
             .ownerId(jwtUser.userId())
-            .joinedAt(joinedAt)
             .build();
 
     GroupStudent savedGroupStudent = self.saveGroupStudent(groupStudent);
@@ -86,14 +83,14 @@ public class GroupStudentService implements GroupStudentSpi {
   @Transactional
   public void addStudentsToGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
     for (UUID studentId : studentIds) {
-      self.addStudentToGroup(studentId, groupId, OffsetDateTime.now(), jwtUser);
+      self.addStudentToGroup(studentId, groupId, jwtUser);
     }
   }
 
   @Transactional
-  public int removeStudentFromGroup(UUID studentId, UUID groupId, JwtUser jwtUser) {
+  public void removeStudentFromGroup(UUID studentId, UUID groupId, JwtUser jwtUser) {
     log.info("Removing studentId={} from groupId={}", studentId, groupId);
-    return groupStudentRepository.markStudentLeftGroup(groupId, studentId, jwtUser.userId());
+    self.softDeleteByStudentIdAndGroupId(studentId, groupId, jwtUser);
   }
 
   @Transactional
@@ -105,6 +102,12 @@ public class GroupStudentService implements GroupStudentSpi {
   public void softDeleteByGroupId(UUID groupId, JwtUser jwtUser) {
     log.info("Soft deleting groupId={}", groupId);
     groupStudentRepository.softDeleteByGroupId(groupId, jwtUser.userId());
+  }
+
+  @Transactional
+  public void softDeleteByStudentIdAndGroupId(UUID studentId, UUID groupId, JwtUser jwtUser) {
+    log.info("Soft deleting groupId={} and studentId={}", groupId, studentId);
+    groupStudentRepository.softDeleteByStudentIdAndGroupId(groupId, studentId, jwtUser.userId());
   }
 
   @Transactional

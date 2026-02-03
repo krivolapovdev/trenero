@@ -1,6 +1,5 @@
 package tech.trenero.backend.group.external;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -15,8 +14,7 @@ public interface GroupStudentSpi {
   Map<UUID, GroupStudentResponse> getGroupStudentsByStudentIds(
       List<UUID> studentIds, JwtUser jwtUser);
 
-  GroupStudentResponse addStudentToGroup(
-      UUID studentId, UUID groupId, OffsetDateTime joinedAt, JwtUser jwtUser);
+  GroupStudentResponse addStudentToGroup(UUID studentId, UUID groupId, JwtUser jwtUser);
 
-  int removeStudentFromGroup(UUID studentId, UUID groupId, JwtUser jwtUser);
+  void removeStudentFromGroup(UUID studentId, UUID groupId, JwtUser jwtUser);
 }

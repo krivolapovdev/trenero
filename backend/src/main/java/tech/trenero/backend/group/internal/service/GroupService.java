@@ -121,7 +121,7 @@ public class GroupService implements GroupSpi {
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
         .map(group -> groupMapper.updateGroup(group, updates))
-        .map(this::saveGroup)
+        .map(self::saveGroup)
         .map(groupMapper::toResponse)
         .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
   }
