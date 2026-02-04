@@ -5,7 +5,6 @@ import { useCallback, useRef, useState } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Searchbar } from 'react-native-paper';
-import type { components } from '@/src/api/generated/openapi';
 import { groupService } from '@/src/api/services/group/groupService';
 import { GroupCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
@@ -13,6 +12,7 @@ import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useFilteredGroups } from '@/src/hooks/useFilteredGroups';
 import { useGroupsStore } from '@/src/stores/groupsStore';
+import type { GroupOverview } from '@/src/types/group';
 
 export default function GroupsScreen() {
   const theme = useAppTheme();
@@ -41,9 +41,7 @@ export default function GroupsScreen() {
   }, [execute]);
 
   const renderItem = useCallback(
-    ({ item }: { item: components['schemas']['GroupOverviewResponse'] }) => (
-      <GroupCard {...item} />
-    ),
+    ({ item }: { item: GroupOverview }) => <GroupCard {...item} />,
     []
   );
 

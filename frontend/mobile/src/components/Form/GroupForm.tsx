@@ -2,11 +2,11 @@ import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { TextInput } from 'react-native-paper';
-import type { components } from '@/src/api/generated/openapi';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
 import { formatPriceInput } from '@/src/helpers/formatPriceInput';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import type { GroupDetails } from '@/src/types/group';
 
 export type GroupFormValues = {
   name: string;
@@ -15,8 +15,7 @@ export type GroupFormValues = {
 };
 
 type GroupFormInitialData = {
-  group?: components['schemas']['GroupDetailsResponse'];
-  allStudents?: components['schemas']['StudentOverviewResponse'][];
+  group?: GroupDetails;
 };
 
 type Props = {

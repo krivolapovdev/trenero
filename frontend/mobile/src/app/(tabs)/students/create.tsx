@@ -38,7 +38,7 @@ export default function CreateStudentScreen() {
     const data = await createStudent(request);
 
     if (values.groupId) {
-      const targetGroup = allGroups.find(g => g.id === values.groupId);
+      const targetGroup = allGroups[values.groupId];
 
       if (targetGroup) {
         updateGroup(values.groupId, {

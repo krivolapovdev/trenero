@@ -12,6 +12,11 @@ import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentPaymentsTable } from '@/src/components/StudentPaymentsTable';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentsStore } from '@/src/stores/studentsStore';
+import type { StudentDetails, StudentOverview } from '@/src/types/student';
+
+const isFullDetails = (
+  s: StudentOverview | StudentDetails | undefined
+): s is StudentDetails => (s ? 'studentPayments' in s : false);
 
 export default function StudentByIdScreen() {
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
@@ -21,10 +26,9 @@ export default function StudentByIdScreen() {
 
   const [paymentIdSheet, setPaymentIdSheet] = useState<string | null>(null);
 
-  const recentStudents = useStudentsStore(state => state.recentStudents);
   const addStudent = useStudentsStore(state => state.addStudent);
   const removeStudent = useStudentsStore(state => state.removeStudent);
-  const student = recentStudents.find(s => s.id === studentId);
+  const student = useStudentsStore(state => state.allStudents[studentId]);
 
   const {
     execute: fetchStudent,
@@ -40,7 +44,11 @@ export default function StudentByIdScreen() {
     execute: deleteStudent,
     loading: deleteLoading,
     error: deleteError
-  } = useAsyncCallback(() => studentService.delete(studentId));
+  } = useAsyncCallback(async () => {
+    await studentService.delete(studentId);
+    removeStudent(studentId);
+    router.back();
+  });
 
   const handleDeletePress = () => {
     Alert.alert(t('deleteStudent'), t('deleteStudentConfirmation'), [
@@ -48,19 +56,18 @@ export default function StudentByIdScreen() {
       {
         text: t('delete'),
         style: 'destructive',
-        onPress: () =>
-          void deleteStudent()
-            .then(() => removeStudent(studentId))
-            .then(() => router.back())
+        onPress: () => void deleteStudent()
       }
     ]);
   };
 
+  const hasDetails = isFullDetails(student);
+
   useEffect(() => {
-    if (!student) {
+    if (!hasDetails) {
       void fetchStudent();
     }
-  }, [student, fetchStudent]);
+  }, [fetchStudent, hasDetails]);
 
   useEffect(() => {
     if (deleteError) {
@@ -76,7 +83,7 @@ export default function StudentByIdScreen() {
         leftActions={[
           {
             icon: 'arrow-left',
-            onPress: () => router.back(),
+            onPress: router.back,
             disabled: deleteLoading
           }
         ]}
@@ -94,7 +101,7 @@ export default function StudentByIdScreen() {
           },
           {
             icon: 'trash-can',
-            onPress: () => handleDeletePress(),
+            onPress: handleDeletePress,
             disabled: studentLoading
           }
         ]}
@@ -117,7 +124,7 @@ export default function StudentByIdScreen() {
       >
         <OptionalErrorMessage error={fetchError?.message} />
 
-        {student && (
+        {hasDetails && (
           <>
             <StudentCard student={student} />
 

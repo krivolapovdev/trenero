@@ -10,6 +10,7 @@ import { CustomBottomSheet } from '@/src/components/BottomSheet/CustomBottomShee
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useMetricsStore } from '@/src/stores/metricsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
+import type { StudentDetails } from '@/src/types/student';
 
 type Props = {
   paymentId: string;
@@ -29,8 +30,9 @@ export const PaymentSheet = ({
     studentId: string;
   }>();
 
-  const recentStudents = useStudentsStore(state => state.recentStudents);
-  const student = recentStudents.find(s => s.id === studentId);
+  const student = useStudentsStore(
+    state => state.allStudents[studentId]
+  ) as StudentDetails;
   const removePayment = useStudentsStore(state => state.removePayment);
   const adjustMetricTotal = useMetricsStore(state => state.adjustMetricTotal);
 

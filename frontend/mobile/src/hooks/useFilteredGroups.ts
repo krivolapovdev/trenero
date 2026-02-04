@@ -1,19 +1,23 @@
 import { useDeferredValue, useMemo } from 'react';
 import type { components } from '@/src/api/generated/openapi';
 
+type GroupOverview = components['schemas']['GroupOverviewResponse'];
+
 export function useFilteredGroups(
-  groups: components['schemas']['GroupOverviewResponse'][],
+  groupsRecord: Record<string, GroupOverview>,
   searchQuery: string
 ) {
   const deferredQuery = useDeferredValue(searchQuery).trim().toLowerCase();
-  const allGroups = groups;
 
-  return useMemo(
-    () =>
-      allGroups.filter(
-        group =>
-          !deferredQuery || group.name.toLowerCase().includes(deferredQuery)
-      ),
-    [allGroups, deferredQuery]
-  );
+  return useMemo(() => {
+    const allGroups = Object.values(groupsRecord);
+
+    if (!deferredQuery) {
+      return allGroups;
+    }
+
+    return allGroups.filter(group =>
+      group.name.toLowerCase().includes(deferredQuery)
+    );
+  }, [deferredQuery, groupsRecord]);
 }

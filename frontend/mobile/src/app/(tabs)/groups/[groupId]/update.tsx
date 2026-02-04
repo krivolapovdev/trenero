@@ -10,6 +10,7 @@ import {
   type GroupFormValues
 } from '@/src/components/Form/GroupForm';
 import { useGroupsStore } from '@/src/stores/groupsStore';
+import type { GroupDetails } from '@/src/types/group';
 
 type UpdateGroupRequest = {
   name?: string | null;
@@ -23,9 +24,10 @@ export default function UpdateGroupScreen() {
   const { t } = useTranslation();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
 
-  const recentGroups = useGroupsStore(state => state.recentGroups);
   const removeGroup = useGroupsStore(state => state.removeGroup);
-  const group = recentGroups.find(group => group.id === groupId);
+  const group = useGroupsStore(
+    state => state.allGroups[groupId]
+  ) as GroupDetails;
 
   const {
     execute: updateGroup,

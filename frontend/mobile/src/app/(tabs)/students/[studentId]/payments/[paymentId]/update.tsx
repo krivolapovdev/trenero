@@ -13,6 +13,7 @@ import {
 } from '@/src/components/Form/PaymentForm';
 import { useMetricsStore } from '@/src/stores/metricsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
+import type { StudentDetails } from '@/src/types/student';
 
 type UpdatePaymentRequest = components['schemas']['UpdatePaymentRequest'];
 
@@ -24,10 +25,11 @@ export default function UpdatePaymentScreen() {
     paymentId: string;
   }>();
 
-  const recentStudents = useStudentsStore(state => state.recentStudents);
   const removeStudent = useStudentsStore(state => state.removeStudent);
   const adjustMetricTotal = useMetricsStore(state => state.adjustMetricTotal);
-  const student = recentStudents.find(student => student.id === studentId);
+  const student = useStudentsStore(
+    state => state.allStudents[studentId]
+  ) as StudentDetails;
   const payment = student?.studentPayments.find(
     payment => payment.id === paymentId
   );

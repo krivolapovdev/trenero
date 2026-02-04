@@ -21,13 +21,14 @@ export default function CreatePaymentScreen() {
   const router = useRouter();
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
 
-  const recentStudents = useStudentsStore(state => state.recentStudents);
-  const student = recentStudents.find(student => student.id === studentId);
+  const student = useStudentsStore(state => state.allStudents[studentId]);
   const removeStudent = useStudentsStore(state => state.removeStudent);
   const adjustMetricTotal = useMetricsStore(state => state.adjustMetricTotal);
-  const allGroups = useGroupsStore(state => state.allGroups);
-  const group = allGroups.find(g => g.id === student?.studentGroup?.id);
-  const defaultPrice = group?.defaultPrice;
+  const group = useGroupsStore(state =>
+    student?.studentGroup?.id
+      ? state.allGroups[student.studentGroup.id]
+      : undefined
+  );
 
   const {
     execute: createPayment,
@@ -68,7 +69,7 @@ export default function CreatePaymentScreen() {
       mutationLoading={createPaymentLoading}
       initialData={{
         payment: {
-          amount: defaultPrice
+          amount: group?.defaultPrice
         }
       }}
     />

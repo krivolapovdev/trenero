@@ -11,6 +11,11 @@ import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useGroupsStore } from '@/src/stores/groupsStore';
+import type { GroupDetails, GroupOverview } from '@/src/types/group';
+
+const isGroupDetails = (
+  g: GroupOverview | GroupDetails | undefined
+): g is GroupDetails => (g ? 'groupLessons' in g : false);
 
 export default function GroupByIdScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
@@ -18,10 +23,9 @@ export default function GroupByIdScreen() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  const recentGroups = useGroupsStore(state => state.recentGroups);
   const addGroup = useGroupsStore(state => state.addGroup);
   const removeGroup = useGroupsStore(state => state.removeGroup);
-  const group = recentGroups.find(g => g.id === groupId);
+  const group = useGroupsStore(state => state.allGroups[groupId]);
 
   const {
     execute: fetchGroup,
@@ -37,7 +41,11 @@ export default function GroupByIdScreen() {
     execute: deleteGroup,
     loading: mutationLoading,
     error: deleteError
-  } = useAsyncCallback(() => groupService.delete(groupId));
+  } = useAsyncCallback(async () => {
+    await groupService.delete(groupId);
+    removeGroup(groupId);
+    router.back();
+  });
 
   const handleDelete = () => {
     Alert.alert(t('deleteGroup'), t('deleteGroupConfirmation'), [
@@ -45,19 +53,18 @@ export default function GroupByIdScreen() {
       {
         text: t('delete'),
         style: 'destructive',
-        onPress: () =>
-          void deleteGroup()
-            .then(() => removeGroup(groupId))
-            .then(() => router.back())
+        onPress: () => void deleteGroup()
       }
     ]);
   };
 
+  const hasFullDetails = isGroupDetails(group);
+
   useEffect(() => {
-    if (!group) {
+    if (!hasFullDetails) {
       void fetchGroup();
     }
-  }, [group, fetchGroup]);
+  }, [fetchGroup, hasFullDetails]);
 
   useEffect(() => {
     if (deleteError) {
@@ -72,7 +79,7 @@ export default function GroupByIdScreen() {
         leftActions={[
           {
             icon: 'arrow-left',
-            onPress: () => router.back(),
+            onPress: router.back,
             disabled: mutationLoading
           }
         ]}
@@ -114,7 +121,7 @@ export default function GroupByIdScreen() {
       >
         <OptionalErrorMessage error={fetchError?.message} />
 
-        {group && (
+        {hasFullDetails && (
           <>
             <GroupCard {...group} />
 

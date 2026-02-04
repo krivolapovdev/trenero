@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
-import type { components } from '@/src/api/generated/openapi';
 import { studentService } from '@/src/api/services/student/studentService';
 import { StudentCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
@@ -14,7 +13,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useFilteredStudents } from '@/src/hooks/useFilteredStudents';
 import { useGroupsStore } from '@/src/stores/groupsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
-import type { StudentStatus } from '@/src/types/student';
+import type { StudentOverview, StudentStatus } from '@/src/types/student';
 
 export default function StudentsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,9 +46,7 @@ export default function StudentsScreen() {
   );
 
   const renderItem = useCallback(
-    (props: { item: components['schemas']['StudentOverviewResponse'] }) => (
-      <StudentCard student={props.item} />
-    ),
+    (props: { item: StudentOverview }) => <StudentCard student={props.item} />,
     []
   );
 
@@ -101,7 +98,7 @@ export default function StudentsScreen() {
             setFilterGroup={setFilterGroup}
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
-            groups={groups}
+            groupsRecord={groups}
           />
         }
       />

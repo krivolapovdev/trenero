@@ -4,12 +4,13 @@ import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { PaperSelect } from 'react-native-paper-select';
 import type { ListItem } from 'react-native-paper-select/src/interface/paperSelect.interface';
-import type { components } from '@/src/api/generated/openapi';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
 import { formatDateInput } from '@/src/helpers/formatDateInput';
 import { parsePastOrTodayDateFromInput } from '@/src/helpers/parsePastOrTodayDateFromInput';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import type { GroupOverview } from '@/src/types/group';
+import type { StudentDetails } from '@/src/types/student';
 
 export type StudentFormValues = {
   fullName: string;
@@ -20,8 +21,8 @@ export type StudentFormValues = {
 };
 
 type StudentFormInitialData = {
-  student?: components['schemas']['StudentDetailsResponse'];
-  allGroups?: components['schemas']['GroupResponse'][];
+  student?: StudentDetails;
+  allGroups?: Record<string, GroupOverview>;
 };
 
 type Props = {
@@ -73,14 +74,16 @@ export const StudentForm = memo(
 
     const isLoading = queryLoading || mutationLoading;
 
-    const groupItems: ListItem[] = useMemo(
-      () =>
-        initialData?.allGroups?.map(group => ({
-          _id: group.id,
-          value: group.name
-        })) ?? [],
-      [initialData]
-    );
+    const groupItems: ListItem[] = useMemo(() => {
+      if (!initialData?.allGroups) {
+        return [];
+      }
+
+      return Object.values(initialData.allGroups).map(group => ({
+        _id: group.id,
+        value: group.name
+      }));
+    }, [initialData?.allGroups]);
 
     const selectedGroupItems = useMemo(
       () => groupItems.filter(g => g._id === groupId),

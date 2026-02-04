@@ -11,6 +11,7 @@ import {
 } from '@/src/components/Form/StudentForm';
 import { useGroupsStore } from '@/src/stores/groupsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
+import type { StudentDetails } from '@/src/types/student';
 
 type UpdateStudentRequest = {
   fullName?: string | null;
@@ -26,11 +27,12 @@ export default function UpdateStudentScreen() {
   const { t } = useTranslation();
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
 
-  const recentStudents = useStudentsStore(state => state.recentStudents);
   const removeStudent = useStudentsStore(state => state.removeStudent);
   const allGroups = useGroupsStore(state => state.allGroups);
   const updateGroup = useGroupsStore(state => state.updateGroup);
-  const student = recentStudents.find(s => s.id === studentId);
+  const student = useStudentsStore(
+    state => state.allStudents[studentId]
+  ) as StudentDetails;
 
   const {
     execute: updateStudent,
@@ -80,7 +82,8 @@ export default function UpdateStudentScreen() {
     const currentGroupId = 'groupId' in request ? request.groupId : oldGroupId;
 
     if (oldGroupId && oldGroupId !== currentGroupId) {
-      const oldGroup = allGroups.find(g => g.id === oldGroupId);
+      const oldGroup = allGroups[oldGroupId];
+
       if (oldGroup) {
         updateGroup(oldGroupId, {
           groupStudents: oldGroup.groupStudents.filter(s => s.id !== studentId)
@@ -89,7 +92,8 @@ export default function UpdateStudentScreen() {
     }
 
     if (currentGroupId) {
-      const targetGroup = allGroups.find(g => g.id === currentGroupId);
+      const targetGroup = allGroups[currentGroupId];
+
       if (targetGroup) {
         const otherStudents = targetGroup.groupStudents.filter(
           s => s.id !== studentId

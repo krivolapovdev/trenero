@@ -1,59 +1,58 @@
 import { create } from 'zustand';
-import type { components } from '@/src/api/generated/openapi';
 import { studentService } from '@/src/api/services/student/studentService';
-
-type StudentOverview = components['schemas']['StudentOverviewResponse'];
-type StudentDetails = components['schemas']['StudentDetailsResponse'];
+import type { StudentDetails, StudentOverview } from '@/src/types/student';
 
 type StudentsStore = {
-  allStudents: StudentOverview[];
-  recentStudents: StudentDetails[];
+  allStudents: Record<string, StudentOverview | StudentDetails>;
 
   isRefreshing: boolean;
   refreshStudents: () => Promise<void>;
 
   setAllStudents: (students: StudentOverview[]) => void;
   addStudent: (student: StudentDetails) => void;
-  getStudentsByGroup: (groupId: string) => StudentOverview[];
   removeStudent: (id: string) => void;
 
   removePayment: (studentId: string, paymentId: string) => void;
 };
 
-export const useStudentsStore = create<StudentsStore>((set, get) => ({
-  allStudents: [],
-
-  recentStudents: [],
-
+export const useStudentsStore = create<StudentsStore>((set, _get) => ({
+  allStudents: {},
+  recentStudents: {},
   isRefreshing: false,
 
-  setAllStudents: students => set({ allStudents: students }),
+  setAllStudents: students => {
+    const studentsMap = students.reduce(
+      (acc, s) => {
+        acc[s.id] = s;
+        return acc;
+      },
+      {} as Record<string, StudentOverview>
+    );
+
+    set({ allStudents: studentsMap });
+  },
 
   addStudent: student =>
-    set(state => {
-      const otherAll = state.allStudents.filter(s => s.id !== student.id);
-      const otherRecent = state.recentStudents.filter(s => s.id !== student.id);
-
-      return {
-        allStudents: [student, ...otherAll],
-        recentStudents: [student, ...otherRecent].slice(0, 10)
-      };
-    }),
-
-  getStudentsByGroup: groupId =>
-    get().allStudents.filter(s => s.studentGroup?.id === groupId),
-
-  removeStudent: id =>
     set(state => ({
-      allStudents: state.allStudents.filter(s => s.id !== id),
-      recentStudents: state.recentStudents.filter(s => s.id !== id)
+      allStudents: {
+        ...state.allStudents,
+        [student.id]: student
+      }
     })),
 
   refreshStudents: async () => {
     set({ isRefreshing: true });
     try {
       const data = await studentService.getOverview();
-      set({ allStudents: data, recentStudents: [] });
+      const studentsMap = data.reduce(
+        (acc, s) => {
+          acc[s.id] = s;
+          return acc;
+        },
+        {} as Record<string, StudentOverview>
+      );
+
+      set({ allStudents: studentsMap });
     } catch (error) {
       console.error('Failed to refresh students:', error);
     } finally {
@@ -61,17 +60,31 @@ export const useStudentsStore = create<StudentsStore>((set, get) => ({
     }
   },
 
-  removePayment: (studentId, paymentId) =>
-    set(state => ({
-      recentStudents: state.recentStudents.map(s => {
-        if (s.id === studentId) {
-          return {
-            ...s,
-            studentPayments: s.studentPayments.filter(p => p.id !== paymentId)
-          };
-        }
+  removeStudent: id =>
+    set(state => {
+      const { [id]: _, ...nextEntities } = state.allStudents;
+      return { allStudents: nextEntities };
+    }),
 
-        return s;
-      })
-    }))
+  removePayment: (studentId, paymentId) => {
+    set(state => {
+      const student = state.allStudents[studentId];
+
+      if (!student || !('studentPayments' in student)) {
+        return state;
+      }
+
+      return {
+        allStudents: {
+          ...state.allStudents,
+          [studentId]: {
+            ...student,
+            studentPayments: student.studentPayments.filter(
+              p => p.id !== paymentId
+            )
+          }
+        }
+      };
+    });
+  }
 }));

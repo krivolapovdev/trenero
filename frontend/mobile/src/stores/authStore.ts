@@ -37,6 +37,7 @@ export const useAuthStore = create<AuthStore>()(
       getRefreshToken: async () =>
         await SecureStore.getItemAsync('refresh_token')
     }),
+
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => AsyncStorage),

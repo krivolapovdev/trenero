@@ -1,12 +1,8 @@
 import { create } from 'zustand';
-import type { components } from '@/src/api/generated/openapi';
-
-type GroupOverview = components['schemas']['GroupOverviewResponse'];
-type GroupDetails = components['schemas']['GroupDetailsResponse'];
+import type { GroupDetails, GroupOverview } from '@/src/types/group';
 
 type GroupsStore = {
-  allGroups: GroupOverview[];
-  recentGroups: GroupDetails[];
+  allGroups: Record<string, GroupOverview | GroupDetails>;
 
   setAllGroups: (groups: GroupOverview[]) => void;
   addGroup: (group: GroupDetails) => void;
@@ -15,36 +11,46 @@ type GroupsStore = {
 };
 
 export const useGroupsStore = create<GroupsStore>((set, _get) => ({
-  allGroups: [],
+  allGroups: {},
 
-  recentGroups: [],
+  setAllGroups: groups => {
+    const groupsMap = groups.reduce(
+      (acc, g) => {
+        acc[g.id] = g;
+        return acc;
+      },
+      {} as Record<string, GroupOverview>
+    );
 
-  setAllGroups: groups => set({ allGroups: groups }),
+    set({ allGroups: groupsMap });
+  },
 
   addGroup: group =>
+    set(state => ({
+      allGroups: {
+        ...state.allGroups,
+        [group.id]: group
+      }
+    })),
+
+  updateGroup: (id, updates) =>
     set(state => {
-      const otherAll = state.allGroups.filter(g => g.id !== group.id);
-      const otherRecent = state.recentGroups.filter(g => g.id !== group.id);
+      const group = state.allGroups[id];
+      if (!group) {
+        return state;
+      }
 
       return {
-        allGroups: [group, ...otherAll],
-        recentGroups: [group, ...otherRecent].slice(0, 10)
+        allGroups: {
+          ...state.allGroups,
+          [id]: { ...group, ...updates }
+        }
       };
     }),
 
-  updateGroup: (id, updates) =>
-    set(state => ({
-      allGroups: state.allGroups.map(group =>
-        group.id === id ? { ...group, ...updates } : group
-      ),
-      recentGroups: state.recentGroups.map(group =>
-        group.id === id ? { ...group, ...updates } : group
-      )
-    })),
-
   removeGroup: id =>
-    set(state => ({
-      allGroups: state.allGroups.filter(g => g.id !== id),
-      recentGroups: state.recentGroups.filter(g => g.id !== id)
-    }))
+    set(state => {
+      const { [id]: _, ...newAll } = state.allGroups;
+      return { allGroups: newAll };
+    })
 }));

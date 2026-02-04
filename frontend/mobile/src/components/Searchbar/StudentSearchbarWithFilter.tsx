@@ -24,7 +24,7 @@ type Props = {
   filterStatus: StudentStatus | null;
   setFilterStatus: (status: StudentStatus | null) => void;
 
-  groups: components['schemas']['GroupResponse'][];
+  groupsRecord: Record<string, components['schemas']['GroupOverviewResponse']>;
 };
 
 export const StudentSearchbarWithFilter = memo(
@@ -36,7 +36,7 @@ export const StudentSearchbarWithFilter = memo(
     setFilterGroup,
     filterStatus,
     setFilterStatus,
-    groups
+    groupsRecord
   }: Readonly<Props>) => {
     const { t } = useTranslation();
     const theme = useAppTheme();
@@ -51,9 +51,12 @@ export const StudentSearchbarWithFilter = memo(
     const groupItems = useMemo(
       () => [
         ALL_ITEM,
-        ...(groups.map(group => ({ id: group.id, name: group.name })) ?? [])
+        ...Object.values(groupsRecord).map(group => ({
+          id: group.id,
+          name: group.name
+        }))
       ],
-      [groups]
+      [groupsRecord]
     );
 
     const statusItems = useMemo(

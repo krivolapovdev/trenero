@@ -22,10 +22,9 @@ export default function CreateLessonScreen() {
   const removeGroup = useGroupsStore(state => state.removeGroup);
   const refreshStudents = useStudentsStore(state => state.refreshStudents);
   const isRefreshing = useStudentsStore(state => state.isRefreshing);
-  const allGroups = useGroupsStore(state => state.allGroups);
-  const groupStudents = allGroups.find(
-    group => group.id === groupId
-  )?.groupStudents;
+  const groupStudents = useGroupsStore(
+    state => state.allGroups[groupId]?.groupStudents
+  );
 
   const {
     execute: createLesson,
