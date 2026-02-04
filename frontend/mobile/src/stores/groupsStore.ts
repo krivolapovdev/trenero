@@ -7,6 +7,7 @@ type GroupDetails = components['schemas']['GroupDetailsResponse'];
 type GroupsStore = {
   allGroups: GroupOverview[];
   recentGroups: GroupDetails[];
+
   setAllGroups: (groups: GroupOverview[]) => void;
   addGroup: (group: GroupDetails) => void;
   updateGroup: (id: string, updates: Partial<GroupDetails>) => void;

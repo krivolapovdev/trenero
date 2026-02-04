@@ -1,102 +1,63 @@
-import createFetchClient from 'openapi-fetch';
-import createClient, { type Middleware } from 'openapi-fetch';
-import type { paths } from '@/src/api/generated/openapi';
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/src/stores/authStore';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:8080';
+export const api = axios.create({
+  baseURL: process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:8080',
+  timeout: __DEV__ ? 10_000 : 20_000,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
-let refreshPromise: Promise<string | null> | null = null;
+api.interceptors.request.use(config => {
+  const accessToken = useAuthStore.getState().accessToken;
 
-type CustomRequest = Request & {
-  _bodyInit?: BodyInit;
-  _bodyText?: string;
-};
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
 
-const authMiddleware: Middleware = {
-  async onRequest({ request }) {
-    const token = useAuthStore.getState().accessToken;
-    if (token) {
-      request.headers.set('Authorization', `Bearer ${token}`);
-    }
-    return request;
-  },
+  return config;
+});
 
-  async onResponse({ request, response }) {
-    if (response.status !== 401 && response.status !== 403) {
-      return response;
-    }
-
-    const store = useAuthStore.getState();
-    const refreshToken = await store.getRefreshToken();
-    const user = store.user;
-
-    if (!refreshToken || !user) {
-      return response;
-    }
-
-    refreshPromise ??= refreshAccessToken().finally(() => {
-      refreshPromise = null;
-    });
-
-    const newAccessToken = await refreshPromise;
-
-    if (!newAccessToken) {
-      return response;
-    }
-
-    const headers = new Headers(request.headers);
-    headers.set('Authorization', `Bearer ${newAccessToken}`);
-
-    const requestInit: RequestInit = {
-      method: request.method,
-      headers: headers
+api.interceptors.response.use(
+  response => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
     };
 
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
-      const castedRequest = request as CustomRequest;
-      requestInit.body = castedRequest._bodyText ?? castedRequest._bodyInit;
+    const user = useAuthStore.getState().user;
+    const refreshToken = await useAuthStore.getState().getRefreshToken();
+
+    const isAuthError =
+      error.response?.status === 401 || error.response?.status === 403;
+    const canRetry = !originalRequest._retry && refreshToken && user;
+
+    if (!isAuthError || !canRetry) {
+      console.error(`Failed to make request: ${error}`);
+      return Promise.reject(error);
     }
 
-    return fetch(request.url, requestInit);
-  }
-};
+    originalRequest._retry = true;
 
-export const api = createClient<paths>({
-  baseUrl: BASE_URL,
-  cache: 'no-cache'
-});
+    try {
+      const { tokenService } = await import(
+        '@/src/api/services/auth/tokenService'
+      );
+      const jwtTokens = await tokenService.refreshTokens(refreshToken);
 
-api.use(authMiddleware);
+      await useAuthStore.getState().setAuth({ user, jwtTokens });
 
-const authClient = createFetchClient<paths>({
-  baseUrl: BASE_URL
-});
+      originalRequest.headers.Authorization = `Bearer ${jwtTokens.accessToken}`;
 
-async function refreshAccessToken(): Promise<string | null> {
-  const store = useAuthStore.getState();
-  const refreshToken = await store.getRefreshToken();
-  const user = store.user;
+      return api(originalRequest);
+    } catch (error) {
+      console.error(`Failed to refresh tokens: ${error}`);
 
-  if (!refreshToken || !user) {
-    return null;
-  }
+      await useAuthStore.getState().logout();
 
-  const { data: jwtTokens, error } = await authClient.POST(
-    '/api/v1/jwt/refresh',
-    {
-      body: { refreshToken }
+      return Promise.reject(error);
     }
-  );
-
-  if (error || !jwtTokens) {
-    await store.logout();
-    return null;
   }
-
-  await store.setAuth({
-    user,
-    jwtTokens
-  });
-
-  return jwtTokens.accessToken;
-}
+);

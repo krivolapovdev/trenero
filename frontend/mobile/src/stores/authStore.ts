@@ -8,6 +8,7 @@ import type { components } from '@/src/api/generated/openapi';
 type AuthStore = {
   user: components['schemas']['UserResponse'] | null;
   accessToken: string | null;
+
   setAuth: (payload: components['schemas']['LoginResponse']) => Promise<void>;
   logout: () => Promise<void>;
   getRefreshToken: () => Promise<string | null>;

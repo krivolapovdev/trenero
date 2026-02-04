@@ -1,17 +1,16 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { Divider, List, Text } from 'react-native-paper';
-import { api } from '@/src/api';
+import { groupService } from '@/src/api/services/group/groupService';
 import { LessonsCalendar } from '@/src/components/Calendar';
 import { GroupCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
 import { useGroupsStore } from '@/src/stores/groupsStore';
-import type { ApiError } from '@/src/types/error';
 
 export default function GroupByIdScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
@@ -27,23 +26,18 @@ export default function GroupByIdScreen() {
   const {
     execute: fetchGroup,
     loading: groupLoading,
-    error
-  } = useCustomAsyncCallback(() =>
-    api.GET('/api/v1/groups/{groupId}/details', {
-      params: { path: { groupId } }
-    })
-  );
+    error: fetchError
+  } = useAsyncCallback(async () => {
+    const data = await groupService.getDetails(groupId);
+    addGroup(data);
+    return data;
+  });
 
-  const { execute: deleteGroup, loading: mutationLoading } =
-    useCustomAsyncCallback(() =>
-      api.DELETE(`/api/v1/groups/{groupId}`, {
-        params: {
-          path: {
-            groupId
-          }
-        }
-      })
-    );
+  const {
+    execute: deleteGroup,
+    loading: mutationLoading,
+    error: deleteError
+  } = useAsyncCallback(() => groupService.delete(groupId));
 
   const handleDelete = () => {
     Alert.alert(t('deleteGroup'), t('deleteGroupConfirmation'), [
@@ -52,31 +46,24 @@ export default function GroupByIdScreen() {
         text: t('delete'),
         style: 'destructive',
         onPress: () =>
-          void deleteGroup({})
+          void deleteGroup()
             .then(() => removeGroup(groupId))
             .then(() => router.back())
-            .catch(err => Alert.alert(t('error'), err))
       }
     ]);
   };
 
-  const refreshData = useCallback(async () => {
-    try {
-      const data = await fetchGroup({});
-      if (data) {
-        addGroup(data);
-      }
-    } catch (err) {
-      const errorData = err as ApiError;
-      Alert.alert(t('error'), errorData.detail);
-    }
-  }, [fetchGroup, addGroup, t]);
-
   useEffect(() => {
     if (!group) {
-      void refreshData();
+      void fetchGroup();
     }
-  }, [group, refreshData]);
+  }, [group, fetchGroup]);
+
+  useEffect(() => {
+    if (deleteError) {
+      Alert.alert(t('error'), deleteError.message);
+    }
+  }, [deleteError, t]);
 
   return (
     <>
@@ -121,11 +108,11 @@ export default function GroupByIdScreen() {
         refreshControl={
           <RefreshControl
             refreshing={groupLoading || mutationLoading}
-            onRefresh={refreshData}
+            onRefresh={fetchGroup}
           />
         }
       >
-        <OptionalErrorMessage error={error?.message} />
+        <OptionalErrorMessage error={fetchError?.message} />
 
         {group && (
           <>

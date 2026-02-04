@@ -4,8 +4,8 @@ import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
-import { api } from '@/src/api';
 import type { components } from '@/src/api/generated/openapi';
+import { studentService } from '@/src/api/services/student/studentService';
 import { StudentCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
@@ -33,9 +33,11 @@ export default function StudentsScreen() {
   const groups = useGroupsStore(state => state.allGroups);
   const setAllStudents = useStudentsStore(state => state.setAllStudents);
 
-  const { loading, execute, error } = useAsyncCallback(() =>
-    api.GET('/api/v1/students/overview')
-  );
+  const { loading, execute, error } = useAsyncCallback(async () => {
+    const data = await studentService.getOverview();
+    setAllStudents(data);
+    return data;
+  });
 
   const filteredStudents = useFilteredStudents(
     students,
@@ -56,12 +58,8 @@ export default function StudentsScreen() {
     setFilterGroup(null);
     setFilterStatus(null);
     setFilterKey(key => key + 1);
-
-    const { data } = await execute();
-    if (data) {
-      setAllStudents(data);
-    }
-  }, [execute, setAllStudents]);
+    await execute();
+  }, [execute]);
 
   return (
     <>

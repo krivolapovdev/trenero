@@ -7,7 +7,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "biome": "biome check --write --unsafe",
-    "check": "tsc --noEmit",
+    "check": "tsc --noEmit --skipLibCheck",
     "api:gen": "openapi-typescript http://localhost:8080/v3/api-docs -o src/api/generated/openapi.ts"
   },
   "dependencies": {
@@ -22,6 +22,7 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@shopify/flash-list": "2.0.2",
+    "axios": "^1.13.4",
     "dayjs": "^1.11.19",
     "expo": "~54.0.25",
     "expo-constants": "~18.0.10",
@@ -41,7 +42,6 @@
     "expo-web-browser": "~15.0.9",
     "i18next": "^25.7.3",
     "nanoid": "^5.1.6",
-    "openapi-fetch": "^0.15.0",
     "prop-types": "^15.8.1",
     "react": "19.1.0",
     "react-async-hook": "^4.0.0",

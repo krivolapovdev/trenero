@@ -1,16 +1,16 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
-import { api } from '@/src/api';
+import { studentService } from '@/src/api/services/student/studentService';
 import {
   StudentForm,
   type StudentFormValues
 } from '@/src/components/Form/StudentForm';
-import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
 import { useGroupsStore } from '@/src/stores/groupsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
-import type { ApiError } from '@/src/types/error';
 
 type UpdateStudentRequest = {
   fullName?: string | null;
@@ -32,15 +32,13 @@ export default function UpdateStudentScreen() {
   const updateGroup = useGroupsStore(state => state.updateGroup);
   const student = recentStudents.find(s => s.id === studentId);
 
-  const { execute: updateStudent, loading: updateStudentLoading } =
-    useCustomAsyncCallback((request: UpdateStudentRequest) =>
-      api.PATCH('/api/v1/students/{studentId}', {
-        params: {
-          path: { studentId }
-        },
-        body: request
-      })
-    );
+  const {
+    execute: updateStudent,
+    loading: updateStudentLoading,
+    error
+  } = useAsyncCallback((body: UpdateStudentRequest) =>
+    studentService.update(studentId, body)
+  );
 
   const handleSubmit = async (values: StudentFormValues) => {
     if (!student || updateStudentLoading) {
@@ -74,44 +72,43 @@ export default function UpdateStudentScreen() {
       return;
     }
 
-    try {
-      const updatedStudent = await updateStudent(request);
+    const updatedStudent = await updateStudent(request);
 
-      removeStudent(studentId);
+    removeStudent(studentId);
 
-      const oldGroupId = student.studentGroup?.id;
-      const currentGroupId =
-        'groupId' in request ? request.groupId : oldGroupId;
+    const oldGroupId = student.studentGroup?.id;
+    const currentGroupId = 'groupId' in request ? request.groupId : oldGroupId;
 
-      if (oldGroupId && oldGroupId !== currentGroupId) {
-        const oldGroup = allGroups.find(g => g.id === oldGroupId);
-        if (oldGroup) {
-          updateGroup(oldGroupId, {
-            groupStudents: oldGroup.groupStudents.filter(
-              s => s.id !== studentId
-            )
-          });
-        }
+    if (oldGroupId && oldGroupId !== currentGroupId) {
+      const oldGroup = allGroups.find(g => g.id === oldGroupId);
+      if (oldGroup) {
+        updateGroup(oldGroupId, {
+          groupStudents: oldGroup.groupStudents.filter(s => s.id !== studentId)
+        });
       }
-
-      if (currentGroupId) {
-        const targetGroup = allGroups.find(g => g.id === currentGroupId);
-        if (targetGroup) {
-          const otherStudents = targetGroup.groupStudents.filter(
-            s => s.id !== studentId
-          );
-          updateGroup(currentGroupId, {
-            groupStudents: [...otherStudents, updatedStudent]
-          });
-        }
-      }
-
-      router.back();
-    } catch (err) {
-      const errorData = err as ApiError;
-      Alert.alert(t('error'), errorData.detail);
     }
+
+    if (currentGroupId) {
+      const targetGroup = allGroups.find(g => g.id === currentGroupId);
+      if (targetGroup) {
+        const otherStudents = targetGroup.groupStudents.filter(
+          s => s.id !== studentId
+        );
+
+        updateGroup(currentGroupId, {
+          groupStudents: [...otherStudents, updatedStudent]
+        });
+      }
+    }
+
+    router.back();
   };
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert(t('error'), error.message);
+    }
+  }, [error, t]);
 
   return (
     <StudentForm

@@ -1,8 +1,9 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
-import { api } from '@/src/api';
+import { studentService } from '@/src/api/services/student/studentService';
 import { PaymentSheet } from '@/src/components/BottomSheet/PaymentSheet';
 import { VisitCalendar } from '@/src/components/Calendar';
 import { StudentCard } from '@/src/components/Card';
@@ -10,9 +11,7 @@ import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentPaymentsTable } from '@/src/components/StudentPaymentsTable';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
 import { useStudentsStore } from '@/src/stores/studentsStore';
-import type { ApiError } from '@/src/types/error';
 
 export default function StudentByIdScreen() {
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
@@ -30,19 +29,18 @@ export default function StudentByIdScreen() {
   const {
     execute: fetchStudent,
     loading: studentLoading,
-    error
-  } = useCustomAsyncCallback(() =>
-    api.GET('/api/v1/students/{studentId}/details', {
-      params: { path: { studentId } }
-    })
-  );
+    error: fetchError
+  } = useAsyncCallback(async () => {
+    const data = await studentService.getDetails(studentId);
+    addStudent(data);
+    return data;
+  });
 
-  const { execute: deleteStudent, loading: deleteLoading } =
-    useCustomAsyncCallback(() =>
-      api.DELETE('/api/v1/students/{studentId}', {
-        params: { path: { studentId } }
-      })
-    );
+  const {
+    execute: deleteStudent,
+    loading: deleteLoading,
+    error: deleteError
+  } = useAsyncCallback(() => studentService.delete(studentId));
 
   const handleDeletePress = () => {
     Alert.alert(t('deleteStudent'), t('deleteStudentConfirmation'), [
@@ -51,32 +49,24 @@ export default function StudentByIdScreen() {
         text: t('delete'),
         style: 'destructive',
         onPress: () =>
-          void deleteStudent({})
+          void deleteStudent()
             .then(() => removeStudent(studentId))
             .then(() => router.back())
-            .catch(err => Alert.alert(t('error'), err.message))
       }
     ]);
   };
 
-  const refreshData = useCallback(async () => {
-    try {
-      const data = await fetchStudent({});
-      if (data) {
-        console.log(data);
-        addStudent(data);
-      }
-    } catch (err) {
-      const errorData = err as ApiError;
-      Alert.alert(t('error'), errorData.detail);
-    }
-  }, [fetchStudent, addStudent, t]);
-
   useEffect(() => {
     if (!student) {
-      void refreshData();
+      void fetchStudent();
     }
-  }, [student, refreshData]);
+  }, [student, fetchStudent]);
+
+  useEffect(() => {
+    if (deleteError) {
+      Alert.alert(t('error'), deleteError.message);
+    }
+  }, [deleteError, t]);
 
   return (
     <>
@@ -120,12 +110,12 @@ export default function StudentByIdScreen() {
         refreshControl={
           <RefreshControl
             refreshing={studentLoading}
-            onRefresh={refreshData}
+            onRefresh={fetchStudent}
           />
         }
         keyboardShouldPersistTaps='handled'
       >
-        <OptionalErrorMessage error={error?.message} />
+        <OptionalErrorMessage error={fetchError?.message} />
 
         {student && (
           <>

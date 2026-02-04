@@ -1,5 +1,4 @@
 import type dayjs from 'dayjs';
-import { nanoid } from 'nanoid/non-secure';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -40,7 +39,7 @@ export const RoundedBarChart = ({
       <View style={styles.chartArea}>
         {normalizedData.map(item => (
           <View
-            key={nanoid()}
+            key={item.date.toISOString()}
             style={[styles.barContainer, { width: `${100 / data.length}%` }]}
           >
             <Pressable onPress={() => setSelectedBar(item.date)}>
@@ -54,8 +53,12 @@ export const RoundedBarChart = ({
               style={{ backgroundColor: theme.colors.outline, width: '100%' }}
             />
 
-            <Text style={styles.label}>
-              {item.date.locale(i18n.language).format('MMM')}
+            <Text
+              style={styles.label}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+            >
+              {item.date.locale(i18n.language).format('MMM').replace('.', '')}
             </Text>
           </View>
         ))}
@@ -88,6 +91,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 99
   },
   label: {
-    marginTop: 8
+    marginTop: 8,
+    textTransform: 'capitalize'
   }
 });

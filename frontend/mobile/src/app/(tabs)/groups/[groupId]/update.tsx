@@ -1,15 +1,15 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
-import { api } from '@/src/api';
+import { groupService } from '@/src/api/services/group/groupService';
 import {
   GroupForm,
   type GroupFormValues
 } from '@/src/components/Form/GroupForm';
-import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
 import { useGroupsStore } from '@/src/stores/groupsStore';
-import type { ApiError } from '@/src/types/error';
 
 type UpdateGroupRequest = {
   name?: string | null;
@@ -27,15 +27,13 @@ export default function UpdateGroupScreen() {
   const removeGroup = useGroupsStore(state => state.removeGroup);
   const group = recentGroups.find(group => group.id === groupId);
 
-  const { execute: updateGroup, loading: updateGroupLoading } =
-    useCustomAsyncCallback((request: UpdateGroupRequest) =>
-      api.PATCH('/api/v1/groups/{groupId}', {
-        params: {
-          path: { groupId }
-        },
-        body: request
-      })
-    );
+  const {
+    execute: updateGroup,
+    loading: updateGroupLoading,
+    error
+  } = useAsyncCallback((body: UpdateGroupRequest) =>
+    groupService.update(groupId, body)
+  );
 
   const handleSubmit = async (values: GroupFormValues) => {
     if (!group || updateGroupLoading) {
@@ -61,15 +59,18 @@ export default function UpdateGroupScreen() {
       return;
     }
 
-    try {
-      await updateGroup(request);
-      removeGroup(groupId);
-      router.back();
-    } catch (err) {
-      const errorData = err as ApiError;
-      Alert.alert(t('error'), errorData.detail);
-    }
+    await updateGroup(request);
+
+    removeGroup(groupId);
+
+    router.back();
   };
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert(t('error'), error.message);
+    }
+  }, [error, t]);
 
   return (
     <GroupForm

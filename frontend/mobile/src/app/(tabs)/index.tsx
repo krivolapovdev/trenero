@@ -4,7 +4,7 @@ import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import { api } from '@/src/api';
+import { metricService } from '@/src/api/services/metric/metricService';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { LoadingSpinner } from '@/src/components/LoadingSpinner';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
@@ -21,9 +21,11 @@ export default function MetricsScreen() {
   const metrics = useMetricsStore(state => state.allMetrics);
   const setAllMetrics = useMetricsStore(state => state.setAllMetrics);
 
-  const { loading, execute, error } = useAsyncCallback(() =>
-    api.GET('/api/v1/metrics/payments/monthly')
-  );
+  const { loading, execute, error } = useAsyncCallback(async () => {
+    const data = await metricService.getMonthlyPayments();
+    setAllMetrics(data);
+    return data;
+  });
 
   const monthlyData = useMemo(
     () =>
@@ -55,13 +57,7 @@ export default function MetricsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={loading}
-            onRefresh={() =>
-              execute().then(({ data }) => {
-                if (data) {
-                  setAllMetrics(data);
-                }
-              })
-            }
+            onRefresh={execute}
           />
         }
       >

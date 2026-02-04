@@ -1,11 +1,15 @@
+import dayjs from 'dayjs';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert, View } from 'react-native';
 import { Button } from 'react-native-paper';
-import { api } from '@/src/api';
+import { paymentService } from '@/src/api/services/payment/paymentService';
 import { CustomBottomSheet } from '@/src/components/BottomSheet/CustomBottomSheet';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useMetricsStore } from '@/src/stores/metricsStore';
+import { useStudentsStore } from '@/src/stores/studentsStore';
 
 type Props = {
   paymentId: string;
@@ -25,12 +29,34 @@ export const PaymentSheet = ({
     studentId: string;
   }>();
 
-  const { execute: deletePayment, loading: deletePaymentPending } =
-    useAsyncCallback(() =>
-      api.DELETE('/api/v1/payments/{paymentId}', {
-        params: { path: { paymentId } }
-      })
-    );
+  const recentStudents = useStudentsStore(state => state.recentStudents);
+  const student = recentStudents.find(s => s.id === studentId);
+  const removePayment = useStudentsStore(state => state.removePayment);
+  const adjustMetricTotal = useMetricsStore(state => state.adjustMetricTotal);
+
+  const {
+    execute: deletePayment,
+    loading: deletePaymentPending,
+    error
+  } = useAsyncCallback(async () => {
+    await paymentService.delete(paymentId);
+
+    removePayment(studentId, paymentId);
+
+    const payment = student?.studentPayments.find(pay => pay.id === paymentId);
+    if (payment) {
+      const month = dayjs(payment?.date);
+      adjustMetricTotal(month, -payment.amount);
+    }
+
+    onDismiss();
+  });
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert(t('error'), error.message);
+    }
+  }, [error, t]);
 
   return (
     <CustomBottomSheet

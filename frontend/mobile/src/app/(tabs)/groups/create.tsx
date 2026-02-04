@@ -1,14 +1,14 @@
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
-import { api } from '@/src/api';
 import type { components } from '@/src/api/generated/openapi';
+import { groupService } from '@/src/api/services/group/groupService';
 import {
   GroupForm,
   type GroupFormValues
 } from '@/src/components/Form/GroupForm';
-import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
-import type { ApiError } from '@/src/types/error';
 
 type CreateGroupRequest = components['schemas']['CreateGroupRequest'];
 
@@ -16,10 +16,11 @@ export default function CreateGroupScreen() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const { execute: createGroup, loading: createGroupLoading } =
-    useCustomAsyncCallback((body: CreateGroupRequest) =>
-      api.POST('/api/v1/groups', { body })
-    );
+  const {
+    execute: createGroup,
+    loading: createGroupLoading,
+    error
+  } = useAsyncCallback(groupService.create);
 
   const handleSubmit = async (values: GroupFormValues) => {
     if (createGroupLoading) {
@@ -30,14 +31,16 @@ export default function CreateGroupScreen() {
       ...values
     };
 
-    try {
-      const data = await createGroup(request);
-      router.replace(`/(tabs)/groups/${data.id}`);
-    } catch (err) {
-      const errorData = err as ApiError;
-      Alert.alert(t('error'), errorData.detail);
-    }
+    const data = await createGroup(request);
+
+    router.replace(`/(tabs)/groups/${data.id}`);
   };
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert(t('error'), error.message);
+    }
+  }, [error, t]);
 
   return (
     <GroupForm

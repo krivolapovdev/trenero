@@ -1,6 +1,5 @@
 import dayjs from 'dayjs';
 import { useRouter } from 'expo-router';
-import { nanoid } from 'nanoid/non-secure';
 import { memo, useMemo, useState } from 'react';
 import { List } from 'react-native-paper';
 import type { components } from '@/src/api/generated/openapi';
@@ -52,7 +51,7 @@ export const LessonsCalendar = memo(({ groupId, lessons }: Readonly<Props>) => {
             .filter(item => item.date.isSame(selectedDate, 'day'))
             .map(item => (
               <SurfaceCard
-                key={nanoid()}
+                key={item.lessonId}
                 style={{ padding: 0 }}
               >
                 <List.Item

@@ -5,8 +5,8 @@ import { useCallback, useRef, useState } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Searchbar } from 'react-native-paper';
-import { api } from '@/src/api';
 import type { components } from '@/src/api/generated/openapi';
+import { groupService } from '@/src/api/services/group/groupService';
 import { GroupCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
@@ -27,21 +27,18 @@ export default function GroupsScreen() {
   const groups = useGroupsStore(state => state.allGroups);
   const setAllGroups = useGroupsStore(state => state.setAllGroups);
 
-  const { loading, execute, error } = useAsyncCallback(() =>
-    api.GET('/api/v1/groups/overview')
-  );
+  const { loading, execute, error } = useAsyncCallback(async () => {
+    const data = await groupService.getOverview();
+    setAllGroups(data);
+    return data;
+  });
 
   const filteredGroups = useFilteredGroups(groups, searchQuery);
 
   const refreshData = useCallback(async () => {
     setSearchQuery('');
-
-    const { data } = await execute();
-
-    if (data) {
-      setAllGroups(data);
-    }
-  }, [execute, setAllGroups]);
+    await execute();
+  }, [execute]);
 
   const renderItem = useCallback(
     ({ item }: { item: components['schemas']['GroupOverviewResponse'] }) => (

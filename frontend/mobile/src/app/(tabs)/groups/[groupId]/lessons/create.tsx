@@ -1,16 +1,16 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
-import { api } from '@/src/api';
 import type { components } from '@/src/api/generated/openapi';
+import { lessonService } from '@/src/api/services/lesson/lessonService';
 import {
   LessonForm,
   type LessonFormValues
 } from '@/src/components/Form/LessonForm';
-import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
 import { useGroupsStore } from '@/src/stores/groupsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
-import type { ApiError } from '@/src/types/error';
 
 type CreateLessonRequest = components['schemas']['CreateLessonRequest'];
 
@@ -27,12 +27,11 @@ export default function CreateLessonScreen() {
     group => group.id === groupId
   )?.groupStudents;
 
-  const { execute: createLesson, loading: createLessonLoading } =
-    useCustomAsyncCallback((request: CreateLessonRequest) =>
-      api.POST('/api/v1/lessons', {
-        body: request
-      })
-    );
+  const {
+    execute: createLesson,
+    loading: createLessonLoading,
+    error
+  } = useAsyncCallback(lessonService.create);
 
   const handleSubmit = async (values: LessonFormValues) => {
     if (createLessonLoading) {
@@ -44,16 +43,20 @@ export default function CreateLessonScreen() {
       ...values
     };
 
-    try {
-      await createLesson(request);
-      await refreshStudents();
-      removeGroup(groupId);
-      router.back();
-    } catch (err) {
-      const errorData = err as ApiError;
-      Alert.alert(t('error'), errorData.detail);
-    }
+    await createLesson(request);
+
+    await refreshStudents();
+
+    removeGroup(groupId);
+
+    router.back();
   };
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert(t('error'), error.message);
+    }
+  }, [error, t]);
 
   return (
     <LessonForm

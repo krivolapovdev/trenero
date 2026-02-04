@@ -1,18 +1,17 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useAsync } from 'react-async-hook';
+import { useEffect } from 'react';
+import { useAsync, useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
-import { api } from '@/src/api';
 import type { components } from '@/src/api/generated/openapi';
+import { lessonService } from '@/src/api/services/lesson/lessonService';
 import {
   LessonForm,
   type LessonFormValues
 } from '@/src/components/Form/LessonForm';
-import { useCustomAsyncCallback } from '@/src/hooks/useCustomAsyncCallback';
 import { useGroupsStore } from '@/src/stores/groupsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
-import type { ApiError } from '@/src/types/error';
 
 type UpdateLessonRequest = components['schemas']['UpdateLessonRequest'];
 
@@ -32,29 +31,19 @@ export default function UpdateLessonScreen() {
     group => group.id === groupId
   )?.groupStudents;
 
-  const { loading: lessonLoading, result } = useAsync(
-    () =>
-      api.GET('/api/v1/lessons/{lessonId}/details', {
-        params: {
-          path: {
-            lessonId
-          }
-        }
-      }),
-    [lessonId]
+  const {
+    loading: lessonLoading,
+    result: lesson,
+    error: fetchError
+  } = useAsync(() => lessonService.getDetails(lessonId), [lessonId]);
+
+  const {
+    execute: updateLesson,
+    loading: updateLessonLoading,
+    error: updateError
+  } = useAsyncCallback((body: UpdateLessonRequest) =>
+    lessonService.update(lessonId, body)
   );
-
-  const lesson = result?.data;
-
-  const { execute: updateLesson, loading: updateLessonLoading } =
-    useCustomAsyncCallback((request: UpdateLessonRequest) =>
-      api.PATCH('/api/v1/lessons/{lessonId}', {
-        params: {
-          path: { lessonId }
-        },
-        body: request
-      })
-    );
 
   const handleSubmit = async (values: LessonFormValues) => {
     if (!lesson || lessonLoading || updateLessonLoading) {
@@ -81,16 +70,22 @@ export default function UpdateLessonScreen() {
       return;
     }
 
-    try {
-      await updateLesson(request);
-      await refreshStudents();
-      removeGroup(groupId);
-      router.back();
-    } catch (err) {
-      const errorData = err as ApiError;
-      Alert.alert(t('error'), errorData.detail);
-    }
+    await updateLesson(request);
+
+    await refreshStudents();
+
+    removeGroup(groupId);
+
+    router.back();
   };
+
+  useEffect(() => {
+    const error = fetchError || updateError;
+
+    if (error) {
+      Alert.alert(t('error'), error.message);
+    }
+  }, [updateError, t, fetchError]);
 
   return (
     <LessonForm

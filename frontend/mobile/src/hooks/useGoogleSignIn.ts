@@ -5,8 +5,7 @@ import {
   statusCodes
 } from '@react-native-google-signin/google-signin';
 import { useAsyncCallback } from 'react-async-hook';
-import { useTranslation } from 'react-i18next';
-import { api } from '@/src/api';
+import { oauth2Service } from '@/src/api/services/auth/oauth2Service';
 import { useAuthStore } from '@/src/stores/authStore';
 
 GoogleSignin.configure({
@@ -36,9 +35,12 @@ const getGoogleErrorMessage = (error: unknown): string => {
 
 export function useGoogleSignIn() {
   const setAuth = useAuthStore(state => state.setAuth);
-  const { t } = useTranslation();
 
-  const { execute: signIn, loading: isLoading } = useAsyncCallback(async () => {
+  const {
+    execute: signIn,
+    loading: isLoading,
+    error
+  } = useAsyncCallback(async () => {
     await GoogleSignin.hasPlayServices().catch(error => {
       throw new Error(getGoogleErrorMessage(error));
     });
@@ -56,11 +58,9 @@ export function useGoogleSignIn() {
       throw new Error('Failed to retrieve Google ID token');
     }
 
-    const { data, error } = await api.POST('/api/v1/oauth2/google', {
-      body: { token: idToken }
-    });
+    const data = await oauth2Service.googleLogin(idToken);
 
-    if (!data || error) {
+    if (!data) {
       throw new Error('Login failed: no data returned');
     }
 
@@ -71,6 +71,7 @@ export function useGoogleSignIn() {
 
   return {
     signIn,
-    isLoading
+    isLoading,
+    error
   };
 }

@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { SocialAuthButton } from '@/src/components/SocialButtonsGroup/SocialAuthButton';
 import { useGoogleSignIn } from '@/src/hooks/useGoogleSignIn';
 
@@ -7,8 +8,13 @@ export function SocialButtonsGroup() {
   const { t } = useTranslation();
 
   const google = useGoogleSignIn();
-  // const apple = useAppleSignIn(setErrorMessage);
   const disabled = google?.isLoading;
+
+  useEffect(() => {
+    if (google.error) {
+      Alert.alert(t('error'), google.error.message);
+    }
+  }, [google.error, t]);
 
   return (
     <View style={styles.buttonsContainer}>
