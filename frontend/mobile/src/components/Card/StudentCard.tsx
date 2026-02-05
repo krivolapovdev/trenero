@@ -1,10 +1,12 @@
 import dayjs from 'dayjs';
-import { nanoid } from 'nanoid/non-secure';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { components } from '@/src/api/generated/openapi';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { EntityCard } from './EntityCard';
+
+type StudentStatus =
+  components['schemas']['StudentOverviewResponse']['statuses'][number];
 
 type Props = {
   student: components['schemas']['StudentOverviewResponse'];
@@ -15,55 +17,45 @@ export const StudentCard = ({ student }: Readonly<Props>) => {
   const theme = useAppTheme();
 
   const badges = useMemo(() => {
-    const result = [];
+    const statusConfig: Record<
+      StudentStatus,
+      { label: string; bg: string; text: string }
+    > = {
+      INACTIVE: {
+        label: 'inactive',
+        bg: theme.colors.primary,
+        text: theme.colors.onPrimary
+      },
+      PRESENT: {
+        label: 'present',
+        bg: theme.colors.secondaryContainer,
+        text: theme.colors.onSecondaryContainer
+      },
+      MISSING: {
+        label: 'missing',
+        bg: theme.colors.errorContainer,
+        text: theme.colors.onErrorContainer
+      },
+      PAID: {
+        label: 'paid',
+        bg: theme.colors.secondaryContainer,
+        text: theme.colors.onSecondaryContainer
+      },
+      UNPAID: {
+        label: 'unpaid',
+        bg: theme.colors.tertiary,
+        text: theme.colors.onTertiary
+      }
+    };
 
-    if (student.statuses?.includes('INACTIVE')) {
-      result.push({
-        id: nanoid(),
-        label: t('studentStatus.inactive'),
-        backgroundColor: theme.colors.primary,
-        textColor: theme.colors.onPrimary
-      });
-      return result;
-    }
-
-    if (student?.statuses?.includes('PRESENT')) {
-      result.push({
-        id: nanoid(),
-        label: t('studentStatus.present'),
-        backgroundColor: theme.colors.secondaryContainer,
-        textColor: theme.colors.onSecondaryContainer
-      });
-    }
-
-    if (student.statuses?.includes('MISSING')) {
-      result.push({
-        id: nanoid(),
-        label: t('studentStatus.missing'),
-        backgroundColor: theme.colors.errorContainer,
-        textColor: theme.colors.onErrorContainer
-      });
-    }
-
-    if (student.statuses?.includes('PAID')) {
-      result.push({
-        id: nanoid(),
-        label: t('studentStatus.paid'),
-        backgroundColor: theme.colors.secondaryContainer,
-        textColor: theme.colors.onSecondaryContainer
-      });
-    }
-
-    if (student.statuses?.includes('UNPAID')) {
-      result.push({
-        id: nanoid(),
-        label: t('studentStatus.unpaid'),
-        backgroundColor: theme.colors.tertiary,
-        textColor: theme.colors.onTertiary
-      });
-    }
-
-    return result;
+    return Object.entries(statusConfig)
+      .filter(([status]) => student.statuses.includes(status as StudentStatus))
+      .map(([status, config]) => ({
+        id: status,
+        label: t(`studentStatus.${config.label}`),
+        backgroundColor: config.bg,
+        textColor: config.text
+      }));
   }, [student.statuses, theme, t]);
 
   const subtitle = [
