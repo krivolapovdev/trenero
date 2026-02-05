@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -21,7 +22,6 @@ import org.trenero.backend.common.response.GroupStudentResponse;
 import org.trenero.backend.common.response.LessonResponse;
 import org.trenero.backend.common.response.VisitResponse;
 import org.trenero.backend.common.security.JwtUser;
-import org.trenero.backend.group.external.GroupSpi;
 import org.trenero.backend.group.external.GroupStudentSpi;
 import org.trenero.backend.lesson.external.LessonSpi;
 import org.trenero.backend.lesson.internal.domain.Lesson;
@@ -36,15 +36,15 @@ import org.trenero.backend.visit.external.VisitSpi;
 @Slf4j
 @RequiredArgsConstructor
 public class LessonService implements LessonSpi {
-  @Lazy private final LessonRepository lessonRepository;
-  @Lazy private final LessonMapper lessonMapper;
+  private final LessonRepository lessonRepository;
+  private final LessonMapper lessonMapper;
+
   @Lazy private final LessonService self;
   @Lazy private final VisitSpi visitSpi;
   @Lazy private final GroupStudentSpi groupStudentSpi;
-  @Lazy private final GroupSpi groupSpi;
 
   @Transactional(readOnly = true)
-  public List<LessonResponse> getAllLessons(JwtUser jwtUser) {
+  public @NonNull List<LessonResponse> getAllLessons(@NonNull JwtUser jwtUser) {
     log.info("Getting all lessons for ownerId={}", jwtUser.userId());
     return lessonRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(lessonMapper::toResponse)
@@ -53,7 +53,8 @@ public class LessonService implements LessonSpi {
 
   @Override
   @Transactional(readOnly = true)
-  public Optional<LessonResponse> getLastGroupLesson(UUID groupId, JwtUser jwtUser) {
+  public @NonNull Optional<LessonResponse> getLastGroupLesson(
+      @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Getting last lesson for ownerId={}", jwtUser.userId());
     return lessonRepository
         .findLastGroupLesson(groupId, jwtUser.userId())
@@ -62,8 +63,8 @@ public class LessonService implements LessonSpi {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<UUID, LessonResponse> getLastGroupLessonsByGroupIds(
-      List<UUID> groupIds, JwtUser jwtUser) {
+  public @NonNull Map<UUID, LessonResponse> getLastGroupLessonsByGroupIds(
+      @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
     log.info("Getting last lessons for {} groups, ownerId={}", groupIds.size(), jwtUser.userId());
 
     return lessonRepository.findLastLessonsByGroupIdsAndOwnerId(groupIds, jwtUser.userId()).stream()
@@ -72,7 +73,7 @@ public class LessonService implements LessonSpi {
   }
 
   @Transactional(readOnly = true)
-  public LessonResponse getLessonById(UUID lessonId, JwtUser jwtUser) {
+  public @NonNull LessonResponse getLessonById(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
     log.info("Getting lesson by id={} for ownerId={}", lessonId, jwtUser.userId());
     return lessonRepository
         .findByIdAndOwnerId(lessonId, jwtUser.userId())
@@ -93,16 +94,12 @@ public class LessonService implements LessonSpi {
   }
 
   @Transactional(readOnly = true)
-  public List<LessonResponse> getLessonsByGroupId(UUID groupId, JwtUser jwtUser) {
+  public @NonNull List<LessonResponse> getLessonsByGroupId(
+      @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Getting lessons by groupId={} for ownerId={}", groupId, jwtUser.userId());
     return lessonRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
         .map(lessonMapper::toResponse)
         .toList();
-  }
-
-  @Transactional(readOnly = true)
-  public List<VisitResponse> getVisitsByLessonId(UUID lessonId, JwtUser jwtUser) {
-    return visitSpi.getVisitsByLessonId(lessonId, jwtUser);
   }
 
   @Transactional
@@ -118,7 +115,6 @@ public class LessonService implements LessonSpi {
 
     List<StudentVisit> studentVisitList =
         groupStudentSpi.getStudentsByGroupId(request.groupId(), jwtUser).stream()
-            .filter(Objects::nonNull)
             .map(
                 res ->
                     request.students().stream()
@@ -159,7 +155,7 @@ public class LessonService implements LessonSpi {
   }
 
   @Override
-  public void deleteLesson(UUID lessonId, JwtUser jwtUser) {
+  public void deleteLesson(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
     softDeleteLesson(lessonId, jwtUser);
   }
 

@@ -21,8 +21,9 @@ import org.trenero.backend.group.internal.repository.GroupStudentRepository;
 @RequiredArgsConstructor
 @Slf4j
 public class GroupStudentService implements GroupStudentSpi {
-  @Lazy private final GroupStudentRepository groupStudentRepository;
-  @Lazy private final GroupStudentMapper groupStudentMapper;
+  private final GroupStudentRepository groupStudentRepository;
+  private final GroupStudentMapper groupStudentMapper;
+
   @Lazy private final GroupService groupService;
   @Lazy private final GroupStudentService self;
 

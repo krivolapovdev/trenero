@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -50,7 +51,8 @@ public class VisitService implements VisitSpi {
   }
 
   @Transactional(readOnly = true)
-  public List<VisitResponse> getVisitsByLessonId(UUID lessonId, JwtUser jwtUser) {
+  public @NonNull List<VisitResponse> getVisitsByLessonId(
+      @NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
     log.info("Getting visits by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
     return visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId()).stream()
         .map(visitMapper::toResponse)
@@ -58,8 +60,8 @@ public class VisitService implements VisitSpi {
   }
 
   @Override
-  public Map<UUID, List<VisitResponse>> getVisitsByStudentIds(
-      List<UUID> studentIds, JwtUser jwtUser) {
+  public @NonNull Map<UUID, List<VisitResponse>> getVisitsByStudentIds(
+      @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info("Getting visits by studentIds for ownerId={}", jwtUser.userId());
 
     return visitRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
@@ -69,8 +71,8 @@ public class VisitService implements VisitSpi {
 
   @Override
   @Transactional(readOnly = true)
-  public VisitResponse getVisitByLessonIdAndStudentId(
-      UUID lessonId, UUID studentId, JwtUser jwtUser) {
+  public @NonNull VisitResponse getVisitByLessonIdAndStudentId(
+      @NonNull UUID lessonId, @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting visit by lessonId={} and studentId={}", lessonId, studentId);
     return visitRepository
         .findByLessonIdAndStudentIdAndOwnerId(lessonId, studentId, jwtUser.userId())
@@ -82,7 +84,8 @@ public class VisitService implements VisitSpi {
   }
 
   @Transactional(readOnly = true)
-  public List<VisitResponse> getVisitsByStudentId(UUID studentId, JwtUser jwtUser) {
+  public @NonNull List<VisitResponse> getVisitsByStudentId(
+      @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting visits by studentId={} for ownerId={}", studentId, jwtUser.userId());
     return visitRepository.findAllByStudentIdAndOwnerId(studentId, jwtUser.userId()).stream()
         .map(visitMapper::toResponse)
@@ -90,7 +93,8 @@ public class VisitService implements VisitSpi {
   }
 
   @Transactional
-  public VisitResponse createVisit(CreateVisitRequest request, JwtUser jwtUser) {
+  public @NonNull VisitResponse createVisit(
+      @NonNull CreateVisitRequest request, @NonNull JwtUser jwtUser) {
     log.info(
         "Creating visit for student: {} and lesson: {}", request.studentId(), request.lessonId());
 
@@ -114,7 +118,10 @@ public class VisitService implements VisitSpi {
   }
 
   @Override
-  public void createVisits(UUID lessonId, List<StudentVisit> studentVisitList, JwtUser jwtUser) {
+  public void createVisits(
+      @NonNull UUID lessonId,
+      @NonNull List<StudentVisit> studentVisitList,
+      @NonNull JwtUser jwtUser) {
     UUID ownerId = jwtUser.userId();
 
     log.info(
@@ -152,15 +159,9 @@ public class VisitService implements VisitSpi {
         .orElseThrow(() -> new EntityNotFoundException("Visit not found with id: " + visitId));
   }
 
-  @Transactional
-  public void saveVisitList(List<Visit> visitList) {
-    log.info("Saving visit list: {}", visitList);
-    visitRepository.saveAllAndFlush(visitList);
-  }
-
   @Override
   @Transactional
-  public void removeVisitsByLessonId(UUID lessonId, JwtUser jwtUser) {
+  public void removeVisitsByLessonId(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
     log.info(
         "Removing (soft delete) all visits for lessonId={} for ownerId={}",
         lessonId,
@@ -177,7 +178,8 @@ public class VisitService implements VisitSpi {
 
   @Override
   @Transactional
-  public void updateVisitsByLessonId(UUID lessonId, List<StudentVisit> requests, JwtUser jwtUser) {
+  public void updateVisitsByLessonId(
+      @NonNull UUID lessonId, @NonNull List<StudentVisit> requests, @NonNull JwtUser jwtUser) {
     log.info("Updating visits for lessonId={} for ownerId={}", lessonId, jwtUser.userId());
 
     List<Visit> lessonVisits =

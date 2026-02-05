@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -35,6 +36,7 @@ public class Transaction {
   private UUID id;
 
   @Column(name = "owner_id", nullable = false, updatable = false)
+  @NotNull
   private UUID ownerId;
 
   @Enumerated(EnumType.STRING)
@@ -44,12 +46,15 @@ public class Transaction {
       columnDefinition = "payments_module.transaction_type",
       nullable = false,
       updatable = false)
+  @NotNull
   private TransactionType type;
 
   @Column(name = "amount", nullable = false)
+  @NotNull
   private BigDecimal amount;
 
   @Column(name = "date", nullable = false)
+  @NotNull
   private LocalDate date;
 
   @CreationTimestamp

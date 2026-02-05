@@ -1,5 +1,6 @@
 package org.trenero.backend.user.internal.service;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,8 @@ public class UserService implements UserSpi {
   private final UserMapper userMapper;
 
   @Transactional
-  public UserResponse getOrCreateUserFromOAuth2(
-      OAuth2Provider provider, String providerId, String email) {
+  public @NonNull UserResponse getOrCreateUserFromOAuth2(
+      @NonNull OAuth2Provider provider, @NonNull String providerId, @NonNull String email) {
     log.info(
         "Getting or creating user from OAuth2: email={}, provider={}, providerId={}",
         email,

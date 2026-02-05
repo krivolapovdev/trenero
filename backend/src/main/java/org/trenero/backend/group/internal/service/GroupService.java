@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -31,15 +32,16 @@ import org.trenero.backend.student.external.StudentSpi;
 @Slf4j
 @RequiredArgsConstructor
 public class GroupService implements GroupSpi {
-  @Lazy private final GroupRepository groupRepository;
-  @Lazy private final GroupMapper groupMapper;
-  @Lazy private final GroupService self;
+  private final GroupRepository groupRepository;
+  private final GroupMapper groupMapper;
+
   @Lazy private final GroupStudentService groupStudentService;
   @Lazy private final LessonSpi lessonSpi;
   @Lazy private final StudentSpi studentSpi;
+  @Lazy private final GroupService self;
 
   @Transactional(readOnly = true)
-  public List<GroupResponse> getAllGroups(JwtUser jwtUser) {
+  public @NonNull List<GroupResponse> getAllGroups(@NonNull JwtUser jwtUser) {
     log.info("Getting all groups for ownerId={}", jwtUser.userId());
     return groupRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(groupMapper::toResponse)
@@ -65,7 +67,7 @@ public class GroupService implements GroupSpi {
   }
 
   @Transactional(readOnly = true)
-  public GroupResponse getGroupById(UUID groupId, JwtUser jwtUser) {
+  public @NonNull GroupResponse getGroupById(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Getting group by id={} for ownerId={}", groupId, jwtUser.userId());
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
@@ -94,7 +96,8 @@ public class GroupService implements GroupSpi {
   }
 
   @Override
-  public Map<UUID, GroupResponse> getGroupsByIds(List<UUID> groupIds, JwtUser jwtUser) {
+  public @NonNull Map<UUID, GroupResponse> getGroupsByIds(
+      @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
     log.info("Getting groups by ids for ownerId={}", jwtUser.userId());
 
     return groupRepository.findAllByIdsAndOwnerId(groupIds, jwtUser.userId()).stream()

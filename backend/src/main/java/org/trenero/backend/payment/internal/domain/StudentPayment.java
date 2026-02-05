@@ -8,12 +8,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 @Entity
 @Table(name = "student_payments", schema = "payments_module")
@@ -27,11 +27,11 @@ public class StudentPayment {
   private UUID transactionId;
 
   @Column(name = "student_id", nullable = false, updatable = false)
-  @NonNull
+  @NotNull
   private UUID studentId;
 
   @Column(name = "paid_lessons", nullable = false)
-  @NonNull
+  @NotNull
   private Integer paidLessons;
 
   @OneToOne(fetch = FetchType.LAZY)

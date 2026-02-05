@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -39,8 +40,9 @@ import org.trenero.backend.visit.external.VisitSpi;
 @RequiredArgsConstructor
 @Slf4j
 public class StudentService implements StudentSpi {
-  @Lazy private final StudentRepository studentRepository;
-  @Lazy private final StudentMapper studentMapper;
+  private final StudentRepository studentRepository;
+  private final StudentMapper studentMapper;
+
   @Lazy private final StudentStatusService studentStatusService;
   @Lazy private final StudentService self;
   @Lazy private final GroupSpi groupSpi;
@@ -50,7 +52,7 @@ public class StudentService implements StudentSpi {
   @Lazy private final LessonSpi lessonSpi;
 
   @Transactional(readOnly = true)
-  public List<StudentResponse> getAllStudents(JwtUser jwtUser) {
+  public @NonNull List<StudentResponse> getAllStudents(@NonNull JwtUser jwtUser) {
     log.info("Getting all students for ownerId={}", jwtUser.userId());
     return studentRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(studentMapper::toResponse)
@@ -112,7 +114,8 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public StudentResponse getStudentById(UUID studentId, JwtUser jwtUser) {
+  public @NonNull StudentResponse getStudentById(
+      @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting student by id={} for ownerId={}", studentId, jwtUser.userId());
     return studentRepository
         .findByIdAndOwnerId(studentId, jwtUser.userId())
@@ -122,7 +125,8 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public Map<UUID, List<StudentResponse>> getStudentsByIds(List<UUID> studentIds, JwtUser jwtUser) {
+  public @NonNull Map<UUID, List<StudentResponse>> getStudentsByIds(
+      @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info("Getting students by ids={} for ownerId={}", studentIds, jwtUser.userId());
 
     return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
@@ -238,11 +242,6 @@ public class StudentService implements StudentSpi {
               return self.saveStudent(student);
             })
         .orElseThrow(() -> new EntityNotFoundException("Student not found with id=" + studentId));
-  }
-
-  @Transactional
-  public void deleteStudentPayment(UUID paymentId, JwtUser jwtUser) {
-    studentPaymentSpi.deleteStudentPaymentById(paymentId, jwtUser);
   }
 
   @Transactional

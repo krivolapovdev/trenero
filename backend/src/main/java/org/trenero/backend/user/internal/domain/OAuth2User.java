@@ -8,13 +8,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -40,15 +40,15 @@ public class OAuth2User {
       columnDefinition = "users_module.oauth2_provider",
       nullable = false,
       updatable = false)
-  @NonNull
+  @NotNull
   private OAuth2Provider provider;
 
   @Column(name = "provider_id", nullable = false, updatable = false)
-  @NonNull
+  @NotNull
   private String providerId;
 
   @Column(name = "email", nullable = false)
-  @NonNull
+  @NotNull
   private String email;
 
   @CreationTimestamp

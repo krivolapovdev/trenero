@@ -29,8 +29,6 @@ public class JwtTokenService {
 
     String oldRefreshToken = request.refreshToken();
 
-    log.info("Refreshing token: {}", oldRefreshToken);
-
     if (!jwtTokenProvider.isTokenValid(oldRefreshToken)) {
       throw new JwtException("Invalid refresh token");
     }

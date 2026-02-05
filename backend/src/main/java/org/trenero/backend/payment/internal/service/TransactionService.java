@@ -26,8 +26,9 @@ import org.trenero.backend.payment.internal.repository.TransactionRepository;
 @RequiredArgsConstructor
 @Slf4j
 public class TransactionService implements TransactionSpi {
-  @Lazy private final TransactionRepository transactionRepository;
-  @Lazy private final TransactionMapper transactionMapper;
+  private final TransactionRepository transactionRepository;
+  private final TransactionMapper transactionMapper;
+
   @Lazy private final TransactionService self;
 
   @Transactional(readOnly = true)

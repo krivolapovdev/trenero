@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -28,12 +29,15 @@ public class GroupStudent {
   private UUID id;
 
   @Column(name = "owner_id", nullable = false, updatable = false)
+  @NotNull
   private UUID ownerId;
 
   @Column(name = "group_id", nullable = false, updatable = false)
+  @NotNull
   private UUID groupId;
 
   @Column(name = "student_id", nullable = false, updatable = false)
+  @NotNull
   private UUID studentId;
 
   @CreationTimestamp

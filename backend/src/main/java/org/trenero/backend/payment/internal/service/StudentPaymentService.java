@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -26,13 +27,14 @@ import org.trenero.backend.student.external.StudentSpi;
 @RequiredArgsConstructor
 @Slf4j
 public class StudentPaymentService implements StudentPaymentSpi {
-  @Lazy private final StudentPaymentRepository studentPaymentRepository;
-  @Lazy private final StudentPaymentMapper paymentMapper;
+  private final StudentPaymentRepository studentPaymentRepository;
+  private final StudentPaymentMapper paymentMapper;
+
   @Lazy private final TransactionService transactionService;
   @Lazy private final StudentSpi studentSpi;
 
   @Transactional(readOnly = true)
-  public List<StudentPaymentResponse> getAllStudentPayments(JwtUser jwtUser) {
+  public @NonNull List<StudentPaymentResponse> getAllStudentPayments(@NonNull JwtUser jwtUser) {
     log.info("Get all student payments for user {}", jwtUser.userId());
     return studentPaymentRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(payment -> paymentMapper.toResponse(payment, payment.getTransaction()))
@@ -50,8 +52,8 @@ public class StudentPaymentService implements StudentPaymentSpi {
   }
 
   @Transactional(readOnly = true)
-  public List<StudentPaymentResponse> getStudentPaymentsByStudentId(
-      UUID studentId, JwtUser jwtUser) {
+  public @NonNull List<StudentPaymentResponse> getStudentPaymentsByStudentId(
+      @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting student payments by studentId={} for user={}", studentId, jwtUser.userId());
     return studentPaymentRepository
         .findAllByStudentIdAndOwnerId(studentId, jwtUser.userId())
@@ -62,8 +64,8 @@ public class StudentPaymentService implements StudentPaymentSpi {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<UUID, List<StudentPaymentResponse>> getStudentPaymentsByStudentIds(
-      List<UUID> studentIds, JwtUser jwtUser) {
+  public @NonNull Map<UUID, List<StudentPaymentResponse>> getStudentPaymentsByStudentIds(
+      @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info(
         "Getting student payments for studentIds {} for user {}", studentIds, jwtUser.userId());
     return studentPaymentRepository
@@ -121,7 +123,7 @@ public class StudentPaymentService implements StudentPaymentSpi {
 
   @Override
   @Transactional
-  public void deleteStudentPaymentById(UUID paymentId, JwtUser jwtUser) {
+  public void deleteStudentPaymentById(@NonNull UUID paymentId, @NonNull JwtUser jwtUser) {
     log.info("Deleting student payment: {}", paymentId);
 
     if (!studentPaymentRepository.existsById(paymentId)) {
