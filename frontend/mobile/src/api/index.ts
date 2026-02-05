@@ -27,16 +27,17 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
+    if (!originalRequest || !error.response) {
+      throw error;
+    }
+
+    const { status } = error.response;
     const user = useAuthStore.getState().user;
     const refreshToken = await useAuthStore.getState().getRefreshToken();
 
-    const isAuthError =
-      error.response?.status === 401 || error.response?.status === 403;
-    const canRetry = !originalRequest._retry && refreshToken && user;
-
-    if (!isAuthError || !canRetry) {
-      console.error(`Failed to make request: ${error}`);
-      return Promise.reject(error);
+    const isAuthError = status === 401 || status === 403;
+    if (!isAuthError || originalRequest._retry || !refreshToken || !user) {
+      throw error;
     }
 
     originalRequest._retry = true;
@@ -45,6 +46,7 @@ api.interceptors.response.use(
       const { tokenService } = await import(
         '@/src/api/services/auth/tokenService'
       );
+
       const jwtTokens = await tokenService.refreshTokens(refreshToken);
 
       await useAuthStore.getState().setAuth({ user, jwtTokens });
@@ -57,7 +59,7 @@ api.interceptors.response.use(
 
       await useAuthStore.getState().logout();
 
-      return Promise.reject(error);
+      throw error;
     }
   }
 );

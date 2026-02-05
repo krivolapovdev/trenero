@@ -87,34 +87,25 @@ export const LessonForm = memo(
         setStartDateTime(dayjs(lesson.startDateTime));
       }
 
-      const newVisitState: Record<string, StudentVisitState> = {};
-
-      const existingVisitsMap = new Map(
-        lesson?.studentVisits?.map(v => [v.studentId, v])
-      );
-
       const isEditMode = Boolean(lesson?.id);
 
-      groupStudents.forEach(student => {
-        const existingVisit = existingVisitsMap.get(student.id);
+      const existingVisits = new Map(
+        lesson?.studentVisits?.map(visit => [visit.studentId, visit])
+      );
 
-        if (existingVisit) {
-          newVisitState[student.id] = {
-            status: existingVisit.status as VisitStatus,
-            type: (existingVisit.type as VisitType) ?? 'UNMARKED'
-          };
-        } else if (isEditMode) {
-          newVisitState[student.id] = {
-            status: 'UNMARKED',
-            type: 'UNMARKED'
-          };
-        } else {
-          newVisitState[student.id] = {
-            status: 'ABSENT',
-            type: 'REGULAR'
-          };
-        }
-      });
+      const baseState: StudentVisitState = isEditMode
+        ? { status: 'UNMARKED', type: 'UNMARKED' }
+        : { status: 'ABSENT', type: 'REGULAR' };
+
+      const newVisitState = Object.fromEntries(
+        groupStudents.map(student => [
+          student.id,
+          {
+            status: existingVisits.get(student.id)?.status ?? baseState.status,
+            type: existingVisits.get(student.id)?.type ?? baseState.type
+          }
+        ])
+      );
 
       setVisitState(newVisitState);
     }, [initialData]);
