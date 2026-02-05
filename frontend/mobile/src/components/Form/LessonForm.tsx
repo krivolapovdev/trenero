@@ -6,16 +6,20 @@ import { Text } from 'react-native-paper';
 import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
 import type { components } from '@/src/api/generated/openapi';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { StudentVisitPicker } from '@/src/components/StudentVisitPicker';
+import {
+  StudentVisitPicker,
+  type StudentVisitState
+} from '@/src/components/StudentVisitPicker';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-import type { VisitStatus } from '@/src/types/visit';
+import type { VisitStatus, VisitType } from '@/src/types/visit';
 
 export type LessonFormValues = {
   startDateTime: string;
   students: {
     studentId: string;
     status: VisitStatus;
+    type: VisitType;
   }[];
 };
 
@@ -46,9 +50,9 @@ export const LessonForm = memo(
     const theme = useAppTheme();
 
     const [startDateTime, setStartDateTime] = useState(dayjs());
-    const [visitStatus, setVisitStatus] = useState<Record<string, VisitStatus>>(
-      {}
-    );
+    const [visitState, setVisitState] = useState<
+      Record<string, StudentVisitState>
+    >({});
 
     const [visibleTimePicker, setVisibleTimePicker] = useState(false);
     const [visibleDatePicker, setVisibleDatePicker] = useState(false);
@@ -60,12 +64,11 @@ export const LessonForm = memo(
         return;
       }
 
-      const students = Object.entries(visitStatus).map(
-        ([studentId, status]) => ({
-          studentId,
-          status
-        })
-      );
+      const students = Object.entries(visitState).map(([studentId, state]) => ({
+        studentId,
+        status: state.status,
+        type: state.type
+      }));
 
       onSubmit({
         startDateTime: startDateTime.toISOString(),
@@ -74,22 +77,46 @@ export const LessonForm = memo(
     };
 
     useEffect(() => {
-      if (initialData?.lesson) {
-        if (initialData.lesson.startDateTime) {
-          setStartDateTime(dayjs(initialData.lesson.startDateTime));
-        }
-
-        if (initialData.lesson.studentVisits) {
-          setVisitStatus(
-            Object.fromEntries(
-              initialData.lesson.studentVisits.map(visit => [
-                visit.studentId,
-                visit.status
-              ])
-            )
-          );
-        }
+      if (!initialData) {
+        return;
       }
+
+      const { lesson, groupStudents = [] } = initialData;
+
+      if (lesson?.startDateTime) {
+        setStartDateTime(dayjs(lesson.startDateTime));
+      }
+
+      const newVisitState: Record<string, StudentVisitState> = {};
+
+      const existingVisitsMap = new Map(
+        lesson?.studentVisits?.map(v => [v.studentId, v])
+      );
+
+      const isEditMode = Boolean(lesson?.id);
+
+      groupStudents.forEach(student => {
+        const existingVisit = existingVisitsMap.get(student.id);
+
+        if (existingVisit) {
+          newVisitState[student.id] = {
+            status: existingVisit.status as VisitStatus,
+            type: (existingVisit.type as VisitType) ?? 'UNMARKED'
+          };
+        } else if (isEditMode) {
+          newVisitState[student.id] = {
+            status: 'UNMARKED',
+            type: 'UNMARKED'
+          };
+        } else {
+          newVisitState[student.id] = {
+            status: 'ABSENT',
+            type: 'REGULAR'
+          };
+        }
+      });
+
+      setVisitState(newVisitState);
     }, [initialData]);
 
     return (
@@ -136,8 +163,8 @@ export const LessonForm = memo(
           <SurfaceCard>
             <StudentVisitPicker
               students={initialData?.groupStudents ?? []}
-              visitStatus={visitStatus}
-              setVisitStatus={setVisitStatus}
+              visitState={visitState}
+              setVisitState={setVisitState}
               disabled={isLoading}
             />
           </SurfaceCard>

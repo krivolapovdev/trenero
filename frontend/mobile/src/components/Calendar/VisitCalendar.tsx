@@ -1,11 +1,10 @@
 import dayjs from 'dayjs';
 import { useRouter } from 'expo-router';
 import { memo, useMemo, useState } from 'react';
-import { List } from 'react-native-paper';
+import { Checkbox, List } from 'react-native-paper';
 import type { components } from '@/src/api/generated/openapi';
 import { CustomBottomSheet } from '@/src/components/BottomSheet';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
-import { VisitStatusColor, VisitStatusIcon } from '@/src/types/visit';
 import { CustomCalendar } from './CustomCalendar';
 
 type Props = {
@@ -27,8 +26,8 @@ export const VisitCalendar = memo(
             const status = item.visit.status;
             return {
               date: dayjs(item.lesson.startDateTime),
-              color: VisitStatusColor[status],
               status: status,
+              type: item.visit.type,
               lessonId: item.visit.lessonId
             };
           })
@@ -65,9 +64,11 @@ export const VisitCalendar = memo(
                   <List.Item
                     title={item.date.format('HH:mm')}
                     right={() => (
-                      <List.Icon
-                        icon={VisitStatusIcon[item.status]}
-                        color={VisitStatusColor[item.status]}
+                      <Checkbox.Android
+                        status={
+                          item.status === 'PRESENT' ? 'checked' : 'unchecked'
+                        }
+                        color={item.type === 'FREE' ? '#FFD700' : undefined}
                       />
                     )}
                     onPress={() => {

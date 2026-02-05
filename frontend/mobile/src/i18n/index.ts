@@ -79,7 +79,12 @@ const resources = {
       logoutMessage: 'Are you sure you want to logout?',
       contactMessage:
         'Do you have questions regarding our services or suggestions for future improvements? We are committed to providing the best experience possible and welcome your communication. Please use the following contact information to get in touch with our team:',
-      unexpectedError: 'Something went wrong...'
+      unexpectedError: 'Something went wrong...',
+      visitType: {
+        regular: 'Regular lesson',
+        free: 'Free lesson',
+        unmarked: 'Do not create a record'
+      }
     }
   },
   ru: {
@@ -159,7 +164,12 @@ const resources = {
       logoutMessage: 'Вы уверены, что хотите выйти?',
       contactMessage:
         'Есть вопросы по нашим услугам или предложения по улучшению? Мы стремимся предоставить наилучший опыт и приветствуем ваше сообщение. Пожалуйста, используйте следующую контактную информацию для связи с нашей командой:',
-      unexpectedError: 'Непредвиденная ошибка...'
+      unexpectedError: 'Непредвиденная ошибка...',
+      visitType: {
+        regular: 'Обычное занятие',
+        free: 'Бесплатное занятие',
+        unmarked: 'Не создавать запись'
+      }
     }
   }
 } as const;

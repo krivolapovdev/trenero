@@ -317,13 +317,18 @@ export interface components {
       lessonId: string;
       /** Format: uuid */
       studentId: string;
-      present: boolean;
+      /** @enum {string} */
+      status: 'PRESENT' | 'ABSENT' | 'UNMARKED';
+      /** @enum {string} */
+      type: 'REGULAR' | 'FREE' | 'UNMARKED';
     };
     VisitResponse: {
       /** Format: uuid */
       id: string;
       /** @enum {string} */
-      status: 'PRESENT' | 'ABSENT' | 'UNMARKED' | 'FREE';
+      status: 'PRESENT' | 'ABSENT' | 'UNMARKED';
+      /** @enum {string} */
+      type: 'REGULAR' | 'FREE' | 'UNMARKED';
       /** Format: uuid */
       lessonId: string;
       /** Format: uuid */
@@ -400,7 +405,9 @@ export interface components {
       /** Format: uuid */
       studentId?: string;
       /** @enum {string} */
-      status?: 'PRESENT' | 'ABSENT' | 'UNMARKED' | 'FREE';
+      status?: 'PRESENT' | 'ABSENT' | 'UNMARKED';
+      /** @enum {string} */
+      type?: 'REGULAR' | 'FREE' | 'UNMARKED';
     };
     LessonResponse: {
       /** Format: uuid */

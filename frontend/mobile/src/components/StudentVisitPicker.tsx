@@ -4,152 +4,258 @@ import {
   type SetStateAction,
   useCallback,
   useEffect,
-  useMemo
+  useMemo,
+  useState
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
-import { Button, IconButton, Text, TouchableRipple } from 'react-native-paper';
+import { Pressable, View } from 'react-native';
+import { Button, Checkbox, RadioButton, Text } from 'react-native-paper';
 import type { components } from '@/src/api/generated/openapi';
-import {
-  type VisitStatus,
-  VisitStatusColor,
-  VisitStatusIcon
-} from '@/src/types/visit';
+import { CustomBottomSheet } from '@/src/components/BottomSheet';
+import type { VisitStatus, VisitType } from '@/src/types/visit';
 
-const STATUS_ORDER: VisitStatus[] = ['UNMARKED', 'PRESENT', 'ABSENT', 'FREE'];
+const getCheckboxStatus = (status: VisitStatus) => {
+  switch (status) {
+    case 'PRESENT':
+      return 'checked';
+    case 'UNMARKED':
+      return 'indeterminate';
+    default:
+      return 'unchecked';
+  }
+};
+
+const VISIT_OPTIONS: { value: VisitType; label: string }[] = [
+  { value: 'REGULAR', label: 'visitType.regular' },
+  { value: 'FREE', label: 'visitType.free' },
+  { value: 'UNMARKED', label: 'visitType.unmarked' }
+];
+
+export type StudentVisitState = {
+  status: VisitStatus;
+  type: VisitType;
+};
 
 type Props = {
   students: components['schemas']['StudentResponse'][];
-  visitStatus: Record<string, VisitStatus>;
-  setVisitStatus: Dispatch<SetStateAction<Record<string, VisitStatus>>>;
+  visitState: Record<string, StudentVisitState>;
+  setVisitState: Dispatch<SetStateAction<Record<string, StudentVisitState>>>;
   disabled?: boolean;
 };
 
 export const StudentVisitPicker = memo(
   ({
     students,
-    visitStatus,
-    setVisitStatus,
+    visitState,
+    setVisitState,
     disabled = false
   }: Readonly<Props>) => {
     const { t } = useTranslation();
 
-    const hasMarked = useMemo(
+    const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+      null
+    );
+
+    const currentSelectedType = useMemo(() => {
+      if (!selectedStudentId) {
+        return null;
+      }
+
+      return visitState[selectedStudentId]?.type ?? 'UNMARKED';
+    }, [selectedStudentId, visitState]);
+
+    const isAnySelected = useMemo(
       () =>
-        Object.values(visitStatus).some(
-          status => status !== 'UNMARKED' && status !== 'ABSENT'
+        Object.values(visitState).some(
+          s => s.status !== 'UNMARKED' && s.status !== 'ABSENT'
         ),
-      [visitStatus]
+      [visitState]
     );
 
     const selectAll = useCallback(() => {
-      setVisitStatus(
-        Object.fromEntries(students.map(student => [student.id, 'PRESENT']))
+      setVisitState(prev =>
+        Object.fromEntries(
+          students.map(student => {
+            const currentType = prev[student.id]?.type;
+            const nextType =
+              currentType === 'UNMARKED' ? 'REGULAR' : currentType;
+            return [student.id, { status: 'PRESENT', type: nextType }];
+          })
+        )
       );
-    }, [setVisitStatus, students.map]);
+    }, [setVisitState, students]);
 
     const unselectAll = useCallback(() => {
-      setVisitStatus(
-        Object.fromEntries(students.map(student => [student.id, 'ABSENT']))
+      setVisitState(prev =>
+        Object.fromEntries(
+          students.map(student => {
+            const currentType = prev[student.id]?.type;
+            const nextType =
+              currentType === 'UNMARKED' ? 'REGULAR' : currentType;
+            return [student.id, { status: 'ABSENT', type: nextType }];
+          })
+        )
       );
-    }, [setVisitStatus, students.map]);
+    }, [setVisitState, students]);
 
-    const toggleStatus = useCallback(
+    const togglePresence = useCallback(
       (studentId: string) => {
         if (disabled) {
           return;
         }
 
-        setVisitStatus(prev => {
-          const currentStatus = prev[studentId] ?? 'UNMARKED';
-          const currentIndex = STATUS_ORDER.indexOf(currentStatus);
-          const nextIndex = (currentIndex + 1) % STATUS_ORDER.length;
-          return { ...prev, [studentId]: STATUS_ORDER[nextIndex] };
+        setVisitState(prev => {
+          const current = prev[studentId] || {
+            status: 'UNMARKED',
+            type: 'UNMARKED'
+          };
+
+          const isPresent = current.status === 'PRESENT';
+
+          const nextStatus: VisitStatus = isPresent ? 'ABSENT' : 'PRESENT';
+
+          const nextType: VisitType =
+            !isPresent && current.type === 'UNMARKED'
+              ? 'REGULAR'
+              : current.type;
+
+          return {
+            ...prev,
+            [studentId]: { status: nextStatus, type: nextType }
+          };
         });
       },
-      [disabled, setVisitStatus]
+      [disabled, setVisitState]
+    );
+
+    const changeVisitType = useCallback(
+      (type: VisitType) => {
+        if (!selectedStudentId) {
+          return;
+        }
+
+        setVisitState(prev => ({
+          ...prev,
+          [selectedStudentId]: {
+            status: type === 'UNMARKED' ? 'UNMARKED' : 'PRESENT',
+            type
+          }
+        }));
+
+        setSelectedStudentId(null);
+      },
+      [selectedStudentId, setVisitState]
+    );
+
+    const selectedStudentName = useMemo(
+      () => students.find(s => s.id === selectedStudentId)?.fullName ?? '',
+      [selectedStudentId, students]
     );
 
     useEffect(() => {
-      setVisitStatus(prev => {
+      setVisitState(prev => {
         if (Object.keys(prev).length === 0 && students.length > 0) {
-          return Object.fromEntries(students.map(s => [s.id, 'UNMARKED']));
+          return Object.fromEntries(
+            students.map(s => [s.id, { status: 'UNMARKED', type: 'UNMARKED' }])
+          );
         }
+
         return prev;
       });
-    }, [students, setVisitStatus]);
-
-    if (students.length === 0) {
-      return <Text>{t('noStudentsFound')}</Text>;
-    }
+    }, [students, setVisitState]);
 
     return (
-      <View style={{ gap: 8 }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 8
-          }}
-        >
-          <Text style={{ fontSize: 16 }}>{t('students')}</Text>
-
-          <Button
-            mode='text'
-            onPress={hasMarked ? unselectAll : selectAll}
-            disabled={disabled}
+      <>
+        <View style={{ gap: 8 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 8
+            }}
           >
-            {hasMarked ? t('unselectAll') : t('selectAll')}
-          </Button>
-        </View>
-
-        {students.map(student => {
-          const status = visitStatus[student.id] ?? 'UNMARKED';
-          const isUnmarked = status === 'UNMARKED';
-
-          return (
-            <TouchableRipple
-              key={student.id}
-              onPress={() => toggleStatus(student.id)}
+            <Text style={{ fontSize: 16 }}>{t('students')}</Text>
+            <Button
+              mode='text'
+              onPress={isAnySelected ? unselectAll : selectAll}
               disabled={disabled}
-              rippleColor='rgba(0, 0, 0, .05)'
-              style={{ borderRadius: 8 }}
             >
-              <View
+              {isAnySelected ? t('unselectAll') : t('selectAll')}
+            </Button>
+          </View>
+
+          {students.map(student => {
+            const state = visitState[student.id] ?? {
+              status: 'UNMARKED',
+              type: 'UNMARKED'
+            };
+
+            return (
+              <Pressable
+                key={student.id}
+                onPress={() => setSelectedStudentId(student.id)}
+                disabled={disabled}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  paddingLeft: 12,
                   height: 52
                 }}
               >
                 <Text
                   variant='bodyLarge'
                   style={[
-                    { flex: 1, fontSize: 16 },
-                    isUnmarked && {
-                      textDecorationLine: 'line-through',
-                      opacity: 0.5
+                    { flex: 1, fontSize: 16, marginRight: 16 },
+                    state.status === 'UNMARKED' && {
+                      opacity: 0.5,
+                      textDecorationLine: 'line-through'
                     }
                   ]}
-                  numberOfLines={1}
                 >
                   {student.fullName}
                 </Text>
 
-                <IconButton
-                  icon={VisitStatusIcon[status]}
-                  iconColor={VisitStatusColor[status]}
-                  size={28}
-                  style={{ margin: 0 }}
+                <Checkbox.Android
+                  status={getCheckboxStatus(state.status)}
+                  disabled={disabled || state.status === 'UNMARKED'}
+                  onPress={() => togglePresence(student.id)}
+                  color={state.type === 'FREE' ? '#FFD700' : undefined}
                 />
-              </View>
-            </TouchableRipple>
-          );
-        })}
-      </View>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <CustomBottomSheet
+          visible={Boolean(selectedStudentId)}
+          onDismiss={() => setSelectedStudentId(null)}
+        >
+          <Text
+            variant='titleLarge'
+            style={{ marginBottom: 8 }}
+          >
+            {selectedStudentName}
+          </Text>
+
+          <RadioButton.Group
+            onValueChange={value => changeVisitType(value as VisitType)}
+            value={currentSelectedType ?? 'UNMARKED'}
+          >
+            {VISIT_OPTIONS.map(option => (
+              <RadioButton.Item
+                key={option.value}
+                mode='android'
+                label={t(option.label)}
+                value={option.value}
+                status={
+                  currentSelectedType === option.value ? 'checked' : 'unchecked'
+                }
+              />
+            ))}
+          </RadioButton.Group>
+        </CustomBottomSheet>
+      </>
     );
   }
 );

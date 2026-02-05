@@ -85,7 +85,7 @@ export default function GroupByIdScreen() {
         ]}
         rightActions={[
           {
-            icon: 'calendar-plus',
+            icon: 'calendar',
             onPress: () => router.push(`/groups/${groupId}/lessons/create`),
             disabled:
               groupLoading ||
