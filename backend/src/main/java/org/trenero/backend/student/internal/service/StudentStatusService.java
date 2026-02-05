@@ -2,7 +2,6 @@ package org.trenero.backend.student.internal.service;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +37,7 @@ public class StudentStatusService {
 
     if (lastLesson != null) {
       visits.stream()
-          .filter(Objects::nonNull)
+          .filter(v -> v.type() != VisitType.UNMARKED)
           .filter(v -> v.lessonId().equals(lastLesson.id()))
           .findFirst()
           .map(VisitResponse::status)
@@ -52,10 +51,8 @@ public class StudentStatusService {
 
     long billableVisits =
         visits.stream()
-            .filter(
-                v ->
-                    (v.status() == VisitStatus.PRESENT || v.status() == VisitStatus.ABSENT)
-                        && v.type() == VisitType.REGULAR)
+            .filter(v -> v.status() != VisitStatus.UNMARKED)
+            .filter(v -> v.type() == VisitType.REGULAR)
             .count();
 
     int totalPaidLessons = payments.stream().mapToInt(StudentPaymentResponse::paidLessons).sum();
