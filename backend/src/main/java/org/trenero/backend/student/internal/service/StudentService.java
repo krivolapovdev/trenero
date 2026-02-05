@@ -183,7 +183,7 @@ public class StudentService implements StudentSpi {
 
     Student student = studentMapper.toStudent(request, jwtUser.userId());
 
-    Student savedStudent = saveStudent(student);
+    Student savedStudent = self.saveStudent(student);
 
     if (request.groupId() != null) {
       groupStudentSpi.addStudentToGroup(savedStudent.getId(), request.groupId(), jwtUser);
@@ -221,7 +221,9 @@ public class StudentService implements StudentSpi {
     }
 
     Student updatedStudent = studentMapper.updateStudent(student, updates);
-    return studentMapper.toResponse(saveStudent(updatedStudent));
+    Student savedStudent = self.saveStudent(updatedStudent);
+
+    return studentMapper.toResponse(savedStudent);
   }
 
   @Transactional
@@ -233,7 +235,7 @@ public class StudentService implements StudentSpi {
         .map(
             student -> {
               student.setDeletedAt(OffsetDateTime.now());
-              return saveStudent(student);
+              return self.saveStudent(student);
             })
         .orElseThrow(() -> new EntityNotFoundException("Student not found with id=" + studentId));
   }
@@ -243,7 +245,8 @@ public class StudentService implements StudentSpi {
     studentPaymentSpi.deleteStudentPaymentById(paymentId, jwtUser);
   }
 
-  private Student saveStudent(Student student) {
+  @Transactional
+  public Student saveStudent(Student student) {
     log.info("Saving student: {}", student);
     return studentRepository.saveAndFlush(student);
   }

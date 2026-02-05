@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.domain.StudentVisit;
 import org.trenero.backend.common.domain.VisitStatus;
+import org.trenero.backend.common.domain.VisitType;
 import org.trenero.backend.common.response.GroupStudentResponse;
 import org.trenero.backend.common.response.LessonResponse;
 import org.trenero.backend.common.response.VisitResponse;
@@ -119,17 +120,15 @@ public class LessonService implements LessonSpi {
         groupStudentSpi.getStudentsByGroupId(request.groupId(), jwtUser).stream()
             .filter(Objects::nonNull)
             .map(
-                res -> {
-                  VisitStatus status =
-                      request.students().stream()
-                          .filter(Objects::nonNull)
-                          .filter(req -> req.studentId().equals(res.studentId()))
-                          .findFirst()
-                          .map(StudentVisit::status)
-                          .orElse(VisitStatus.UNMARKED);
-
-                  return new StudentVisit(res.studentId(), status);
-                })
+                res ->
+                    request.students().stream()
+                        .filter(Objects::nonNull)
+                        .filter(req -> req.studentId().equals(res.studentId()))
+                        .findFirst()
+                        .map(sv -> new StudentVisit(sv.studentId(), sv.status(), sv.type()))
+                        .orElse(
+                            new StudentVisit(
+                                res.studentId(), VisitStatus.UNMARKED, VisitType.UNMARKED)))
             .toList();
 
     visitSpi.createVisits(lesson.getId(), studentVisitList, jwtUser);
@@ -145,7 +144,7 @@ public class LessonService implements LessonSpi {
       List<StudentVisit> visitUpdateList =
           request.students().stream()
               .filter(Objects::nonNull)
-              .map(req -> new StudentVisit(req.studentId(), req.status()))
+              .map(req -> new StudentVisit(req.studentId(), req.status(), req.type()))
               .toList();
 
       visitSpi.updateVisitsByLessonId(lessonId, visitUpdateList, jwtUser);

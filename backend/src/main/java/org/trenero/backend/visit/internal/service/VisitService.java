@@ -92,11 +92,7 @@ public class VisitService implements VisitSpi {
   @Transactional
   public VisitResponse createVisit(CreateVisitRequest request, JwtUser jwtUser) {
     log.info(
-        "Creating visit for lessonId='{}', studentId='{}', present={}, ownerId={}",
-        request.lessonId(),
-        request.studentId(),
-        request.present(),
-        jwtUser.userId());
+        "Creating visit for student: {} and lesson: {}", request.studentId(), request.lessonId());
 
     lessonSpi.getLessonById(request.lessonId(), jwtUser);
 
@@ -136,6 +132,7 @@ public class VisitService implements VisitSpi {
                         .lessonId(lessonId)
                         .studentId(sv.studentId())
                         .status(sv.status())
+                        .type(sv.type())
                         .build())
             .toList();
 
@@ -197,6 +194,7 @@ public class VisitService implements VisitSpi {
           if (studentVisitMap.containsKey(req.studentId())) {
             Visit visit = studentVisitMap.get(req.studentId());
             visit.setStatus(req.status());
+            visit.setType(req.type());
           } else {
             Visit newVisit =
                 Visit.builder()
@@ -204,6 +202,7 @@ public class VisitService implements VisitSpi {
                     .lessonId(lessonId)
                     .studentId(req.studentId())
                     .status(req.status())
+                    .type(req.type())
                     .build();
             lessonVisits.add(newVisit);
           }

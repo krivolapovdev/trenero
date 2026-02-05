@@ -2,11 +2,13 @@ package org.trenero.backend.student.internal.service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.trenero.backend.common.domain.VisitStatus;
+import org.trenero.backend.common.domain.VisitType;
 import org.trenero.backend.common.response.LessonResponse;
 import org.trenero.backend.common.response.StudentPaymentResponse;
 import org.trenero.backend.common.response.VisitResponse;
@@ -36,22 +38,24 @@ public class StudentStatusService {
 
     if (lastLesson != null) {
       visits.stream()
+          .filter(Objects::nonNull)
           .filter(v -> v.lessonId().equals(lastLesson.id()))
           .findFirst()
+          .map(VisitResponse::status)
           .ifPresent(
-              lastVisit -> {
-                VisitStatus status = lastVisit.status();
-                if (status == VisitStatus.PRESENT || status == VisitStatus.FREE) {
-                  statuses.add(StudentStatus.PRESENT);
-                } else if (status == VisitStatus.ABSENT) {
-                  statuses.add(StudentStatus.MISSING);
-                }
-              });
+              status ->
+                  statuses.add(
+                      status.equals(VisitStatus.PRESENT)
+                          ? StudentStatus.PRESENT
+                          : StudentStatus.MISSING));
     }
 
     long billableVisits =
         visits.stream()
-            .filter(v -> v.status() == VisitStatus.PRESENT || v.status() == VisitStatus.ABSENT)
+            .filter(
+                v ->
+                    (v.status() == VisitStatus.PRESENT || v.status() == VisitStatus.ABSENT)
+                        && v.type() == VisitType.REGULAR)
             .count();
 
     int totalPaidLessons = payments.stream().mapToInt(StudentPaymentResponse::paidLessons).sum();

@@ -20,6 +20,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 import org.trenero.backend.common.domain.VisitStatus;
+import org.trenero.backend.common.domain.VisitType;
 
 @Entity
 @Table(name = "visits", schema = "visits_module")
@@ -48,7 +49,14 @@ public class Visit {
   @Enumerated(EnumType.STRING)
   @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "status", columnDefinition = "visits_module.visit_status", nullable = false)
+  @NonNull
   private VisitStatus status;
+
+  @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+  @Column(name = "type", columnDefinition = "visits_module.visit_type", nullable = false)
+  @NonNull
+  private VisitType type;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
