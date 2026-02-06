@@ -22,8 +22,8 @@ public interface LessonMapper {
       return lesson;
     }
 
-    if (request.startDateTime() != null) {
-      lesson.setStartDateTime(request.startDateTime());
+    if (request.date() != null) {
+      lesson.setDate(request.date());
     }
 
     return lesson;

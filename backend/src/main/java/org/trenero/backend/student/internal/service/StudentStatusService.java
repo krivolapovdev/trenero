@@ -55,8 +55,7 @@ public class StudentStatusService {
                           : StudentStatus.MISSING));
     }
 
-    LocalDate referenceDate =
-        (lastLesson != null) ? lastLesson.startDateTime().toLocalDate() : LocalDate.now();
+    LocalDate referenceDate = (lastLesson != null) ? lastLesson.date() : LocalDate.now();
 
     boolean isSubscriptionActive =
         payments.stream()
