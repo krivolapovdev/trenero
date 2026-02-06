@@ -1,10 +1,7 @@
 import dayjs from 'dayjs';
 import { useRouter } from 'expo-router';
-import { memo, useMemo, useState } from 'react';
-import { List } from 'react-native-paper';
+import { memo, useMemo } from 'react';
 import type { components } from '@/src/api/generated/openapi';
-import { CustomBottomSheet } from '@/src/components/BottomSheet';
-import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { CustomCalendar } from './CustomCalendar';
 
@@ -17,66 +14,26 @@ export const LessonsCalendar = memo(({ groupId, lessons }: Readonly<Props>) => {
   const router = useRouter();
   const theme = useAppTheme();
 
-  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
-
   const items = useMemo(
     () =>
-      [...lessons]
-        .map(lesson => ({
-          date: dayjs(lesson.startDateTime),
-          lessonId: lesson.id,
-          textColor: theme.colors.onSecondaryContainer,
-          selectedColor: theme.colors.secondaryContainer
-        }))
-        .sort((a, b) => a.date.diff(b.date)),
+      [...lessons].map(lesson => ({
+        date: dayjs(lesson.date),
+        lessonId: lesson.id,
+        textColor: theme.colors.onSecondaryContainer,
+        selectedColor: theme.colors.secondaryContainer
+      })),
     [lessons, theme]
   );
 
   return (
-    <>
-      <CustomCalendar
-        items={items}
-        onDatePress={date => setSelectedDate(date)}
-      />
-
-      <CustomBottomSheet
-        visible={
-          Boolean(selectedDate) &&
-          items.some(item => item.date.isSame(selectedDate, 'day'))
+    <CustomCalendar
+      items={items}
+      onDatePress={date => {
+        const item = items.find(d => d.date.isSame(date));
+        if (item) {
+          router.push(`/(tabs)/groups/${groupId}/lessons/${item.lessonId}`);
         }
-        onDismiss={() => setSelectedDate(null)}
-      >
-        <List.Section style={{ gap: 10 }}>
-          <SurfaceCard style={{ padding: 0 }}>
-            <List.Item title={selectedDate?.format('DD/MM/YYYY')} />
-          </SurfaceCard>
-
-          {items
-            .filter(item => item.date.isSame(selectedDate, 'day'))
-            .map(item => (
-              <SurfaceCard
-                key={item.lessonId}
-                style={{ padding: 0 }}
-              >
-                <List.Item
-                  title={item.date.format('HH:mm')}
-                  right={() => (
-                    <List.Icon
-                      icon='circle-medium'
-                      color='#00adf5'
-                    />
-                  )}
-                  onPress={() => {
-                    setSelectedDate(null);
-                    router.push(
-                      `/(tabs)/groups/${groupId}/lessons/${item.lessonId}`
-                    );
-                  }}
-                />
-              </SurfaceCard>
-            ))}
-        </List.Section>
-      </CustomBottomSheet>
-    </>
+      }}
+    />
   );
 });

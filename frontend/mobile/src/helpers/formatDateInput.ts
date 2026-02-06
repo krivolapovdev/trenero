@@ -5,5 +5,5 @@ export const formatDateInput = (value: string) => {
   const month = digits.slice(2, 4);
   const year = digits.slice(4, 8);
 
-  return [day, month, year].filter(Boolean).join('/');
+  return [day, month, year].filter(Boolean).join('.');
 };

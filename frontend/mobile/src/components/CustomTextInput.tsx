@@ -6,8 +6,18 @@ import {
   useTheme
 } from 'react-native-paper';
 
+type Props = TextInputProps & {
+  required?: boolean;
+};
+
 export const CustomTextInput = memo(
-  ({ label, value = '', onChangeText, ...rest }: TextInputProps) => {
+  ({
+    label,
+    value = '',
+    onChangeText,
+    required = false,
+    ...rest
+  }: Readonly<Props>) => {
     const theme = useTheme();
     const [isFocused, setIsFocused] = useState(false);
 
@@ -28,6 +38,7 @@ export const CustomTextInput = memo(
             }}
           >
             {label}
+            {required && ' *'}
           </Text>
         }
         outlineStyle={{ borderWidth: 0 }}

@@ -51,8 +51,8 @@ export default function UpdateLessonScreen() {
 
     const request: UpdateLessonRequest = {};
 
-    if (values.startDateTime !== lesson.startDateTime) {
-      request.startDateTime = values.startDateTime;
+    if (values.date !== lesson.date) {
+      request.date = values.date;
     }
 
     const currentStudents = lesson.studentVisits.map(visit => ({

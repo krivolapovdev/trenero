@@ -5,7 +5,7 @@ import { Alert, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import type { components } from '@/src/api/generated/openapi';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
-import { formatDateInput } from '@/src/helpers/formatDateInput';
+import { DateInput } from '@/src/components/DateInput';
 import { formatPriceInput } from '@/src/helpers/formatPriceInput';
 import { parsePastOrTodayDateFromInput } from '@/src/helpers/parsePastOrTodayDateFromInput';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -44,11 +44,11 @@ export const PaymentForm = memo(
     const [amount, setAmount] = useState('');
     const [paidUntil, setPaidUntil] = useState(() => {
       if (initialData?.payment?.paidUntil) {
-        return dayjs(initialData.payment.paidUntil).format('DD/MM/YYYY');
+        return dayjs(initialData.payment.paidUntil).format('DD.MM.YYYY');
       }
-      return dayjs().add(1, 'month').format('DD/MM/YYYY');
+      return dayjs().add(1, 'month').format('DD.MM.YYYY');
     });
-    const [date, setDate] = useState(dayjs().format('DD/MM/YYYY'));
+    const [date, setDate] = useState(dayjs().format('DD.MM.YYYY'));
 
     const handleSubmit = () => {
       const parsedDate = parsePastOrTodayDateFromInput(date);
@@ -58,7 +58,7 @@ export const PaymentForm = memo(
 
       const values: PaymentFormValues = {
         amount: Number(amount),
-        paidUntil: dayjs(paidUntil, 'DD/MM/YYYY', true).format('YYYY-MM-DD'),
+        paidUntil: dayjs(paidUntil, 'DD.MM.YYYY').format('YYYY-MM-DD'),
         date: parsedDate.format('YYYY-MM-DD')
       };
 
@@ -72,10 +72,10 @@ export const PaymentForm = memo(
         setAmount(initialData.payment.amount?.toString() ?? '');
         if (initialData.payment.paidUntil) {
           setPaidUntil(
-            dayjs(initialData.payment.paidUntil).format('DD/MM/YYYY')
+            dayjs(initialData.payment.paidUntil).format('DD.MM.YYYY')
           );
         }
-        setDate(dayjs(initialData.payment.date).format('DD/MM/YYYY'));
+        setDate(dayjs(initialData.payment.date).format('DD.MM.YYYY'));
       }
     }, [initialData]);
 
@@ -114,23 +114,18 @@ export const PaymentForm = memo(
             disabled={isLoading}
           />
 
-          <CustomTextInput
-            label={`${t('paidUntil')} *`}
-            keyboardType='numeric'
-            maxLength={10}
+          <DateInput
+            label={t('paidUntil')}
             value={paidUntil}
-            onChangeText={text => setPaidUntil(formatDateInput(text))}
             disabled={isLoading}
-            placeholder='DD/MM/YYYY'
+            onChange={setPaidUntil}
           />
 
-          <CustomTextInput
-            label={`${t('date')} *`}
-            keyboardType='numeric'
-            maxLength={10}
+          <DateInput
+            label={t('date')}
             value={date}
-            onChangeText={text => setDate(formatDateInput(text))}
             disabled={isLoading}
+            onChange={setDate}
           />
         </ScrollView>
       </>

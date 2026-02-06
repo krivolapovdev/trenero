@@ -1,10 +1,7 @@
 import dayjs from 'dayjs';
 import { useRouter } from 'expo-router';
-import { memo, useMemo, useState } from 'react';
-import { Checkbox, List } from 'react-native-paper';
+import { memo, useMemo } from 'react';
 import type { components } from '@/src/api/generated/openapi';
-import { CustomBottomSheet } from '@/src/components/BottomSheet';
-import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { CustomCalendar } from './CustomCalendar';
 
@@ -18,8 +15,6 @@ export const VisitCalendar = memo(
     const router = useRouter();
     const theme = useAppTheme();
 
-    const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
-
     const items = useMemo(
       () =>
         [...visitsWithLesson]
@@ -28,7 +23,7 @@ export const VisitCalendar = memo(
             const status = item.visit.status;
             const type = item.visit.type;
             return {
-              date: dayjs(item.lesson.startDateTime),
+              date: dayjs(item.lesson.date),
               textColor:
                 status === 'PRESENT'
                   ? theme.colors.onSecondaryContainer
@@ -42,59 +37,20 @@ export const VisitCalendar = memo(
               type: type,
               lessonId: item.visit.lessonId
             };
-          })
-          .sort((a, b) => a.date.diff(b.date)),
+          }),
       [visitsWithLesson, theme]
     );
 
     return (
-      <>
-        <CustomCalendar
-          items={items}
-          onDatePress={setSelectedDate}
-        />
-
-        <CustomBottomSheet
-          visible={
-            Boolean(selectedDate) &&
-            items.some(item => item.date.isSame(selectedDate, 'day'))
+      <CustomCalendar
+        items={items}
+        onDatePress={date => {
+          const item = items.find(d => d.date.isSame(date));
+          if (item) {
+            router.push(`/(tabs)/groups/${groupId}/lessons/${item.lessonId}`);
           }
-          onDismiss={() => setSelectedDate(null)}
-        >
-          <List.Section style={{ gap: 10 }}>
-            <SurfaceCard style={{ padding: 0 }}>
-              <List.Item title={selectedDate?.format('DD/MM/YYYY')} />
-            </SurfaceCard>
-
-            {items
-              .filter(item => item.date.isSame(selectedDate, 'day'))
-              .map(item => (
-                <SurfaceCard
-                  key={item.lessonId}
-                  style={{ padding: 0 }}
-                >
-                  <List.Item
-                    title={item.date.format('HH:mm')}
-                    right={() => (
-                      <Checkbox.Android
-                        status={
-                          item.status === 'PRESENT' ? 'checked' : 'unchecked'
-                        }
-                        color={item.type === 'FREE' ? '#FFD700' : undefined}
-                      />
-                    )}
-                    onPress={() => {
-                      setSelectedDate(null);
-                      router.push(
-                        `/(tabs)/groups/${groupId}/lessons/${item.lessonId}`
-                      );
-                    }}
-                  />
-                </SurfaceCard>
-              ))}
-          </List.Section>
-        </CustomBottomSheet>
-      </>
+        }}
+      />
     );
   }
 );

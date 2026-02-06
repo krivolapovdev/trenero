@@ -6,6 +6,7 @@ import { PaperSelect } from 'react-native-paper-select';
 import type { ListItem } from 'react-native-paper-select/src/interface/paperSelect.interface';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { CustomTextInput } from '@/src/components/CustomTextInput';
+import { DateInput } from '@/src/components/DateInput';
 import { formatDateInput } from '@/src/helpers/formatDateInput';
 import { parsePastOrTodayDateFromInput } from '@/src/helpers/parsePastOrTodayDateFromInput';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -129,7 +130,8 @@ export const StudentForm = memo(
           refreshControl={<RefreshControl refreshing={isLoading} />}
         >
           <CustomTextInput
-            label={`${t('fullName')} *`}
+            label={t('fullName')}
+            required={true}
             value={fullName}
             onChangeText={setFullName}
             maxLength={255}
@@ -157,14 +159,11 @@ export const StudentForm = memo(
             disabled={isLoading}
           />
 
-          <CustomTextInput
+          <DateInput
             label={t('birthday')}
             value={birthdate}
-            placeholder='31/12/1999'
-            keyboardType='numeric'
-            maxLength={10}
-            onChangeText={text => setBirthdate(formatDateInput(text))}
             disabled={isLoading}
+            onChange={setBirthdate}
           />
 
           <PaperSelect

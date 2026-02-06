@@ -399,8 +399,8 @@ export interface components {
     CreateLessonRequest: {
       /** Format: uuid */
       groupId: string;
-      /** Format: date-time */
-      startDateTime: string;
+      /** Format: date */
+      date: string;
       students?: components['schemas']['StudentVisit'][];
     };
     StudentVisit: {
@@ -416,8 +416,8 @@ export interface components {
       id: string;
       /** Format: uuid */
       groupId: string;
-      /** Format: date-time */
-      startDateTime: string;
+      /** Format: date */
+      date: string;
       /** Format: date-time */
       createdAt: string;
     };
@@ -447,8 +447,8 @@ export interface components {
       date?: string;
     };
     UpdateLessonRequest: {
-      /** Format: date-time */
-      startDateTime?: string;
+      /** Format: date */
+      date?: string;
       students?: components['schemas']['StudentVisit'][];
     };
     GroupStudentResponse: {
@@ -503,8 +503,8 @@ export interface components {
       id: string;
       /** Format: uuid */
       groupId: string;
-      /** Format: date-time */
-      startDateTime: string;
+      /** Format: date */
+      date: string;
       /** Format: date-time */
       createdAt: string;
       studentVisits: components['schemas']['VisitResponse'][];

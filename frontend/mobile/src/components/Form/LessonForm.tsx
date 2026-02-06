@@ -2,10 +2,9 @@ import dayjs from 'dayjs';
 import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
-import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
 import type { components } from '@/src/api/generated/openapi';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
+import { DateInput } from '@/src/components/DateInput';
 import {
   StudentVisitPicker,
   type StudentVisitState
@@ -15,7 +14,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import type { VisitStatus, VisitType } from '@/src/types/visit';
 
 export type LessonFormValues = {
-  startDateTime: string;
+  date: string;
   students: {
     studentId: string;
     status: VisitStatus;
@@ -46,16 +45,13 @@ export const LessonForm = memo(
     onSubmit,
     onBack
   }: Readonly<Props>) => {
-    const { i18n } = useTranslation();
+    const { t } = useTranslation();
     const theme = useAppTheme();
 
-    const [startDateTime, setStartDateTime] = useState(dayjs());
+    const [date, setDate] = useState(dayjs().format('DD.MM.YYYY'));
     const [visitState, setVisitState] = useState<
       Record<string, StudentVisitState>
     >({});
-
-    const [visibleTimePicker, setVisibleTimePicker] = useState(false);
-    const [visibleDatePicker, setVisibleDatePicker] = useState(false);
 
     const isLoading = queryLoading || mutationLoading;
 
@@ -71,7 +67,7 @@ export const LessonForm = memo(
       }));
 
       onSubmit({
-        startDateTime: startDateTime.toISOString(),
+        date: dayjs(date, 'DD.MM.YYYY').format('YYYY-MM-DD'),
         students
       });
     };
@@ -83,8 +79,8 @@ export const LessonForm = memo(
 
       const { lesson, groupStudents = [] } = initialData;
 
-      if (lesson?.startDateTime) {
-        setStartDateTime(dayjs(lesson.startDateTime));
+      if (lesson?.date) {
+        setDate(dayjs(lesson.date).format('DD.MM.YYYY'));
       }
 
       const isEditMode = Boolean(lesson?.id);
@@ -131,25 +127,12 @@ export const LessonForm = memo(
           style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
           refreshControl={<RefreshControl refreshing={isLoading} />}
         >
-          <SurfaceCard style={styles.dateTimeRow}>
-            <Text
-              variant='bodyLarge'
-              onPress={() => setVisibleDatePicker(true)}
-              style={{ color: theme.colors.primary }}
-              disabled={isLoading}
-            >
-              {startDateTime.format('DD/MM/YYYY')}
-            </Text>
-
-            <Text
-              variant='bodyLarge'
-              onPress={() => setVisibleTimePicker(true)}
-              style={{ color: theme.colors.primary }}
-              disabled={isLoading}
-            >
-              {startDateTime.format('HH:mm')}
-            </Text>
-          </SurfaceCard>
+          <DateInput
+            label={t('date')}
+            value={date}
+            disabled={isLoading}
+            onChange={setDate}
+          />
 
           <SurfaceCard>
             <StudentVisitPicker
@@ -160,40 +143,6 @@ export const LessonForm = memo(
             />
           </SurfaceCard>
         </ScrollView>
-
-        <TimePickerModal
-          locale={i18n.language}
-          visible={visibleTimePicker}
-          onDismiss={() => setVisibleTimePicker(false)}
-          onConfirm={({ hours, minutes }) => {
-            setStartDateTime(prev =>
-              prev.set('hours', hours).set('minutes', minutes)
-            );
-            setVisibleTimePicker(false);
-          }}
-          hours={startDateTime.hour()}
-          minutes={startDateTime.minute()}
-          use24HourClock={true}
-        />
-
-        <DatePickerModal
-          locale={i18n.language}
-          mode='single'
-          visible={visibleDatePicker}
-          onDismiss={() => setVisibleDatePicker(false)}
-          date={startDateTime.toDate()}
-          onConfirm={({ date }) => {
-            if (date) {
-              setStartDateTime(prev =>
-                prev
-                  .set('date', date.getDate())
-                  .set('month', date.getMonth())
-                  .set('year', date.getFullYear())
-              );
-            }
-            setVisibleDatePicker(false);
-          }}
-        />
       </>
     );
   }

@@ -62,7 +62,7 @@ export const StudentCard = ({ student }: Readonly<Props>) => {
     student.studentGroup && `${t('group')}: ${student.studentGroup.name}`,
     student.phone && `${t('phone')}: ${student.phone}`,
     student.birthdate &&
-      `${t('birthdate')}: ${dayjs(student.birthdate).format('DD/MM/YYYY')}`,
+      `${t('birthdate')}: ${dayjs(student.birthdate).format('DD.MM.YYYY')}`,
     student.note && `${t('note')}: ${student.note}`
   ]
     .filter(Boolean)
