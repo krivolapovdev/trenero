@@ -23,7 +23,7 @@ public class UserService implements UserSpi {
   public @NonNull UserResponse getOrCreateUserFromOAuth2(
       @NonNull OAuth2Provider provider, @NonNull String providerId, @NonNull String email) {
     log.info(
-        "Getting or creating user from OAuth2: email={}, provider={}, providerId={}",
+        "Getting or creating user from OAuth2: email={}; provider={}; providerId={}",
         email,
         provider,
         providerId);
@@ -35,17 +35,18 @@ public class UserService implements UserSpi {
   }
 
   private UserResponse createNewUser(OAuth2Provider provider, String providerId, String email) {
-    log.info("User not found. Creating new user for email: {}", email);
+    log.info("Creating new user: email={}; provider={}", email, provider);
 
     OAuth2User newUser =
         OAuth2User.builder().provider(provider).providerId(providerId).email(email).build();
+
     OAuth2User savedUser = saveUser(newUser);
 
     return userMapper.toGraphql(savedUser);
   }
 
   private OAuth2User saveUser(OAuth2User user) {
-    log.info("Saving user: {}", user);
+    log.info("Saving user: user={}", user);
     return userRepository.saveAndFlush(user);
   }
 }

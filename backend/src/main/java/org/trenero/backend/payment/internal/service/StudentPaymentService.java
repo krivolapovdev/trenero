@@ -1,6 +1,8 @@
 package org.trenero.backend.payment.internal.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFound;
+import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
+
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -35,26 +37,25 @@ public class StudentPaymentService implements StudentPaymentSpi {
 
   @Transactional(readOnly = true)
   public @NonNull List<StudentPaymentResponse> getAllStudentPayments(@NonNull JwtUser jwtUser) {
-    log.info("Get all student payments for user {}", jwtUser.userId());
+    log.info("Getting all student payments: user={}", jwtUser);
     return studentPaymentRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(payment -> paymentMapper.toResponse(payment, payment.getTransaction()))
         .toList();
   }
 
   @Transactional(readOnly = true)
-  public StudentPaymentResponse getStudentPaymentById(UUID id, JwtUser jwtUser) {
-    log.info("Get student payment by id {} for user {}", id, jwtUser.userId());
+  public StudentPaymentResponse getStudentPaymentById(UUID paymentId, JwtUser jwtUser) {
+    log.info("Getting student payment by paymentId: paymentId={}; user={}", paymentId, jwtUser);
     return studentPaymentRepository
-        .findByTransactionIdAndOwnerId(id, jwtUser.userId())
+        .findByTransactionIdAndOwnerId(paymentId, jwtUser.userId())
         .map(payment -> paymentMapper.toResponse(payment, payment.getTransaction()))
-        .orElseThrow(
-            () -> new EntityNotFoundException("Payment not found or access denied: " + id));
+        .orElseThrow(entityNotFoundSupplier(StudentPayment.class, paymentId, jwtUser));
   }
 
   @Transactional(readOnly = true)
   public @NonNull List<StudentPaymentResponse> getStudentPaymentsByStudentId(
       @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
-    log.info("Getting student payments by studentId={} for user={}", studentId, jwtUser.userId());
+    log.info("Getting student payments by student id: studentId={}; user={}", studentId, jwtUser);
     return studentPaymentRepository
         .findAllByStudentIdAndOwnerId(studentId, jwtUser.userId())
         .stream()
@@ -67,7 +68,7 @@ public class StudentPaymentService implements StudentPaymentSpi {
   public @NonNull Map<UUID, List<StudentPaymentResponse>> getStudentPaymentsByStudentIds(
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info(
-        "Getting student payments for studentIds {} for user {}", studentIds, jwtUser.userId());
+        "Getting student payments by student ids: studentIds={}; user={}", studentIds, jwtUser);
     return studentPaymentRepository
         .findAllByStudentIdsAndOwnerId(studentIds, jwtUser.userId())
         .stream()
@@ -78,7 +79,7 @@ public class StudentPaymentService implements StudentPaymentSpi {
   @Transactional
   public StudentPaymentResponse createStudentPayment(
       CreateStudentPaymentRequest request, JwtUser jwtUser) {
-    log.info("Creating student payment for student {}", request.studentId());
+    log.info("Creating student payment: request={}; user={}", request, jwtUser);
 
     studentSpi.getStudentById(request.studentId(), jwtUser);
 
@@ -101,13 +102,13 @@ public class StudentPaymentService implements StudentPaymentSpi {
   @Transactional
   public StudentPaymentResponse updateStudentPayment(
       UUID paymentId, UpdatePaymentRequest request, JwtUser jwtUser) {
-    log.info("Updating student payment {}", paymentId);
+    log.info(
+        "Updating student payment: paymentId={}; request={}; user={}", paymentId, request, jwtUser);
 
     StudentPayment payment =
         studentPaymentRepository
             .findByTransactionIdAndOwnerId(paymentId, jwtUser.userId())
-            .orElseThrow(
-                () -> new EntityNotFoundException("Student Payment not found: " + paymentId));
+            .orElseThrow(entityNotFoundSupplier(StudentPayment.class, paymentId, jwtUser));
 
     var updatedTx =
         transactionService.updateTransaction(paymentId, request.amount(), request.date(), jwtUser);
@@ -124,17 +125,17 @@ public class StudentPaymentService implements StudentPaymentSpi {
   @Override
   @Transactional
   public void deleteStudentPaymentById(@NonNull UUID paymentId, @NonNull JwtUser jwtUser) {
-    log.info("Deleting student payment: {}", paymentId);
+    log.info("Deleting student payment: paymentId={}; user={}", paymentId, jwtUser);
 
     if (!studentPaymentRepository.existsById(paymentId)) {
-      throw new EntityNotFoundException("Payment not found: " + paymentId);
+      throw entityNotFound(StudentPayment.class, paymentId, jwtUser);
     }
 
     transactionService.softDeleteTransaction(paymentId, jwtUser);
   }
 
   private StudentPayment saveStudentPayment(StudentPayment studentPayment) {
-    log.info("Save student payment: {}", studentPayment);
+    log.info("Saving student payment: studentPayment={}", studentPayment);
     return studentPaymentRepository.saveAndFlush(studentPayment);
   }
 }

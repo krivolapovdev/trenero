@@ -16,7 +16,7 @@ public class JwtTokenService {
   private final JwtTokenProvider jwtTokenProvider;
 
   public JwtTokensResponse createAccessAndRefreshTokens(JwtUser jwtUser) {
-    log.info("Creating jwtTokens for user: {}", jwtUser);
+    log.info("Creating JWT tokens: user={}", jwtUser);
 
     String accessToken = jwtTokenProvider.generateAccessToken(jwtUser);
     String refreshToken = jwtTokenProvider.generateRefreshToken(jwtUser);
@@ -25,7 +25,7 @@ public class JwtTokenService {
   }
 
   public JwtTokensResponse refreshTokens(RefreshTokenRequest request) {
-    log.info("Refreshing jwtTokens: {}", request);
+    log.info("Refreshing JWT tokens: request={}", request);
 
     String oldRefreshToken = request.refreshToken();
 

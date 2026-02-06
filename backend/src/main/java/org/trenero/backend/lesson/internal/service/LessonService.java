@@ -1,6 +1,7 @@
 package org.trenero.backend.lesson.internal.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class LessonService implements LessonSpi {
 
   @Transactional(readOnly = true)
   public @NonNull List<LessonResponse> getAllLessons(@NonNull JwtUser jwtUser) {
-    log.info("Getting all lessons for ownerId={}", jwtUser.userId());
+    log.info("Getting all lessons: user={}", jwtUser);
     return lessonRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(lessonMapper::toResponse)
         .toList();
@@ -55,7 +56,7 @@ public class LessonService implements LessonSpi {
   @Transactional(readOnly = true)
   public @NonNull Optional<LessonResponse> getLastGroupLesson(
       @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
-    log.info("Getting last lesson for ownerId={}", jwtUser.userId());
+    log.info("Getting last group lesson: groupId={}; user={}", groupId, jwtUser);
     return lessonRepository
         .findLastGroupLesson(groupId, jwtUser.userId())
         .map(lessonMapper::toResponse);
@@ -65,8 +66,7 @@ public class LessonService implements LessonSpi {
   @Transactional(readOnly = true)
   public @NonNull Map<UUID, LessonResponse> getLastGroupLessonsByGroupIds(
       @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
-    log.info("Getting last lessons for {} groups, ownerId={}", groupIds.size(), jwtUser.userId());
-
+    log.info("Getting last group lessons: groupIds={}; user={}", groupIds, jwtUser);
     return lessonRepository.findLastLessonsByGroupIdsAndOwnerId(groupIds, jwtUser.userId()).stream()
         .map(lessonMapper::toResponse)
         .collect(Collectors.toMap(LessonResponse::groupId, Function.identity()));
@@ -74,16 +74,16 @@ public class LessonService implements LessonSpi {
 
   @Transactional(readOnly = true)
   public @NonNull LessonResponse getLessonById(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
-    log.info("Getting lesson by id={} for ownerId={}", lessonId, jwtUser.userId());
+    log.info("Getting lesson by id: lessonId={}; user={}", lessonId, jwtUser);
     return lessonRepository
         .findByIdAndOwnerId(lessonId, jwtUser.userId())
         .map(lessonMapper::toResponse)
-        .orElseThrow(() -> new EntityNotFoundException("Lesson not found for id=" + lessonId));
+        .orElseThrow(entityNotFoundSupplier(Lesson.class, lessonId, jwtUser));
   }
 
   @Transactional(readOnly = true)
   public LessonDetailsResponse getLessonDetailsById(UUID lessonId, JwtUser jwtUser) {
-    log.info("Getting lesson details for lessonId={} and userId={}", lessonId, jwtUser.userId());
+    log.info("Getting lesson details: lessonId={}; user={}", lessonId, jwtUser);
 
     LessonResponse lesson = self.getLessonById(lessonId, jwtUser);
     List<VisitResponse> visits = visitSpi.getVisitsByLessonId(lessonId, jwtUser);
@@ -96,7 +96,7 @@ public class LessonService implements LessonSpi {
   @Transactional(readOnly = true)
   public @NonNull List<LessonResponse> getLessonsByGroupId(
       @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
-    log.info("Getting lessons by groupId={} for ownerId={}", groupId, jwtUser.userId());
+    log.info("Getting lessons by group id: groupId={}; user={}", groupId, jwtUser);
     return lessonRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
         .map(lessonMapper::toResponse)
         .toList();
@@ -104,11 +104,7 @@ public class LessonService implements LessonSpi {
 
   @Transactional
   public LessonResponse createLesson(CreateLessonRequest request, JwtUser jwtUser) {
-    log.info(
-        "Creating lesson for groupId='{}', startDateTime={}, ownerId={}",
-        request.groupId(),
-        request.startDateTime(),
-        jwtUser.userId());
+    log.info("Creating lesson: request={}; user={}", request, jwtUser);
 
     Lesson lesson = lessonMapper.toLesson(request, jwtUser.userId());
     Lesson savedLesson = saveLesson(lesson);
@@ -134,7 +130,7 @@ public class LessonService implements LessonSpi {
 
   @Transactional
   public LessonResponse updateLesson(UUID lessonId, UpdateLessonRequest request, JwtUser jwtUser) {
-    log.info("Updating lesson by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
+    log.info("Updating lesson: lessonId={}; request={}; user={}", lessonId, request, jwtUser);
 
     if (request.students() != null && !request.students().isEmpty()) {
       List<StudentVisit> visitUpdateList =
@@ -151,7 +147,7 @@ public class LessonService implements LessonSpi {
         .map(lesson -> lessonMapper.updateLesson(lesson, request))
         .map(this::saveLesson)
         .map(lessonMapper::toResponse)
-        .orElseThrow(() -> new EntityNotFoundException("Lesson not found for id=" + lessonId));
+        .orElseThrow(entityNotFoundSupplier(Lesson.class, lessonId, jwtUser));
   }
 
   @Override
@@ -160,7 +156,7 @@ public class LessonService implements LessonSpi {
   }
 
   private void softDeleteLesson(UUID lessonId, JwtUser jwtUser) {
-    log.info("Soft deleting lesson: {}", lessonId);
+    log.info("Deleting lesson: lessonId={}; user={}", lessonId, jwtUser);
 
     visitSpi.removeVisitsByLessonId(lessonId, jwtUser);
 
@@ -171,11 +167,11 @@ public class LessonService implements LessonSpi {
               lesson.setDeletedAt(OffsetDateTime.now());
               return saveLesson(lesson);
             })
-        .orElseThrow(() -> new EntityNotFoundException("Lesson not found for id=" + lessonId));
+        .orElseThrow(entityNotFoundSupplier(Lesson.class, lessonId, jwtUser));
   }
 
   private Lesson saveLesson(Lesson lesson) {
-    log.info("Saving lesson: {}", lesson);
+    log.info("Saving lesson: lesson={}", lesson);
     return lessonRepository.saveAndFlush(lesson);
   }
 }

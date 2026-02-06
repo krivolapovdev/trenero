@@ -23,6 +23,15 @@ spring:
     password: ${DB_PASSWORD:${spring.datasource.password}}
   autoconfigure:
     exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      indent-output: true
+    datatype:
+      enum:
+        fail-on-numbers-for-enums: true
+    mapper:
+      accept-case-insensitive-enums: true
 jwt:
   secret-key: ${JWT_SECRET_KEY:your-jwt-ultra-secure-and-ultra-long-secret}
   access-token-expiration: 15m

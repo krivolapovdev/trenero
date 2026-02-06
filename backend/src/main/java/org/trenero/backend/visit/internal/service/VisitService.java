@@ -1,6 +1,8 @@
 package org.trenero.backend.visit.internal.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFound;
+import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +37,7 @@ public class VisitService implements VisitSpi {
 
   @Transactional(readOnly = true)
   public List<VisitResponse> getAllVisits(JwtUser jwtUser) {
-    log.info("Getting all visits for ownerId={}", jwtUser.userId());
+    log.info("Getting all visits: user={}", jwtUser);
     return visitRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(visitMapper::toResponse)
         .toList();
@@ -43,17 +45,17 @@ public class VisitService implements VisitSpi {
 
   @Transactional(readOnly = true)
   public VisitResponse getVisitById(UUID visitId, JwtUser jwtUser) {
-    log.info("Getting visit by id={} for ownerId={}", visitId, jwtUser.userId());
+    log.info("Getting visit by id: visitId={}; user={}", visitId, jwtUser);
     return visitRepository
         .findByIdAndOwnerId(visitId, jwtUser.userId())
         .map(visitMapper::toResponse)
-        .orElseThrow(() -> new EntityNotFoundException("Visit not found with id: " + visitId));
+        .orElseThrow(entityNotFoundSupplier(Visit.class, visitId, jwtUser));
   }
 
   @Transactional(readOnly = true)
   public @NonNull List<VisitResponse> getVisitsByLessonId(
       @NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
-    log.info("Getting visits by lessonId={} for ownerId={}", lessonId, jwtUser.userId());
+    log.info("Getting visits by lesson id: lessonId={}; user={}", lessonId, jwtUser);
     return visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId()).stream()
         .map(visitMapper::toResponse)
         .toList();
@@ -62,8 +64,7 @@ public class VisitService implements VisitSpi {
   @Override
   public @NonNull Map<UUID, List<VisitResponse>> getVisitsByStudentIds(
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
-    log.info("Getting visits by studentIds for ownerId={}", jwtUser.userId());
-
+    log.info("Getting visits by student ids: studentIds={}; user={}", studentIds, jwtUser);
     return visitRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
         .map(visitMapper::toResponse)
         .collect(Collectors.groupingBy(VisitResponse::studentId));
@@ -73,20 +74,28 @@ public class VisitService implements VisitSpi {
   @Transactional(readOnly = true)
   public @NonNull VisitResponse getVisitByLessonIdAndStudentId(
       @NonNull UUID lessonId, @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
-    log.info("Getting visit by lessonId={} and studentId={}", lessonId, studentId);
+    log.info(
+        "Getting visit by lesson and student ids: lessonId={}; studentId={}; user={}",
+        lessonId,
+        studentId,
+        jwtUser);
     return visitRepository
         .findByLessonIdAndStudentIdAndOwnerId(lessonId, studentId, jwtUser.userId())
         .map(visitMapper::toResponse)
         .orElseThrow(
             () ->
-                new EntityNotFoundException(
-                    "Visit not found for lessonId=" + lessonId + "  and studentId=" + studentId));
+                entityNotFound(
+                    Visit.class,
+                    Map.of(
+                        "lessonId", lessonId,
+                        "studentId", studentId),
+                    jwtUser));
   }
 
   @Transactional(readOnly = true)
   public @NonNull List<VisitResponse> getVisitsByStudentId(
       @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
-    log.info("Getting visits by studentId={} for ownerId={}", studentId, jwtUser.userId());
+    log.info("Getting visits by student id: studentId={}; user={}", studentId, jwtUser);
     return visitRepository.findAllByStudentIdAndOwnerId(studentId, jwtUser.userId()).stream()
         .map(visitMapper::toResponse)
         .toList();
@@ -95,8 +104,7 @@ public class VisitService implements VisitSpi {
   @Transactional
   public @NonNull VisitResponse createVisit(
       @NonNull CreateVisitRequest request, @NonNull JwtUser jwtUser) {
-    log.info(
-        "Creating visit for student: {} and lesson: {}", request.studentId(), request.lessonId());
+    log.info("Creating visit: request={}; user={}", request, jwtUser);
 
     lessonSpi.getLessonById(request.lessonId(), jwtUser);
 
@@ -109,12 +117,13 @@ public class VisitService implements VisitSpi {
 
   @Transactional
   public VisitResponse updateVisit(UUID visitId, Map<String, Object> request, JwtUser jwtUser) {
+    log.info("Updating visit: visitId={}; request={}; user={}", visitId, request, jwtUser);
     return visitRepository
         .findByIdAndOwnerId(visitId, jwtUser.userId())
         .map(visit -> visitMapper.updateVisit(visit, request))
         .map(this::saveVisit)
         .map(visitMapper::toResponse)
-        .orElseThrow(() -> new EntityNotFoundException("Visit not found with id: " + visitId));
+        .orElseThrow(entityNotFoundSupplier(Visit.class, visitId, jwtUser));
   }
 
   @Override
@@ -122,20 +131,18 @@ public class VisitService implements VisitSpi {
       @NonNull UUID lessonId,
       @NonNull List<StudentVisit> studentVisitList,
       @NonNull JwtUser jwtUser) {
-    UUID ownerId = jwtUser.userId();
-
     log.info(
-        "Initializing attendance snapshot for lessonId='{}', participants count={}, ownerId={}",
+        "Creating multiple visits: lessonId={}; participantsCount={}; user={}",
         lessonId,
         studentVisitList.size(),
-        ownerId);
+        jwtUser);
 
     List<Visit> visits =
         studentVisitList.stream()
             .map(
                 sv ->
                     Visit.builder()
-                        .ownerId(ownerId)
+                        .ownerId(jwtUser.userId())
                         .lessonId(lessonId)
                         .studentId(sv.studentId())
                         .status(sv.status())
@@ -148,7 +155,7 @@ public class VisitService implements VisitSpi {
 
   @Transactional
   public void softDeleteVisit(UUID visitId, JwtUser jwtUser) {
-    log.info("Soft deleting visit: {}", visitId);
+    log.info("Deleting visit: visitId={}; user={}", visitId, jwtUser);
     visitRepository
         .findByIdAndOwnerId(visitId, jwtUser.userId())
         .map(
@@ -156,16 +163,13 @@ public class VisitService implements VisitSpi {
               visit.setDeletedAt(OffsetDateTime.now());
               return saveVisit(visit);
             })
-        .orElseThrow(() -> new EntityNotFoundException("Visit not found with id: " + visitId));
+        .orElseThrow(entityNotFoundSupplier(Visit.class, visitId, jwtUser));
   }
 
   @Override
   @Transactional
   public void removeVisitsByLessonId(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
-    log.info(
-        "Removing (soft delete) all visits for lessonId={} for ownerId={}",
-        lessonId,
-        jwtUser.userId());
+    log.info("Removing visits by lesson id: lessonId={}; user={}", lessonId, jwtUser);
 
     List<Visit> visits = visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId());
 
@@ -180,7 +184,7 @@ public class VisitService implements VisitSpi {
   @Transactional
   public void updateVisitsByLessonId(
       @NonNull UUID lessonId, @NonNull List<StudentVisit> requests, @NonNull JwtUser jwtUser) {
-    log.info("Updating visits for lessonId={} for ownerId={}", lessonId, jwtUser.userId());
+    log.info("Updating visits by lesson id: lessonId={}; user={}", lessonId, jwtUser);
 
     List<Visit> lessonVisits =
         visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId());
@@ -218,7 +222,7 @@ public class VisitService implements VisitSpi {
   }
 
   private Visit saveVisit(Visit visit) {
-    log.info("Saving visit: {}", visit);
+    log.info("Saving visit: visit={}", visit);
     return visitRepository.saveAndFlush(visit);
   }
 }

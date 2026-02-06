@@ -21,7 +21,11 @@ public class StudentStatusService {
       List<VisitResponse> visits,
       List<StudentPaymentResponse> payments,
       LessonResponse lastLesson) {
-    log.info("Getting students statuses");
+    log.info(
+        "Getting student statuses: visits={}; payments={}; lastLesson={}",
+        visits,
+        payments,
+        lastLesson);
 
     visits = visits == null ? List.of() : visits;
     payments = payments == null ? List.of() : payments;

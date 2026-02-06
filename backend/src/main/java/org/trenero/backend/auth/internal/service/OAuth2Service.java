@@ -26,7 +26,7 @@ public class OAuth2Service {
 
   @SneakyThrows
   public LoginResponse googleLogin(OAuth2LoginRequest request) {
-    log.info("Google login request: {}", request);
+    log.info("Processing Google login: request={}", request);
 
     Optional<GoogleIdToken> googleIdToken = googleAuthService.verifyIdToken(request.token());
 
@@ -47,7 +47,7 @@ public class OAuth2Service {
   }
 
   public LoginResponse appleLogin(OAuth2LoginRequest request) {
-    log.info("Apple login request: {}", request);
+    log.info("Processing Apple login: request={}", request);
     return null;
   }
 }

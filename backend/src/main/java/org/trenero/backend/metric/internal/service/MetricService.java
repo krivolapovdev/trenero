@@ -25,7 +25,7 @@ public class MetricService {
 
   @Transactional(readOnly = true)
   public List<MonthlyPaymentMetricResponse> getMonthlyStatistics(JwtUser jwtUser) {
-    log.info("Calculating monthly payment statistics for userId={}", jwtUser.userId());
+    log.info("Calculating monthly payment statistics: user={}", jwtUser);
 
     YearMonth endMonth = YearMonth.now();
     YearMonth startMonth = endMonth.minusMonths(6);

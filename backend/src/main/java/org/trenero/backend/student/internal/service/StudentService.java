@@ -1,6 +1,7 @@
 package org.trenero.backend.student.internal.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -43,8 +44,8 @@ public class StudentService implements StudentSpi {
   private final StudentRepository studentRepository;
   private final StudentMapper studentMapper;
 
-  @Lazy private final StudentStatusService studentStatusService;
   @Lazy private final StudentService self;
+  @Lazy private final StudentStatusService studentStatusService;
   @Lazy private final GroupSpi groupSpi;
   @Lazy private final GroupStudentSpi groupStudentSpi;
   @Lazy private final StudentPaymentSpi studentPaymentSpi;
@@ -53,7 +54,7 @@ public class StudentService implements StudentSpi {
 
   @Transactional(readOnly = true)
   public @NonNull List<StudentResponse> getAllStudents(@NonNull JwtUser jwtUser) {
-    log.info("Getting all students for ownerId={}", jwtUser.userId());
+    log.info("Getting all students: user={}", jwtUser);
     return studentRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(studentMapper::toResponse)
         .toList();
@@ -61,7 +62,7 @@ public class StudentService implements StudentSpi {
 
   @Transactional(readOnly = true)
   public List<StudentOverviewResponse> getStudentsOverview(JwtUser jwtUser) {
-    log.info("Getting students overview for ownerId={}", jwtUser.userId());
+    log.info("Getting students overview: user={}", jwtUser);
 
     List<StudentResponse> students = self.getAllStudents(jwtUser);
 
@@ -116,19 +117,17 @@ public class StudentService implements StudentSpi {
   @Transactional(readOnly = true)
   public @NonNull StudentResponse getStudentById(
       @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
-    log.info("Getting student by id={} for ownerId={}", studentId, jwtUser.userId());
+    log.info("Getting student by id: studentId={}; user={}", studentId, jwtUser);
     return studentRepository
         .findByIdAndOwnerId(studentId, jwtUser.userId())
         .map(studentMapper::toResponse)
-        .orElseThrow(
-            () -> new EntityNotFoundException("Student with id=" + studentId + " not found"));
+        .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
   }
 
   @Transactional(readOnly = true)
   public @NonNull Map<UUID, List<StudentResponse>> getStudentsByIds(
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
-    log.info("Getting students by ids={} for ownerId={}", studentIds, jwtUser.userId());
-
+    log.info("Getting students by ids: studentIds={}; user={}", studentIds, jwtUser);
     return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
         .map(studentMapper::toResponse)
         .collect(Collectors.groupingBy(StudentResponse::id));
@@ -136,7 +135,7 @@ public class StudentService implements StudentSpi {
 
   @Transactional(readOnly = true)
   public StudentDetailsResponse getStudentDetailsById(UUID studentId, JwtUser jwtUser) {
-    log.info("Getting student details by id={} for ownerId={}", studentId, jwtUser.userId());
+    log.info("Getting student details by id: studentId={}; user={}", studentId, jwtUser);
 
     StudentResponse student = self.getStudentById(studentId, jwtUser);
 
@@ -183,7 +182,7 @@ public class StudentService implements StudentSpi {
 
   @Transactional
   public StudentResponse createStudent(CreateStudentRequest request, JwtUser jwtUser) {
-    log.info("Creating student: {}", request);
+    log.info("Creating student: request={}; user={}", request, jwtUser);
 
     Student student = studentMapper.toStudent(request, jwtUser.userId());
 
@@ -199,12 +198,12 @@ public class StudentService implements StudentSpi {
   @Transactional
   public StudentResponse updateStudent(
       UUID studentId, Map<String, Object> updates, JwtUser jwtUser) {
-    log.info("Updating student: {}", studentId);
+    log.info("Updating student: studentId={}; updates={}; user={}", studentId, updates, jwtUser);
 
     Student student =
         studentRepository
             .findByIdAndOwnerId(studentId, jwtUser.userId())
-            .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+            .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
 
     if (updates.containsKey("groupId")) {
 
@@ -232,7 +231,7 @@ public class StudentService implements StudentSpi {
 
   @Transactional
   public void softDeleteStudent(UUID studentId, JwtUser jwtUser) {
-    log.info("Deleting student: {}", studentId);
+    log.info("Deleting student: studentId={}; user={}", studentId, jwtUser);
 
     studentRepository
         .findByIdAndOwnerId(studentId, jwtUser.userId())
@@ -241,12 +240,12 @@ public class StudentService implements StudentSpi {
               student.setDeletedAt(OffsetDateTime.now());
               return self.saveStudent(student);
             })
-        .orElseThrow(() -> new EntityNotFoundException("Student not found with id=" + studentId));
+        .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
   }
 
   @Transactional
   public Student saveStudent(Student student) {
-    log.info("Saving student: {}", student);
+    log.info("Saving student: student={}", student);
     return studentRepository.saveAndFlush(student);
   }
 }

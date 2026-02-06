@@ -1,6 +1,7 @@
 package org.trenero.backend.group.internal.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,7 @@ public class GroupService implements GroupSpi {
 
   @Transactional(readOnly = true)
   public @NonNull List<GroupResponse> getAllGroups(@NonNull JwtUser jwtUser) {
-    log.info("Getting all groups for ownerId={}", jwtUser.userId());
+    log.info("Getting all groups: user={}", jwtUser);
     return groupRepository.findAllByOwnerId(jwtUser.userId()).stream()
         .map(groupMapper::toResponse)
         .toList();
@@ -50,7 +51,7 @@ public class GroupService implements GroupSpi {
 
   @Transactional(readOnly = true)
   public List<GroupOverviewResponse> getGroupsOverview(JwtUser jwtUser) {
-    log.info("Getting groups overview for ownerId={}", jwtUser.userId());
+    log.info("Getting all groups overview: user={}", jwtUser);
 
     List<GroupResponse> allGroups = self.getAllGroups(jwtUser);
     List<UUID> groupIds = allGroups.stream().map(GroupResponse::id).toList();
@@ -72,12 +73,12 @@ public class GroupService implements GroupSpi {
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
         .map(groupMapper::toResponse)
-        .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
+        .orElseThrow(entityNotFoundSupplier(Group.class, groupId, jwtUser));
   }
 
   @Transactional(readOnly = true)
   public GroupDetailsResponse getGroupDetailsById(UUID groupId, JwtUser jwtUser) {
-    log.info("Getting group details by id={} for ownerId={}", groupId, jwtUser.userId());
+    log.info("Getting group details by id: groupId={}; user={}", groupId, jwtUser);
 
     List<UUID> studentIds =
         groupStudentService.getStudentsByGroupId(groupId, jwtUser).stream()
@@ -98,7 +99,7 @@ public class GroupService implements GroupSpi {
   @Override
   public @NonNull Map<UUID, GroupResponse> getGroupsByIds(
       @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
-    log.info("Getting groups by ids for ownerId={}", jwtUser.userId());
+    log.info("Getting groups by ids: groupIds={}; user={}", groupIds, jwtUser);
 
     return groupRepository.findAllByIdsAndOwnerId(groupIds, jwtUser.userId()).stream()
         .map(groupMapper::toResponse)
@@ -107,7 +108,7 @@ public class GroupService implements GroupSpi {
 
   @Transactional
   public GroupResponse createGroup(CreateGroupRequest request, JwtUser jwtUser) {
-    log.info("Creating group: name='{}', ownerId={}", request.name(), jwtUser.userId());
+    log.info("Creating group: request={}; user={}", request, jwtUser);
 
     Group group = groupMapper.toGroup(request, jwtUser.userId());
     Group savedGroup = self.saveGroup(group);
@@ -119,19 +120,18 @@ public class GroupService implements GroupSpi {
 
   @Transactional
   public GroupResponse updateGroup(UUID groupId, Map<String, Object> updates, JwtUser jwtUser) {
-    log.info("Updating group: groupId='{}', ownerId={}", groupId, jwtUser.userId());
-
+    log.info("Updating group: groupId={}; updates={}; user={}", groupId, updates, jwtUser);
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
         .map(group -> groupMapper.updateGroup(group, updates))
         .map(self::saveGroup)
         .map(groupMapper::toResponse)
-        .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
+        .orElseThrow(entityNotFoundSupplier(Group.class, groupId, jwtUser));
   }
 
   @Transactional
   public void softDeleteGroup(UUID groupId, JwtUser jwtUser) {
-    log.info("Deleting group: {}", groupId);
+    log.info("Deleting group: groupId={}; user={}", groupId, jwtUser);
 
     groupStudentService.removeAllStudentsFromGroup(groupId, jwtUser);
 
@@ -142,12 +142,12 @@ public class GroupService implements GroupSpi {
               group.setDeletedAt(OffsetDateTime.now());
               return self.saveGroup(group);
             })
-        .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
+        .orElseThrow(entityNotFoundSupplier(Group.class, groupId, jwtUser));
   }
 
   @Transactional
   public Group saveGroup(Group group) {
-    log.info("Saving group: {}", group);
+    log.info("Saving group: group={}", group);
     return groupRepository.saveAndFlush(group);
   }
 }
