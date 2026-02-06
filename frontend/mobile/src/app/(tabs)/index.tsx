@@ -13,6 +13,14 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useInitApp } from '@/src/hooks/useInitApp';
 import { useMetricsStore } from '@/src/stores/metricsStore';
 
+const getAmountColor = (val: number) => {
+  if (val === 0) {
+    return 'black';
+  }
+
+  return val > 0 ? 'green' : 'red';
+};
+
 export default function MetricsScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
@@ -39,6 +47,9 @@ export default function MetricsScreen() {
   if (isInitLoading) {
     return <LoadingSpinner />;
   }
+
+  const currentAmount =
+    monthlyData.find(m => m.date.isSame(selectedBar, 'month'))?.value ?? 0;
 
   return (
     <>
@@ -75,10 +86,14 @@ export default function MetricsScreen() {
         >
           <Text variant='bodyLarge'>{selectedBar.format('MM/YYYY')}</Text>
 
-          <Text variant='bodyLarge'>
-            +
-            {monthlyData.find(m => m.date.isSame(selectedBar, 'month'))
-              ?.value || 0}
+          <Text
+            variant='bodyLarge'
+            style={{
+              color: getAmountColor(currentAmount)
+            }}
+          >
+            {currentAmount >= 0 ? '+' : '-'}
+            {currentAmount}
           </Text>
         </View>
 

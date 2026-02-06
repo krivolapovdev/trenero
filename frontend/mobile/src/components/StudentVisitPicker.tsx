@@ -210,6 +210,9 @@ export const StudentVisitPicker = memo(
                     state.status === 'UNMARKED' && {
                       opacity: 0.5,
                       textDecorationLine: 'line-through'
+                    },
+                    state.type === 'FREE' && {
+                      color: '#FFD700'
                     }
                   ]}
                 >

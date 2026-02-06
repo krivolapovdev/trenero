@@ -84,7 +84,12 @@ const resources = {
         regular: 'Regular lesson',
         free: 'Free lesson',
         unmarked: 'Do not create a record'
-      }
+      },
+      paidUntil: 'Paid until',
+      paidFrom: 'Paid from',
+      invalidPaidUntilError: 'Invalid payment end date',
+      paidUntilBeforeDateError: 'End date cannot be earlier than payment date',
+      paymentPeriod: 'Payment period'
     }
   },
   ru: {
@@ -169,7 +174,13 @@ const resources = {
         regular: 'Обычное занятие',
         free: 'Бесплатное занятие',
         unmarked: 'Не создавать запись'
-      }
+      },
+      paidUntil: 'Оплачено по',
+      paidFrom: 'Оплачено с',
+      invalidPaidUntilError: 'Некорректная дата окончания оплаты',
+      paidUntilBeforeDateError:
+        'Дата окончания не может быть раньше даты платежа',
+      paymentPeriod: 'Период оплаты'
     }
   }
 } as const;

@@ -3,6 +3,27 @@ services:
     restart: unless-stopped
 
   db-backup:
+    image: prodrigestivill/postgres-backup-local:18-alpine-d257e5d
+    container_name: db-backup
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: trenero
+      POSTGRES_USER: ${DB_USERNAME:-username}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      SCHEDULE: "@daily"
+      BACKUP_SUFFIX: ".sql.gz"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./backups:/backups
+    networks:
+      - trenero-network
     restart: unless-stopped
 
   backend:

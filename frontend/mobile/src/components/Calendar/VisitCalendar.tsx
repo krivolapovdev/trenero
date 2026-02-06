@@ -5,6 +5,7 @@ import { Checkbox, List } from 'react-native-paper';
 import type { components } from '@/src/api/generated/openapi';
 import { CustomBottomSheet } from '@/src/components/BottomSheet';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
+import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { CustomCalendar } from './CustomCalendar';
 
 type Props = {
@@ -15,6 +16,7 @@ type Props = {
 export const VisitCalendar = memo(
   ({ groupId, visitsWithLesson }: Readonly<Props>) => {
     const router = useRouter();
+    const theme = useAppTheme();
 
     const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
 
@@ -24,15 +26,25 @@ export const VisitCalendar = memo(
           .filter(value => value.visit.status !== 'UNMARKED')
           .map(item => {
             const status = item.visit.status;
+            const type = item.visit.type;
             return {
               date: dayjs(item.lesson.startDateTime),
+              textColor:
+                status === 'PRESENT'
+                  ? theme.colors.onSecondaryContainer
+                  : theme.colors.onErrorContainer,
+              selectedColor:
+                status === 'PRESENT'
+                  ? theme.colors.secondaryContainer
+                  : theme.colors.errorContainer,
+              dotColor: type === 'FREE' ? 'yellow' : undefined,
               status: status,
-              type: item.visit.type,
+              type: type,
               lessonId: item.visit.lessonId
             };
           })
           .sort((a, b) => a.date.diff(b.date)),
-      [visitsWithLesson]
+      [visitsWithLesson, theme]
     );
 
     return (

@@ -5,6 +5,7 @@ import { List } from 'react-native-paper';
 import type { components } from '@/src/api/generated/openapi';
 import { CustomBottomSheet } from '@/src/components/BottomSheet';
 import { SurfaceCard } from '@/src/components/SurfaceCard';
+import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { CustomCalendar } from './CustomCalendar';
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
 
 export const LessonsCalendar = memo(({ groupId, lessons }: Readonly<Props>) => {
   const router = useRouter();
+  const theme = useAppTheme();
 
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
 
@@ -22,10 +24,12 @@ export const LessonsCalendar = memo(({ groupId, lessons }: Readonly<Props>) => {
       [...lessons]
         .map(lesson => ({
           date: dayjs(lesson.startDateTime),
-          lessonId: lesson.id
+          lessonId: lesson.id,
+          textColor: theme.colors.onSecondaryContainer,
+          selectedColor: theme.colors.secondaryContainer
         }))
         .sort((a, b) => a.date.diff(b.date)),
-    [lessons]
+    [lessons, theme]
   );
 
   return (

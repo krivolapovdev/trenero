@@ -7,7 +7,9 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 type MarkedDay = {
   date: dayjs.Dayjs;
-  color?: string;
+  textColor?: string;
+  selectedColor?: string;
+  dotColor?: string;
 };
 
 type Props = {
@@ -26,9 +28,16 @@ export const CustomCalendar = memo(
           items.map(item => [
             item.date.format('YYYY-MM-DD'),
             {
-              marked: true,
-              dotColor: item.color ?? '#00adf5',
-              disabled: false
+              selected: true,
+              selectedColor: item.selectedColor,
+              marked: Boolean(item.dotColor),
+              dotColor: item.dotColor,
+              disabled: false,
+              customStyles: {
+                text: {
+                  color: item.textColor ?? 'white'
+                }
+              }
             }
           ])
         ),
@@ -46,6 +55,7 @@ export const CustomCalendar = memo(
     return (
       <View style={{ borderRadius: 16, backgroundColor: theme.colors.surface }}>
         <Calendar
+          markingType='custom'
           initialDate={currentMonth.format('YYYY-MM-DD')}
           style={{
             borderRadius: 16,

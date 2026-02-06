@@ -53,8 +53,8 @@ export default function UpdatePaymentScreen() {
       request.amount = values.amount;
     }
 
-    if (values.paidLessons !== payment.paidLessons) {
-      request.paidLessons = values.paidLessons;
+    if (values.paidUntil !== payment.paidUntil) {
+      request.paidUntil = values.paidUntil;
     }
 
     if (values.date !== payment.date) {

@@ -62,7 +62,7 @@ export const StudentSearchbarWithFilter = memo(
     const statusItems = useMemo(
       () => [
         ALL_ITEM,
-        { id: 'noActivity', name: t('studentStatus.noActivity') },
+        { id: 'inactive', name: t('studentStatus.inactive') },
         { id: 'present', name: t('studentStatus.present') },
         { id: 'missing', name: t('studentStatus.missing') },
         { id: 'paid', name: t('studentStatus.paid') },

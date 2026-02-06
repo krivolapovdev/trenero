@@ -12,7 +12,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export type PaymentFormValues = {
   amount: number;
-  paidLessons: number;
+  paidUntil: string;
   date: string;
 };
 
@@ -42,15 +42,15 @@ export const PaymentForm = memo(
     const theme = useAppTheme();
 
     const [amount, setAmount] = useState('');
-    const [paidLessons, setPaidLessons] = useState('');
+    const [paidUntil, setPaidUntil] = useState(() => {
+      if (initialData?.payment?.paidUntil) {
+        return dayjs(initialData.payment.paidUntil).format('DD/MM/YYYY');
+      }
+      return dayjs().add(1, 'month').format('DD/MM/YYYY');
+    });
     const [date, setDate] = useState(dayjs().format('DD/MM/YYYY'));
 
     const handleSubmit = () => {
-      const parsedLessons = Number(paidLessons);
-      if (!parsedLessons || Number.isNaN(parsedLessons)) {
-        return Alert.alert(t('error'), t('enterLessonsError'));
-      }
-
       const parsedDate = parsePastOrTodayDateFromInput(date);
       if (!parsedDate) {
         return Alert.alert(t('error'), t('invalidDateError'));
@@ -58,7 +58,7 @@ export const PaymentForm = memo(
 
       const values: PaymentFormValues = {
         amount: Number(amount),
-        paidLessons: parsedLessons,
+        paidUntil: dayjs(paidUntil, 'DD/MM/YYYY', true).format('YYYY-MM-DD'),
         date: parsedDate.format('YYYY-MM-DD')
       };
 
@@ -70,10 +70,17 @@ export const PaymentForm = memo(
     useEffect(() => {
       if (initialData?.payment) {
         setAmount(initialData.payment.amount?.toString() ?? '');
-        setPaidLessons(initialData.payment.paidLessons?.toString() ?? '');
+        if (initialData.payment.paidUntil) {
+          setPaidUntil(
+            dayjs(initialData.payment.paidUntil).format('DD/MM/YYYY')
+          );
+        }
         setDate(dayjs(initialData.payment.date).format('DD/MM/YYYY'));
       }
     }, [initialData]);
+
+    const isSaveDisabled =
+      isLoading || !amount || date.length !== 10 || paidUntil.length !== 10;
 
     return (
       <>
@@ -85,12 +92,8 @@ export const PaymentForm = memo(
           rightActions={[
             {
               icon: 'content-save',
-              disabled:
-                isLoading ||
-                !amount ||
-                Number(paidLessons) <= 0 ||
-                date.length !== 10,
-              onPress: handleSubmit
+              onPress: handleSubmit,
+              disabled: isSaveDisabled
             }
           ]}
         />
@@ -112,11 +115,13 @@ export const PaymentForm = memo(
           />
 
           <CustomTextInput
-            label={`${t('paidLessons')} *`}
+            label={`${t('paidUntil')} *`}
             keyboardType='numeric'
-            value={paidLessons?.toString() ?? ''}
-            onChangeText={text => setPaidLessons(text.replaceAll(/\D/g, ''))}
+            maxLength={10}
+            value={paidUntil}
+            onChangeText={text => setPaidUntil(formatDateInput(text))}
             disabled={isLoading}
+            placeholder='DD/MM/YYYY'
           />
 
           <CustomTextInput

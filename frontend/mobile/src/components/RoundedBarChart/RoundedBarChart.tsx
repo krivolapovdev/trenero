@@ -40,7 +40,7 @@ export const RoundedBarChart = ({
         {normalizedData.map(item => (
           <View
             key={item.date.toISOString()}
-            style={[styles.barContainer, { width: `${100 / data.length}%` }]}
+            style={styles.barContainer}
           >
             <Pressable onPress={() => setSelectedBar(item.date)}>
               <BarItem
@@ -69,8 +69,7 @@ export const RoundedBarChart = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    marginTop: 16,
+    marginTop: 25,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -83,12 +82,8 @@ const styles = StyleSheet.create({
     minHeight: 200
   },
   barContainer: {
+    flex: 1,
     alignItems: 'center'
-  },
-  bar: {
-    width: 35,
-    borderTopLeftRadius: 99,
-    borderTopRightRadius: 99
   },
   label: {
     marginTop: 8,

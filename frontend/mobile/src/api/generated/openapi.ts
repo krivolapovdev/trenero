@@ -360,10 +360,10 @@ export interface components {
       /** Format: uuid */
       studentId: string;
       amount: number;
-      /** Format: int32 */
-      paidLessons: number;
       /** Format: date */
       date: string;
+      /** Format: date */
+      paidUntil: string;
     };
     StudentPaymentResponse: {
       /** Format: uuid */
@@ -371,10 +371,12 @@ export interface components {
       /** Format: uuid */
       studentId: string;
       amount: number;
-      /** Format: int32 */
-      paidLessons: number;
       /** Format: date */
       date: string;
+      /** Format: date */
+      paidFrom?: string;
+      /** Format: date */
+      paidUntil: string;
       /** Format: date-time */
       createdAt: string;
     };
@@ -439,8 +441,8 @@ export interface components {
     };
     UpdatePaymentRequest: {
       amount?: number;
-      /** Format: int32 */
-      paidLessons?: number;
+      /** Format: date */
+      paidUntil?: string;
       /** Format: date */
       date?: string;
     };
