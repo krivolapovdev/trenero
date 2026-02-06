@@ -10,6 +10,7 @@ public record StudentPaymentResponse(
     @NotNull UUID id,
     @NotNull UUID studentId,
     @NotNull BigDecimal amount,
-    @NotNull Integer paidLessons,
     @NotNull LocalDate date,
+    LocalDate paidFrom,
+    @NotNull LocalDate paidUntil,
     @NotNull OffsetDateTime createdAt) {}

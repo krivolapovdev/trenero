@@ -9,6 +9,7 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,9 +31,9 @@ public class StudentPayment {
   @NotNull
   private UUID studentId;
 
-  @Column(name = "paid_lessons", nullable = false)
+  @Column(name = "paid_until", nullable = false)
   @NotNull
-  private Integer paidLessons;
+  private LocalDate paidUntil;
 
   @OneToOne(fetch = FetchType.LAZY)
   @MapsId

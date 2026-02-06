@@ -3,10 +3,15 @@ package org.trenero.backend.payment.internal.service;
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFound;
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
+import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,29 +43,43 @@ public class StudentPaymentService implements StudentPaymentSpi {
   @Transactional(readOnly = true)
   public @NonNull List<StudentPaymentResponse> getAllStudentPayments(@NonNull JwtUser jwtUser) {
     log.info("Getting all student payments: user={}", jwtUser);
-    return studentPaymentRepository.findAllByOwnerId(jwtUser.userId()).stream()
-        .map(payment -> paymentMapper.toResponse(payment, payment.getTransaction()))
+
+    var allPayments = studentPaymentRepository.findAllByOwnerIdSorted(jwtUser.userId());
+
+    return allPayments.stream()
+        .collect(Collectors.groupingBy(StudentPayment::getStudentId))
+        .values()
+        .stream()
+        .flatMap(this::toSortedResponseStream)
         .toList();
   }
 
   @Transactional(readOnly = true)
   public StudentPaymentResponse getStudentPaymentById(UUID paymentId, JwtUser jwtUser) {
     log.info("Getting student payment by paymentId: paymentId={}; user={}", paymentId, jwtUser);
-    return studentPaymentRepository
-        .findByTransactionIdAndOwnerId(paymentId, jwtUser.userId())
-        .map(payment -> paymentMapper.toResponse(payment, payment.getTransaction()))
-        .orElseThrow(entityNotFoundSupplier(StudentPayment.class, paymentId, jwtUser));
+
+    var payment =
+        studentPaymentRepository
+            .findByTransactionIdAndOwnerId(paymentId, jwtUser.userId())
+            .orElseThrow(entityNotFoundSupplier(StudentPayment.class, paymentId, jwtUser));
+
+    var previousPaidUntil =
+        studentPaymentRepository
+            .findLatestPaidUntilBeforeDate(payment.getStudentId(), payment.getPaidUntil())
+            .orElse(null);
+
+    return paymentMapper.toResponse(payment, payment.getTransaction(), previousPaidUntil);
   }
 
   @Transactional(readOnly = true)
   public @NonNull List<StudentPaymentResponse> getStudentPaymentsByStudentId(
       @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting student payments by student id: studentId={}; user={}", studentId, jwtUser);
-    return studentPaymentRepository
-        .findAllByStudentIdAndOwnerId(studentId, jwtUser.userId())
-        .stream()
-        .map(payment -> paymentMapper.toResponse(payment, payment.getTransaction()))
-        .toList();
+
+    var sortedPayments =
+        studentPaymentRepository.findAllByStudentIdAndOwnerIdSorted(studentId, jwtUser.userId());
+
+    return toSortedResponseStream(sortedPayments).toList();
   }
 
   @Override
@@ -69,11 +88,17 @@ public class StudentPaymentService implements StudentPaymentSpi {
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info(
         "Getting student payments by student ids: studentIds={}; user={}", studentIds, jwtUser);
-    return studentPaymentRepository
-        .findAllByStudentIdsAndOwnerId(studentIds, jwtUser.userId())
+
+    var payments =
+        studentPaymentRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.userId());
+
+    return payments.stream()
+        .collect(Collectors.groupingBy(StudentPayment::getStudentId))
+        .entrySet()
         .stream()
-        .map(p -> paymentMapper.toResponse(p, p.getTransaction()))
-        .collect(Collectors.groupingBy(StudentPaymentResponse::studentId));
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey, e -> toSortedResponseStream(e.getValue()).toList()));
   }
 
   @Transactional
@@ -91,12 +116,21 @@ public class StudentPaymentService implements StudentPaymentSpi {
         StudentPayment.builder()
             .transaction(transaction)
             .studentId(request.studentId())
-            .paidLessons(request.paidLessons())
+            .paidUntil(request.paidUntil())
             .build();
 
     StudentPayment saved = saveStudentPayment(studentPayment);
 
-    return paymentMapper.toResponse(saved, transaction);
+    Optional<LocalDate> previousPaidUntil =
+        studentPaymentRepository.findLatestPaidUntilByStudentId(request.studentId());
+
+    LocalDate newPaidUntil =
+        previousPaidUntil
+            .filter(date -> !date.isBefore(request.date()))
+            .map(date -> date.plusMonths(1))
+            .orElseGet(() -> request.date().plusMonths(1));
+
+    return paymentMapper.toResponse(saved, transaction, newPaidUntil);
   }
 
   @Transactional
@@ -113,13 +147,18 @@ public class StudentPaymentService implements StudentPaymentSpi {
     var updatedTx =
         transactionService.updateTransaction(paymentId, request.amount(), request.date(), jwtUser);
 
-    if (request.paidLessons() != null) {
-      payment.setPaidLessons(request.paidLessons());
+    if (request.paidUntil() != null) {
+      payment.setPaidUntil(request.paidUntil());
     }
 
     StudentPayment saved = saveStudentPayment(payment);
 
-    return paymentMapper.toResponse(saved, updatedTx);
+    LocalDate paidFrom =
+        studentPaymentRepository
+            .findLatestPaidUntilBeforeDate(saved.getStudentId(), saved.getPaidUntil())
+            .orElse(null);
+
+    return paymentMapper.toResponse(saved, updatedTx, paidFrom);
   }
 
   @Override
@@ -137,5 +176,20 @@ public class StudentPaymentService implements StudentPaymentSpi {
   private StudentPayment saveStudentPayment(StudentPayment studentPayment) {
     log.info("Saving student payment: studentPayment={}", studentPayment);
     return studentPaymentRepository.saveAndFlush(studentPayment);
+  }
+
+  private Stream<StudentPaymentResponse> toSortedResponseStream(List<StudentPayment> paymentsDesc) {
+    var safeList =
+        paymentsDesc.stream()
+            .sorted(Comparator.comparing(StudentPayment::getPaidUntil).reversed())
+            .toList();
+
+    return IntStream.range(0, safeList.size())
+        .mapToObj(
+            i -> {
+              var current = paymentsDesc.get(i);
+              var paidFrom = i < safeList.size() - 1 ? safeList.get(i + 1).getPaidUntil() : null;
+              return paymentMapper.toResponse(current, current.getTransaction(), paidFrom);
+            });
   }
 }

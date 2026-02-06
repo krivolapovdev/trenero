@@ -1,5 +1,7 @@
 package org.trenero.backend.student.internal.service;
 
+import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,15 +55,16 @@ public class StudentStatusService {
                           : StudentStatus.MISSING));
     }
 
-    long billableVisits =
-        visits.stream()
-            .filter(v -> v.status() != VisitStatus.UNMARKED)
-            .filter(v -> v.type() == VisitType.REGULAR)
-            .count();
+    LocalDate referenceDate =
+        (lastLesson != null) ? lastLesson.startDateTime().toLocalDate() : LocalDate.now();
 
-    int totalPaidLessons = payments.stream().mapToInt(StudentPaymentResponse::paidLessons).sum();
+    boolean isSubscriptionActive =
+        payments.stream()
+            .max(Comparator.comparing(StudentPaymentResponse::paidUntil))
+            .map(payment -> !payment.paidUntil().isBefore(referenceDate))
+            .orElse(false);
 
-    statuses.add(billableVisits <= totalPaidLessons ? StudentStatus.PAID : StudentStatus.UNPAID);
+    statuses.add(isSubscriptionActive ? StudentStatus.PAID : StudentStatus.UNPAID);
 
     return statuses;
   }
