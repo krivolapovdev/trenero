@@ -1,17 +1,24 @@
 import { create } from 'zustand';
+import { groupService } from '@/src/api/services/group/groupService';
+import { extractErrorMessage } from '@/src/helpers/apiError';
 import type { GroupDetails, GroupOverview } from '@/src/types/group';
 
 type GroupsStore = {
   allGroups: Record<string, GroupOverview | GroupDetails>;
+  isRefreshing: boolean;
+  error: string | null;
 
   setAllGroups: (groups: GroupOverview[]) => void;
+  refreshGroups: () => Promise<void>;
   addGroup: (group: GroupDetails) => void;
   updateGroup: (id: string, updates: Partial<GroupDetails>) => void;
   removeGroup: (id: string) => void;
 };
 
-export const useGroupsStore = create<GroupsStore>((set, _get) => ({
+export const useGroupsStore = create<GroupsStore>((set, get) => ({
   allGroups: {},
+  isRefreshing: false,
+  error: null,
 
   setAllGroups: groups => {
     const groupsMap = groups.reduce(
@@ -23,6 +30,18 @@ export const useGroupsStore = create<GroupsStore>((set, _get) => ({
     );
 
     set({ allGroups: groupsMap });
+  },
+
+  refreshGroups: async () => {
+    set({ isRefreshing: true, error: null });
+    try {
+      const data = await groupService.getOverview();
+      get().setAllGroups(data);
+    } catch (e: unknown) {
+      set({ error: extractErrorMessage(e) });
+    } finally {
+      set({ isRefreshing: false });
+    }
   },
 
   addGroup: group =>

@@ -2,10 +2,8 @@ import { LegendList, type LegendListRef } from '@legendapp/list';
 import { useScrollToTop } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Searchbar } from 'react-native-paper';
-import { groupService } from '@/src/api/services/group/groupService';
 import { GroupCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
@@ -24,21 +22,16 @@ export default function GroupsScreen() {
   const listRef = useRef<LegendListRef | null>(null);
   useScrollToTop(listRef);
 
-  const groups = useGroupsStore(state => state.allGroups);
-  const setAllGroups = useGroupsStore(state => state.setAllGroups);
+  const groupsRecord = useGroupsStore(state => state.allGroups);
+  const isRefreshing = useGroupsStore(state => state.isRefreshing);
+  const error = useGroupsStore(state => state.error);
+  const refreshGroups = useGroupsStore(state => state.refreshGroups);
+  const filteredGroups = useFilteredGroups(groupsRecord, searchQuery);
 
-  const { loading, execute, error } = useAsyncCallback(async () => {
-    const data = await groupService.getOverview();
-    setAllGroups(data);
-    return data;
-  });
-
-  const filteredGroups = useFilteredGroups(groups, searchQuery);
-
-  const refreshData = useCallback(async () => {
+  const handleRefresh = useCallback(async () => {
     setSearchQuery('');
-    await execute();
-  }, [execute]);
+    await refreshGroups();
+  }, [refreshGroups]);
 
   const renderItem = useCallback(
     ({ item }: { item: GroupOverview }) => <GroupCard {...item} />,
@@ -59,7 +52,7 @@ export default function GroupsScreen() {
         ]}
       />
 
-      <OptionalErrorMessage error={error?.message} />
+      <OptionalErrorMessage error={error} />
 
       <LegendList
         ref={listRef}
@@ -67,8 +60,8 @@ export default function GroupsScreen() {
         keyExtractor={item => item.id}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
-        refreshing={loading}
-        onRefresh={refreshData}
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
         keyboardShouldPersistTaps='handled'
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
         contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}

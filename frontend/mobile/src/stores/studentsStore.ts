@@ -1,24 +1,24 @@
 import { create } from 'zustand';
 import { studentService } from '@/src/api/services/student/studentService';
+import { extractErrorMessage } from '@/src/helpers/apiError';
 import type { StudentDetails, StudentOverview } from '@/src/types/student';
 
 type StudentsStore = {
   allStudents: Record<string, StudentOverview | StudentDetails>;
-
   isRefreshing: boolean;
-  refreshStudents: () => Promise<void>;
+  error: string | null;
 
   setAllStudents: (students: StudentOverview[]) => void;
+  refreshStudents: () => Promise<void>;
   addStudent: (student: StudentDetails) => void;
   removeStudent: (id: string) => void;
-
   removePayment: (studentId: string, paymentId: string) => void;
 };
 
-export const useStudentsStore = create<StudentsStore>((set, _get) => ({
+export const useStudentsStore = create<StudentsStore>((set, get) => ({
   allStudents: {},
-  recentStudents: {},
   isRefreshing: false,
+  error: null,
 
   setAllStudents: students => {
     const studentsMap = students.reduce(
@@ -32,6 +32,18 @@ export const useStudentsStore = create<StudentsStore>((set, _get) => ({
     set({ allStudents: studentsMap });
   },
 
+  refreshStudents: async () => {
+    set({ isRefreshing: true, error: null });
+    try {
+      const data = await studentService.getOverview();
+      get().setAllStudents(data);
+    } catch (e: unknown) {
+      set({ error: extractErrorMessage(e) });
+    } finally {
+      set({ isRefreshing: false });
+    }
+  },
+
   addStudent: student =>
     set(state => ({
       allStudents: {
@@ -39,26 +51,6 @@ export const useStudentsStore = create<StudentsStore>((set, _get) => ({
         [student.id]: student
       }
     })),
-
-  refreshStudents: async () => {
-    set({ isRefreshing: true });
-    try {
-      const data = await studentService.getOverview();
-      const studentsMap = data.reduce(
-        (acc, s) => {
-          acc[s.id] = s;
-          return acc;
-        },
-        {} as Record<string, StudentOverview>
-      );
-
-      set({ allStudents: studentsMap });
-    } catch (error) {
-      console.error('Failed to refresh students:', error);
-    } finally {
-      set({ isRefreshing: false });
-    }
-  },
 
   removeStudent: id =>
     set(state => {

@@ -1,16 +1,12 @@
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
-import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import { metricService } from '@/src/api/services/metric/metricService';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
-import { LoadingSpinner } from '@/src/components/LoadingSpinner';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { RoundedBarChart } from '@/src/components/RoundedBarChart';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { useInitApp } from '@/src/hooks/useInitApp';
 import { useMetricsStore } from '@/src/stores/metricsStore';
 
 const getAmountColor = (val: number) => {
@@ -21,32 +17,24 @@ const getAmountColor = (val: number) => {
   return val > 0 ? 'green' : 'red';
 };
 
-export default function MetricsScreen() {
+export default function DashboardScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const [selectedBar, setSelectedBar] = useState(dayjs());
-  const { loading: isInitLoading } = useInitApp();
-  const metrics = useMetricsStore(state => state.allMetrics);
-  const setAllMetrics = useMetricsStore(state => state.setAllMetrics);
 
-  const { loading, execute, error } = useAsyncCallback(async () => {
-    const data = await metricService.getMonthlyPayments();
-    setAllMetrics(data);
-    return data;
-  });
+  const allMetrics = useMetricsStore(state => state.allMetrics);
+  const isRefreshing = useMetricsStore(state => state.isRefreshing);
+  const error = useMetricsStore(state => state.error);
+  const refreshMetrics = useMetricsStore(state => state.refreshMetrics);
 
   const monthlyData = useMemo(
     () =>
-      metrics.map(m => ({
+      allMetrics.map(m => ({
         date: dayjs(m.date),
         value: m.total
       })),
-    [metrics]
+    [allMetrics]
   );
-
-  if (isInitLoading) {
-    return <LoadingSpinner />;
-  }
 
   const currentAmount =
     monthlyData.find(m => m.date.isSame(selectedBar, 'month'))?.value ?? 0;
@@ -67,12 +55,12 @@ export default function MetricsScreen() {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
-            onRefresh={execute}
+            refreshing={isRefreshing}
+            onRefresh={refreshMetrics}
           />
         }
       >
-        <OptionalErrorMessage error={error?.message} />
+        <OptionalErrorMessage error={error} />
 
         <View
           style={{

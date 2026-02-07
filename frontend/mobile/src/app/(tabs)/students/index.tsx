@@ -2,9 +2,7 @@ import { LegendList, type LegendListRef } from '@legendapp/list';
 import { useScrollToTop } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
-import { studentService } from '@/src/api/services/student/studentService';
 import { StudentCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
@@ -28,18 +26,14 @@ export default function StudentsScreen() {
   const listRef = useRef<LegendListRef | null>(null);
   useScrollToTop(listRef);
 
-  const students = useStudentsStore(state => state.allStudents);
-  const groups = useGroupsStore(state => state.allGroups);
-  const setAllStudents = useStudentsStore(state => state.setAllStudents);
-
-  const { loading, execute, error } = useAsyncCallback(async () => {
-    const data = await studentService.getOverview();
-    setAllStudents(data);
-    return data;
-  });
+  const groupsRecord = useGroupsStore(state => state.allGroups);
+  const studentsRecord = useStudentsStore(state => state.allStudents);
+  const isRefreshing = useStudentsStore(state => state.isRefreshing);
+  const error = useStudentsStore(state => state.error);
+  const refreshStudents = useStudentsStore(state => state.refreshStudents);
 
   const filteredStudents = useFilteredStudents(
-    students,
+    studentsRecord,
     searchQuery,
     filterGroup,
     filterStatus
@@ -50,13 +44,13 @@ export default function StudentsScreen() {
     []
   );
 
-  const refreshData = useCallback(async () => {
+  const handleRefresh = useCallback(async () => {
     setSearchQuery('');
+    setFilterKey(key => key + 1);
     setFilterGroup(null);
     setFilterStatus(null);
-    setFilterKey(key => key + 1);
-    await execute();
-  }, [execute]);
+    await refreshStudents();
+  }, [refreshStudents]);
 
   return (
     <>
@@ -72,7 +66,7 @@ export default function StudentsScreen() {
         ]}
       />
 
-      <OptionalErrorMessage error={error?.message} />
+      <OptionalErrorMessage error={error} />
 
       <LegendList
         ref={listRef}
@@ -80,8 +74,8 @@ export default function StudentsScreen() {
         keyExtractor={item => item.id}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
-        refreshing={loading}
-        onRefresh={refreshData}
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
         keyboardShouldPersistTaps='handled'
         style={{ flex: 1, backgroundColor: theme.colors.surfaceVariant }}
         contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
@@ -98,7 +92,7 @@ export default function StudentsScreen() {
             setFilterGroup={setFilterGroup}
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
-            groupsRecord={groups}
+            groupsRecord={groupsRecord}
           />
         }
       />
