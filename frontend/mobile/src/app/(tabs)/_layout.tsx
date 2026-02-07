@@ -3,12 +3,15 @@ import { Redirect, Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { BottomNavigation, Icon } from 'react-native-paper';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useInitApp } from '@/src/hooks/useInitApp';
 import { useAuthStore } from '@/src/stores/authStore';
 
 export default function TabsLayout() {
   const user = useAuthStore(state => state.user);
   const theme = useAppTheme();
   const { t } = useTranslation();
+
+  useInitApp();
 
   if (!user) {
     return <Redirect href='/auth' />;
