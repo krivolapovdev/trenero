@@ -109,18 +109,19 @@ public class LessonService implements LessonSpi {
     Lesson lesson = lessonMapper.toLesson(request, jwtUser.userId());
     Lesson savedLesson = saveLesson(lesson);
 
+    Map<UUID, StudentVisit> requestStudentMap =
+        request.students().stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(StudentVisit::studentId, Function.identity()));
+
     List<StudentVisit> studentVisitList =
         groupStudentSpi.getStudentsByGroupId(request.groupId(), jwtUser).stream()
             .map(
                 res ->
-                    request.students().stream()
-                        .filter(Objects::nonNull)
-                        .filter(req -> req.studentId().equals(res.studentId()))
-                        .findFirst()
-                        .map(sv -> new StudentVisit(sv.studentId(), sv.status(), sv.type()))
-                        .orElse(
-                            new StudentVisit(
-                                res.studentId(), VisitStatus.UNMARKED, VisitType.UNMARKED)))
+                    requestStudentMap.getOrDefault(
+                        res.studentId(),
+                        new StudentVisit(
+                            res.studentId(), VisitStatus.UNMARKED, VisitType.UNMARKED)))
             .toList();
 
     visitSpi.createVisits(lesson.getId(), studentVisitList, jwtUser);

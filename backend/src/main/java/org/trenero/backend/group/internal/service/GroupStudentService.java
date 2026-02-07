@@ -88,9 +88,26 @@ public class GroupStudentService implements GroupStudentSpi {
 
   @Transactional
   public void addStudentsToGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
-    for (UUID studentId : studentIds) {
-      self.addStudentToGroup(studentId, groupId, jwtUser);
-    }
+    log.info(
+        "Batch adding students to group: groupId={}; studentIds={}; user={}",
+        groupId,
+        studentIds,
+        jwtUser);
+
+    groupService.getGroupById(groupId, jwtUser);
+
+    List<GroupStudent> groupStudents =
+        studentIds.stream()
+            .map(
+                studentId ->
+                    GroupStudent.builder()
+                        .studentId(studentId)
+                        .groupId(groupId)
+                        .ownerId(jwtUser.userId())
+                        .build())
+            .toList();
+
+    groupStudentRepository.saveAll(groupStudents);
   }
 
   @Transactional

@@ -110,7 +110,7 @@ public class StudentPaymentService implements StudentPaymentSpi {
 
     Transaction transaction =
         transactionService.createTransactionEntity(
-            jwtUser.userId(), request.amount(), TransactionType.INCOME, request.date());
+            request.amount(), TransactionType.INCOME, request.date(), jwtUser);
 
     StudentPayment studentPayment =
         StudentPayment.builder()

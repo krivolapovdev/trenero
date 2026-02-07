@@ -30,21 +30,17 @@ public class MetricService {
     YearMonth endMonth = YearMonth.now();
     YearMonth startMonth = endMonth.minusMonths(6);
 
-    List<TransactionResponse> transactions = transactionSpi.getAllTransactions(jwtUser);
+    List<TransactionResponse> transactionsByDateRange =
+        transactionSpi.getTransactionsByDateRange(
+            startMonth.atDay(1), endMonth.atEndOfMonth(), jwtUser);
 
     Map<YearMonth, BigDecimal> totalByMonth =
-        transactions.stream()
-            .filter(
-                t -> {
-                  YearMonth txMonth = YearMonth.from(t.date());
-                  return !txMonth.isBefore(startMonth) && !txMonth.isAfter(endMonth);
-                })
+        transactionsByDateRange.stream()
             .collect(
-                Collectors.groupingBy(
-                    t -> YearMonth.from(t.date()),
-                    Collectors.mapping(
-                        t -> t.type() == TransactionType.INCOME ? t.amount() : t.amount().negate(),
-                        Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
+                Collectors.toMap(
+                    tr -> YearMonth.from(tr.date()),
+                    tr -> tr.type() == TransactionType.INCOME ? tr.amount() : tr.amount().negate(),
+                    BigDecimal::add));
 
     return Stream.iterate(startMonth, m -> !m.isAfter(endMonth), m -> m.plusMonths(1))
         .map(

@@ -58,27 +58,42 @@ public class TransactionService implements TransactionSpi {
         .collect(Collectors.toMap(TransactionResponse::id, Function.identity()));
   }
 
-  @Transactional
-  public Transaction createTransactionEntity(
-      UUID ownerId, BigDecimal amount, TransactionType type, LocalDate date) {
+  @Override
+  @Transactional(readOnly = true)
+  public @NonNull List<TransactionResponse> getTransactionsByDateRange(
+      @NonNull LocalDate startDate, @NonNull LocalDate endDate, @NonNull JwtUser jwtUser) {
     log.info(
-        "Creating transaction entity: ownerId={}; amount={}; type={}; date={}",
-        ownerId,
-        amount,
-        type,
-        date);
+        "Getting transactions by date range: user={}; startDate={}; endDate={}",
+        jwtUser,
+        startDate,
+        endDate);
 
-    Transaction transaction =
-        Transaction.builder().ownerId(ownerId).type(type).amount(amount).date(date).build();
-
-    return saveTransaction(transaction);
+    return transactionRepository
+        .findAllByOwnerIdAndDateBetween(jwtUser.userId(), startDate, endDate)
+        .stream()
+        .map(transactionMapper::toResponse)
+        .toList();
   }
 
   @Transactional
-  public TransactionResponse createTransaction(
-      UUID ownerId, BigDecimal amount, TransactionType type, LocalDate date) {
-    Transaction saved = self.createTransactionEntity(ownerId, amount, type, date);
-    return transactionMapper.toResponse(saved);
+  public Transaction createTransactionEntity(
+      BigDecimal amount, TransactionType type, LocalDate date, JwtUser jwtUser) {
+    log.info(
+        "Creating transaction entity:amount={}; type={}; date={}; user={}",
+        amount,
+        type,
+        date,
+        jwtUser);
+
+    Transaction transaction =
+        Transaction.builder()
+            .ownerId(jwtUser.userId())
+            .type(type)
+            .amount(amount)
+            .date(date)
+            .build();
+
+    return saveTransaction(transaction);
   }
 
   @Transactional

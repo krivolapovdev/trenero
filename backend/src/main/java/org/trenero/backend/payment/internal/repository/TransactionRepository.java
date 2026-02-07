@@ -1,5 +1,6 @@
 package org.trenero.backend.payment.internal.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,4 +44,18 @@ public interface TransactionRepository extends JpaRepository<@NonNull Transactio
       """)
   List<Transaction> findAllByIdInAndOwnerId(
       @Param("ids") List<UUID> ids, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+      SELECT t
+      FROM Transaction AS t
+      WHERE t.ownerId = :ownerId
+        AND t.date BETWEEN :startDate AND :endDate
+        AND t.deletedAt IS NULL
+      ORDER BY t.date DESC
+      """)
+  List<Transaction> findAllByOwnerIdAndDateBetween(
+      @Param("ownerId") UUID ownerId,
+      @Param("startDate") LocalDate startDate,
+      @Param("endDate") LocalDate endDate);
 }

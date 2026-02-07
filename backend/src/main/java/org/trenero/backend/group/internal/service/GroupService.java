@@ -69,7 +69,7 @@ public class GroupService implements GroupSpi {
 
   @Transactional(readOnly = true)
   public @NonNull GroupResponse getGroupById(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
-    log.info("Getting group by id={} for ownerId={}", groupId, jwtUser.userId());
+    log.info("Getting group by id: groupId={}; user={}", groupId, jwtUser);
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.userId())
         .map(groupMapper::toResponse)

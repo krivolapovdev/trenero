@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -150,10 +151,15 @@ public class StudentService implements StudentSpi {
         (groupId != null) ? lessonSpi.getLastGroupLesson(groupId, jwtUser) : Optional.empty();
 
     List<VisitResponse> studentVisits = visitSpi.getVisitsByStudentId(studentId, jwtUser);
+
     List<StudentPaymentResponse> studentPayments =
         studentPaymentSpi.getStudentPaymentsByStudentId(studentId, jwtUser);
+
     List<LessonResponse> allLessons =
         (groupId != null) ? lessonSpi.getLessonsByGroupId(groupId, jwtUser) : List.of();
+
+    Map<UUID, LessonResponse> lessonsMap =
+        allLessons.stream().collect(Collectors.toMap(LessonResponse::id, Function.identity()));
 
     Set<StudentStatus> studentStatuses =
         studentStatusService.getStudentStatuses(
@@ -161,14 +167,7 @@ public class StudentService implements StudentSpi {
 
     List<VisitWithLessonResponse> visitsWithLessons =
         studentVisits.stream()
-            .map(
-                visit ->
-                    new VisitWithLessonResponse(
-                        visit,
-                        allLessons.stream()
-                            .filter(lesson -> lesson.id().equals(visit.lessonId()))
-                            .findFirst()
-                            .orElse(null)))
+            .map(visit -> new VisitWithLessonResponse(visit, lessonsMap.get(visit.lessonId())))
             .toList();
 
     return new StudentDetailsResponse(
