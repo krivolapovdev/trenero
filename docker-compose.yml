@@ -76,11 +76,10 @@ services:
       - "--accesslog=true"
       - "--accesslog.format=common"
       - "--ping=true"
-      - "--ping.entrypoint=web"
     ports:
       - "80:80"
     healthcheck:
-      test: [ "CMD", "traefik", "healthcheck", "--ping", "--ping.entrypoint=web" ]
+      test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/ping" ]
       interval: 10s
       timeout: 5s
       retries: 20
