@@ -30,10 +30,11 @@ services:
       GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-ultra-secure-and-ultra-long-secret}
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health" ]
+      test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/actuator/health" ]
       interval: 10s
       timeout: 5s
       retries: 20
+      start_period: 60s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.entrypoints=web"
@@ -51,13 +52,13 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.entrypoints=web"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`) && !PathPrefix(`/api`)"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
       - "traefik.http.routers.frontend.middlewares=frontend-compress"
       - "traefik.http.middlewares.frontend-compress.compress=true"
       - "traefik.http.routers.frontend.priority=10"
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000" ]
+      test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000" ]
       interval: 10s
       timeout: 5s
       retries: 20
