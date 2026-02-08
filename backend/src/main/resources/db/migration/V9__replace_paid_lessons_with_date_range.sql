@@ -15,6 +15,10 @@ SET paid_until = (rd.tx_date + (rd.daily_offset * INTERVAL '1 month'))::date
 FROM ranked_daily AS rd
 WHERE sp.transaction_id = rd.transaction_id;
 
+DELETE
+FROM payments_module.student_payments
+WHERE paid_until IS NULL;
+
 ALTER TABLE payments_module.student_payments
     ALTER COLUMN paid_until SET NOT NULL;
 
