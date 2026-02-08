@@ -101,7 +101,7 @@ export const StudentForm = memo(
             ? formatDateInput(initialData.student?.birthdate)
             : ''
         );
-        setGroupId(initialData.student?.studentGroup?.id ?? null);
+        setGroupId(initialData.student?.groupsHistory[0]?.group.id ?? null);
       }
     }, [initialData]);
 

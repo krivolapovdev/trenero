@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
-import { memo, useCallback, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { memo, useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { IconButton } from 'react-native-paper';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -12,15 +12,22 @@ type MarkedDay = {
   dotColor?: string;
 };
 
-type Props = {
+type CalendarProps = {
   items: MarkedDay[];
+  currentMonth: dayjs.Dayjs;
   onDatePress: (date: dayjs.Dayjs) => void;
 };
 
+type ControlsProps = {
+  currentMonth: dayjs.Dayjs;
+  onPrev: () => void;
+  onNext: () => void;
+  disableNext?: boolean;
+};
+
 export const CustomCalendar = memo(
-  ({ items, onDatePress }: Readonly<Props>) => {
+  ({ items, currentMonth, onDatePress }: Readonly<CalendarProps>) => {
     const theme = useAppTheme();
-    const [currentMonth, setCurrentMonth] = useState(dayjs());
 
     const markedDates = useMemo(
       () =>
@@ -44,19 +51,12 @@ export const CustomCalendar = memo(
       [items]
     );
 
-    const goPrevMonth = useCallback(() => {
-      setCurrentMonth(prev => prev.subtract(1, 'month'));
-    }, []);
-
-    const goNextMonth = useCallback(() => {
-      setCurrentMonth(prev => prev.add(1, 'month'));
-    }, []);
-
     return (
       <View style={{ borderRadius: 16, backgroundColor: theme.colors.surface }}>
         <Calendar
           markingType='custom'
-          initialDate={currentMonth.format('YYYY-MM-DD')}
+          key={currentMonth.format('YYYY-MM')}
+          current={currentMonth.format('YYYY-MM-DD')}
           style={{
             borderRadius: 16,
             backgroundColor: theme.colors.surface
@@ -67,34 +67,40 @@ export const CustomCalendar = memo(
           disabledByDefault={true}
           hideExtraDays={true}
           hideArrows={true}
-          monthFormat='MM/yyyy'
+          renderHeader={() => null}
           onDayPress={date => onDatePress(dayjs(date.dateString))}
           theme={{
             backgroundColor: theme.colors.surface,
             calendarBackground: theme.colors.surface
           }}
         />
-
-        <View
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'flex-end'
-          }}
-        >
-          <IconButton
-            icon='chevron-left'
-            onPress={goPrevMonth}
-          />
-
-          <IconButton
-            icon='chevron-right'
-            disabled={currentMonth.isSame(dayjs(), 'month')}
-            onPress={goNextMonth}
-          />
-        </View>
       </View>
     );
   }
 );
+
+export const CalendarControls = memo(
+  ({ onPrev, onNext, disableNext }: Readonly<ControlsProps>) => (
+    <View style={styles.controlsContainer}>
+      <IconButton
+        icon='chevron-left'
+        onPress={onPrev}
+      />
+
+      <IconButton
+        icon='chevron-right'
+        disabled={disableNext}
+        onPress={onNext}
+      />
+    </View>
+  )
+);
+
+const styles = StyleSheet.create({
+  controlsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 8
+  }
+});

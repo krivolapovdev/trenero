@@ -1,15 +1,19 @@
+import dayjs from 'dayjs';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
+import { Text } from 'react-native-paper';
 import { studentService } from '@/src/api/services/student/studentService';
 import { PaymentSheet } from '@/src/components/BottomSheet/PaymentSheet';
 import { VisitCalendar } from '@/src/components/Calendar';
+import { CalendarControls } from '@/src/components/Calendar/CustomCalendar';
 import { StudentCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
 import { StudentPaymentsTable } from '@/src/components/StudentPaymentsTable';
+import { SurfaceCard } from '@/src/components/SurfaceCard';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentsStore } from '@/src/stores/studentsStore';
 import type { StudentDetails, StudentOverview } from '@/src/types/student';
@@ -75,6 +79,15 @@ export default function StudentByIdScreen() {
     }
   }, [deleteError, t]);
 
+  const studentGroup = hasDetails
+    ? student.groupsHistory.find(g => g.isCurrent)?.group
+    : undefined;
+
+  const [currentMonth, setCurrentMonth] = useState(dayjs());
+
+  const goPrevMonth = () => setCurrentMonth(prev => prev.subtract(1, 'month'));
+  const goNextMonth = () => setCurrentMonth(prev => prev.add(1, 'month'));
+
   return (
     <>
       <CustomAppbar
@@ -126,26 +139,66 @@ export default function StudentByIdScreen() {
 
         {hasDetails && (
           <>
-            <StudentCard student={student} />
+            <StudentCard
+              student={{
+                ...student,
+                studentGroup
+              }}
+            />
 
             <StudentPaymentsTable
               payments={student?.studentPayments ?? []}
               onRowPress={setPaymentIdSheet}
             />
 
-            {student.studentGroup && (
-              <VisitCalendar
-                groupId={student.studentGroup.id}
-                visitsWithLesson={student?.studentVisits ?? []}
+            <SurfaceCard>
+              <Text
+                variant='bodyLarge'
+                style={{ textAlign: 'center', marginTop: 8 }}
+              >
+                {currentMonth.format('MMMM YYYY')}
+              </Text>
+
+              {student.groupsHistory.map(({ group, visits, isCurrent }) => (
+                <SurfaceCard key={group.id}>
+                  <Text
+                    variant='bodyLarge'
+                    style={{
+                      marginBottom: 8,
+                      textAlign: 'center',
+                      backgroundColor: isCurrent
+                        ? theme.colors.primaryContainer
+                        : theme.colors.errorContainer
+                    }}
+                  >
+                    {group.name}
+                  </Text>
+
+                  <VisitCalendar
+                    groupId={group.id}
+                    visitsWithLesson={visits}
+                    currentMonth={currentMonth}
+                  />
+                </SurfaceCard>
+              ))}
+
+              <CalendarControls
+                currentMonth={currentMonth}
+                onPrev={goPrevMonth}
+                onNext={goNextMonth}
+                disableNext={currentMonth.isSame(dayjs(), 'month')}
               />
-            )}
+            </SurfaceCard>
           </>
         )}
       </ScrollView>
 
       <PaymentSheet
         visible={Boolean(paymentIdSheet)}
-        onDismiss={() => setPaymentIdSheet(null)}
+        onDismiss={() => {
+          setPaymentIdSheet(null);
+          void fetchStudent();
+        }}
         paymentId={paymentIdSheet ?? ''}
       />
     </>

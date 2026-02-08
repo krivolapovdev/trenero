@@ -25,6 +25,7 @@ export type LessonFormValues = {
 type LessonFormInitialData = {
   lesson?: Partial<components['schemas']['LessonDetailsResponse']>;
   groupStudents?: components['schemas']['StudentResponse'][];
+  allStudents?: Record<string, components['schemas']['StudentResponse']>;
 };
 
 type Props = {
@@ -77,7 +78,7 @@ export const LessonForm = memo(
         return;
       }
 
-      const { lesson, groupStudents = [] } = initialData;
+      const { lesson, groupStudents = [], allStudents = {} } = initialData;
 
       if (lesson?.date) {
         setDate(dayjs(lesson.date).format('DD.MM.YYYY'));
@@ -89,12 +90,30 @@ export const LessonForm = memo(
         lesson?.studentVisits?.map(visit => [visit.studentId, visit])
       );
 
+      const allStudentsMap = new Map();
+
+      groupStudents.forEach(student => {
+        allStudentsMap.set(student.id, student);
+      });
+
+      lesson?.studentVisits?.forEach(visit => {
+        if (
+          visit.studentId &&
+          !allStudentsMap.has(visit.studentId) &&
+          allStudents[visit.studentId]
+        ) {
+          allStudentsMap.set(visit.studentId, allStudents[visit.studentId]);
+        }
+      });
+
       const baseState: StudentVisitState = isEditMode
         ? { status: 'UNMARKED', type: 'UNMARKED' }
         : { status: 'ABSENT', type: 'REGULAR' };
 
+      console.log(allStudentsMap);
+
       const newVisitState = Object.fromEntries(
-        groupStudents.map(student => [
+        Array.from(allStudentsMap.values()).map(student => [
           student.id,
           {
             status: existingVisits.get(student.id)?.status ?? baseState.status,
@@ -136,7 +155,11 @@ export const LessonForm = memo(
 
           <SurfaceCard>
             <StudentVisitPicker
-              students={initialData?.groupStudents ?? []}
+              students={Object.keys(visitState)
+                .map(studentId => initialData?.allStudents?.[studentId])
+                .filter((s): s is components['schemas']['StudentResponse'] =>
+                  Boolean(s)
+                )}
               visitState={visitState}
               setVisitState={setVisitState}
               disabled={isLoading}

@@ -31,7 +31,7 @@ export default function DashboardScreen() {
     () =>
       allMetrics.map(m => ({
         date: dayjs(m.date),
-        value: m.total
+        value: m.total < 0 ? 0 : m.total
       })),
     [allMetrics]
   );

@@ -9,6 +9,7 @@ import {
   StudentForm,
   type StudentFormValues
 } from '@/src/components/Form/StudentForm';
+import { extractErrorMessage } from '@/src/helpers/apiError';
 import { useGroupsStore } from '@/src/stores/groupsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
 import type { StudentDetails } from '@/src/types/student';
@@ -65,7 +66,7 @@ export default function UpdateStudentScreen() {
       request.birthdate = values.birthdate ?? null;
     }
 
-    if (values.groupId !== student.studentGroup?.id) {
+    if (values.groupId !== student.groupsHistory[0]?.group.id) {
       request.groupId = values.groupId ?? null;
     }
 
@@ -78,7 +79,7 @@ export default function UpdateStudentScreen() {
 
     removeStudent(studentId);
 
-    const oldGroupId = student.studentGroup?.id;
+    const oldGroupId = student.groupsHistory[0]?.group.id;
     const currentGroupId = 'groupId' in request ? request.groupId : oldGroupId;
 
     if (oldGroupId && oldGroupId !== currentGroupId) {
@@ -110,7 +111,7 @@ export default function UpdateStudentScreen() {
 
   useEffect(() => {
     if (error) {
-      Alert.alert(t('error'), error.message);
+      Alert.alert(t('error'), extractErrorMessage(error));
     }
   }, [error, t]);
 

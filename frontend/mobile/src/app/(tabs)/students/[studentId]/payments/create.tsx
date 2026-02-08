@@ -10,6 +10,7 @@ import {
   PaymentForm,
   type PaymentFormValues
 } from '@/src/components/Form/PaymentForm';
+import { extractErrorMessage } from '@/src/helpers/apiError';
 import { useGroupsStore } from '@/src/stores/groupsStore';
 import { useMetricsStore } from '@/src/stores/metricsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
@@ -28,8 +29,8 @@ export default function CreatePaymentScreen() {
   const removeStudent = useStudentsStore(state => state.removeStudent);
   const adjustMetricTotal = useMetricsStore(state => state.adjustMetricTotal);
   const group = useGroupsStore(state =>
-    student?.studentGroup?.id
-      ? state.allGroups[student.studentGroup.id]
+    student?.groupsHistory.length > 0
+      ? state.allGroups[student?.groupsHistory[0].group.id]
       : undefined
   );
 
@@ -76,7 +77,7 @@ export default function CreatePaymentScreen() {
 
   useEffect(() => {
     if (error) {
-      Alert.alert(t('error'), error.message);
+      Alert.alert(t('error'), extractErrorMessage(error));
     }
   }, [error]);
 

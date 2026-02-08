@@ -9,6 +9,7 @@ import {
   StudentForm,
   type StudentFormValues
 } from '@/src/components/Form/StudentForm';
+import { extractErrorMessage } from '@/src/helpers/apiError';
 import { useGroupsStore } from '@/src/stores/groupsStore';
 
 type CreateStudentRequest = components['schemas']['CreateStudentRequest'];
@@ -52,7 +53,7 @@ export default function CreateStudentScreen() {
 
   useEffect(() => {
     if (error) {
-      Alert.alert(t('error'), error.message);
+      Alert.alert(t('error'), extractErrorMessage(error));
     }
   }, [error, t]);
 

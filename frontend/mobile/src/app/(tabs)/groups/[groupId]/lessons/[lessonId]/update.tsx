@@ -10,6 +10,7 @@ import {
   LessonForm,
   type LessonFormValues
 } from '@/src/components/Form/LessonForm';
+import { extractErrorMessage } from '@/src/helpers/apiError';
 import { useGroupsStore } from '@/src/stores/groupsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
 
@@ -23,12 +24,13 @@ export default function UpdateLessonScreen() {
     lessonId: string;
   }>();
 
-  const removeGroup = useGroupsStore(state => state.removeGroup);
+  const refreshGroups = useGroupsStore(state => state.refreshGroups);
   const refreshStudents = useStudentsStore(state => state.refreshStudents);
   const isRefreshing = useStudentsStore(state => state.isRefreshing);
   const groupStudents = useGroupsStore(
     state => state.allGroups[groupId]
   )?.groupStudents;
+  const allStudents = useStudentsStore(state => state.allStudents);
 
   const {
     loading: lessonLoading,
@@ -71,9 +73,7 @@ export default function UpdateLessonScreen() {
 
     await updateLesson(request);
 
-    await refreshStudents();
-
-    removeGroup(groupId);
+    await Promise.all([refreshStudents(), refreshGroups()]);
 
     router.back();
   };
@@ -82,7 +82,7 @@ export default function UpdateLessonScreen() {
     const error = fetchError || updateError;
 
     if (error) {
-      Alert.alert(t('error'), error.message);
+      Alert.alert(t('error'), extractErrorMessage(error));
     }
   }, [updateError, t, fetchError]);
 
@@ -91,7 +91,8 @@ export default function UpdateLessonScreen() {
       title={t('editLesson')}
       initialData={{
         lesson,
-        groupStudents
+        groupStudents,
+        allStudents
       }}
       queryLoading={lessonLoading}
       mutationLoading={updateLessonLoading || isRefreshing}

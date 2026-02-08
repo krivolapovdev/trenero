@@ -9,6 +9,7 @@ import {
   GroupForm,
   type GroupFormValues
 } from '@/src/components/Form/GroupForm';
+import { extractErrorMessage } from '@/src/helpers/apiError';
 import { useGroupsStore } from '@/src/stores/groupsStore';
 import type { GroupDetails } from '@/src/types/group';
 
@@ -70,7 +71,7 @@ export default function UpdateGroupScreen() {
 
   useEffect(() => {
     if (error) {
-      Alert.alert(t('error'), error.message);
+      Alert.alert(t('error'), extractErrorMessage(error));
     }
   }, [error, t]);
 

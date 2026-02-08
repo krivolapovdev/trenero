@@ -11,6 +11,7 @@ import {
   PaymentForm,
   type PaymentFormValues
 } from '@/src/components/Form/PaymentForm';
+import { extractErrorMessage } from '@/src/helpers/apiError';
 import { useMetricsStore } from '@/src/stores/metricsStore';
 import { useStudentsStore } from '@/src/stores/studentsStore';
 import type { StudentDetails } from '@/src/types/student';
@@ -78,7 +79,7 @@ export default function UpdatePaymentScreen() {
 
   useEffect(() => {
     if (error) {
-      Alert.alert(t('error'), error.message);
+      Alert.alert(t('error'), extractErrorMessage(error));
     }
   }, [error, t]);
 

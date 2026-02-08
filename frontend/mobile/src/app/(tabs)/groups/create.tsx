@@ -9,6 +9,7 @@ import {
   GroupForm,
   type GroupFormValues
 } from '@/src/components/Form/GroupForm';
+import { extractErrorMessage } from '@/src/helpers/apiError';
 
 type CreateGroupRequest = components['schemas']['CreateGroupRequest'];
 
@@ -38,7 +39,7 @@ export default function CreateGroupScreen() {
 
   useEffect(() => {
     if (error) {
-      Alert.alert(t('error'), error.message);
+      Alert.alert(t('error'), extractErrorMessage(error));
     }
   }, [error, t]);
 
