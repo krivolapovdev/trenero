@@ -76,6 +76,7 @@ services:
       - "--accesslog=true"
       - "--accesslog.format=common"
       - "--ping=true"
+      - "--ping.entrypoint=web"
     ports:
       - "80:80"
     healthcheck:
