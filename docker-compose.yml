@@ -76,6 +76,7 @@ services:
       - "--accesslog=true"
       - "--accesslog.format=common"
       - "--ping=true"
+      - "--ping.entrypoint=web"
     ports:
       - "80:80"
     healthcheck:
@@ -83,6 +84,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 20
+      start_period: 30s
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
