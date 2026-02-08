@@ -40,6 +40,7 @@ services:
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
       - "traefik.http.routers.backend.middlewares=backend-compress"
       - "traefik.http.middlewares.backend-compress.compress=true"
+      - "traefik.http.routers.backend.priority=100"
     networks:
       - trenero-network
 
@@ -52,6 +53,7 @@ services:
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
       - "traefik.http.routers.frontend.middlewares=frontend-compress"
       - "traefik.http.middlewares.frontend-compress.compress=true"
+      - "traefik.http.routers.frontend.priority=10"
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000" ]
       interval: 10s
