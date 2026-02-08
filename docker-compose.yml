@@ -36,6 +36,7 @@ services:
       retries: 20
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
       - "traefik.http.routers.backend.middlewares=backend-compress"
@@ -49,7 +50,8 @@ services:
     container_name: frontend
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`) && !PathPrefix(`/api`)"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
       - "traefik.http.routers.frontend.middlewares=frontend-compress"
       - "traefik.http.middlewares.frontend-compress.compress=true"
