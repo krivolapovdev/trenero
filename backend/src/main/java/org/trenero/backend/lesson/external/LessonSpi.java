@@ -18,5 +18,7 @@ public interface LessonSpi {
 
   List<LessonResponse> getLessonsByGroupId(UUID groupId, JwtUser jwtUser);
 
+  Map<UUID, LessonResponse> getLessonsByIds(List<UUID> ids, JwtUser jwtUser);
+
   void deleteLesson(UUID lessonId, JwtUser jwtUser);
 }

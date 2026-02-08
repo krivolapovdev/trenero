@@ -102,6 +102,34 @@ public class LessonService implements LessonSpi {
         .toList();
   }
 
+  @Transactional(readOnly = true)
+  public @NonNull Map<UUID, List<LessonResponse>> getLessonsByGroupIds(
+      @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
+    log.info("Getting lessons by group ids: groupIds={}; user={}", groupIds, jwtUser);
+
+    if (groupIds.isEmpty()) {
+      return Map.of();
+    }
+
+    return lessonRepository.findAllByGroupIds(groupIds).stream()
+        .map(lessonMapper::toResponse)
+        .collect(Collectors.groupingBy(LessonResponse::groupId));
+  }
+
+  @Transactional(readOnly = true)
+  public @NonNull Map<UUID, LessonResponse> getLessonsByIds(
+      @NonNull List<UUID> ids, @NonNull JwtUser jwtUser) {
+    log.info("Getting lessons by ids: ids={}; user={}", ids, jwtUser);
+
+    if (ids.isEmpty()) {
+      return Map.of();
+    }
+
+    return lessonRepository.findAllByIdsAndOwnerId(ids, jwtUser.userId()).stream()
+        .map(lessonMapper::toResponse)
+        .collect(Collectors.toMap(LessonResponse::id, Function.identity()));
+  }
+
   @Transactional
   public LessonResponse createLesson(CreateLessonRequest request, JwtUser jwtUser) {
     log.info("Creating lesson: request={}; user={}", request, jwtUser);

@@ -75,4 +75,23 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
       """)
   List<Lesson> findLastLessonsByGroupIdsAndOwnerId(
       @Param("groupIds") List<UUID> groupIds, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+      SELECT l
+      FROM Lesson AS l
+      WHERE l.groupId IN :groupIds
+        AND l.deletedAt IS NULL
+      """)
+  List<Lesson> findAllByGroupIds(@Param("groupIds") List<UUID> groupIds);
+
+  @Query(
+      """
+      SELECT l
+      FROM Lesson AS l
+      WHERE l.id IN :ids
+        AND l.ownerId = :ownerId
+        AND l.deletedAt IS NULL
+      """)
+  List<Lesson> findAllByIdsAndOwnerId(@Param("ids") List<UUID> ids, @Param("ownerId") UUID ownerId);
 }

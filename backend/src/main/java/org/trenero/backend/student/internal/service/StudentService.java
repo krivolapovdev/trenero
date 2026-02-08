@@ -3,13 +3,14 @@ package org.trenero.backend.student.internal.service;
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ import org.trenero.backend.student.internal.mapper.StudentMapper;
 import org.trenero.backend.student.internal.repository.StudentRepository;
 import org.trenero.backend.student.internal.request.CreateStudentRequest;
 import org.trenero.backend.student.internal.response.StudentDetailsResponse;
+import org.trenero.backend.student.internal.response.StudentGroupHistoryResponse;
 import org.trenero.backend.student.internal.response.StudentOverviewResponse;
 import org.trenero.backend.student.internal.response.VisitWithLessonResponse;
 import org.trenero.backend.visit.external.VisitSpi;
@@ -140,43 +142,69 @@ public class StudentService implements StudentSpi {
 
     StudentResponse student = self.getStudentById(studentId, jwtUser);
 
-    Optional<GroupStudentResponse> optionalGroupStudentResponse =
-        groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst();
-
-    UUID groupId = optionalGroupStudentResponse.map(GroupStudentResponse::groupId).orElse(null);
-
-    GroupResponse studentGroup = (groupId != null) ? groupSpi.getGroupById(groupId, jwtUser) : null;
-
-    Optional<LessonResponse> lastGroupLesson =
-        (groupId != null) ? lessonSpi.getLastGroupLesson(groupId, jwtUser) : Optional.empty();
+    Optional<UUID> currentGroupId =
+        groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream()
+            .map(GroupStudentResponse::groupId)
+            .findFirst();
 
     List<VisitResponse> studentVisits = visitSpi.getVisitsByStudentId(studentId, jwtUser);
+
+    List<UUID> visitedLessonIds =
+        studentVisits.stream().map(VisitResponse::lessonId).distinct().toList();
+
+    Map<UUID, LessonResponse> lessonsMap = lessonSpi.getLessonsByIds(visitedLessonIds, jwtUser);
+
+    List<UUID> allGroupIds =
+        Stream.concat(
+                lessonsMap.values().stream().map(LessonResponse::groupId), currentGroupId.stream())
+            .distinct()
+            .toList();
+
+    Map<UUID, GroupResponse> groupsMap = groupSpi.getGroupsByIds(allGroupIds, jwtUser);
+
+    Map<UUID, List<VisitWithLessonResponse>> visitsByGroupId =
+        studentVisits.stream()
+            .map(visit -> new VisitWithLessonResponse(visit, lessonsMap.get(visit.lessonId())))
+            .filter(v -> v.lesson() != null)
+            .collect(Collectors.groupingBy(v -> v.lesson().groupId()));
+
+    List<StudentGroupHistoryResponse> groupsHistory =
+        allGroupIds.stream()
+            .filter(
+                groupId ->
+                    currentGroupId.filter(groupId::equals).isPresent()
+                        || visitsByGroupId.containsKey(groupId))
+            .map(
+                groupId -> {
+                  boolean isCurrent = currentGroupId.filter(groupId::equals).isPresent();
+                  GroupResponse group = groupsMap.get(groupId);
+
+                  List<VisitWithLessonResponse> groupVisits =
+                      visitsByGroupId.getOrDefault(groupId, List.of()).stream()
+                          .sorted(
+                              Comparator.comparing((VisitWithLessonResponse v) -> v.lesson().date())
+                                  .reversed())
+                          .toList();
+
+                  return new StudentGroupHistoryResponse(group, groupVisits, isCurrent);
+                })
+            .sorted(Comparator.comparing(StudentGroupHistoryResponse::isCurrent).reversed())
+            .toList();
 
     List<StudentPaymentResponse> studentPayments =
         studentPaymentSpi.getStudentPaymentsByStudentId(studentId, jwtUser);
 
-    List<LessonResponse> allLessons =
-        (groupId != null) ? lessonSpi.getLessonsByGroupId(groupId, jwtUser) : List.of();
-
-    Map<UUID, LessonResponse> lessonsMap =
-        allLessons.stream().collect(Collectors.toMap(LessonResponse::id, Function.identity()));
+    Optional<LessonResponse> lastGroupLesson =
+        currentGroupId.flatMap(uuid -> lessonSpi.getLastGroupLesson(uuid, jwtUser));
 
     Set<StudentStatus> studentStatuses =
         studentStatusService.getStudentStatuses(
             studentVisits, studentPayments, lastGroupLesson.orElse(null));
 
-    List<VisitWithLessonResponse> visitsWithLessons =
-        studentVisits.stream()
-            .map(visit -> new VisitWithLessonResponse(visit, lessonsMap.get(visit.lessonId())))
-            .toList();
+    GroupResponse currentGroup = currentGroupId.map(groupsMap::get).orElse(null);
 
     return new StudentDetailsResponse(
-        student,
-        visitsWithLessons,
-        studentPayments,
-        studentStatuses,
-        studentGroup,
-        optionalGroupStudentResponse.orElse(null));
+        student, currentGroup, groupsHistory, studentPayments, studentStatuses);
   }
 
   @Transactional
