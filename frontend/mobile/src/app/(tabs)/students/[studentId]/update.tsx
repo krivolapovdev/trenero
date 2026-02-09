@@ -66,7 +66,7 @@ export default function UpdateStudentScreen() {
       request.birthdate = values.birthdate ?? null;
     }
 
-    if (values.groupId !== student.groupsHistory[0]?.group.id) {
+    if (values.groupId !== student.studentGroup?.id) {
       request.groupId = values.groupId ?? null;
     }
 
@@ -79,7 +79,7 @@ export default function UpdateStudentScreen() {
 
     removeStudent(studentId);
 
-    const oldGroupId = student.groupsHistory[0]?.group.id;
+    const oldGroupId = student.studentGroup?.id;
     const currentGroupId = 'groupId' in request ? request.groupId : oldGroupId;
 
     if (oldGroupId && oldGroupId !== currentGroupId) {

@@ -2,17 +2,16 @@ import dayjs from 'dayjs';
 import { useRouter } from 'expo-router';
 import { memo, useMemo } from 'react';
 import type { components } from '@/src/api/generated/openapi';
-import { CustomCalendar } from '@/src/components/Calendar/CustomCalendar';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { CustomCalendar } from './CustomCalendar';
 
 type Props = {
   groupId: string;
   visitsWithLesson: components['schemas']['VisitWithLessonResponse'][];
-  currentMonth: dayjs.Dayjs;
 };
 
 export const VisitCalendar = memo(
-  ({ groupId, visitsWithLesson = [], currentMonth }: Readonly<Props>) => {
+  ({ groupId, visitsWithLesson }: Readonly<Props>) => {
     const router = useRouter();
     const theme = useAppTheme();
 
@@ -44,7 +43,6 @@ export const VisitCalendar = memo(
 
     return (
       <CustomCalendar
-        currentMonth={currentMonth}
         items={items}
         onDatePress={date => {
           const item = items.find(d => d.date.isSame(date));

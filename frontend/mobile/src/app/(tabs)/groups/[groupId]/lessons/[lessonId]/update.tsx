@@ -27,6 +27,7 @@ export default function UpdateLessonScreen() {
   const refreshGroups = useGroupsStore(state => state.refreshGroups);
   const refreshStudents = useStudentsStore(state => state.refreshStudents);
   const isRefreshing = useStudentsStore(state => state.isRefreshing);
+
   const groupStudents = useGroupsStore(
     state => state.allGroups[groupId]
   )?.groupStudents;

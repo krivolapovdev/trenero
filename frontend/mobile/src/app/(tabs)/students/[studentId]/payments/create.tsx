@@ -29,8 +29,8 @@ export default function CreatePaymentScreen() {
   const removeStudent = useStudentsStore(state => state.removeStudent);
   const adjustMetricTotal = useMetricsStore(state => state.adjustMetricTotal);
   const group = useGroupsStore(state =>
-    student?.groupsHistory.length > 0
-      ? state.allGroups[student?.groupsHistory[0].group.id]
+    student?.studentGroup?.id
+      ? state.allGroups[student.studentGroup.id]
       : undefined
   );
 

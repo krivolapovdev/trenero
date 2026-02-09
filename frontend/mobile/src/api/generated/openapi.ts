@@ -451,6 +451,16 @@ export interface components {
       date?: string;
       students?: components['schemas']['StudentVisit'][];
     };
+    GroupStudentResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      groupId: string;
+      /** Format: uuid */
+      studentId: string;
+      /** Format: date-time */
+      leftAt?: string;
+    };
     StudentDetailsResponse: {
       /** Format: uuid */
       id: string;
@@ -461,15 +471,11 @@ export interface components {
       note?: string;
       /** Format: date-time */
       createdAt: string;
-      studentGroup?: components['schemas']['GroupResponse'];
-      groupsHistory: components['schemas']['StudentGroupHistoryResponse'][];
+      studentVisits: components['schemas']['VisitWithLessonResponse'][];
       studentPayments: components['schemas']['StudentPaymentResponse'][];
       statuses: ('INACTIVE' | 'PRESENT' | 'MISSING' | 'PAID' | 'UNPAID')[];
-    };
-    StudentGroupHistoryResponse: {
-      group: components['schemas']['GroupResponse'];
-      visits: components['schemas']['VisitWithLessonResponse'][];
-      isCurrent: boolean;
+      studentGroup?: components['schemas']['GroupResponse'];
+      groupStudentResponse?: components['schemas']['GroupStudentResponse'];
     };
     VisitWithLessonResponse: {
       visit: components['schemas']['VisitResponse'];
@@ -491,16 +497,6 @@ export interface components {
     MonthlyPaymentMetricResponse: {
       date: string;
       total: number;
-    };
-    GroupStudentResponse: {
-      /** Format: uuid */
-      id: string;
-      /** Format: uuid */
-      groupId: string;
-      /** Format: uuid */
-      studentId: string;
-      /** Format: date-time */
-      leftAt?: string;
     };
     LessonDetailsResponse: {
       /** Format: uuid */

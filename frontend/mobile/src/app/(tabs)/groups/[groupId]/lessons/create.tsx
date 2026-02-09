@@ -26,6 +26,7 @@ export default function CreateLessonScreen() {
   const groupStudents = useGroupsStore(
     state => state.allGroups[groupId]?.groupStudents
   );
+  const allStudents = useStudentsStore(state => state.allStudents);
 
   const {
     execute: createLesson,
@@ -62,7 +63,8 @@ export default function CreateLessonScreen() {
     <LessonForm
       title={t('addLesson')}
       initialData={{
-        groupStudents
+        groupStudents,
+        allStudents
       }}
       onSubmit={handleSubmit}
       onBack={router.back}

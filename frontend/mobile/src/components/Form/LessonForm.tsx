@@ -80,6 +80,10 @@ export const LessonForm = memo(
 
       const { lesson, groupStudents = [], allStudents = {} } = initialData;
 
+      // console.log(groupStudents)
+      //
+      // console.log(allStudents)
+
       if (lesson?.date) {
         setDate(dayjs(lesson.date).format('DD.MM.YYYY'));
       }
@@ -90,7 +94,10 @@ export const LessonForm = memo(
         lesson?.studentVisits?.map(visit => [visit.studentId, visit])
       );
 
-      const allStudentsMap = new Map();
+      const allStudentsMap = new Map<
+        string,
+        components['schemas']['StudentResponse']
+      >();
 
       groupStudents.forEach(student => {
         allStudentsMap.set(student.id, student);
@@ -109,8 +116,6 @@ export const LessonForm = memo(
       const baseState: StudentVisitState = isEditMode
         ? { status: 'UNMARKED', type: 'UNMARKED' }
         : { status: 'ABSENT', type: 'REGULAR' };
-
-      console.log(allStudentsMap);
 
       const newVisitState = Object.fromEntries(
         Array.from(allStudentsMap.values()).map(student => [

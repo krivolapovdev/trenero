@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.domain.StudentVisit;
 import org.trenero.backend.common.domain.VisitStatus;
 import org.trenero.backend.common.domain.VisitType;
-import org.trenero.backend.common.response.GroupStudentResponse;
 import org.trenero.backend.common.response.LessonResponse;
 import org.trenero.backend.common.response.VisitResponse;
 import org.trenero.backend.common.security.JwtUser;
@@ -87,10 +86,8 @@ public class LessonService implements LessonSpi {
 
     LessonResponse lesson = self.getLessonById(lessonId, jwtUser);
     List<VisitResponse> visits = visitSpi.getVisitsByLessonId(lessonId, jwtUser);
-    List<GroupStudentResponse> groupStudents =
-        groupStudentSpi.getStudentsByGroupId(lesson.groupId(), jwtUser);
 
-    return new LessonDetailsResponse(lesson, visits, groupStudents);
+    return new LessonDetailsResponse(lesson, visits);
   }
 
   @Transactional(readOnly = true)
