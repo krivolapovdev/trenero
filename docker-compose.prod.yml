@@ -21,7 +21,7 @@ services:
       timeout: 5s
       retries: 20
     volumes:
-      - ./backups:/backups
+      - ~/trenero_backups:/backups
     networks:
       - trenero-network
     restart: unless-stopped

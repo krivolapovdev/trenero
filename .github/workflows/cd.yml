@@ -59,7 +59,6 @@ jobs:
             export GOOGLE_WEB_CLIENT_ID="${{ secrets.GOOGLE_WEB_CLIENT_ID }}"
             export JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}"
 
-            docker compose pull
-            docker compose down --remove-orphans
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --force-recreate
+            docker compose -p trenero -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -p trenero -f docker-compose.yml -f docker-compose.prod.yml up -d --wait
             docker image prune -f
