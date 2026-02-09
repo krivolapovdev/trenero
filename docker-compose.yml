@@ -92,7 +92,7 @@ services:
 
 volumes:
   db-data:
-    name: db-data
+    name: trenero-db-data
 
 networks:
   trenero-network:
