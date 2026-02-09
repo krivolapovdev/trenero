@@ -3,6 +3,7 @@ package org.trenero.backend.student.internal.service;
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -138,35 +139,34 @@ public class StudentService implements StudentSpi {
   public StudentDetailsResponse getStudentDetailsById(UUID studentId, JwtUser jwtUser) {
     log.info("Getting student details by id: studentId={}; user={}", studentId, jwtUser);
 
-    StudentResponse student = self.getStudentById(studentId, jwtUser);
+    var student = self.getStudentById(studentId, jwtUser);
 
-    Optional<GroupStudentResponse> optionalGroupStudentResponse =
+    var groupStudentResponse =
         groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst();
 
-    UUID groupId = optionalGroupStudentResponse.map(GroupStudentResponse::groupId).orElse(null);
+    var groupId = groupStudentResponse.map(GroupStudentResponse::groupId);
 
-    GroupResponse studentGroup = (groupId != null) ? groupSpi.getGroupById(groupId, jwtUser) : null;
+    var groupResponse = groupId.map(id -> groupSpi.getGroupById(id, jwtUser));
 
-    Optional<LessonResponse> lastGroupLesson =
-        (groupId != null) ? lessonSpi.getLastGroupLesson(groupId, jwtUser) : Optional.empty();
+    var groupLessons =
+        groupId.map(id -> lessonSpi.getLessonsByGroupId(id, jwtUser)).orElse(List.of());
 
-    List<VisitResponse> studentVisits = visitSpi.getVisitsByStudentId(studentId, jwtUser);
+    var lessonsMap =
+        groupLessons.stream().collect(Collectors.toMap(LessonResponse::id, Function.identity()));
 
-    List<StudentPaymentResponse> studentPayments =
-        studentPaymentSpi.getStudentPaymentsByStudentId(studentId, jwtUser);
+    var studentVisits = visitSpi.getVisitsByStudentId(studentId, jwtUser);
 
-    List<LessonResponse> allLessons =
-        (groupId != null) ? lessonSpi.getLessonsByGroupId(groupId, jwtUser) : List.of();
+    var lastGroupLesson = groupLessons.stream().max(Comparator.comparing(LessonResponse::date));
 
-    Map<UUID, LessonResponse> lessonsMap =
-        allLessons.stream().collect(Collectors.toMap(LessonResponse::id, Function.identity()));
+    var studentPayments = studentPaymentSpi.getStudentPaymentsByStudentId(studentId, jwtUser);
 
-    Set<StudentStatus> studentStatuses =
+    var studentStatuses =
         studentStatusService.getStudentStatuses(
             studentVisits, studentPayments, lastGroupLesson.orElse(null));
 
-    List<VisitWithLessonResponse> visitsWithLessons =
+    var visitsWithLessons =
         studentVisits.stream()
+            .filter(visit -> lessonsMap.containsKey(visit.lessonId()))
             .map(visit -> new VisitWithLessonResponse(visit, lessonsMap.get(visit.lessonId())))
             .toList();
 
@@ -175,8 +175,8 @@ public class StudentService implements StudentSpi {
         visitsWithLessons,
         studentPayments,
         studentStatuses,
-        studentGroup,
-        optionalGroupStudentResponse.orElse(null));
+        groupResponse.orElse(null),
+        groupStudentResponse.orElse(null));
   }
 
   @Transactional
