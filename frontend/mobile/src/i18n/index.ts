@@ -38,7 +38,7 @@ const resources = {
         'Are you sure you want to delete this student?',
       phone: 'Phone',
       birthdate: 'Birthdate',
-      agreeText: 'By continuing, you agree to our',
+      agreeText: 'By continuing, you agree to our Terms & Privacy Policy',
       termsPrivacy: 'Terms & Privacy Policy',
       termsOfServiceTitle: 'Terms of Service',
       termsOfServiceText:
@@ -128,7 +128,8 @@ const resources = {
         'Вы уверены, что хотите удалить этого ученика?',
       phone: 'Телефон',
       birthdate: 'Дата рождения',
-      agreeText: 'Продолжая, вы соглашаетесь с нашими',
+      agreeText:
+        'Продолжая, вы соглашаетесь с нашими правилами и политикой конфиденциальности',
       termsPrivacy: 'Правилами и Политикой конфиденциальности',
       termsOfServiceTitle: 'Условия использования',
       termsOfServiceText:
