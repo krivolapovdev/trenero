@@ -508,7 +508,6 @@ export interface components {
       /** Format: date-time */
       createdAt: string;
       studentVisits: components['schemas']['VisitResponse'][];
-      groupStudents: components['schemas']['GroupStudentResponse'][];
     };
     GroupDetailsResponse: {
       /** Format: uuid */

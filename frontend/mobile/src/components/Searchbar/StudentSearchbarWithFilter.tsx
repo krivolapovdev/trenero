@@ -9,7 +9,12 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import type { StudentStatus } from '@/src/types/student';
 import { FilterAccordion } from './FilterAccordion';
 
-const ALL_ITEM = { id: 'All', name: 'All' };
+type SelectItem<T extends string> = {
+  id: T;
+  name: string;
+};
+
+const ALL_ITEM: SelectItem<'All'> = { id: 'All', name: 'All' };
 
 type ExpandedAccordion = 'group' | 'status' | null;
 
@@ -59,14 +64,14 @@ export const StudentSearchbarWithFilter = memo(
       [groupsRecord]
     );
 
-    const statusItems = useMemo(
+    const statusItems = useMemo<SelectItem<StudentStatus | 'All'>[]>(
       () => [
         ALL_ITEM,
-        { id: 'inactive', name: t('studentStatus.inactive') },
-        { id: 'present', name: t('studentStatus.present') },
-        { id: 'missing', name: t('studentStatus.missing') },
-        { id: 'paid', name: t('studentStatus.paid') },
-        { id: 'unpaid', name: t('studentStatus.unpaid') }
+        { id: 'INACTIVE', name: t('studentStatus.inactive') },
+        { id: 'PRESENT', name: t('studentStatus.present') },
+        { id: 'MISSING', name: t('studentStatus.missing') },
+        { id: 'PAID', name: t('studentStatus.paid') },
+        { id: 'UNPAID', name: t('studentStatus.unpaid') }
       ],
       [t]
     );
