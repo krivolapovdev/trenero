@@ -1,4 +1,4 @@
-import { api } from '@/src/api';
+import { authApi } from '@/src/api';
 import type { paths } from '@/src/api/generated/openapi';
 
 type GoogleLoginRequest =
@@ -13,7 +13,7 @@ export const oauth2Service = {
       token
     };
 
-    const { data } = await api.post<LoginResponse>(
+    const { data } = await authApi.post<LoginResponse>(
       '/api/v1/oauth2/google',
       body
     );

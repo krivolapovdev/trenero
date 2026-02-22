@@ -1,14 +1,17 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/src/stores/authStore';
 
-export const api = axios.create({
+const axiosConfig = {
   baseURL: process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:8080',
   timeout: __DEV__ ? 10_000 : 20_000,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
-});
+};
+
+export const api = axios.create(axiosConfig);
+export const authApi = axios.create(axiosConfig);
 
 api.interceptors.request.use(config => {
   const accessToken = useAuthStore.getState().accessToken;

@@ -1,4 +1,4 @@
-import { api } from '@/src/api';
+import { authApi } from '@/src/api';
 import type { paths } from '@/src/api/generated/openapi';
 
 type RefreshRequest =
@@ -13,7 +13,7 @@ export const tokenService = {
       refreshToken
     };
 
-    const { data } = await api.post<RefreshResponse>(
+    const { data } = await authApi.post<RefreshResponse>(
       `/api/v1/jwt/refresh`,
       body
     );
