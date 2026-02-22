@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.trenero.backend.auth.internal.request.OAuth2LoginRequest;
+import org.trenero.backend.common.domain.OAuth2Provider;
 import org.trenero.backend.common.response.JwtTokensResponse;
 import org.trenero.backend.common.response.LoginResponse;
 import org.trenero.backend.common.response.UserResponse;
@@ -40,7 +41,7 @@ public class OAuth2Service {
 
     UserResponse user = userSpi.getOrCreateUserFromOAuth2(GOOGLE, providerId, email);
 
-    JwtUser jwtUser = new JwtUser(user.id(), email);
+    JwtUser jwtUser = new JwtUser(user.id(), user.email());
     JwtTokensResponse tokens = jwtTokenService.createAccessAndRefreshTokens(jwtUser);
 
     return new LoginResponse(user, tokens);
@@ -49,5 +50,18 @@ public class OAuth2Service {
   public LoginResponse appleLogin(OAuth2LoginRequest request) {
     log.info("Processing Apple login: request={}", request);
     return null;
+  }
+
+  public LoginResponse loginAsReviewer() {
+    log.info("Logging in as reviewer");
+
+    var user =
+        userSpi.getOrCreateUserFromOAuth2(
+            OAuth2Provider.GOOGLE, "REVIEWER", "REVIEWER@TRENERO.ORG");
+
+    var jwtUser = new JwtUser(user.id(), user.email());
+    var tokens = jwtTokenService.createAccessAndRefreshTokens(jwtUser);
+
+    return new LoginResponse(user, tokens);
   }
 }
