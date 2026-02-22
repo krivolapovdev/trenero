@@ -30,19 +30,23 @@ public class UserService implements UserSpi {
 
     return userRepository
         .findByProviderAndProviderId(provider, providerId)
-        .map(userMapper::toGraphql)
+        .map(userMapper::toResponse)
         .orElseGet(() -> createNewUser(provider, providerId, email));
   }
 
   private UserResponse createNewUser(OAuth2Provider provider, String providerId, String email) {
     log.info("Creating new user: email={}; provider={}", email, provider);
 
-    OAuth2User newUser =
-        OAuth2User.builder().provider(provider).providerId(providerId).email(email).build();
+    var newUser =
+        OAuth2User.builder()
+            .provider(provider)
+            .providerId(providerId)
+            .email(email.toUpperCase().trim())
+            .build();
 
-    OAuth2User savedUser = saveUser(newUser);
+    var savedUser = saveUser(newUser);
 
-    return userMapper.toGraphql(savedUser);
+    return userMapper.toResponse(savedUser);
   }
 
   private OAuth2User saveUser(OAuth2User user) {

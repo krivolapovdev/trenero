@@ -7,5 +7,5 @@ import org.trenero.backend.user.internal.domain.OAuth2User;
 
 @Mapper(componentModel = ComponentModel.SPRING)
 public interface UserMapper {
-  UserResponse toGraphql(OAuth2User user);
+  UserResponse toResponse(OAuth2User user);
 }
