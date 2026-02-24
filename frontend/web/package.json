@@ -1,7 +1,6 @@
 {
   "name": "bun-react-template",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "bun --hot src/index.ts",
@@ -10,8 +9,10 @@
     "biome": "biome check --write --unsafe"
   },
   "dependencies": {
+    "embla-carousel-react": "^8.6.0",
     "react": "^19",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "react-router-dom": "^7.13.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.11",

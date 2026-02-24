@@ -1,30 +1,42 @@
-import './index.css';
+import '@/index.css';
 
-import logo from './logo.svg';
-import reactLogo from './react.svg';
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider
+} from 'react-router-dom';
+import { RootLayout } from '@/layouts/RootLayout.tsx';
+import { HomePage } from '@/pages/HomePage.tsx';
+import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage.tsx';
 
-export function App() {
-  return (
-    <div className='app'>
-      <div className='logo-container'>
-        <img
-          src={logo}
-          alt='Bun Logo'
-          className='logo bun-logo'
-        />
-        <img
-          src={reactLogo}
-          alt='React Logo'
-          className='logo react-logo'
-        />
-      </div>
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <RootLayout />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />
+      },
+      {
+        path: 'privacy-policy',
+        element: <PrivacyPolicyPage />
+      }
+    ]
+  },
+  {
+    path: '*',
+    element: (
+      <Navigate
+        to='/'
+        replace={true}
+      />
+    )
+  }
+]);
 
-      <h1>Bun + React</h1>
-      <p>
-        Edit <code>src/App.tsx</code> and save to test HMR
-      </p>
-    </div>
-  );
-}
-
-export default App;
+export const App = () => (
+  <div className='app'>
+    <RouterProvider router={router} />
+  </div>
+);
