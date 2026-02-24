@@ -38,14 +38,7 @@ const resources = {
         'Are you sure you want to delete this student?',
       phone: 'Phone',
       birthdate: 'Birthdate',
-      agreeText: 'By continuing, you agree to our Terms & Privacy Policy',
-      termsPrivacy: 'Terms & Privacy Policy',
-      termsOfServiceTitle: 'Terms of Service',
-      termsOfServiceText:
-        'By accessing or using this application, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service. The application is provided on an “as is” and “as available” basis, without warranties of any kind, whether express, implied, or statutory, including but not limited to implied warranties of merchantability, fitness for a particular purpose, and non-infringement.',
-      privacyPolicyTitle: 'Privacy Policy',
-      privacyPolicyText:
-        'We collect and process only the information necessary to provide and maintain the application. Personal data is not sold, rented, or otherwise disclosed to third parties except as required by law. Reasonable administrative, technical, and organizational measures are implemented to protect personal data from unauthorized access, use, or disclosure.',
+      agreeText: 'By continuing, you agree to our Privacy Policy',
       edit: 'Edit',
       editLesson: 'Edit Lesson',
       addPayment: 'Add Payment',
@@ -129,14 +122,7 @@ const resources = {
       phone: 'Телефон',
       birthdate: 'Дата рождения',
       agreeText:
-        'Продолжая, вы соглашаетесь с нашими правилами и политикой конфиденциальности',
-      termsPrivacy: 'Правилами и Политикой конфиденциальности',
-      termsOfServiceTitle: 'Условия использования',
-      termsOfServiceText:
-        'Используя это приложение, вы подтверждаете, что прочитали, поняли и соглашаетесь соблюдать данные Условия использования. Приложение предоставляется «как есть» и «по мере доступности» без каких-либо гарантий, явных или подразумеваемых, включая, помимо прочего, подразумеваемые гарантии товарной пригодности, соответствия определённой цели и отсутствия нарушения прав третьих лиц.',
-      privacyPolicyTitle: 'Политика конфиденциальности',
-      privacyPolicyText:
-        'Мы собираем и обрабатываем только ту информацию, которая необходима для предоставления и поддержки работы приложения. Персональные данные не продаются, не передаются в аренду и не раскрываются третьим лицам, за исключением случаев, предусмотренных законом. Для защиты персональных данных от несанкционированного доступа, использования или раскрытия применяются разумные административные, технические и организационные меры.',
+        'Продолжая, вы соглашаетесь с нашей политикой конфиденциальности',
       edit: 'Редактировать',
       editLesson: 'Редактировать урок',
       addPayment: 'Добавить платеж',
