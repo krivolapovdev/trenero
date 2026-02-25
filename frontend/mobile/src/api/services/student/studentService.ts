@@ -13,38 +13,39 @@ type StudentResponse =
 type StudentDetailsResponse =
   paths['/api/v1/students/{studentId}/details']['get']['responses'][200]['content']['*/*'];
 
-export const studentService = {
-  async getOverview() {
-    const { data } = await api.get<StudentsOverviewResponse>(
-      '/api/v1/students/overview'
-    );
+export const getStudentsOverview = async () => {
+  const { data } = await api.get<StudentsOverviewResponse>(
+    '/api/v1/students/overview'
+  );
 
-    return data;
-  },
+  return data;
+};
 
-  async getDetails(studentId: string) {
-    const { data } = await api.get<StudentDetailsResponse>(
-      `/api/v1/students/${studentId}/details`
-    );
+export const getStudentDetails = async (studentId: string) => {
+  const { data } = await api.get<StudentDetailsResponse>(
+    `/api/v1/students/${studentId}/details`
+  );
 
-    return data;
-  },
+  return data;
+};
 
-  async create(body: CreateStudentRequest) {
-    const { data } = await api.post<StudentResponse>('/api/v1/students', body);
-    return data;
-  },
+export const createStudent = async (body: CreateStudentRequest) => {
+  const { data } = await api.post<StudentResponse>('/api/v1/students', body);
+  return data;
+};
 
-  async update(studentId: string, body: UpdateStudentRequest) {
-    const { data } = await api.patch<StudentResponse>(
-      `/api/v1/students/${studentId}`,
-      body
-    );
+export const updateStudent = async (
+  studentId: string,
+  body: UpdateStudentRequest
+) => {
+  const { data } = await api.patch<StudentResponse>(
+    `/api/v1/students/${studentId}`,
+    body
+  );
 
-    return data;
-  },
+  return data;
+};
 
-  async delete(studentId: string) {
-    await api.delete(`/api/v1/students/${studentId}`);
-  }
+export const deleteStudent = async (studentId: string) => {
+  await api.delete(`/api/v1/students/${studentId}`);
 };

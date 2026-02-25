@@ -5,7 +5,7 @@ import {
   statusCodes
 } from '@react-native-google-signin/google-signin';
 import { useAsyncCallback } from 'react-async-hook';
-import { oauth2Service } from '@/src/api/services/auth/oauth2Service';
+import { googleLogin } from '@/src/api/services/auth/oauth2Service';
 import { useAuthStore } from '@/src/stores/authStore';
 
 GoogleSignin.configure({
@@ -58,7 +58,7 @@ export function useGoogleSignIn() {
       throw new Error('Failed to retrieve Google ID token');
     }
 
-    const data = await oauth2Service.googleLogin(idToken);
+    const data = await googleLogin(idToken);
 
     if (!data) {
       throw new Error('Login failed: no data returned');

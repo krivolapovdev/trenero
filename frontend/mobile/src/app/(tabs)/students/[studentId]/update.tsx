@@ -4,7 +4,7 @@ import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
-import { studentService } from '@/src/api/services/student/studentService';
+import { updateStudent } from '@/src/api/services/student/studentService';
 import {
   StudentForm,
   type StudentFormValues
@@ -36,15 +36,15 @@ export default function UpdateStudentScreen() {
   ) as StudentDetails;
 
   const {
-    execute: updateStudent,
-    loading: updateStudentLoading,
+    execute: executeUpdateStudent,
+    loading: isUpdatingStudent,
     error
   } = useAsyncCallback((body: UpdateStudentRequest) =>
-    studentService.update(studentId, body)
+    updateStudent(studentId, body)
   );
 
   const handleSubmit = async (values: StudentFormValues) => {
-    if (!student || updateStudentLoading) {
+    if (!student || isUpdatingStudent) {
       return;
     }
 
@@ -75,7 +75,7 @@ export default function UpdateStudentScreen() {
       return;
     }
 
-    const updatedStudent = await updateStudent(request);
+    const updatedStudent = await executeUpdateStudent(request);
 
     removeStudent(studentId);
 
@@ -122,7 +122,7 @@ export default function UpdateStudentScreen() {
         student,
         allGroups
       }}
-      mutationLoading={updateStudentLoading}
+      mutationLoading={isUpdatingStudent}
       onBack={router.back}
       onSubmit={handleSubmit}
     />

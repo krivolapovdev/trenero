@@ -4,7 +4,7 @@ import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import type { components } from '@/src/api/generated/openapi';
-import { groupService } from '@/src/api/services/group/groupService';
+import { createGroup } from '@/src/api/services/group/groupService';
 import {
   GroupForm,
   type GroupFormValues
@@ -18,13 +18,13 @@ export default function CreateGroupScreen() {
   const router = useRouter();
 
   const {
-    execute: createGroup,
-    loading: createGroupLoading,
+    execute: executeCreateGroup,
+    loading: isCreatingGroup,
     error
-  } = useAsyncCallback(groupService.create);
+  } = useAsyncCallback(createGroup);
 
   const handleSubmit = async (values: GroupFormValues) => {
-    if (createGroupLoading) {
+    if (isCreatingGroup) {
       return;
     }
 
@@ -32,7 +32,7 @@ export default function CreateGroupScreen() {
       ...values
     };
 
-    const data = await createGroup(request);
+    const data = await executeCreateGroup(request);
 
     router.replace(`/(tabs)/groups/${data.id}`);
   };
@@ -48,7 +48,7 @@ export default function CreateGroupScreen() {
       title={t('addGroup')}
       onSubmit={handleSubmit}
       onBack={router.back}
-      mutationLoading={createGroupLoading}
+      mutationLoading={isCreatingGroup}
     />
   );
 }

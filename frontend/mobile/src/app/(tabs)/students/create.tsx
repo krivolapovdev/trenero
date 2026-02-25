@@ -4,7 +4,7 @@ import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import type { components } from '@/src/api/generated/openapi';
-import { studentService } from '@/src/api/services/student/studentService';
+import { createStudent } from '@/src/api/services/student/studentService';
 import {
   StudentForm,
   type StudentFormValues
@@ -22,13 +22,13 @@ export default function CreateStudentScreen() {
   const updateGroup = useGroupsStore(state => state.updateGroup);
 
   const {
-    execute: createStudent,
-    loading: createStudentLoading,
+    execute: executeCreateStudent,
+    loading: isCreateStudentLoading,
     error
-  } = useAsyncCallback(studentService.create);
+  } = useAsyncCallback(createStudent);
 
   const handleSubmit = async (values: StudentFormValues) => {
-    if (createStudentLoading) {
+    if (isCreateStudentLoading) {
       return;
     }
 
@@ -36,7 +36,7 @@ export default function CreateStudentScreen() {
       ...values
     };
 
-    const data = await createStudent(request);
+    const data = await executeCreateStudent(request);
 
     if (values.groupId) {
       const targetGroup = allGroups[values.groupId];
@@ -62,7 +62,7 @@ export default function CreateStudentScreen() {
       title={t('addStudent')}
       onSubmit={handleSubmit}
       onBack={router.back}
-      mutationLoading={createStudentLoading}
+      mutationLoading={isCreateStudentLoading}
       initialData={{
         allGroups
       }}

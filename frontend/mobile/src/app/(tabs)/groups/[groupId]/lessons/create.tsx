@@ -4,7 +4,7 @@ import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import type { components } from '@/src/api/generated/openapi';
-import { lessonService } from '@/src/api/services/lesson/lessonService';
+import { createLesson } from '@/src/api/services/lesson/lessonService';
 import {
   LessonForm,
   type LessonFormValues
@@ -29,13 +29,13 @@ export default function CreateLessonScreen() {
   const allStudents = useStudentsStore(state => state.allStudents);
 
   const {
-    execute: createLesson,
-    loading: createLessonLoading,
+    execute: executeCreateLesson,
+    loading: isCreatingLesson,
     error
-  } = useAsyncCallback(lessonService.create);
+  } = useAsyncCallback(createLesson);
 
   const handleSubmit = async (values: LessonFormValues) => {
-    if (createLessonLoading) {
+    if (isCreatingLesson) {
       return;
     }
 
@@ -44,7 +44,7 @@ export default function CreateLessonScreen() {
       ...values
     };
 
-    await createLesson(request);
+    await executeCreateLesson(request);
 
     await refreshStudents();
 
@@ -68,7 +68,7 @@ export default function CreateLessonScreen() {
       }}
       onSubmit={handleSubmit}
       onBack={router.back}
-      mutationLoading={createLessonLoading || isRefreshing}
+      mutationLoading={isCreatingLesson || isRefreshing}
     />
   );
 }

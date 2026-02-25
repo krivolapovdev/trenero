@@ -7,17 +7,15 @@ type RefreshRequest =
 type RefreshResponse =
   paths['/api/v1/jwt/refresh']['post']['responses'][200]['content']['*/*'];
 
-export const tokenService = {
-  async refreshTokens(refreshToken: string) {
-    const body: RefreshRequest = {
-      refreshToken
-    };
+export const refreshTokens = async (refreshToken: string) => {
+  const body: RefreshRequest = {
+    refreshToken
+  };
 
-    const { data } = await authApi.post<RefreshResponse>(
-      `/api/v1/jwt/refresh`,
-      body
-    );
+  const { data } = await authApi.post<RefreshResponse>(
+    `/api/v1/jwt/refresh`,
+    body
+  );
 
-    return data;
-  }
+  return data;
 };

@@ -1,5 +1,5 @@
 import { useAsyncCallback } from 'react-async-hook';
-import { reviewerAuthService } from '@/src/api/services/auth/reviewerAuthService';
+import { loginAsReviewer } from '@/src/api/services/auth/reviewerAuthService';
 import { useAuthStore } from '@/src/stores/authStore';
 
 export function useReviewerSignIn() {
@@ -10,7 +10,7 @@ export function useReviewerSignIn() {
     loading: isLoading,
     error
   } = useAsyncCallback(async () => {
-    const loginData = await reviewerAuthService.loginAsReviewer();
+    const loginData = await loginAsReviewer();
     await setAuth(loginData);
   });
 

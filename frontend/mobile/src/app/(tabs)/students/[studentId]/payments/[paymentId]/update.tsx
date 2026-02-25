@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
 import type { components } from '@/src/api/generated/openapi';
-import { paymentService } from '@/src/api/services/payment/paymentService';
+import { updatePayment } from '@/src/api/services/payment/paymentService';
 import {
   PaymentForm,
   type PaymentFormValues
@@ -36,15 +36,15 @@ export default function UpdatePaymentScreen() {
   );
 
   const {
-    execute: updatePayment,
-    loading: updatePaymentLoading,
+    execute: executeUpdatePayment,
+    loading: isUpdatingPayment,
     error
   } = useAsyncCallback((body: UpdatePaymentRequest) =>
-    paymentService.update(paymentId, body)
+    updatePayment(paymentId, body)
   );
 
   const handleSubmit = async (values: PaymentFormValues) => {
-    if (!payment || updatePaymentLoading) {
+    if (!payment || isUpdatingPayment) {
       return;
     }
 
@@ -67,7 +67,7 @@ export default function UpdatePaymentScreen() {
       return;
     }
 
-    await updatePayment(request);
+    await executeUpdatePayment(request);
 
     adjustMetricTotal(dayjs(payment.date), -payment.amount);
     adjustMetricTotal(dayjs(values.date), values.amount);
@@ -89,7 +89,7 @@ export default function UpdatePaymentScreen() {
       initialData={{
         payment
       }}
-      mutationLoading={updatePaymentLoading}
+      mutationLoading={isUpdatingPayment}
       onBack={router.back}
       onSubmit={handleSubmit}
     />

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { groupService } from '@/src/api/services/group/groupService';
+import { getGroupsOverview } from '@/src/api/services/group/groupService';
 import { extractErrorMessage } from '@/src/helpers/apiError';
 import type { GroupDetails, GroupOverview } from '@/src/types/group';
 
@@ -35,7 +35,7 @@ export const useGroupsStore = create<GroupsStore>((set, get) => ({
   refreshGroups: async () => {
     set({ isRefreshing: true, error: null });
     try {
-      const data = await groupService.getOverview();
+      const data = await getGroupsOverview();
       get().setAllGroups(data);
     } catch (e: unknown) {
       set({ error: extractErrorMessage(e) });

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, ScrollView, View } from 'react-native';
+import { Alert, Linking, ScrollView, View } from 'react-native';
 import { Divider, List, Text } from 'react-native-paper';
+import { deleteAccount } from '@/src/api/services/user/userService';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { ConfirmDialog, LanguageDialog } from '@/src/components/Dialog';
 import { LabeledSection } from '@/src/components/LabeledSection';
 import { SettingsItem } from '@/src/components/SettingsItem';
+import { extractErrorMessage } from '@/src/helpers/apiError';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAuthStore } from '@/src/stores/authStore';
 
@@ -14,16 +16,25 @@ export default function SettingsScreen() {
   const theme = useAppTheme();
   const logout = useAuthStore(state => state.logout);
 
-  const [logoutDialogVisible, setLogoutDialogVisible] =
-    useState<boolean>(false);
-  const [languageMenuVisible, setLanguageMenuVisible] =
-    useState<boolean>(false);
-  const [contactDialogVisible, setContactDialogVisible] =
-    useState<boolean>(false);
+  const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
+  const [languageMenuVisible, setLanguageMenuVisible] = useState(false);
+  const [contactDialogVisible, setContactDialogVisible] = useState(false);
+  const [deleteAccountDialogVisible, setDeleteAccountDialogVisible] =
+    useState(false);
 
-  const confirmLogout = async () => {
+  const handleLogout = async () => {
     await logout();
     setLogoutDialogVisible(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount();
+      await logout();
+      setDeleteAccountDialogVisible(false);
+    } catch (error) {
+      Alert.alert(t('error'), extractErrorMessage(error));
+    }
   };
 
   return (
@@ -56,6 +67,13 @@ export default function SettingsScreen() {
             right={() => <List.Icon icon='chevron-right' />}
             onPress={() => setLogoutDialogVisible(true)}
           />
+
+          <SettingsItem
+            title={t('deleteAccount')}
+            icon='trash-can-outline'
+            right={() => <List.Icon icon='chevron-right' />}
+            onPress={() => setDeleteAccountDialogVisible(true)}
+          />
         </LabeledSection>
 
         <LabeledSection title={t('other')}>
@@ -84,7 +102,7 @@ export default function SettingsScreen() {
       <ConfirmDialog
         visible={logoutDialogVisible}
         title={t('confirmLogout')}
-        onConfirm={confirmLogout}
+        onConfirm={handleLogout}
         onCancel={() => setLogoutDialogVisible(false)}
         confirmText={t('logout')}
       >
@@ -120,6 +138,20 @@ export default function SettingsScreen() {
             Email: KrivolapovVladislav1998@gmail.com
           </Text>
         </View>
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        visible={deleteAccountDialogVisible}
+        title={t('deleteAccount')}
+        onConfirm={handleDeleteAccount}
+        onCancel={() => setDeleteAccountDialogVisible(false)}
+      >
+        <Text
+          variant='bodyMedium'
+          style={{ textAlign: 'justify' }}
+        >
+          {t('deleteAccountWarning')}
+        </Text>
       </ConfirmDialog>
     </>
   );

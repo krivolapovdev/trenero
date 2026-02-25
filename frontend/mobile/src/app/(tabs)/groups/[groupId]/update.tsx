@@ -4,7 +4,7 @@ import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
-import { groupService } from '@/src/api/services/group/groupService';
+import { updateGroup } from '@/src/api/services/group/groupService';
 import {
   GroupForm,
   type GroupFormValues
@@ -31,11 +31,11 @@ export default function UpdateGroupScreen() {
   ) as GroupDetails;
 
   const {
-    execute: updateGroup,
+    execute: updateGroup2,
     loading: updateGroupLoading,
     error
   } = useAsyncCallback((body: UpdateGroupRequest) =>
-    groupService.update(groupId, body)
+    updateGroup(groupId, body)
   );
 
   const handleSubmit = async (values: GroupFormValues) => {
@@ -62,7 +62,7 @@ export default function UpdateGroupScreen() {
       return;
     }
 
-    await updateGroup(request);
+    await updateGroup2(request);
 
     removeGroup(groupId);
 

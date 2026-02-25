@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { create } from 'zustand';
 import type { components } from '@/src/api/generated/openapi';
-import { metricService } from '@/src/api/services/metric/metricService';
+import { getMonthlyPayments } from '@/src/api/services/metric/metricService';
 import { extractErrorMessage } from '@/src/helpers/apiError';
 
 type MonthlyMetric = components['schemas']['MonthlyPaymentMetricResponse'];
@@ -27,7 +27,7 @@ export const useMetricsStore = create<MonthlyMetricsStore>((set, get) => ({
   refreshMetrics: async () => {
     set({ isRefreshing: true, error: null });
     try {
-      const data = await metricService.getMonthlyPayments();
+      const data = await getMonthlyPayments();
       get().setAllMetrics(data);
     } catch (e: unknown) {
       set({ error: extractErrorMessage(e) });

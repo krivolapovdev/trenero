@@ -46,11 +46,11 @@ api.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      const { tokenService } = await import(
+      const { refreshTokens } = await import(
         '@/src/api/services/auth/tokenService'
       );
 
-      const jwtTokens = await tokenService.refreshTokens(refreshToken);
+      const jwtTokens = await refreshTokens(refreshToken);
 
       await useAuthStore.getState().setAuth({ user, jwtTokens });
 

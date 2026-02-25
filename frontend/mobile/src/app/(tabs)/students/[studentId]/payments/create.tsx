@@ -5,7 +5,7 @@ import { useEffect, useMemo } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
 import { Alert } from 'react-native';
 import type { components } from '@/src/api/generated/openapi';
-import { paymentService } from '@/src/api/services/payment/paymentService';
+import { createPayment } from '@/src/api/services/payment/paymentService';
 import {
   PaymentForm,
   type PaymentFormValues
@@ -35,13 +35,13 @@ export default function CreatePaymentScreen() {
   );
 
   const {
-    execute: createPayment,
-    loading: createPaymentLoading,
+    execute: executeCreatePayment,
+    loading: isCreatingPayment,
     error
-  } = useAsyncCallback(paymentService.create);
+  } = useAsyncCallback(createPayment);
 
   const handleSubmit = async (values: PaymentFormValues) => {
-    if (createPaymentLoading) {
+    if (isCreatingPayment) {
       return;
     }
 
@@ -50,7 +50,7 @@ export default function CreatePaymentScreen() {
       ...values
     };
 
-    await createPayment(request);
+    await executeCreatePayment(request);
 
     adjustMetricTotal(dayjs(values.date), values.amount);
 
@@ -86,7 +86,7 @@ export default function CreatePaymentScreen() {
       title={t('addPayment')}
       onSubmit={handleSubmit}
       onBack={() => router.back()}
-      mutationLoading={createPaymentLoading}
+      mutationLoading={isCreatingPayment}
       initialData={{
         payment: {
           amount: group?.defaultPrice,

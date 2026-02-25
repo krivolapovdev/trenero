@@ -5,7 +5,7 @@ import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert, View } from 'react-native';
 import { Button } from 'react-native-paper';
-import { paymentService } from '@/src/api/services/payment/paymentService';
+import { deletePayment } from '@/src/api/services/payment/paymentService';
 import { CustomBottomSheet } from '@/src/components/BottomSheet/CustomBottomSheet';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useMetricsStore } from '@/src/stores/metricsStore';
@@ -37,11 +37,11 @@ export const PaymentSheet = ({
   const adjustMetricTotal = useMetricsStore(state => state.adjustMetricTotal);
 
   const {
-    execute: deletePayment,
+    execute: deletePayment2,
     loading: deletePaymentPending,
     error
   } = useAsyncCallback(async () => {
-    await paymentService.delete(paymentId);
+    await deletePayment(paymentId);
 
     removePayment(studentId, paymentId);
 
@@ -86,7 +86,7 @@ export const PaymentSheet = ({
           textColor={theme.colors.error}
           buttonColor={theme.colors.tertiaryContainer}
           onPress={() =>
-            void deletePayment()
+            void deletePayment2()
               .then(() => router.back())
               .catch(err => Alert.alert(t('error'), err.message))
           }

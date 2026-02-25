@@ -82,7 +82,10 @@ const resources = {
       paidFrom: 'Paid from',
       invalidPaidUntilError: 'Invalid payment end date',
       paidUntilBeforeDateError: 'End date cannot be earlier than payment date',
-      paymentPeriod: 'Payment period'
+      paymentPeriod: 'Payment period',
+      deleteAccount: 'Delete Account',
+      deleteAccountWarning:
+        'Are you sure you want to delete your account? This action is permanent and all your data will be lost'
     }
   },
   ru: {
@@ -167,7 +170,10 @@ const resources = {
       invalidPaidUntilError: 'Некорректная дата окончания оплаты',
       paidUntilBeforeDateError:
         'Дата окончания не может быть раньше даты платежа',
-      paymentPeriod: 'Период оплаты'
+      paymentPeriod: 'Период оплаты',
+      deleteAccount: 'Удалить аккаунт',
+      deleteAccountWarning:
+        'Вы уверены, что хотите удалить свой аккаунт? Это действие необратимо, и все ваши данные будут безвозвратно удалены'
     }
   }
 } as const;

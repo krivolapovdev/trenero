@@ -11,25 +11,26 @@ type LessonResponse =
 type LessonDetailsResponse =
   paths['/api/v1/lessons/{lessonId}/details']['get']['responses'][200]['content']['*/*'];
 
-export const lessonService = {
-  async getDetails(lessonId: string) {
-    const { data } = await api.get<LessonDetailsResponse>(
-      `/api/v1/lessons/${lessonId}/details`
-    );
+export const getLessonDetails = async (lessonId: string) => {
+  const { data } = await api.get<LessonDetailsResponse>(
+    `/api/v1/lessons/${lessonId}/details`
+  );
 
-    return data;
-  },
+  return data;
+};
 
-  async create(body: CreateLessonRequest) {
-    const { data } = await api.post<LessonResponse>('/api/v1/lessons', body);
-    return data;
-  },
+export const createLesson = async (body: CreateLessonRequest) => {
+  const { data } = await api.post<LessonResponse>('/api/v1/lessons', body);
+  return data;
+};
 
-  async update(lessonId: string, body: UpdateLessonRequest) {
-    const { data } = await api.patch<
-      paths['/api/v1/lessons/{lessonId}']['patch']['responses'][200]['content']['*/*']
-    >(`/api/v1/lessons/${lessonId}`, body);
+export const updateLesson = async (
+  lessonId: string,
+  body: UpdateLessonRequest
+) => {
+  const { data } = await api.patch<
+    paths['/api/v1/lessons/{lessonId}']['patch']['responses'][200]['content']['*/*']
+  >(`/api/v1/lessons/${lessonId}`, body);
 
-    return data;
-  }
+  return data;
 };

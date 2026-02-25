@@ -5,7 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import * as R from 'remeda';
 import type { components } from '@/src/api/generated/openapi';
-import { lessonService } from '@/src/api/services/lesson/lessonService';
+import {
+  getLessonDetails,
+  updateLesson
+} from '@/src/api/services/lesson/lessonService';
 import {
   LessonForm,
   type LessonFormValues
@@ -37,18 +40,18 @@ export default function UpdateLessonScreen() {
     loading: lessonLoading,
     result: lesson,
     error: fetchError
-  } = useAsync(() => lessonService.getDetails(lessonId), [lessonId]);
+  } = useAsync(() => getLessonDetails(lessonId), [lessonId]);
 
   const {
-    execute: updateLesson,
-    loading: updateLessonLoading,
+    execute: executeUpdateLesson,
+    loading: isUpdatingLesson,
     error: updateError
   } = useAsyncCallback((body: UpdateLessonRequest) =>
-    lessonService.update(lessonId, body)
+    updateLesson(lessonId, body)
   );
 
   const handleSubmit = async (values: LessonFormValues) => {
-    if (!lesson || lessonLoading || updateLessonLoading) {
+    if (!lesson || lessonLoading || isUpdatingLesson) {
       return;
     }
 
@@ -72,7 +75,7 @@ export default function UpdateLessonScreen() {
       return;
     }
 
-    await updateLesson(request);
+    await executeUpdateLesson(request);
 
     await Promise.all([refreshStudents(), refreshGroups()]);
 
@@ -96,7 +99,7 @@ export default function UpdateLessonScreen() {
         allStudents
       }}
       queryLoading={lessonLoading}
-      mutationLoading={updateLessonLoading || isRefreshing}
+      mutationLoading={isUpdatingLesson || isRefreshing}
       onBack={router.back}
       onSubmit={handleSubmit}
     />

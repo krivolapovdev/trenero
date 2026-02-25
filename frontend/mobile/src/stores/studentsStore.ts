@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { studentService } from '@/src/api/services/student/studentService';
+import { getStudentsOverview } from '@/src/api/services/student/studentService';
 import { extractErrorMessage } from '@/src/helpers/apiError';
 import type { StudentDetails, StudentOverview } from '@/src/types/student';
 
@@ -35,7 +35,7 @@ export const useStudentsStore = create<StudentsStore>((set, get) => ({
   refreshStudents: async () => {
     set({ isRefreshing: true, error: null });
     try {
-      const data = await studentService.getOverview();
+      const data = await getStudentsOverview();
       get().setAllStudents(data);
     } catch (e: unknown) {
       set({ error: extractErrorMessage(e) });

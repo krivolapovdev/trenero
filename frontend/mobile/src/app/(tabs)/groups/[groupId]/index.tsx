@@ -4,7 +4,10 @@ import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { Divider, List, Text } from 'react-native-paper';
-import { groupService } from '@/src/api/services/group/groupService';
+import {
+  deleteGroup,
+  getGroupDetails
+} from '@/src/api/services/group/groupService';
 import { LessonsCalendar } from '@/src/components/Calendar';
 import { GroupCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
@@ -32,17 +35,17 @@ export default function GroupByIdScreen() {
     loading: groupLoading,
     error: fetchError
   } = useAsyncCallback(async () => {
-    const data = await groupService.getDetails(groupId);
+    const data = await getGroupDetails(groupId);
     addGroup(data);
     return data;
   });
 
   const {
-    execute: deleteGroup,
+    execute: executeDeleteGroup,
     loading: mutationLoading,
     error: deleteError
   } = useAsyncCallback(async () => {
-    await groupService.delete(groupId);
+    await deleteGroup(groupId);
     removeGroup(groupId);
     router.back();
   });
@@ -53,7 +56,7 @@ export default function GroupByIdScreen() {
       {
         text: t('delete'),
         style: 'destructive',
-        onPress: () => void deleteGroup()
+        onPress: () => void executeDeleteGroup()
       }
     ]);
   };

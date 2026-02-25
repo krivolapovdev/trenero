@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
-import { studentService } from '@/src/api/services/student/studentService';
+import {
+  deleteStudent,
+  getStudentDetails
+} from '@/src/api/services/student/studentService';
 import { PaymentSheet } from '@/src/components/BottomSheet/PaymentSheet';
 import { VisitCalendar } from '@/src/components/Calendar';
 import { StudentCard } from '@/src/components/Card';
@@ -35,17 +38,17 @@ export default function StudentByIdScreen() {
     loading: studentLoading,
     error: fetchError
   } = useAsyncCallback(async () => {
-    const data = await studentService.getDetails(studentId);
+    const data = await getStudentDetails(studentId);
     addStudent(data);
     return data;
   });
 
   const {
-    execute: deleteStudent,
-    loading: deleteLoading,
+    execute: executeDeleteStudent,
+    loading: isDeletingStudent,
     error: deleteError
   } = useAsyncCallback(async () => {
-    await studentService.delete(studentId);
+    await deleteStudent(studentId);
     removeStudent(studentId);
     router.back();
   });
@@ -56,7 +59,7 @@ export default function StudentByIdScreen() {
       {
         text: t('delete'),
         style: 'destructive',
-        onPress: () => void deleteStudent()
+        onPress: () => void executeDeleteStudent()
       }
     ]);
   };
@@ -84,7 +87,7 @@ export default function StudentByIdScreen() {
           {
             icon: 'arrow-left',
             onPress: router.back,
-            disabled: deleteLoading
+            disabled: isDeletingStudent
           }
         ]}
         rightActions={[
