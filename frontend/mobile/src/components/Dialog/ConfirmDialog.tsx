@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from 'react';
+import { memo, type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, useWindowDimensions } from 'react-native';
 import { Button, Dialog, Portal } from 'react-native-paper';
@@ -18,6 +18,7 @@ type Props = {
 
   disabledConfirm?: boolean;
   loading?: boolean;
+  delay?: number;
 };
 
 export const ConfirmDialog = memo(
@@ -33,12 +34,40 @@ export const ConfirmDialog = memo(
     confirmText,
     cancelText,
 
-    disabledConfirm,
-    loading
+    disabledConfirm = false,
+    loading = false,
+    delay = 0
   }: Readonly<Props>) => {
     const { t } = useTranslation();
     const theme = useAppTheme();
     const { height } = useWindowDimensions();
+
+    const [secondsLeft, setSecondsLeft] = useState(delay);
+
+    useEffect(() => {
+      if (visible && delay > 0) {
+        setSecondsLeft(delay);
+
+        const interval = setInterval(() => {
+          setSecondsLeft(prev => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        return () => clearInterval(interval);
+      }
+
+      if (!visible) {
+        setSecondsLeft(0);
+      }
+    }, [visible, delay]);
+
+    const isConfirmDisabled = disabledConfirm || loading || secondsLeft > 0;
+    const okLabel = confirmText ?? t('ok');
 
     return (
       <Portal>
@@ -71,10 +100,10 @@ export const ConfirmDialog = memo(
 
             <Button
               onPress={onConfirm}
-              disabled={disabledConfirm || loading}
+              disabled={isConfirmDisabled}
               loading={loading}
             >
-              {confirmText ?? t('ok')}
+              {secondsLeft > 0 ? `${okLabel} (${secondsLeft}s)` : okLabel}
             </Button>
           </Dialog.Actions>
         </Dialog>

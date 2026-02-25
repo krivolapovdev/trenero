@@ -145,6 +145,7 @@ export default function SettingsScreen() {
         title={t('deleteAccount')}
         onConfirm={handleDeleteAccount}
         onCancel={() => setDeleteAccountDialogVisible(false)}
+        delay={10}
       >
         <Text
           variant='bodyMedium'
