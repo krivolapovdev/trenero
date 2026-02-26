@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Linking, ScrollView, View } from 'react-native';
-import { Divider, List, Text } from 'react-native-paper';
+import { List, Text } from 'react-native-paper';
 import { deleteAccount } from '@/src/api/services/user/userService';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { ConfirmDialog, LanguageDialog } from '@/src/components/Dialog';
 import { LabeledSection } from '@/src/components/LabeledSection';
 import { SettingsItem } from '@/src/components/SettingsItem';
+import { PRIVACY_POLICY_URL } from '@/src/data/constants';
 import { extractErrorMessage } from '@/src/helpers/apiError';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAuthStore } from '@/src/stores/authStore';
@@ -83,13 +84,18 @@ export default function SettingsScreen() {
             right={() => <Text variant='bodyMedium'>1.0.0</Text>}
           />
 
-          <Divider />
-
           <SettingsItem
             title={t('contact')}
             icon='account-circle-outline'
             right={() => <List.Icon icon='chevron-right' />}
             onPress={() => setContactDialogVisible(true)}
+          />
+
+          <SettingsItem
+            title={t('privacyPolicy')}
+            icon='police-badge-outline'
+            right={() => <List.Icon icon='link-variant' />}
+            onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
           />
         </LabeledSection>
       </ScrollView>

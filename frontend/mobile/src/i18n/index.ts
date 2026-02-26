@@ -39,6 +39,7 @@ const resources = {
       phone: 'Phone',
       birthdate: 'Birthdate',
       agreeText: 'By continuing, you agree to our Privacy Policy',
+      privacyPolicy: 'Privacy Policy',
       edit: 'Edit',
       editLesson: 'Edit Lesson',
       addPayment: 'Add Payment',
@@ -126,6 +127,7 @@ const resources = {
       birthdate: 'Дата рождения',
       agreeText:
         'Продолжая, вы соглашаетесь с нашей политикой конфиденциальности',
+      privacyPolicy: 'Политика конфиденциальности',
       edit: 'Редактировать',
       editLesson: 'Редактировать урок',
       addPayment: 'Добавить платеж',

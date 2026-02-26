@@ -1,9 +1,10 @@
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Linking, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Divider, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SocialButtonsGroup } from '@/src/components/SocialButtonsGroup';
+import { PRIVACY_POLICY_URL } from '@/src/data/constants';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export default function LoginScreen() {
@@ -38,6 +39,7 @@ export default function LoginScreen() {
 
           <Text
             variant='bodySmall'
+            onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
             style={{
               color: theme.colors.onSurfaceVariant,
               textAlign: 'center'
