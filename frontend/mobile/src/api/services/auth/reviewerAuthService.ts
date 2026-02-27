@@ -5,6 +5,6 @@ type LoginResponse =
   paths['/api/v1/oauth2/google']['post']['responses'][200]['content']['*/*'];
 
 export const loginAsReviewer = async () => {
-  const { data } = await authApi.post<LoginResponse>('/auth/reviewer/login');
+  const { data } = await authApi.post<LoginResponse>('/api/v1/reviewer/login');
   return data;
 };
