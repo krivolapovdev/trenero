@@ -8,7 +8,7 @@ import org.trenero.backend.auth.internal.service.OAuth2Service;
 import org.trenero.backend.common.response.LoginResponse;
 
 @RestController
-@RequestMapping("/auth/reviewer")
+@RequestMapping("/api/v1/reviewer")
 @RequiredArgsConstructor
 public class ReviewerAuthController {
   private final OAuth2Service oAuth2Service;
