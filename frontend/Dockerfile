@@ -14,12 +14,16 @@ ENV NODE_ENV=production
 RUN bun run build
 
 # Run stage
-FROM busybox:1.37.0
+FROM oven/bun:1.3.6-alpine
 
 WORKDIR /app
 
 COPY --from=build /app/dist ./
 
+COPY web/src/index.ts ./
+
+ENV NODE_ENV=production
+
 EXPOSE 3000
 
-CMD ["httpd", "-f", "-v", "-p", "3000"]
+CMD ["bun", "run", "index.ts"]

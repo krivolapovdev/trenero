@@ -1,18 +1,33 @@
 import { serve } from 'bun';
 import index from './index.html';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const server = serve({
-  routes: {
-    '/*': index
-  },
+  port: 3000,
 
-  development: process.env.NODE_ENV !== 'production' && {
-    // Enable browser hot reloading in development
-    hmr: true,
+  ...(isProduction
+    ? {
+        async fetch(req: Request) {
+          const url = new URL(req.url);
+          const file = Bun.file(`./${url.pathname}`);
 
-    // Echo console logs from the browser to the server
-    console: true
-  }
+          if (await file.exists()) {
+            return new Response(file);
+          }
+
+          return new Response(Bun.file('./index.html'));
+        }
+      }
+    : {
+        routes: {
+          '/*': index
+        },
+        development: {
+          hmr: true,
+          console: true
+        }
+      })
 });
 
 console.log(`🚀 Server running at ${server.url}`);
