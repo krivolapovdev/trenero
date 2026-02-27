@@ -74,15 +74,17 @@ export const PrivacyPolicyPage = () => (
         app. Navigate to your Settings and select "Delete Account". This action
         is processed <strong>immediately</strong> and is irreversible.
       </li>
-      <strong>Online Request:</strong> Please fill out our{' '}
-      <a
-        href='https://forms.gle/FqgbpLb7m1bASnsHA'
-        target='_blank'
-        rel='noopener noreferrer'
-        style={{ color: '#007bff', fontWeight: 'bold' }}
-      >
-        Data Deletion Request Form
-      </a>
+      <li>
+        <strong>Online Request:</strong> Please fill out our{' '}
+        <a
+          href='https://forms.gle/FqgbpLb7m1bASnsHA'
+          target='_blank'
+          rel='noopener noreferrer'
+          style={{ color: '#007bff', fontWeight: 'bold' }}
+        >
+          Data Deletion Request Form
+        </a>
+      </li>
       <li>
         <strong>Email Request:</strong> Contact us at{' '}
         <strong>KrivolapovVladislav1998@gmail.com</strong> with the subject
@@ -96,14 +98,13 @@ export const PrivacyPolicyPage = () => (
 
     <h2>Third Party Access</h2>
     <p>
-      Only aggregated, anonymized data is periodically transmitted to external
-      services to aid the Service Provider in improving the Application and
-      their service. The Service Provider may share your information with third
-      parties in the ways that are described in this privacy statement.
+      The Service Provider does not share, sell, or transmit your personal data
+      to external third-party services for marketing, advertising, or analytics
+      purposes.
     </p>
     <p>
       The Service Provider may disclose User Provided and Automatically
-      Collected Information:
+      Collected Information only in the following limited circumstances:
     </p>
     <ul>
       <li>
@@ -113,12 +114,7 @@ export const PrivacyPolicyPage = () => (
       <li>
         When they believe in good faith that disclosure is necessary to protect
         their rights, protect your safety or the safety of others, investigate
-        fraud, or respond to a government request;
-      </li>
-      <li>
-        With their trusted services providers who work on their behalf, do not
-        have an independent use of the information we disclose to them, and have
-        agreed to adhere to the rules set forth in this privacy statement.
+        fraud, or respond to a government request.
       </li>
     </ul>
 
@@ -142,23 +138,24 @@ export const PrivacyPolicyPage = () => (
     <h2>Children</h2>
     <p>
       The Service Provider does not use the Application to knowingly solicit
-      data from or market to children under the age of 13.
+      data from or market children under the age of 18.
     </p>
     <p>
       The Service Provider does not knowingly collect personally identifiable
-      information from children. The Service Provider encourages all children to
-      never submit any personally identifiable information through the
-      Application and/or Services. The Service Provider encourage parents and
-      legal guardians to monitor their children's Internet usage and to help
-      enforce this Policy by instructing their children never to provide
-      personally identifiable information through the Application and/or
-      Services without their permission. If you have reason to believe that a
-      child has provided personally identifiable information to the Service
-      Provider through the Application and/or Services, please contact the
-      Service Provider (<strong>KrivolapovVladislav1998@gmail.com</strong>) so
-      that they will be able to take the necessary actions. You must also be at
-      least 16 years of age to consent to the processing of your personally
-      identifiable information in your country.
+      information from children or anyone under the age of 18. The Service
+      Provider encourages all minors to never submit any personally identifiable
+      information through the Application and/or Services. The Service Provider
+      encourages parents and legal guardians to monitor their children's
+      Internet usage and to help enforce this Policy by instructing their
+      children never to provide personally identifiable information through the
+      Application and/or Services without their permission. If you have reason
+      to believe that a child under the age of 18 has provided personally
+      identifiable information to the Service Provider through the Application
+      and/or Services, please contact the Service Provider (
+      <strong>KrivolapovVladislav1998@gmail.com</strong>) so that they will be
+      able to take the necessary actions. You must be at least 18 years of age
+      to use the Application and to consent to the processing of your personally
+      identifiable information.
     </p>
 
     <h2>Security</h2>
