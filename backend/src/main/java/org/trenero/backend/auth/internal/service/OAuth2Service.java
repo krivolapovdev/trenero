@@ -4,11 +4,15 @@ import static org.trenero.backend.common.domain.OAuth2Provider.GOOGLE;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import java.util.Optional;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.trenero.backend.auth.internal.request.OAuth2LoginRequest;
 import org.trenero.backend.common.domain.OAuth2Provider;
 import org.trenero.backend.common.response.JwtTokensResponse;
@@ -25,8 +29,11 @@ public class OAuth2Service {
   private final JwtTokenService jwtTokenService;
   @Lazy private final UserSpi userSpi;
 
+  @Value("${reviewer.key}")
+  private String reviewerKey;
+
   @SneakyThrows
-  public LoginResponse googleLogin(OAuth2LoginRequest request) {
+  public LoginResponse googleLogin(@NonNull OAuth2LoginRequest request) {
     log.info("Processing Google login: request={}", request);
 
     Optional<GoogleIdToken> googleIdToken = googleAuthService.verifyIdToken(request.token());
@@ -47,13 +54,17 @@ public class OAuth2Service {
     return new LoginResponse(user, tokens);
   }
 
-  public LoginResponse appleLogin(OAuth2LoginRequest request) {
+  public LoginResponse appleLogin(@NonNull OAuth2LoginRequest request) {
     log.info("Processing Apple login: request={}", request);
     return null;
   }
 
-  public LoginResponse loginAsReviewer() {
+  public LoginResponse loginAsReviewer(@NonNull String incomingKey) {
     log.info("Logging in as reviewer");
+
+    if (!reviewerKey.equals(incomingKey)) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid reviewer key");
+    }
 
     var user =
         userSpi.getOrCreateUserFromOAuth2(

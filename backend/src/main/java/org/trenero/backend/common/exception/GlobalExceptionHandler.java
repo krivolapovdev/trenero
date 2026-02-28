@@ -55,6 +55,13 @@ public class GlobalExceptionHandler {
     return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
   }
 
+  @ExceptionHandler(ResponseStatusException.class)
+  public ResponseStatusException handleResponseStatusException(ResponseStatusException e) {
+    log.warn(
+        "ResponseStatusException occurred: status={}, reason={}", e.getStatusCode(), e.getReason());
+    return e;
+  }
+
   private ResponseStatusException buildResponseStatusException(
       HttpStatusCode httpStatusCode, String message, Throwable cause) {
     log.warn("{} Occurred: {}", cause.getClass().getSimpleName(), message);
