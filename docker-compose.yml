@@ -29,6 +29,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-password}
       GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-ultra-secure-and-ultra-long-secret}
+      REVIEWER_SECRET_KEY: ${REVIEWER_SECRET_KEY:-your-reviewer-secret-key}
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/actuator/health" ]
       interval: 10s
