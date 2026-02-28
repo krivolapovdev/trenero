@@ -58,6 +58,7 @@ jobs:
             export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
             export GOOGLE_WEB_CLIENT_ID="${{ secrets.GOOGLE_WEB_CLIENT_ID }}"
             export JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}"
+            export REVIEWER_SECRET_KEY="${{ secrets.REVIEWER_SECRET_KEY }}"
 
             docker compose -p trenero -f docker-compose.yml -f docker-compose.prod.yml pull
             docker compose -p trenero -f docker-compose.yml -f docker-compose.prod.yml up -d --wait
