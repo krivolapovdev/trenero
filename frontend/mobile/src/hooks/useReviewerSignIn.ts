@@ -9,8 +9,8 @@ export function useReviewerSignIn() {
     execute: signIn,
     loading: isLoading,
     error
-  } = useAsyncCallback(async () => {
-    const loginData = await loginAsReviewer();
+  } = useAsyncCallback(async (key: string) => {
+    const loginData = await loginAsReviewer(key);
     await setAuth(loginData);
   });
 

@@ -3,14 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, View } from 'react-native';
 import { SocialAuthButton } from '@/src/components/SocialButtonsGroup/SocialAuthButton';
 import { useGoogleSignIn } from '@/src/hooks/useGoogleSignIn';
-import { useReviewerSignIn } from '@/src/hooks/useReviewerSignIn';
 
 export function SocialButtonsGroup() {
   const { t } = useTranslation();
 
   const google = useGoogleSignIn();
-  const reviewer = useReviewerSignIn();
-  const disabled = google?.isLoading || reviewer?.isLoading;
+  const disabled = google?.isLoading;
 
   useEffect(() => {
     if (google.error) {
@@ -20,16 +18,6 @@ export function SocialButtonsGroup() {
 
   return (
     <View style={styles.buttonsContainer}>
-      <SocialAuthButton
-        label='____REVIEWER____'
-        icon='sunglasses'
-        loading={reviewer.isLoading}
-        onPress={async () => {
-          await reviewer.signIn();
-        }}
-        disabled={disabled}
-      />
-
       {/*<SocialAuthButton*/}
       {/*  label={t('signInWithApple')}*/}
       {/*  icon='apple'*/}
