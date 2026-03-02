@@ -4,14 +4,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Trenero',
   slug: 'trenero',
-  version: '1.0.0',
-  orientation: 'default',
+  version: '1.0.1',
+  orientation: 'portrait',
   icon: './src/assets/images/icon.png',
   scheme: 'mobile',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
   ios: {
     supportsTablet: false,
+    requireFullScreen: true,
     bundleIdentifier: 'org.trenero'
   },
   android: {

@@ -4,7 +4,9 @@ import { initI18n } from '@/src/i18n';
 import '@/src/helpers/dayjs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
+import * as Device from 'expo-device';
 import { getLocales } from 'expo-localization';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { LocaleConfig } from 'react-native-calendars';
 import { en, registerTranslation, ru } from 'react-native-paper-dates';
 import { LoadingSpinner } from '@/src/components/LoadingSpinner';
@@ -44,6 +46,28 @@ export default function Index() {
     };
 
     void loadLanguages();
+  }, []);
+
+  useEffect(() => {
+    const configureOrientation = async () => {
+      try {
+        const deviceType = await Device.getDeviceTypeAsync();
+
+        if (deviceType === Device.DeviceType.PHONE) {
+          await ScreenOrientation.lockAsync(
+            ScreenOrientation.OrientationLock.PORTRAIT_UP
+          );
+        } else {
+          await ScreenOrientation.lockAsync(
+            ScreenOrientation.OrientationLock.DEFAULT
+          );
+        }
+      } catch (error) {
+        console.error('Orientation Error:', error);
+      }
+    };
+
+    void configureOrientation();
   }, []);
 
   if (loading) {

@@ -81,7 +81,7 @@ export default function SettingsScreen() {
           <SettingsItem
             title={t('version')}
             icon='application-brackets-outline'
-            right={() => <Text variant='bodyMedium'>1.0.0</Text>}
+            right={() => <Text variant='bodyMedium'>1.0.1</Text>}
           />
 
           <SettingsItem
