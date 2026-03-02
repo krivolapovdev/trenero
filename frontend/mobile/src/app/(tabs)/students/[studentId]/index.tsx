@@ -67,10 +67,10 @@ export default function StudentByIdScreen() {
   const hasDetails = isFullDetails(student);
 
   useEffect(() => {
-    if (!hasDetails) {
+    if (!student || !hasDetails) {
       void fetchStudent();
     }
-  }, [fetchStudent, hasDetails]);
+  }, [fetchStudent, hasDetails, student]);
 
   useEffect(() => {
     if (deleteError) {

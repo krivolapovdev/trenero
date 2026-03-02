@@ -33,23 +33,23 @@ export const PaymentSheet = ({
   const student = useStudentsStore(
     state => state.allStudents[studentId]
   ) as StudentDetails;
-  const removePayment = useStudentsStore(state => state.removePayment);
+  const removeStudent = useStudentsStore(state => state.removeStudent);
   const adjustMetricTotal = useMetricsStore(state => state.adjustMetricTotal);
 
   const {
-    execute: deletePayment2,
-    loading: deletePaymentPending,
+    execute: executeDeletePayment,
+    loading: isDeletingPayment,
     error
   } = useAsyncCallback(async () => {
     await deletePayment(paymentId);
-
-    removePayment(studentId, paymentId);
 
     const payment = student?.studentPayments.find(pay => pay.id === paymentId);
     if (payment) {
       const month = dayjs(payment?.date);
       adjustMetricTotal(month, -payment.amount);
     }
+
+    removeStudent(studentId);
 
     onDismiss();
   });
@@ -76,7 +76,7 @@ export const PaymentSheet = ({
             );
             onDismiss();
           }}
-          disabled={deletePaymentPending}
+          disabled={isDeletingPayment}
         >
           {t('edit')}
         </Button>
@@ -86,12 +86,12 @@ export const PaymentSheet = ({
           textColor={theme.colors.error}
           buttonColor={theme.colors.tertiaryContainer}
           onPress={() =>
-            void deletePayment2()
-              .then(() => router.back())
-              .catch(err => Alert.alert(t('error'), err.message))
+            void executeDeletePayment().catch(err =>
+              Alert.alert(t('error'), err.message)
+            )
           }
-          disabled={deletePaymentPending}
-          loading={deletePaymentPending}
+          disabled={isDeletingPayment}
+          loading={isDeletingPayment}
         >
           {t('delete')}
         </Button>

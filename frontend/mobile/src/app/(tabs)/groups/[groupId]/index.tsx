@@ -64,10 +64,10 @@ export default function GroupByIdScreen() {
   const hasFullDetails = isGroupDetails(group);
 
   useEffect(() => {
-    if (!hasFullDetails) {
+    if (!group || !hasFullDetails) {
       void fetchGroup();
     }
-  }, [fetchGroup, hasFullDetails]);
+  }, [fetchGroup, hasFullDetails, group]);
 
   useEffect(() => {
     if (deleteError) {

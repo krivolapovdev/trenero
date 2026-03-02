@@ -12,7 +12,6 @@ type StudentsStore = {
   refreshStudents: () => Promise<void>;
   addStudent: (student: StudentDetails) => void;
   removeStudent: (id: string) => void;
-  removePayment: (studentId: string, paymentId: string) => void;
 };
 
 export const useStudentsStore = create<StudentsStore>((set, get) => ({
@@ -56,27 +55,5 @@ export const useStudentsStore = create<StudentsStore>((set, get) => ({
     set(state => {
       const { [id]: _, ...nextEntities } = state.allStudents;
       return { allStudents: nextEntities };
-    }),
-
-  removePayment: (studentId, paymentId) => {
-    set(state => {
-      const student = state.allStudents[studentId];
-
-      if (!student || !('studentPayments' in student)) {
-        return state;
-      }
-
-      return {
-        allStudents: {
-          ...state.allStudents,
-          [studentId]: {
-            ...student,
-            studentPayments: student.studentPayments.filter(
-              p => p.id !== paymentId
-            )
-          }
-        }
-      };
-    });
-  }
+    })
 }));

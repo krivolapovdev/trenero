@@ -5,7 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Trenero',
   slug: 'trenero',
   version: '1.0.0',
-  orientation: 'portrait',
+  orientation: 'default',
   icon: './src/assets/images/icon.png',
   scheme: 'mobile',
   userInterfaceStyle: 'automatic',
