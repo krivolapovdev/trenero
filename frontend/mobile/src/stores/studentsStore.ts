@@ -12,6 +12,9 @@ type StudentsStore = {
   refreshStudents: () => Promise<void>;
   addStudent: (student: StudentDetails) => void;
   removeStudent: (id: string) => void;
+  getStudentsByGroupId: (
+    groupId: string
+  ) => (StudentOverview | StudentDetails)[];
 };
 
 export const useStudentsStore = create<StudentsStore>((set, get) => ({
@@ -55,5 +58,10 @@ export const useStudentsStore = create<StudentsStore>((set, get) => ({
     set(state => {
       const { [id]: _, ...nextEntities } = state.allStudents;
       return { allStudents: nextEntities };
-    })
+    }),
+
+  getStudentsByGroupId: groupId =>
+    Object.values(get().allStudents).filter(
+      student => student.studentGroup?.id === groupId
+    )
 }));

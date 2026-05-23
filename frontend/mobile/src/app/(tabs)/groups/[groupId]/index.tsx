@@ -4,6 +4,7 @@ import { useAsyncCallback } from 'react-async-hook';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { Divider, List, Text } from 'react-native-paper';
+import { useShallow } from 'zustand/react/shallow';
 import {
   deleteGroup,
   getGroupDetails
@@ -12,8 +13,10 @@ import { LessonsCalendar } from '@/src/components/Calendar';
 import { GroupCard } from '@/src/components/Card';
 import { CustomAppbar } from '@/src/components/CustomAppbar';
 import { OptionalErrorMessage } from '@/src/components/OptionalErrorMessage';
+import { StudentListItem } from '@/src/components/StudentListItem';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useGroupsStore } from '@/src/stores/groupsStore';
+import { useStudentsStore } from '@/src/stores/studentsStore';
 import type { GroupDetails, GroupOverview } from '@/src/types/group';
 
 const isGroupDetails = (
@@ -29,6 +32,9 @@ export default function GroupByIdScreen() {
   const addGroup = useGroupsStore(state => state.addGroup);
   const removeGroup = useGroupsStore(state => state.removeGroup);
   const group = useGroupsStore(state => state.allGroups[groupId]);
+  const students = useStudentsStore(
+    useShallow(state => state.getStudentsByGroupId(groupId))
+  );
 
   const {
     execute: fetchGroup,
@@ -90,10 +96,7 @@ export default function GroupByIdScreen() {
           {
             icon: 'calendar',
             onPress: () => router.push(`/groups/${groupId}/lessons/create`),
-            disabled:
-              groupLoading ||
-              mutationLoading ||
-              group?.groupStudents.length === 0
+            disabled: groupLoading || mutationLoading || students.length === 0
           },
           {
             icon: 'account-edit',
@@ -133,7 +136,7 @@ export default function GroupByIdScreen() {
               lessons={group.groupLessons}
             />
 
-            {group.groupStudents.length > 0 && (
+            {students.length > 0 && (
               <List.Section
                 style={{
                   borderRadius: 16,
@@ -151,10 +154,11 @@ export default function GroupByIdScreen() {
 
                 <Divider />
 
-                {group.groupStudents.map(student => (
-                  <List.Item
-                    key={student.fullName}
-                    title={student.fullName}
+                {students.map((student, index) => (
+                  <StudentListItem
+                    key={student.id}
+                    student={student}
+                    index={index}
                     onPress={() =>
                       router.push(`/(tabs)/students/${student.id}`)
                     }

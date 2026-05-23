@@ -1,7 +1,8 @@
 import { type Href, Link } from 'expo-router';
 import { memo } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleSheet, type ViewStyle } from 'react-native';
 import { Card, Divider, Text } from 'react-native-paper';
+import { StatusBadges } from '@/src/components/StatusBadges';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 type StatusBadge = {
@@ -41,26 +42,8 @@ export const EntityCard = memo(
 
             {badges && badges.length > 0 && (
               <>
-                <Divider style={styles.divider} />
-
-                <View style={styles.statusContainer}>
-                  {badges.map(badge => (
-                    <View
-                      key={badge.id}
-                      style={[
-                        styles.badge,
-                        { backgroundColor: badge.backgroundColor }
-                      ]}
-                    >
-                      <Text
-                        variant='bodyMedium'
-                        style={{ color: badge.textColor }}
-                      >
-                        {badge.label}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
+                <Divider style={{ marginBottom: 10 }} />
+                <StatusBadges badges={badges} />
               </>
             )}
           </Card.Content>
@@ -78,20 +61,5 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     paddingVertical: 10
-  },
-  divider: {
-    height: 1
-  },
-  statusContainer: {
-    paddingTop: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 8
-  },
-  badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16
   }
 });
