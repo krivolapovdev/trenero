@@ -24,7 +24,7 @@
     "@shopify/flash-list": "2.0.2",
     "axios": "^1.15.0",
     "dayjs": "^1.11.19",
-    "expo": "~54.0.25",
+    "expo": "~56.0.3",
     "expo-constants": "~18.0.10",
     "expo-dev-client": "~6.0.20",
     "expo-device": "~8.0.10",
