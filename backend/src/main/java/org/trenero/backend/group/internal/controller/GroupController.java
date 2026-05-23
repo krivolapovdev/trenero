@@ -47,14 +47,14 @@ public class GroupController {
   @GetMapping("/{groupId}")
   @PreAuthorize("isAuthenticated()")
   public GroupResponse getGroup(
-      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+      @PathVariable UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.getGroupById(groupId, jwtUser);
   }
 
   @GetMapping("/{groupId}/details")
   @PreAuthorize("isAuthenticated()")
   public GroupDetailsResponse getGroupDetails(
-      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+      @PathVariable UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.getGroupDetailsById(groupId, jwtUser);
   }
 
@@ -69,7 +69,7 @@ public class GroupController {
   @PatchMapping("/{groupId}")
   @PreAuthorize("isAuthenticated()")
   public GroupResponse updateGroup(
-      @PathVariable("groupId") UUID groupId,
+      @PathVariable UUID groupId,
       @RequestBody Map<String, Object> updates,
       @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.updateGroup(groupId, updates, jwtUser);
@@ -78,8 +78,7 @@ public class GroupController {
   @DeleteMapping("/{groupId}")
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteGroup(
-      @PathVariable("groupId") UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
+  public void deleteGroup(@PathVariable UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
     groupService.softDeleteGroup(groupId, jwtUser);
   }
 }

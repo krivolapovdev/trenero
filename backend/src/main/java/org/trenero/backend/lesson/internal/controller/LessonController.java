@@ -40,7 +40,7 @@ public class LessonController {
   @GetMapping("/{lessonId}")
   @PreAuthorize("isAuthenticated()")
   public LessonResponse getLesson(
-      @PathVariable("lessonId") UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
+      @PathVariable UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
     return lessonService.getLessonById(lessonId, jwtUser);
   }
 
@@ -62,7 +62,7 @@ public class LessonController {
   @PatchMapping("/{lessonId}")
   @PreAuthorize("isAuthenticated()")
   public LessonResponse updateLesson(
-      @PathVariable("lessonId") UUID lessonId,
+      @PathVariable UUID lessonId,
       @RequestBody @Valid UpdateLessonRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
     return lessonService.updateLesson(lessonId, request, jwtUser);
@@ -71,8 +71,7 @@ public class LessonController {
   @DeleteMapping("/{lessonId}")
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteLesson(
-      @PathVariable("lessonId") UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
+  public void deleteLesson(@PathVariable UUID lessonId, @AuthenticationPrincipal JwtUser jwtUser) {
     lessonService.deleteLesson(lessonId, jwtUser);
   }
 }

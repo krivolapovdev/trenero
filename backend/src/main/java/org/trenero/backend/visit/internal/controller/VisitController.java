@@ -39,7 +39,7 @@ public class VisitController {
   @GetMapping("/{visitId}")
   @PreAuthorize("isAuthenticated()")
   public VisitResponse getVisit(
-      @PathVariable("visitId") UUID visitId, @AuthenticationPrincipal JwtUser jwtUser) {
+      @PathVariable UUID visitId, @AuthenticationPrincipal JwtUser jwtUser) {
     return visitService.getVisitById(visitId, jwtUser);
   }
 
@@ -54,7 +54,7 @@ public class VisitController {
   @PatchMapping("/{visitId}")
   @PreAuthorize("isAuthenticated()")
   public VisitResponse updateVisit(
-      @PathVariable("visitId") UUID visitId,
+      @PathVariable UUID visitId,
       @RequestBody @Valid Map<String, Object> updates,
       @AuthenticationPrincipal JwtUser jwtUser) {
     return visitService.updateVisit(visitId, updates, jwtUser);
@@ -63,8 +63,7 @@ public class VisitController {
   @DeleteMapping("/{visitId}")
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteVisit(
-      @PathVariable("visitId") UUID visitId, @AuthenticationPrincipal JwtUser jwtUser) {
+  public void deleteVisit(@PathVariable UUID visitId, @AuthenticationPrincipal JwtUser jwtUser) {
     visitService.softDeleteVisit(visitId, jwtUser);
   }
 }

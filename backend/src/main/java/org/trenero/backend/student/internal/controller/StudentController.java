@@ -48,14 +48,14 @@ public class StudentController {
   @GetMapping("/{studentId}")
   @PreAuthorize("isAuthenticated()")
   public StudentResponse getStudent(
-      @PathVariable("studentId") UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+      @PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.getStudentById(studentId, jwtUser);
   }
 
   @GetMapping("/{studentId}/details")
   @PreAuthorize("isAuthenticated()")
   public StudentDetailsResponse getStudentDetails(
-      @PathVariable("studentId") UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+      @PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.getStudentDetailsById(studentId, jwtUser);
   }
 
@@ -70,7 +70,7 @@ public class StudentController {
   @PatchMapping("/{studentId}")
   @PreAuthorize("isAuthenticated()")
   public StudentResponse updateStudent(
-      @PathVariable("studentId") UUID studentId,
+      @PathVariable UUID studentId,
       @RequestBody Map<String, Object> request,
       @AuthenticationPrincipal JwtUser jwtUser) {
     return studentService.updateStudent(studentId, request, jwtUser);
@@ -80,7 +80,7 @@ public class StudentController {
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteStudent(
-      @PathVariable("studentId") UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
+      @PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
     studentService.softDeleteStudent(studentId, jwtUser);
   }
 }

@@ -39,7 +39,7 @@ public class StudentPaymentController {
   @GetMapping("/{paymentId}")
   @PreAuthorize("isAuthenticated()")
   public StudentPaymentResponse getPayment(
-      @PathVariable("paymentId") UUID paymentId, @AuthenticationPrincipal JwtUser jwtUser) {
+      @PathVariable UUID paymentId, @AuthenticationPrincipal JwtUser jwtUser) {
     return studentPaymentService.getStudentPaymentById(paymentId, jwtUser);
   }
 
@@ -55,7 +55,7 @@ public class StudentPaymentController {
   @PatchMapping("/{paymentId}")
   @PreAuthorize("isAuthenticated()")
   public StudentPaymentResponse updatePayment(
-      @PathVariable("paymentId") UUID paymentId,
+      @PathVariable UUID paymentId,
       @RequestBody @Valid UpdatePaymentRequest request,
       @AuthenticationPrincipal JwtUser jwtUser) {
     return studentPaymentService.updateStudentPayment(paymentId, request, jwtUser);
