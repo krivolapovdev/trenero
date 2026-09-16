@@ -44,7 +44,7 @@ public class GroupService implements GroupSpi {
   @Transactional(readOnly = true)
   public @NonNull List<GroupResponse> getAllGroups(@NonNull JwtUser jwtUser) {
     log.info("Getting all groups: user={}", jwtUser);
-    return groupRepository.findAllByOwnerId(jwtUser.userId()).stream()
+    return groupRepository.findAllByOwnerId(jwtUser.id()).stream()
         .map(groupMapper::toResponse)
         .toList();
   }
@@ -71,7 +71,7 @@ public class GroupService implements GroupSpi {
   public @NonNull GroupResponse getGroupById(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Getting group by id: groupId={}; user={}", groupId, jwtUser);
     return groupRepository
-        .findByIdAndOwnerId(groupId, jwtUser.userId())
+        .findByIdAndOwnerId(groupId, jwtUser.id())
         .map(groupMapper::toResponse)
         .orElseThrow(entityNotFoundSupplier(Group.class, groupId, jwtUser));
   }
@@ -101,7 +101,7 @@ public class GroupService implements GroupSpi {
       @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
     log.info("Getting groups by ids: groupIds={}; user={}", groupIds, jwtUser);
 
-    return groupRepository.findAllByIdsAndOwnerId(groupIds, jwtUser.userId()).stream()
+    return groupRepository.findAllByIdsAndOwnerId(groupIds, jwtUser.id()).stream()
         .map(groupMapper::toResponse)
         .collect(Collectors.toMap(GroupResponse::id, Function.identity()));
   }
@@ -110,7 +110,7 @@ public class GroupService implements GroupSpi {
   public GroupResponse createGroup(CreateGroupRequest request, JwtUser jwtUser) {
     log.info("Creating group: request={}; user={}", request, jwtUser);
 
-    Group group = groupMapper.toGroup(request, jwtUser.userId());
+    Group group = groupMapper.toGroup(request, jwtUser.id());
     Group savedGroup = self.saveGroup(group);
 
     groupStudentService.addStudentsToGroup(savedGroup.getId(), request.studentIds(), jwtUser);
@@ -122,7 +122,7 @@ public class GroupService implements GroupSpi {
   public GroupResponse updateGroup(UUID groupId, Map<String, Object> updates, JwtUser jwtUser) {
     log.info("Updating group: groupId={}; updates={}; user={}", groupId, updates, jwtUser);
     return groupRepository
-        .findByIdAndOwnerId(groupId, jwtUser.userId())
+        .findByIdAndOwnerId(groupId, jwtUser.id())
         .map(group -> groupMapper.updateGroup(group, updates))
         .map(self::saveGroup)
         .map(groupMapper::toResponse)
@@ -136,7 +136,7 @@ public class GroupService implements GroupSpi {
     groupStudentService.removeAllStudentsFromGroup(groupId, jwtUser);
 
     groupRepository
-        .findByIdAndOwnerId(groupId, jwtUser.userId())
+        .findByIdAndOwnerId(groupId, jwtUser.id())
         .map(
             group -> {
               group.setDeletedAt(OffsetDateTime.now());

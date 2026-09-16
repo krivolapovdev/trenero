@@ -46,7 +46,7 @@ public class LessonService implements LessonSpi {
   @Transactional(readOnly = true)
   public @NonNull List<LessonResponse> getAllLessons(@NonNull JwtUser jwtUser) {
     log.info("Getting all lessons: user={}", jwtUser);
-    return lessonRepository.findAllByOwnerId(jwtUser.userId()).stream()
+    return lessonRepository.findAllByOwnerId(jwtUser.id()).stream()
         .map(lessonMapper::toResponse)
         .toList();
   }
@@ -57,7 +57,7 @@ public class LessonService implements LessonSpi {
       @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Getting last group lesson: groupId={}; user={}", groupId, jwtUser);
     return lessonRepository
-        .findLastGroupLesson(groupId, jwtUser.userId())
+        .findLastGroupLesson(groupId, jwtUser.id())
         .map(lessonMapper::toResponse);
   }
 
@@ -66,7 +66,7 @@ public class LessonService implements LessonSpi {
   public @NonNull Map<UUID, LessonResponse> getLastGroupLessonsByGroupIds(
       @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
     log.info("Getting last group lessons: groupIds={}; user={}", groupIds, jwtUser);
-    return lessonRepository.findLastLessonsByGroupIdsAndOwnerId(groupIds, jwtUser.userId()).stream()
+    return lessonRepository.findLastLessonsByGroupIdsAndOwnerId(groupIds, jwtUser.id()).stream()
         .map(lessonMapper::toResponse)
         .collect(Collectors.toMap(LessonResponse::groupId, Function.identity()));
   }
@@ -75,7 +75,7 @@ public class LessonService implements LessonSpi {
   public @NonNull LessonResponse getLessonById(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
     log.info("Getting lesson by id: lessonId={}; user={}", lessonId, jwtUser);
     return lessonRepository
-        .findByIdAndOwnerId(lessonId, jwtUser.userId())
+        .findByIdAndOwnerId(lessonId, jwtUser.id())
         .map(lessonMapper::toResponse)
         .orElseThrow(entityNotFoundSupplier(Lesson.class, lessonId, jwtUser));
   }
@@ -94,7 +94,7 @@ public class LessonService implements LessonSpi {
   public @NonNull List<LessonResponse> getLessonsByGroupId(
       @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Getting lessons by group id: groupId={}; user={}", groupId, jwtUser);
-    return lessonRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.userId()).stream()
+    return lessonRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.id()).stream()
         .map(lessonMapper::toResponse)
         .toList();
   }
@@ -122,7 +122,7 @@ public class LessonService implements LessonSpi {
       return Map.of();
     }
 
-    return lessonRepository.findAllByIdsAndOwnerId(ids, jwtUser.userId()).stream()
+    return lessonRepository.findAllByIdsAndOwnerId(ids, jwtUser.id()).stream()
         .map(lessonMapper::toResponse)
         .collect(Collectors.toMap(LessonResponse::id, Function.identity()));
   }
@@ -131,7 +131,7 @@ public class LessonService implements LessonSpi {
   public LessonResponse createLesson(CreateLessonRequest request, JwtUser jwtUser) {
     log.info("Creating lesson: request={}; user={}", request, jwtUser);
 
-    Lesson lesson = lessonMapper.toLesson(request, jwtUser.userId());
+    Lesson lesson = lessonMapper.toLesson(request, jwtUser.id());
     Lesson savedLesson = saveLesson(lesson);
 
     Map<UUID, StudentVisit> requestStudentMap =
@@ -169,7 +169,7 @@ public class LessonService implements LessonSpi {
     }
 
     return lessonRepository
-        .findByIdAndOwnerId(lessonId, jwtUser.userId())
+        .findByIdAndOwnerId(lessonId, jwtUser.id())
         .map(lesson -> lessonMapper.updateLesson(lesson, request))
         .map(this::saveLesson)
         .map(lessonMapper::toResponse)
@@ -187,7 +187,7 @@ public class LessonService implements LessonSpi {
     visitSpi.removeVisitsByLessonId(lessonId, jwtUser);
 
     lessonRepository
-        .findByIdAndOwnerId(lessonId, jwtUser.userId())
+        .findByIdAndOwnerId(lessonId, jwtUser.id())
         .map(
             lesson -> {
               lesson.setDeletedAt(OffsetDateTime.now());

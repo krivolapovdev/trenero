@@ -38,7 +38,7 @@ public class VisitService implements VisitSpi {
   @Transactional(readOnly = true)
   public List<VisitResponse> getAllVisits(JwtUser jwtUser) {
     log.info("Getting all visits: user={}", jwtUser);
-    return visitRepository.findAllByOwnerId(jwtUser.userId()).stream()
+    return visitRepository.findAllByOwnerId(jwtUser.id()).stream()
         .map(visitMapper::toResponse)
         .toList();
   }
@@ -47,7 +47,7 @@ public class VisitService implements VisitSpi {
   public VisitResponse getVisitById(UUID visitId, JwtUser jwtUser) {
     log.info("Getting visit by id: visitId={}; user={}", visitId, jwtUser);
     return visitRepository
-        .findByIdAndOwnerId(visitId, jwtUser.userId())
+        .findByIdAndOwnerId(visitId, jwtUser.id())
         .map(visitMapper::toResponse)
         .orElseThrow(entityNotFoundSupplier(Visit.class, visitId, jwtUser));
   }
@@ -56,7 +56,7 @@ public class VisitService implements VisitSpi {
   public @NonNull List<VisitResponse> getVisitsByLessonId(
       @NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
     log.info("Getting visits by lesson id: lessonId={}; user={}", lessonId, jwtUser);
-    return visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId()).stream()
+    return visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.id()).stream()
         .map(visitMapper::toResponse)
         .toList();
   }
@@ -65,7 +65,7 @@ public class VisitService implements VisitSpi {
   public @NonNull Map<UUID, List<VisitResponse>> getVisitsByStudentIds(
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info("Getting visits by student ids: studentIds={}; user={}", studentIds, jwtUser);
-    return visitRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
+    return visitRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.id()).stream()
         .map(visitMapper::toResponse)
         .collect(Collectors.groupingBy(VisitResponse::studentId));
   }
@@ -80,7 +80,7 @@ public class VisitService implements VisitSpi {
         studentId,
         jwtUser);
     return visitRepository
-        .findByLessonIdAndStudentIdAndOwnerId(lessonId, studentId, jwtUser.userId())
+        .findByLessonIdAndStudentIdAndOwnerId(lessonId, studentId, jwtUser.id())
         .map(visitMapper::toResponse)
         .orElseThrow(
             () ->
@@ -96,7 +96,7 @@ public class VisitService implements VisitSpi {
   public @NonNull List<VisitResponse> getVisitsByStudentId(
       @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting visits by student id: studentId={}; user={}", studentId, jwtUser);
-    return visitRepository.findAllByStudentIdAndOwnerId(studentId, jwtUser.userId()).stream()
+    return visitRepository.findAllByStudentIdAndOwnerId(studentId, jwtUser.id()).stream()
         .map(visitMapper::toResponse)
         .toList();
   }
@@ -108,7 +108,7 @@ public class VisitService implements VisitSpi {
 
     lessonSpi.getLessonById(request.lessonId(), jwtUser);
 
-    Visit visit = visitMapper.toVisit(request, jwtUser.userId());
+    Visit visit = visitMapper.toVisit(request, jwtUser.id());
 
     Visit savedVisit = saveVisit(visit);
 
@@ -119,7 +119,7 @@ public class VisitService implements VisitSpi {
   public VisitResponse updateVisit(UUID visitId, Map<String, Object> request, JwtUser jwtUser) {
     log.info("Updating visit: visitId={}; request={}; user={}", visitId, request, jwtUser);
     return visitRepository
-        .findByIdAndOwnerId(visitId, jwtUser.userId())
+        .findByIdAndOwnerId(visitId, jwtUser.id())
         .map(visit -> visitMapper.updateVisit(visit, request))
         .map(this::saveVisit)
         .map(visitMapper::toResponse)
@@ -142,7 +142,7 @@ public class VisitService implements VisitSpi {
             .map(
                 sv ->
                     Visit.builder()
-                        .ownerId(jwtUser.userId())
+                        .ownerId(jwtUser.id())
                         .lessonId(lessonId)
                         .studentId(sv.studentId())
                         .status(sv.status())
@@ -157,7 +157,7 @@ public class VisitService implements VisitSpi {
   public void softDeleteVisit(UUID visitId, JwtUser jwtUser) {
     log.info("Deleting visit: visitId={}; user={}", visitId, jwtUser);
     visitRepository
-        .findByIdAndOwnerId(visitId, jwtUser.userId())
+        .findByIdAndOwnerId(visitId, jwtUser.id())
         .map(
             visit -> {
               visit.setDeletedAt(OffsetDateTime.now());
@@ -171,7 +171,7 @@ public class VisitService implements VisitSpi {
   public void removeVisitsByLessonId(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
     log.info("Removing visits by lesson id: lessonId={}; user={}", lessonId, jwtUser);
 
-    List<Visit> visits = visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId());
+    List<Visit> visits = visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.id());
 
     OffsetDateTime now = OffsetDateTime.now();
 
@@ -186,8 +186,7 @@ public class VisitService implements VisitSpi {
       @NonNull UUID lessonId, @NonNull List<StudentVisit> requests, @NonNull JwtUser jwtUser) {
     log.info("Updating visits by lesson id: lessonId={}; user={}", lessonId, jwtUser);
 
-    List<Visit> lessonVisits =
-        visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.userId());
+    List<Visit> lessonVisits = visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.id());
 
     Map<UUID, Visit> studentVisitMap =
         lessonVisits.stream().collect(Collectors.toMap(Visit::getStudentId, Function.identity()));
@@ -204,7 +203,7 @@ public class VisitService implements VisitSpi {
           } else {
             Visit newVisit =
                 Visit.builder()
-                    .ownerId(jwtUser.userId())
+                    .ownerId(jwtUser.id())
                     .lessonId(lessonId)
                     .studentId(req.studentId())
                     .status(req.status())

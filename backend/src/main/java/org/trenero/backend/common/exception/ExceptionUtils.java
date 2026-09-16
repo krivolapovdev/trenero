@@ -36,6 +36,6 @@ public class ExceptionUtils {
     return new EntityNotFoundException(
         String.format(
             "%s not found: %s; user={%s}",
-            entityClass.getSimpleName(), criteriaString, jwtUser.userId()));
+            entityClass.getSimpleName(), criteriaString, jwtUser.id()));
   }
 }

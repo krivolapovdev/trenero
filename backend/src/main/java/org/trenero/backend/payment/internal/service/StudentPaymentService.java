@@ -44,7 +44,7 @@ public class StudentPaymentService implements StudentPaymentSpi {
   public @NonNull List<StudentPaymentResponse> getAllStudentPayments(@NonNull JwtUser jwtUser) {
     log.info("Getting all student payments: user={}", jwtUser);
 
-    var allPayments = studentPaymentRepository.findAllByOwnerIdSorted(jwtUser.userId());
+    var allPayments = studentPaymentRepository.findAllByOwnerIdSorted(jwtUser.id());
 
     return allPayments.stream()
         .collect(Collectors.groupingBy(StudentPayment::getStudentId))
@@ -60,7 +60,7 @@ public class StudentPaymentService implements StudentPaymentSpi {
 
     var payment =
         studentPaymentRepository
-            .findByTransactionIdAndOwnerId(paymentId, jwtUser.userId())
+            .findByTransactionIdAndOwnerId(paymentId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(StudentPayment.class, paymentId, jwtUser));
 
     var previousPaidUntil =
@@ -77,7 +77,7 @@ public class StudentPaymentService implements StudentPaymentSpi {
     log.info("Getting student payments by student id: studentId={}; user={}", studentId, jwtUser);
 
     var sortedPayments =
-        studentPaymentRepository.findAllByStudentIdAndOwnerIdSorted(studentId, jwtUser.userId());
+        studentPaymentRepository.findAllByStudentIdAndOwnerIdSorted(studentId, jwtUser.id());
 
     return toSortedResponseStream(sortedPayments).toList();
   }
@@ -89,8 +89,7 @@ public class StudentPaymentService implements StudentPaymentSpi {
     log.info(
         "Getting student payments by student ids: studentIds={}; user={}", studentIds, jwtUser);
 
-    var payments =
-        studentPaymentRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.userId());
+    var payments = studentPaymentRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.id());
 
     return payments.stream()
         .collect(Collectors.groupingBy(StudentPayment::getStudentId))
@@ -141,7 +140,7 @@ public class StudentPaymentService implements StudentPaymentSpi {
 
     StudentPayment payment =
         studentPaymentRepository
-            .findByTransactionIdAndOwnerId(paymentId, jwtUser.userId())
+            .findByTransactionIdAndOwnerId(paymentId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(StudentPayment.class, paymentId, jwtUser));
 
     var updatedTx =

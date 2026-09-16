@@ -63,8 +63,8 @@ public class UserService implements UserSpi {
 
     OAuth2User oAuth2User =
         userRepository
-            .findById(jwtUser.userId())
-            .orElseThrow(entityNotFoundSupplier(OAuth2User.class, jwtUser.userId(), jwtUser));
+            .findById(jwtUser.id())
+            .orElseThrow(entityNotFoundSupplier(OAuth2User.class, jwtUser.id(), jwtUser));
 
     userRepository.delete(oAuth2User);
   }

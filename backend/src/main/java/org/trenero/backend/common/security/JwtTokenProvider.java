@@ -33,7 +33,7 @@ public class JwtTokenProvider {
     long accessTokenExpirationMillis = jwtProperties.getAccessTokenExpiration().toMillis();
     Date expiration = new Date(System.currentTimeMillis() + accessTokenExpirationMillis);
     return Jwts.builder()
-        .subject(jwtUser.userId().toString())
+        .subject(jwtUser.id().toString())
         .claim(TOKEN_CLAIM_EMAIL, jwtUser.email())
         .expiration(expiration)
         .issuedAt(new Date())
@@ -45,7 +45,7 @@ public class JwtTokenProvider {
     long refreshTokenExpirationMillis = jwtProperties.getRefreshTokenExpiration().toMillis();
     Date expiration = new Date(System.currentTimeMillis() + refreshTokenExpirationMillis);
     return Jwts.builder()
-        .subject(jwtUser.userId().toString())
+        .subject(jwtUser.id().toString())
         .claim(TOKEN_CLAIM_EMAIL, jwtUser.email())
         .expiration(expiration)
         .issuedAt(new Date())

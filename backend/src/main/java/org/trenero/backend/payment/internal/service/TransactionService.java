@@ -36,7 +36,7 @@ public class TransactionService implements TransactionSpi {
   @Transactional(readOnly = true)
   public @NonNull List<TransactionResponse> getAllTransactions(@NonNull JwtUser jwtUser) {
     log.info("Getting all transactions: user={}", jwtUser);
-    return transactionRepository.findAllByOwnerId(jwtUser.userId()).stream()
+    return transactionRepository.findAllByOwnerId(jwtUser.id()).stream()
         .map(transactionMapper::toResponse)
         .toList();
   }
@@ -45,7 +45,7 @@ public class TransactionService implements TransactionSpi {
   public TransactionResponse getTransactionById(UUID transactionId, JwtUser jwtUser) {
     log.info("Getting transaction by id: transactionId={}; user={}", transactionId, jwtUser);
     return transactionRepository
-        .findByIdAndOwnerId(transactionId, jwtUser.userId())
+        .findByIdAndOwnerId(transactionId, jwtUser.id())
         .map(transactionMapper::toResponse)
         .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
   }
@@ -53,7 +53,7 @@ public class TransactionService implements TransactionSpi {
   @Transactional(readOnly = true)
   public Map<UUID, TransactionResponse> getTransactionsByIds(List<UUID> ids, JwtUser jwtUser) {
     log.info("Getting transactions by ids: ids={}; user={}", ids, jwtUser);
-    return transactionRepository.findAllByIdInAndOwnerId(ids, jwtUser.userId()).stream()
+    return transactionRepository.findAllByIdInAndOwnerId(ids, jwtUser.id()).stream()
         .map(transactionMapper::toResponse)
         .collect(Collectors.toMap(TransactionResponse::id, Function.identity()));
   }
@@ -69,7 +69,7 @@ public class TransactionService implements TransactionSpi {
         endDate);
 
     return transactionRepository
-        .findAllByOwnerIdAndDateBetween(jwtUser.userId(), startDate, endDate)
+        .findAllByOwnerIdAndDateBetween(jwtUser.id(), startDate, endDate)
         .stream()
         .map(transactionMapper::toResponse)
         .toList();
@@ -86,12 +86,7 @@ public class TransactionService implements TransactionSpi {
         jwtUser);
 
     Transaction transaction =
-        Transaction.builder()
-            .ownerId(jwtUser.userId())
-            .type(type)
-            .amount(amount)
-            .date(date)
-            .build();
+        Transaction.builder().ownerId(jwtUser.id()).type(type).amount(amount).date(date).build();
 
     return saveTransaction(transaction);
   }
@@ -108,7 +103,7 @@ public class TransactionService implements TransactionSpi {
 
     Transaction transaction =
         transactionRepository
-            .findByIdAndOwnerId(transactionId, jwtUser.userId())
+            .findByIdAndOwnerId(transactionId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
 
     if (amount != null) {
@@ -130,7 +125,7 @@ public class TransactionService implements TransactionSpi {
 
     Transaction transaction =
         transactionRepository
-            .findByIdAndOwnerId(transactionId, jwtUser.userId())
+            .findByIdAndOwnerId(transactionId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
 
     transaction.setDeletedAt(OffsetDateTime.now());

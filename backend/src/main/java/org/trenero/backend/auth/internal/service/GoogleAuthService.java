@@ -2,36 +2,28 @@ package org.trenero.backend.auth.internal.service;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.Collections;
 import java.util.Optional;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class GoogleAuthService {
-  @Value("${oauth2.google.client-id}")
-  private String clientId;
 
-  public Optional<GoogleIdToken> verifyIdToken(String token)
-      throws GeneralSecurityException, IOException {
-    log.info("Verifying google token={}", token);
+  private final GoogleIdTokenVerifier verifier;
 
-    GoogleIdTokenVerifier verifier =
-        new GoogleIdTokenVerifier.Builder(
-                GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance())
-            .setAudience(Collections.singletonList(clientId))
-            .build();
+  public Optional<GoogleIdToken> verifyIdToken(@NonNull String token) {
+    log.info("Attempting to verify Google ID token");
 
-    GoogleIdToken googleIdToken = verifier.verify(token);
-
-    return Optional.ofNullable(googleIdToken);
+    try {
+      var googleIdToken = verifier.verify(token);
+      return Optional.ofNullable(googleIdToken);
+    } catch (Exception e) {
+      log.error("Failed to verify Google ID token", e);
+      return Optional.empty();
+    }
   }
 }

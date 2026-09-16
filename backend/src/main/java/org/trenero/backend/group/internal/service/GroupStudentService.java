@@ -32,7 +32,7 @@ public class GroupStudentService implements GroupStudentSpi {
   public @NonNull List<GroupStudentResponse> getStudentsByGroupId(
       @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Getting students by group id: groupId={}; user={}", groupId, jwtUser);
-    return groupStudentRepository.findAllByGroupId(groupId, jwtUser.userId()).stream()
+    return groupStudentRepository.findAllByGroupId(groupId, jwtUser.id()).stream()
         .map(groupStudentMapper::toResponse)
         .toList();
   }
@@ -41,7 +41,7 @@ public class GroupStudentService implements GroupStudentSpi {
   public Map<UUID, List<GroupStudentResponse>> getStudentsByGroupIds(
       List<UUID> groupIds, JwtUser jwtUser) {
     log.info("Getting students by groupIds={}", groupIds);
-    return groupStudentRepository.findAllByGroupIds(groupIds, jwtUser.userId()).stream()
+    return groupStudentRepository.findAllByGroupIds(groupIds, jwtUser.id()).stream()
         .map(groupStudentMapper::toResponse)
         .collect(Collectors.groupingBy(GroupStudentResponse::groupId));
   }
@@ -50,7 +50,7 @@ public class GroupStudentService implements GroupStudentSpi {
   public @NonNull List<GroupStudentResponse> getGroupsByStudentId(
       @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting groups by student id: studentId={}; user={}", studentId, jwtUser);
-    return groupStudentRepository.findAllByStudentId(studentId, jwtUser.userId()).stream()
+    return groupStudentRepository.findAllByStudentId(studentId, jwtUser.id()).stream()
         .map(groupStudentMapper::toResponse)
         .toList();
   }
@@ -65,11 +65,7 @@ public class GroupStudentService implements GroupStudentSpi {
     groupService.getGroupById(groupId, jwtUser);
 
     GroupStudent groupStudent =
-        GroupStudent.builder()
-            .studentId(studentId)
-            .groupId(groupId)
-            .ownerId(jwtUser.userId())
-            .build();
+        GroupStudent.builder().studentId(studentId).groupId(groupId).ownerId(jwtUser.id()).build();
 
     GroupStudent savedGroupStudent = self.saveGroupStudent(groupStudent);
 
@@ -81,7 +77,7 @@ public class GroupStudentService implements GroupStudentSpi {
   public @NonNull Map<UUID, GroupStudentResponse> getGroupStudentsByStudentIds(
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info("Getting group students by student ids: studentIds={}; user={}", studentIds, jwtUser);
-    return groupStudentRepository.findAllByStudentIds(studentIds, jwtUser.userId()).stream()
+    return groupStudentRepository.findAllByStudentIds(studentIds, jwtUser.id()).stream()
         .map(groupStudentMapper::toResponse)
         .collect(Collectors.toMap(GroupStudentResponse::studentId, Function.identity()));
   }
@@ -103,7 +99,7 @@ public class GroupStudentService implements GroupStudentSpi {
                     GroupStudent.builder()
                         .studentId(studentId)
                         .groupId(groupId)
-                        .ownerId(jwtUser.userId())
+                        .ownerId(jwtUser.id())
                         .build())
             .toList();
 
@@ -126,7 +122,7 @@ public class GroupStudentService implements GroupStudentSpi {
   public void softDeleteByGroupId(UUID groupId, JwtUser jwtUser) {
     log.info(
         "Soft deleting group student links by group id: groupId={}; user={}", groupId, jwtUser);
-    groupStudentRepository.softDeleteByGroupId(groupId, jwtUser.userId());
+    groupStudentRepository.softDeleteByGroupId(groupId, jwtUser.id());
   }
 
   @Transactional
@@ -136,7 +132,7 @@ public class GroupStudentService implements GroupStudentSpi {
         studentId,
         groupId,
         jwtUser);
-    groupStudentRepository.softDeleteByStudentIdAndGroupId(groupId, studentId, jwtUser.userId());
+    groupStudentRepository.softDeleteByStudentIdAndGroupId(groupId, studentId, jwtUser.id());
   }
 
   @Transactional

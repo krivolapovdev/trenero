@@ -57,7 +57,7 @@ public class StudentService implements StudentSpi {
   @Transactional(readOnly = true)
   public @NonNull List<StudentResponse> getAllStudents(@NonNull JwtUser jwtUser) {
     log.info("Getting all students: user={}", jwtUser);
-    return studentRepository.findAllByOwnerId(jwtUser.userId()).stream()
+    return studentRepository.findAllByOwnerId(jwtUser.id()).stream()
         .map(studentMapper::toResponse)
         .toList();
   }
@@ -121,7 +121,7 @@ public class StudentService implements StudentSpi {
       @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting student by id: studentId={}; user={}", studentId, jwtUser);
     return studentRepository
-        .findByIdAndOwnerId(studentId, jwtUser.userId())
+        .findByIdAndOwnerId(studentId, jwtUser.id())
         .map(studentMapper::toResponse)
         .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
   }
@@ -130,7 +130,7 @@ public class StudentService implements StudentSpi {
   public @NonNull Map<UUID, List<StudentResponse>> getStudentsByIds(
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info("Getting students by ids: studentIds={}; user={}", studentIds, jwtUser);
-    return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.userId()).stream()
+    return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.id()).stream()
         .map(studentMapper::toResponse)
         .collect(Collectors.groupingBy(StudentResponse::id));
   }
@@ -183,7 +183,7 @@ public class StudentService implements StudentSpi {
   public StudentResponse createStudent(CreateStudentRequest request, JwtUser jwtUser) {
     log.info("Creating student: request={}; user={}", request, jwtUser);
 
-    Student student = studentMapper.toStudent(request, jwtUser.userId());
+    Student student = studentMapper.toStudent(request, jwtUser.id());
 
     Student savedStudent = self.saveStudent(student);
 
@@ -201,7 +201,7 @@ public class StudentService implements StudentSpi {
 
     Student student =
         studentRepository
-            .findByIdAndOwnerId(studentId, jwtUser.userId())
+            .findByIdAndOwnerId(studentId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
 
     if (updates.containsKey("groupId")) {
@@ -233,7 +233,7 @@ public class StudentService implements StudentSpi {
     log.info("Deleting student: studentId={}; user={}", studentId, jwtUser);
 
     studentRepository
-        .findByIdAndOwnerId(studentId, jwtUser.userId())
+        .findByIdAndOwnerId(studentId, jwtUser.id())
         .map(
             student -> {
               student.setDeletedAt(OffsetDateTime.now());

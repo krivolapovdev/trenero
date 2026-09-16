@@ -1,8 +1,9 @@
 package org.trenero.backend.auth.internal.service;
 
-import io.jsonwebtoken.JwtException;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.trenero.backend.auth.internal.request.RefreshTokenRequest;
 import org.trenero.backend.common.response.JwtTokensResponse;
@@ -15,25 +16,26 @@ import org.trenero.backend.common.security.JwtUser;
 public class JwtTokenService {
   private final JwtTokenProvider jwtTokenProvider;
 
-  public JwtTokensResponse createAccessAndRefreshTokens(JwtUser jwtUser) {
-    log.info("Creating JWT tokens: user={}", jwtUser);
+  public @NonNull JwtTokensResponse createAccessAndRefreshTokens(@NonNull JwtUser jwtUser) {
+    log.info("Creating JWT access and refresh tokens for id={}", jwtUser.id());
 
-    String accessToken = jwtTokenProvider.generateAccessToken(jwtUser);
-    String refreshToken = jwtTokenProvider.generateRefreshToken(jwtUser);
+    var accessToken = jwtTokenProvider.generateAccessToken(jwtUser);
+    var refreshToken = jwtTokenProvider.generateRefreshToken(jwtUser);
 
     return new JwtTokensResponse(accessToken, refreshToken);
   }
 
-  public JwtTokensResponse refreshTokens(RefreshTokenRequest request) {
-    log.info("Refreshing JWT tokens: request={}", request);
+  public @NonNull JwtTokensResponse refreshTokens(@NonNull RefreshTokenRequest request) {
+    log.info("Processing token refresh request");
 
-    String oldRefreshToken = request.refreshToken();
+    var oldRefreshToken = request.refreshToken();
 
     if (!jwtTokenProvider.isTokenValid(oldRefreshToken)) {
-      throw new JwtException("Invalid refresh token");
+      log.warn("Refresh token validation failed");
+      throw new BadCredentialsException("Invalid or expired refresh token");
     }
 
-    JwtUser jwtUser = jwtTokenProvider.extractUser(oldRefreshToken);
+    var jwtUser = jwtTokenProvider.extractUser(oldRefreshToken);
 
     return createAccessAndRefreshTokens(jwtUser);
   }
