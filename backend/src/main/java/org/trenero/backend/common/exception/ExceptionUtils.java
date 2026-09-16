@@ -12,6 +12,7 @@ import org.trenero.backend.common.security.JwtUser;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExceptionUtils {
+
   public static @NonNull Supplier<EntityNotFoundException> entityNotFoundSupplier(
       @NonNull Class<?> entityClass, @NonNull UUID id, @NonNull JwtUser jwtUser) {
     return () -> entityNotFound(entityClass, id, jwtUser);
@@ -21,7 +22,8 @@ public class ExceptionUtils {
       @NonNull Class<?> entityClass, @NonNull UUID id, @NonNull JwtUser jwtUser) {
     return new EntityNotFoundException(
         String.format(
-            "%s not found: id={%s}; user={%s}", entityClass.getSimpleName(), id, jwtUser));
+            "%s not found with id={%s} for user={%s}",
+            entityClass.getSimpleName(), id, jwtUser.id()));
   }
 
   public static @NonNull EntityNotFoundException entityNotFound(
@@ -35,7 +37,7 @@ public class ExceptionUtils {
 
     return new EntityNotFoundException(
         String.format(
-            "%s not found: %s; user={%s}",
+            "%s not found with criteria [%s] for user={%s}",
             entityClass.getSimpleName(), criteriaString, jwtUser.id()));
   }
 }

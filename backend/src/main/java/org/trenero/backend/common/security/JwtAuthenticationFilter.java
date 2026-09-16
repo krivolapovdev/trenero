@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.trenero.backend.common.domain.TokenType;
 
 @Component
 @RequiredArgsConstructor
@@ -24,16 +25,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       @NonNull HttpServletResponse response,
       @NonNull FilterChain filterChain)
       throws ServletException, IOException {
-    String authHeader = request.getHeader("Authorization");
+    var authHeader = request.getHeader("Authorization");
 
     if (authHeader == null || !authHeader.startsWith("Bearer ")) {
       filterChain.doFilter(request, response);
       return;
     }
 
-    String token = authHeader.substring(7);
+    var token = authHeader.substring(7);
 
-    if (jwtTokenProvider.isTokenValid(token)
+    if (jwtTokenProvider.isTokenValid(token, TokenType.ACCESS)
         && SecurityContextHolder.getContext().getAuthentication() == null) {
       var jwtUser = jwtTokenProvider.extractUser(token);
 

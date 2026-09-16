@@ -1,73 +1,80 @@
 package org.trenero.backend.common.security;
 
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.time.Duration;
 import java.util.Date;
 import java.util.UUID;
 import javax.crypto.SecretKey;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.trenero.backend.common.config.JwtProperties;
+import org.trenero.backend.common.domain.TokenType;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtTokenProvider {
   public static final String TOKEN_CLAIM_EMAIL = "email";
+  public static final String TOKEN_CLAIM_TYPE = "type";
 
   private final JwtProperties jwtProperties;
 
   private SecretKey secretKey;
+  private JwtParser jwtParser;
 
   @PostConstruct
   public void init() {
-    byte[] bytes = jwtProperties.getSecretKey().getBytes();
-    String secret = Base64.getEncoder().encodeToString(bytes);
-    this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    var keyBytes = jwtProperties.getSecretKey().getBytes(StandardCharsets.UTF_8);
+    this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+    this.jwtParser = Jwts.parser().verifyWith(secretKey).build();
   }
 
-  public String generateAccessToken(JwtUser jwtUser) {
-    long accessTokenExpirationMillis = jwtProperties.getAccessTokenExpiration().toMillis();
-    Date expiration = new Date(System.currentTimeMillis() + accessTokenExpirationMillis);
-    return Jwts.builder()
-        .subject(jwtUser.id().toString())
-        .claim(TOKEN_CLAIM_EMAIL, jwtUser.email())
-        .expiration(expiration)
-        .issuedAt(new Date())
-        .signWith(secretKey)
-        .compact();
+  public @NonNull String generateAccessToken(@NonNull JwtUser jwtUser) {
+    return generateToken(jwtUser, jwtProperties.getAccessTokenExpiration(), TokenType.ACCESS);
   }
 
-  public String generateRefreshToken(JwtUser jwtUser) {
-    long refreshTokenExpirationMillis = jwtProperties.getRefreshTokenExpiration().toMillis();
-    Date expiration = new Date(System.currentTimeMillis() + refreshTokenExpirationMillis);
-    return Jwts.builder()
-        .subject(jwtUser.id().toString())
-        .claim(TOKEN_CLAIM_EMAIL, jwtUser.email())
-        .expiration(expiration)
-        .issuedAt(new Date())
-        .signWith(secretKey)
-        .compact();
+  public @NonNull String generateRefreshToken(@NonNull JwtUser jwtUser) {
+    return generateToken(jwtUser, jwtProperties.getRefreshTokenExpiration(), TokenType.REFRESH);
   }
 
-  public JwtUser extractUser(String token) {
-    var claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+  public @NonNull JwtUser extractUser(@NonNull String token) {
+    var claims = jwtParser.parseSignedClaims(token).getPayload();
 
-    UUID userId = UUID.fromString(claims.getSubject());
-    String email = claims.get(TOKEN_CLAIM_EMAIL, String.class);
+    var id = UUID.fromString(claims.getSubject());
+    var email = claims.get(TOKEN_CLAIM_EMAIL, String.class);
 
-    return new JwtUser(userId, email);
+    return new JwtUser(id, email);
   }
 
-  public boolean isTokenValid(String token) {
+  public boolean isTokenValid(@NonNull String token, @NonNull TokenType expectedType) {
     try {
-      Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
-      return true;
-    } catch (JwtException | IllegalArgumentException ignored) {
+      var claims = jwtParser.parseSignedClaims(token).getPayload();
+      var tokenTypeStr = claims.get(TOKEN_CLAIM_TYPE, String.class);
+      return expectedType.name().equals(tokenTypeStr);
+    } catch (JwtException | IllegalArgumentException e) {
+      log.warn("JWT validation failed: {}", e.getMessage());
       return false;
     }
+  }
+
+  private String generateToken(JwtUser jwtUser, Duration expirationDuration, TokenType tokenType) {
+    var now = new Date();
+    var expiration = new Date(now.getTime() + expirationDuration.toMillis());
+
+    return Jwts.builder()
+        .subject(jwtUser.id().toString())
+        .claim(TOKEN_CLAIM_EMAIL, jwtUser.email())
+        .claim(TOKEN_CLAIM_TYPE, tokenType.name())
+        .issuedAt(now)
+        .expiration(expiration)
+        .signWith(secretKey)
+        .compact();
   }
 }
