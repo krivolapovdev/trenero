@@ -1,6 +1,5 @@
 package org.trenero.backend.auth.internal.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
-public record RefreshTokenRequest(@NotNull @NotBlank String refreshToken) {}
+public record RefreshTokenRequest(@NotBlank String refreshToken) {}
