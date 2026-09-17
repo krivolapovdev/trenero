@@ -30,13 +30,13 @@ spring:
         fail-on-numbers-for-enums: true
     mapper:
       accept-case-insensitive-enums: true
-jwt:
-  secret-key: ${JWT_SECRET_KEY:your-jwt-ultra-secure-and-ultra-long-secret}
-  access-token-expiration: 15m
-  refresh-token-expiration: 7d
 app:
   oauth2:
     google:
       client-ids: ${GOOGLE_WEB_CLIENT_ID}
   reviewer:
     key: ${REVIEWER_SECRET_KEY:your-reviewer-secret-key}
+  jwt:
+    secret-key: ${JWT_SECRET_KEY:your-jwt-ultra-secure-and-ultra-long-secret}
+    access-token-expiration: 15m
+    refresh-token-expiration: 14d

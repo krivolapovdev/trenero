@@ -86,9 +86,9 @@ public class VisitService implements VisitSpi {
 
     lessonSpi.getLessonById(request.lessonId(), jwtUser);
 
-    Visit visit = visitMapper.toVisit(request, jwtUser.id());
+    var visit = visitMapper.toVisit(request, jwtUser.id());
 
-    Visit savedVisit = saveVisit(visit);
+    var savedVisit = saveVisit(visit);
 
     return visitMapper.toResponse(savedVisit);
   }
@@ -115,7 +115,7 @@ public class VisitService implements VisitSpi {
         studentVisitList.size(),
         jwtUser);
 
-    List<Visit> visits =
+    var visits =
         studentVisitList.stream()
             .map(
                 sv ->
@@ -149,9 +149,9 @@ public class VisitService implements VisitSpi {
   public void removeVisitsByLessonId(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
     log.info("Removing visits by lesson id: lessonId={}; user={}", lessonId, jwtUser);
 
-    List<Visit> visits = visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.id());
+    var visits = visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.id());
 
-    OffsetDateTime now = OffsetDateTime.now();
+    var now = OffsetDateTime.now();
 
     visits.forEach(visit -> visit.setDeletedAt(now));
 

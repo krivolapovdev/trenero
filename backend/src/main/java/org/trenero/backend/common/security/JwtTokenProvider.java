@@ -65,7 +65,10 @@ public class JwtTokenProvider {
     }
   }
 
-  private String generateToken(JwtUser jwtUser, Duration expirationDuration, TokenType tokenType) {
+  private @NonNull String generateToken(
+      @NonNull JwtUser jwtUser,
+      @NonNull Duration expirationDuration,
+      @NonNull TokenType tokenType) {
     var now = new Date();
     var expiration = new Date(now.getTime() + expirationDuration.toMillis());
 
