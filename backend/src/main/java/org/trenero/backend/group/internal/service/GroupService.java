@@ -33,6 +33,7 @@ import org.trenero.backend.student.external.StudentSpi;
 @Slf4j
 @RequiredArgsConstructor
 public class GroupService implements GroupSpi {
+
   private final GroupRepository groupRepository;
   private final GroupMapper groupMapper;
 

@@ -19,6 +19,7 @@ import org.trenero.backend.user.internal.repository.UserRepository;
 @Slf4j
 @RequiredArgsConstructor
 public class UserService implements UserSpi {
+
   private final UserRepository userRepository;
   private final UserMapper userMapper;
 
@@ -37,7 +38,7 @@ public class UserService implements UserSpi {
         .orElseGet(() -> createNewUser(provider, providerId, email));
   }
 
-  private UserResponse createNewUser(
+  private @NonNull UserResponse createNewUser(
       @NonNull OAuth2Provider provider, @NonNull String providerId, @NonNull String email) {
     log.info("Creating new user: email={}; provider={}", email, provider);
 
@@ -53,19 +54,21 @@ public class UserService implements UserSpi {
     return userMapper.toResponse(savedUser);
   }
 
-  private OAuth2User saveUser(@NonNull OAuth2User user) {
-    log.info("Saving user: user={}", user);
-    return userRepository.saveAndFlush(user);
-  }
-
+  @Transactional
   public void deleteUser(@NonNull JwtUser jwtUser) {
     log.info("Deleting user: user={}", jwtUser);
 
-    OAuth2User oAuth2User =
+    var oAuth2User =
         userRepository
             .findById(jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(OAuth2User.class, jwtUser.id(), jwtUser));
 
     userRepository.delete(oAuth2User);
+    userRepository.flush();
+  }
+
+  private @NonNull OAuth2User saveUser(@NonNull OAuth2User user) {
+    log.info("Saving user: user={}", user);
+    return userRepository.saveAndFlush(user);
   }
 }

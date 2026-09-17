@@ -28,6 +28,7 @@ import org.trenero.backend.student.internal.service.StudentService;
 @RequestMapping("/api/v1/students")
 @RequiredArgsConstructor
 public class StudentController {
+
   private final StudentService studentService;
 
   @GetMapping

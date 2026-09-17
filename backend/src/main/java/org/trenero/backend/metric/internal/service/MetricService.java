@@ -21,6 +21,7 @@ import org.trenero.backend.payment.external.TransactionSpi;
 @Slf4j
 @RequiredArgsConstructor
 public class MetricService {
+
   @Lazy private final TransactionSpi transactionSpi;
 
   @Transactional(readOnly = true)

@@ -6,9 +6,10 @@ import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -20,9 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.response.GroupResponse;
 import org.trenero.backend.common.response.GroupStudentResponse;
 import org.trenero.backend.common.response.LessonResponse;
-import org.trenero.backend.common.response.StudentPaymentResponse;
 import org.trenero.backend.common.response.StudentResponse;
-import org.trenero.backend.common.response.VisitResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.external.GroupSpi;
 import org.trenero.backend.group.external.GroupStudentSpi;
@@ -30,7 +29,6 @@ import org.trenero.backend.lesson.external.LessonSpi;
 import org.trenero.backend.payment.external.StudentPaymentSpi;
 import org.trenero.backend.student.external.StudentSpi;
 import org.trenero.backend.student.internal.domain.Student;
-import org.trenero.backend.student.internal.domain.StudentStatus;
 import org.trenero.backend.student.internal.mapper.StudentMapper;
 import org.trenero.backend.student.internal.repository.StudentRepository;
 import org.trenero.backend.student.internal.request.CreateStudentRequest;
@@ -43,6 +41,7 @@ import org.trenero.backend.visit.external.VisitSpi;
 @RequiredArgsConstructor
 @Slf4j
 public class StudentService implements StudentSpi {
+
   private final StudentRepository studentRepository;
   private final StudentMapper studentMapper;
 
@@ -54,6 +53,8 @@ public class StudentService implements StudentSpi {
   @Lazy private final VisitSpi visitSpi;
   @Lazy private final LessonSpi lessonSpi;
 
+  private final Executor executor;
+
   @Transactional(readOnly = true)
   public @NonNull List<StudentResponse> getAllStudents(@NonNull JwtUser jwtUser) {
     log.info("Getting all students: user={}", jwtUser);
@@ -63,53 +64,96 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public List<StudentOverviewResponse> getStudentsOverview(JwtUser jwtUser) {
+  public @NonNull List<StudentOverviewResponse> getStudentsOverview(@NonNull JwtUser jwtUser) {
     log.info("Getting students overview: user={}", jwtUser);
 
-    List<StudentResponse> students = self.getAllStudents(jwtUser);
+    // 1. Fetch all students sequentially
+    var students = self.getAllStudents(jwtUser);
 
     if (students.isEmpty()) {
       return List.of();
     }
 
-    List<UUID> studentIds = students.stream().map(StudentResponse::id).toList();
+    var studentIds = students.stream().map(StudentResponse::id).toList();
 
-    Map<UUID, GroupStudentResponse> studentToGroupLinkMap =
-        groupStudentSpi.getGroupStudentsByStudentIds(studentIds, jwtUser);
+    // 2. Launch Level 1 Parallel Tasks
+    var visitsFuture =
+        CompletableFuture.supplyAsync(
+            () -> visitSpi.getVisitsByStudentIds(studentIds, jwtUser), executor);
 
-    List<UUID> groupIds =
-        studentToGroupLinkMap.values().stream()
-            .map(GroupStudentResponse::groupId)
-            .distinct()
-            .toList();
+    var paymentsFuture =
+        CompletableFuture.supplyAsync(
+            () -> studentPaymentSpi.getStudentPaymentsByStudentIds(studentIds, jwtUser), executor);
 
-    Map<UUID, GroupResponse> groupsMap = groupSpi.getGroupsByIds(groupIds, jwtUser);
+    var groupLinksFuture =
+        CompletableFuture.supplyAsync(
+            () -> groupStudentSpi.getGroupStudentsByStudentIds(studentIds, jwtUser), executor);
 
-    Map<UUID, List<VisitResponse>> visitsMap = visitSpi.getVisitsByStudentIds(studentIds, jwtUser);
+    // 3. Extract group IDs quickly once groupLinksFuture completes
+    var groupIdsFuture =
+        groupLinksFuture.thenApply(
+            links ->
+                links.values().stream().map(GroupStudentResponse::groupId).distinct().toList());
 
-    Map<UUID, List<StudentPaymentResponse>> paymentsMap =
-        studentPaymentSpi.getStudentPaymentsByStudentIds(studentIds, jwtUser);
+    // 4. Chain Level 2 Parallel Tasks (Depend on groupIds)
+    var groupsFuture =
+        groupIdsFuture.thenComposeAsync(
+            groupIds -> {
+              if (groupIds.isEmpty()) {
+                return CompletableFuture.completedFuture(Map.<UUID, GroupResponse>of());
+              }
+              return CompletableFuture.supplyAsync(
+                  () -> groupSpi.getGroupsByIds(groupIds, jwtUser), executor);
+            },
+            executor);
 
-    Map<UUID, LessonResponse> groupLessonMap =
-        lessonSpi.getLastGroupLessonsByGroupIds(groupIds, jwtUser);
+    var groupLessonsFuture =
+        groupIdsFuture.thenComposeAsync(
+            groupIds -> {
+              if (groupIds.isEmpty()) {
+                return CompletableFuture.completedFuture(Map.<UUID, LessonResponse>of());
+              }
+              return CompletableFuture.supplyAsync(
+                  () -> lessonSpi.getLastGroupLessonsByGroupIds(groupIds, jwtUser), executor);
+            },
+            executor);
 
+    // 5. Await all background tasks simultaneously
+    try {
+      CompletableFuture.allOf(
+              visitsFuture, paymentsFuture, groupLinksFuture, groupsFuture, groupLessonsFuture)
+          .join();
+    } catch (CompletionException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof RuntimeException runtimeEx) {
+        throw runtimeEx;
+      }
+      throw new RuntimeException("Unexpected error during parallel batch execution", cause);
+    }
+
+    // 6. Extract values (Instant - no blocking)
+    var visitsMap = visitsFuture.join();
+    var paymentsMap = paymentsFuture.join();
+    var studentToGroupLinkMap = groupLinksFuture.join();
+    var groupsMap = groupsFuture.join();
+    var groupLessonMap = groupLessonsFuture.join();
+
+    // 7. Perform fast in-memory assembly
     return students.stream()
         .map(
             student -> {
-              GroupStudentResponse link = studentToGroupLinkMap.get(student.id());
-              UUID groupId = (link != null) ? link.groupId() : null;
+              var link = studentToGroupLinkMap.get(student.id());
+              var groupId = (link != null) ? link.groupId() : null;
 
-              List<VisitResponse> studentVisits = visitsMap.getOrDefault(student.id(), List.of());
-              List<StudentPaymentResponse> studentPayments =
-                  paymentsMap.getOrDefault(student.id(), List.of());
+              var studentVisits = visitsMap.getOrDefault(student.id(), List.of());
+              var studentPayments = paymentsMap.getOrDefault(student.id(), List.of());
+              var lastLesson = (groupId != null) ? groupLessonMap.get(groupId) : null;
 
-              LessonResponse lastLesson = (groupId != null) ? groupLessonMap.get(groupId) : null;
-
-              Set<StudentStatus> statuses =
+              var statuses =
                   studentStatusService.getStudentStatuses(
                       studentVisits, studentPayments, lastLesson);
 
-              GroupResponse group = (groupId != null) ? groupsMap.get(groupId) : null;
+              var group = (groupId != null) ? groupsMap.get(groupId) : null;
 
               return new StudentOverviewResponse(student, group, statuses);
             })
@@ -136,33 +180,83 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public StudentDetailsResponse getStudentDetailsById(UUID studentId, JwtUser jwtUser) {
+  public @NonNull StudentDetailsResponse getStudentDetailsById(
+      @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting student details by id: studentId={}; user={}", studentId, jwtUser);
 
-    var student = self.getStudentById(studentId, jwtUser);
+    // 1. Launch independent queries in parallel threads
+    var studentFuture =
+        CompletableFuture.supplyAsync(() -> getStudentById(studentId, jwtUser), executor);
 
-    var groupStudentResponse =
-        groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst();
+    var visitsFuture =
+        CompletableFuture.supplyAsync(
+            () -> visitSpi.getVisitsByStudentId(studentId, jwtUser), executor);
 
-    var groupId = groupStudentResponse.map(GroupStudentResponse::groupId);
+    var paymentsFuture =
+        CompletableFuture.supplyAsync(
+            () -> studentPaymentSpi.getStudentPaymentsByStudentId(studentId, jwtUser), executor);
 
-    var groupResponse = groupId.map(id -> groupSpi.getGroupById(id, jwtUser));
+    var groupStudentFuture =
+        CompletableFuture.supplyAsync(
+            () -> groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst(),
+            executor);
 
-    var groupLessons =
-        groupId.map(id -> lessonSpi.getLessonsByGroupId(id, jwtUser)).orElse(List.of());
+    // 2. Chain dependent queries
+    var groupFuture =
+        groupStudentFuture.thenComposeAsync(
+            groupOpt ->
+                groupOpt
+                    .map(
+                        gs ->
+                            CompletableFuture.supplyAsync(
+                                () -> groupSpi.getGroupById(gs.groupId(), jwtUser), executor))
+                    .orElse(CompletableFuture.completedFuture(null)),
+            executor);
 
+    var lessonsFuture =
+        groupStudentFuture.thenComposeAsync(
+            groupOpt ->
+                groupOpt
+                    .map(
+                        gs ->
+                            CompletableFuture.supplyAsync(
+                                () -> lessonSpi.getLessonsByGroupId(gs.groupId(), jwtUser),
+                                executor))
+                    .orElse(CompletableFuture.completedFuture(List.of())),
+            executor);
+
+    // 3. Await all background tasks simultaneously
+    try {
+      CompletableFuture.allOf(
+              studentFuture, visitsFuture, paymentsFuture, groupFuture, lessonsFuture)
+          .join();
+    } catch (CompletionException e) {
+      // Unwrap exceptions so GlobalExceptionHandler handles EntityNotFoundException properly
+      var cause = e.getCause();
+      if (cause instanceof RuntimeException runtimeEx) {
+        throw runtimeEx;
+      }
+      throw new RuntimeException("Unexpected error during parallel execution", cause);
+    }
+
+    // 4. Extract values
+    var student = studentFuture.join();
+    var studentVisits = visitsFuture.join();
+    var studentPayments = paymentsFuture.join();
+    var groupStudentOpt = groupStudentFuture.join();
+    var groupResponse = groupFuture.join();
+    var groupLessons = lessonsFuture.join();
+
+    // 5. Perform fast in-memory mapping
     var lessonsMap =
-        groupLessons.stream().collect(Collectors.toMap(LessonResponse::id, Function.identity()));
+        groupLessons.stream()
+            .collect(Collectors.toMap(LessonResponse::id, Function.identity(), (l1, l2) -> l1));
 
-    var studentVisits = visitSpi.getVisitsByStudentId(studentId, jwtUser);
-
-    var lastGroupLesson = groupLessons.stream().max(Comparator.comparing(LessonResponse::date));
-
-    var studentPayments = studentPaymentSpi.getStudentPaymentsByStudentId(studentId, jwtUser);
+    var lastGroupLesson =
+        groupLessons.stream().max(Comparator.comparing(LessonResponse::date)).orElse(null);
 
     var studentStatuses =
-        studentStatusService.getStudentStatuses(
-            studentVisits, studentPayments, lastGroupLesson.orElse(null));
+        studentStatusService.getStudentStatuses(studentVisits, studentPayments, lastGroupLesson);
 
     var visitsWithLessons =
         studentVisits.stream()
@@ -175,17 +269,17 @@ public class StudentService implements StudentSpi {
         visitsWithLessons,
         studentPayments,
         studentStatuses,
-        groupResponse.orElse(null),
-        groupStudentResponse.orElse(null));
+        groupResponse,
+        groupStudentOpt.orElse(null));
   }
 
   @Transactional
-  public StudentResponse createStudent(CreateStudentRequest request, JwtUser jwtUser) {
+  public @NonNull StudentResponse createStudent(
+      @NonNull CreateStudentRequest request, @NonNull JwtUser jwtUser) {
     log.info("Creating student: request={}; user={}", request, jwtUser);
 
-    Student student = studentMapper.toStudent(request, jwtUser.id());
-
-    Student savedStudent = self.saveStudent(student);
+    var student = studentMapper.toStudent(request, jwtUser.id());
+    var savedStudent = self.saveStudent(student);
 
     if (request.groupId() != null) {
       groupStudentSpi.addStudentToGroup(savedStudent.getId(), request.groupId(), jwtUser);
@@ -195,18 +289,17 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional
-  public StudentResponse updateStudent(
-      UUID studentId, Map<String, Object> updates, JwtUser jwtUser) {
+  public @NonNull StudentResponse updateStudent(
+      @NonNull UUID studentId, @NonNull Map<String, Object> updates, @NonNull JwtUser jwtUser) {
     log.info("Updating student: studentId={}; updates={}; user={}", studentId, updates, jwtUser);
 
-    Student student =
+    var student =
         studentRepository
             .findByIdAndOwnerId(studentId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
 
     if (updates.containsKey("groupId")) {
-
-      Optional<GroupStudentResponse> optionalGroupStudentResponse =
+      var optionalGroupStudentResponse =
           groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst();
 
       optionalGroupStudentResponse.ifPresent(
@@ -214,22 +307,22 @@ public class StudentService implements StudentSpi {
               groupStudentSpi.removeStudentFromGroup(
                   studentId, groupStudentResponse.groupId(), jwtUser));
 
-      Object rawGroupId = updates.get("groupId");
+      var rawGroupId = updates.get("groupId");
 
       if (rawGroupId != null && !rawGroupId.toString().isBlank()) {
-        UUID groupId = UUID.fromString(rawGroupId.toString());
+        var groupId = UUID.fromString(rawGroupId.toString());
         groupStudentSpi.addStudentToGroup(studentId, groupId, jwtUser);
       }
     }
 
-    Student updatedStudent = studentMapper.updateStudent(student, updates);
-    Student savedStudent = self.saveStudent(updatedStudent);
+    var updatedStudent = studentMapper.updateStudent(student, updates);
+    var savedStudent = self.saveStudent(updatedStudent);
 
     return studentMapper.toResponse(savedStudent);
   }
 
   @Transactional
-  public void softDeleteStudent(UUID studentId, JwtUser jwtUser) {
+  public void softDeleteStudent(@NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Deleting student: studentId={}; user={}", studentId, jwtUser);
 
     studentRepository
@@ -243,7 +336,7 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional
-  public Student saveStudent(Student student) {
+  public @NonNull Student saveStudent(@NonNull Student student) {
     log.info("Saving student: student={}", student);
     return studentRepository.saveAndFlush(student);
   }

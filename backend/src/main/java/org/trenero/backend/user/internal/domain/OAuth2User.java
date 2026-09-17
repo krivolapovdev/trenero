@@ -28,6 +28,7 @@ import org.trenero.backend.common.domain.OAuth2Provider;
 @AllArgsConstructor
 @Builder
 public class OAuth2User {
+
   @Id
   @Column(name = "id", updatable = false, nullable = false)
   @GeneratedValue(strategy = GenerationType.UUID)

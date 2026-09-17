@@ -23,6 +23,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class StudentPayment {
+
   @Id
   @Column(name = "transaction_id", nullable = false, updatable = false)
   private UUID transactionId;

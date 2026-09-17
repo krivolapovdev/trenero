@@ -9,13 +9,12 @@ import org.trenero.backend.common.response.VisitResponse;
 import org.trenero.backend.common.security.JwtUser;
 
 public interface VisitSpi {
+
   List<VisitResponse> getVisitsByStudentId(UUID studentId, JwtUser jwtUser);
 
   Map<UUID, List<VisitResponse>> getVisitsByStudentIds(List<UUID> studentIds, JwtUser jwtUser);
 
   List<VisitResponse> getVisitsByLessonId(UUID lessonId, JwtUser jwtUser);
-
-  VisitResponse getVisitByLessonIdAndStudentId(UUID lessonId, UUID studentId, JwtUser jwtUser);
 
   void removeVisitsByLessonId(UUID lessonId, JwtUser jwtUser);
 

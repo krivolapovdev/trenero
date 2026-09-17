@@ -21,6 +21,7 @@ import org.trenero.backend.common.domain.TokenType;
 @RequiredArgsConstructor
 @Slf4j
 public class JwtTokenProvider {
+
   public static final String TOKEN_CLAIM_EMAIL = "email";
   public static final String TOKEN_CLAIM_TYPE = "type";
 

@@ -28,6 +28,7 @@ import org.trenero.backend.group.internal.service.GroupService;
 @RequestMapping("/api/v1/groups")
 @RequiredArgsConstructor
 public class GroupController {
+
   private final GroupService groupService;
 
   @GetMapping

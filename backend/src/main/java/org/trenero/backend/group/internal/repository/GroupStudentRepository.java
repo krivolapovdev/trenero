@@ -13,81 +13,82 @@ import org.trenero.backend.group.internal.domain.GroupStudent;
 @Repository
 public interface GroupStudentRepository
     extends JpaRepository<@NonNull GroupStudent, @NonNull UUID> {
+
   @Query(
       """
-      SELECT gs
-      FROM GroupStudent AS gs
-      WHERE gs.ownerId = :ownerId
-        AND gs.ownerId = :ownerId
-        AND gs.deletedAt IS NULL
-      ORDER BY gs.createdAt DESC
-      """)
+          SELECT gs
+          FROM GroupStudent AS gs
+          WHERE gs.ownerId = :ownerId
+            AND gs.ownerId = :ownerId
+            AND gs.deletedAt IS NULL
+          ORDER BY gs.createdAt DESC
+          """)
   List<GroupStudent> findAllByOwnerId(@Param("ownerId") UUID ownerId);
 
   @Query(
       """
-      SELECT gs
-      FROM GroupStudent AS gs
-      WHERE gs.studentId IN :studentIds
-        AND gs.ownerId = :ownerId
-        AND gs.deletedAt IS NULL
-      """)
+          SELECT gs
+          FROM GroupStudent AS gs
+          WHERE gs.studentId IN :studentIds
+            AND gs.ownerId = :ownerId
+            AND gs.deletedAt IS NULL
+          """)
   List<GroupStudent> findAllByStudentIds(@Param("studentIds") List<UUID> studentIds, UUID ownerId);
 
   @Query(
       """
-      SELECT gs
-      FROM GroupStudent AS gs
-      WHERE gs.groupId IN :groupIds
-        AND gs.ownerId = :ownerId
-        AND gs.deletedAt IS NULL
-      """)
+          SELECT gs
+          FROM GroupStudent AS gs
+          WHERE gs.groupId IN :groupIds
+            AND gs.ownerId = :ownerId
+            AND gs.deletedAt IS NULL
+          """)
   List<GroupStudent> findAllByGroupIds(
       @Param("groupIds") List<UUID> groupIds, @Param("ownerId") UUID ownerId);
 
   @Query(
       """
-      SELECT gs
-      FROM GroupStudent AS gs
-      WHERE gs.groupId = :groupId
-        AND gs.ownerId = :ownerId
-        AND gs.deletedAt IS NULL
-      """)
+          SELECT gs
+          FROM GroupStudent AS gs
+          WHERE gs.groupId = :groupId
+            AND gs.ownerId = :ownerId
+            AND gs.deletedAt IS NULL
+          """)
   List<GroupStudent> findAllByGroupId(
       @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
 
   @Query(
       """
-      SELECT gs
-      FROM GroupStudent AS gs
-      WHERE gs.studentId = :studentId
-        AND gs.deletedAt IS NULL
-        AND gs.ownerId = :ownerId
-      """)
+          SELECT gs
+          FROM GroupStudent AS gs
+          WHERE gs.studentId = :studentId
+            AND gs.deletedAt IS NULL
+            AND gs.ownerId = :ownerId
+          """)
   List<GroupStudent> findAllByStudentId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 
   @Modifying
   @Query(
       """
-      UPDATE GroupStudent AS gs
-      SET gs.deletedAt = CURRENT_TIMESTAMP
-      WHERE gs.groupId = :groupId
-        AND gs.ownerId = :ownerId
-        AND gs.deletedAt IS NULL
-      """)
+          UPDATE GroupStudent AS gs
+          SET gs.deletedAt = CURRENT_TIMESTAMP
+          WHERE gs.groupId = :groupId
+            AND gs.ownerId = :ownerId
+            AND gs.deletedAt IS NULL
+          """)
   void softDeleteByGroupId(@Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
 
   @Modifying
   @Query(
       """
-      UPDATE GroupStudent AS gs
-      SET gs.deletedAt = CURRENT_TIMESTAMP
-      WHERE gs.groupId = :groupId
-        AND gs.studentId = :studentId
-        AND gs.ownerId = :ownerId
-        AND gs.deletedAt IS NULL
-      """)
+          UPDATE GroupStudent AS gs
+          SET gs.deletedAt = CURRENT_TIMESTAMP
+          WHERE gs.groupId = :groupId
+            AND gs.studentId = :studentId
+            AND gs.ownerId = :ownerId
+            AND gs.deletedAt IS NULL
+          """)
   void softDeleteByStudentIdAndGroupId(
       @Param("groupId") UUID groupId,
       @Param("studentId") UUID studentId,

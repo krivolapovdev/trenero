@@ -12,6 +12,7 @@ import org.trenero.backend.common.response.LoginResponse;
 @RequestMapping("/api/v1/reviewer")
 @RequiredArgsConstructor
 public class ReviewerAuthController {
+
   private final ReviewerAuthService reviewerAuthService;
 
   @PostMapping("/login")

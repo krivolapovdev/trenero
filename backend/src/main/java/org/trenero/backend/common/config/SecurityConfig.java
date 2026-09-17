@@ -17,6 +17,7 @@ import org.trenero.backend.common.security.JwtAuthenticationFilter;
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
+
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
   @Bean

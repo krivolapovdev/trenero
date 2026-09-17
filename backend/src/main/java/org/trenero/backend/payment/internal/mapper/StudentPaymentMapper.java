@@ -12,6 +12,7 @@ import org.trenero.backend.payment.internal.domain.Transaction;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface StudentPaymentMapper {
+
   @Mapping(target = "id", source = "payment.transactionId")
   @Mapping(target = "studentId", source = "payment.studentId")
   @Mapping(target = "paidUntil", source = "payment.paidUntil")

@@ -14,6 +14,7 @@ import org.trenero.backend.common.response.LoginResponse;
 @RequestMapping("/api/v1/oauth2")
 @RequiredArgsConstructor
 public class OAuth2Controller {
+
   private final OAuth2Service oAuth2Service;
 
   @PostMapping("/google")

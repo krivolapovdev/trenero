@@ -29,6 +29,7 @@ import org.trenero.backend.common.domain.VisitType;
 @AllArgsConstructor
 @Builder
 public class Visit {
+
   @Id
   @Column(name = "id", updatable = false, nullable = false)
   @GeneratedValue(strategy = GenerationType.UUID)

@@ -6,14 +6,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.domain.TransactionType;
@@ -28,35 +24,9 @@ import org.trenero.backend.payment.internal.repository.TransactionRepository;
 @RequiredArgsConstructor
 @Slf4j
 public class TransactionService implements TransactionSpi {
+
   private final TransactionRepository transactionRepository;
   private final TransactionMapper transactionMapper;
-
-  @Lazy private final TransactionService self;
-
-  @Transactional(readOnly = true)
-  public @NonNull List<TransactionResponse> getAllTransactions(@NonNull JwtUser jwtUser) {
-    log.info("Getting all transactions: user={}", jwtUser);
-    return transactionRepository.findAllByOwnerId(jwtUser.id()).stream()
-        .map(transactionMapper::toResponse)
-        .toList();
-  }
-
-  @Transactional(readOnly = true)
-  public TransactionResponse getTransactionById(UUID transactionId, JwtUser jwtUser) {
-    log.info("Getting transaction by id: transactionId={}; user={}", transactionId, jwtUser);
-    return transactionRepository
-        .findByIdAndOwnerId(transactionId, jwtUser.id())
-        .map(transactionMapper::toResponse)
-        .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
-  }
-
-  @Transactional(readOnly = true)
-  public Map<UUID, TransactionResponse> getTransactionsByIds(List<UUID> ids, JwtUser jwtUser) {
-    log.info("Getting transactions by ids: ids={}; user={}", ids, jwtUser);
-    return transactionRepository.findAllByIdInAndOwnerId(ids, jwtUser.id()).stream()
-        .map(transactionMapper::toResponse)
-        .collect(Collectors.toMap(TransactionResponse::id, Function.identity()));
-  }
 
   @Override
   @Transactional(readOnly = true)

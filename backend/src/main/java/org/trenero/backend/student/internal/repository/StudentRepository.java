@@ -12,35 +12,36 @@ import org.trenero.backend.student.internal.domain.Student;
 
 @Repository
 public interface StudentRepository extends JpaRepository<@NonNull Student, @NonNull UUID> {
+
   @Query(
       """
-      SELECT s
-      FROM Student AS s
-      WHERE s.ownerId = :ownerId
-        AND s.deletedAt IS NULL
-      ORDER BY s.fullName
-      """)
+          SELECT s
+          FROM Student AS s
+          WHERE s.ownerId = :ownerId
+            AND s.deletedAt IS NULL
+          ORDER BY s.fullName
+          """)
   List<Student> findAllByOwnerId(@Param("ownerId") UUID ownerId);
 
   @Query(
       """
-      SELECT s
-      FROM Student AS s
-      WHERE s.id = :studentId
-        AND s.ownerId = :ownerId
-        AND s.deletedAt IS NULL
-      """)
+          SELECT s
+          FROM Student AS s
+          WHERE s.id = :studentId
+            AND s.ownerId = :ownerId
+            AND s.deletedAt IS NULL
+          """)
   Optional<Student> findByIdAndOwnerId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 
   @Query(
       """
-      SELECT s
-      FROM Student AS s
-      WHERE s.id IN :studentIds
-        AND s.ownerId = :ownerId
-        AND s.deletedAt IS NULL
-      """)
+          SELECT s
+          FROM Student AS s
+          WHERE s.id IN :studentIds
+            AND s.ownerId = :ownerId
+            AND s.deletedAt IS NULL
+          """)
   List<Student> findAllByIdsAndOwnerId(
       @Param("studentIds") List<UUID> studentIds, @Param("ownerId") UUID ownerId);
 }

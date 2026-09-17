@@ -8,6 +8,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestCookieException;
@@ -19,6 +20,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
   @ExceptionHandler({
     IllegalArgumentException.class,
     MethodArgumentNotValidException.class,
@@ -29,7 +31,7 @@ public class GlobalExceptionHandler {
     return buildResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
   }
 
-  @ExceptionHandler(JwtException.class)
+  @ExceptionHandler({JwtException.class, BadCredentialsException.class})
   public ResponseStatusException handleUnauthorizedException(Exception e) {
     return buildResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
   }

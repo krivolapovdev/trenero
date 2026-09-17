@@ -34,6 +34,7 @@ import org.trenero.backend.student.external.StudentSpi;
 @RequiredArgsConstructor
 @Slf4j
 public class StudentPaymentService implements StudentPaymentSpi {
+
   private final StudentPaymentRepository studentPaymentRepository;
   private final StudentPaymentMapper paymentMapper;
 

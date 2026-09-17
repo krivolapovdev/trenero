@@ -26,6 +26,7 @@ import org.trenero.backend.payment.internal.service.StudentPaymentService;
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 public class StudentPaymentController {
+
   private final StudentPaymentService studentPaymentService;
 
   @GetMapping

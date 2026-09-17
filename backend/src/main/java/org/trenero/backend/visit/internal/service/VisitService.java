@@ -1,6 +1,5 @@
 package org.trenero.backend.visit.internal.service;
 
-import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFound;
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
 import java.time.OffsetDateTime;
@@ -30,21 +29,22 @@ import org.trenero.backend.visit.internal.repository.VisitRepository;
 @Slf4j
 @RequiredArgsConstructor
 public class VisitService implements VisitSpi {
+
   private final VisitRepository visitRepository;
   private final VisitMapper visitMapper;
 
   @Lazy private final LessonSpi lessonSpi;
 
   @Transactional(readOnly = true)
-  public List<VisitResponse> getAllVisits(JwtUser jwtUser) {
-    log.info("Getting all visits: user={}", jwtUser);
+  public @NonNull List<VisitResponse> getAllVisits(@NonNull JwtUser jwtUser) {
+    log.info("Fetching all visits for userId={}", jwtUser.id());
     return visitRepository.findAllByOwnerId(jwtUser.id()).stream()
         .map(visitMapper::toResponse)
         .toList();
   }
 
   @Transactional(readOnly = true)
-  public VisitResponse getVisitById(UUID visitId, JwtUser jwtUser) {
+  public @NonNull VisitResponse getVisitById(@NonNull UUID visitId, @NonNull JwtUser jwtUser) {
     log.info("Getting visit by id: visitId={}; user={}", visitId, jwtUser);
     return visitRepository
         .findByIdAndOwnerId(visitId, jwtUser.id())
@@ -68,28 +68,6 @@ public class VisitService implements VisitSpi {
     return visitRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.id()).stream()
         .map(visitMapper::toResponse)
         .collect(Collectors.groupingBy(VisitResponse::studentId));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public @NonNull VisitResponse getVisitByLessonIdAndStudentId(
-      @NonNull UUID lessonId, @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
-    log.info(
-        "Getting visit by lesson and student ids: lessonId={}; studentId={}; user={}",
-        lessonId,
-        studentId,
-        jwtUser);
-    return visitRepository
-        .findByLessonIdAndStudentIdAndOwnerId(lessonId, studentId, jwtUser.id())
-        .map(visitMapper::toResponse)
-        .orElseThrow(
-            () ->
-                entityNotFound(
-                    Visit.class,
-                    Map.of(
-                        "lessonId", lessonId,
-                        "studentId", studentId),
-                    jwtUser));
   }
 
   @Transactional(readOnly = true)

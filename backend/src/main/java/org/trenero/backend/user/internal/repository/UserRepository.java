@@ -12,12 +12,14 @@ import org.trenero.backend.user.internal.domain.OAuth2User;
 
 @Repository
 public interface UserRepository extends JpaRepository<@NonNull OAuth2User, @NonNull UUID> {
+
   @Query(
       """
           SELECT u
           FROM OAuth2User AS u
           WHERE u.provider = :provider
-            AND u.providerId = :providerId""")
+            AND u.providerId = :providerId
+          """)
   Optional<OAuth2User> findByProviderAndProviderId(
       @Param("provider") OAuth2Provider provider, @Param("providerId") String providerId);
 }

@@ -14,6 +14,7 @@ import org.trenero.backend.common.response.JwtTokensResponse;
 @RequestMapping("/api/v1/jwt")
 @RequiredArgsConstructor
 public class JwtTokenController {
+
   private final JwtTokenService jwtTokenService;
 
   @PostMapping("/refresh")

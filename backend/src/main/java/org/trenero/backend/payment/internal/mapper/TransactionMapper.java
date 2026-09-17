@@ -8,5 +8,6 @@ import org.trenero.backend.payment.internal.domain.Transaction;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TransactionMapper {
+
   TransactionResponse toResponse(Transaction transaction);
 }

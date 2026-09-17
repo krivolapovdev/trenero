@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,23 +20,15 @@ import org.trenero.backend.student.internal.domain.StudentStatus;
 @RequiredArgsConstructor
 @Slf4j
 public class StudentStatusService {
-  public Set<StudentStatus> getStudentStatuses(
-      List<VisitResponse> visits,
-      List<StudentPaymentResponse> payments,
+
+  public @NonNull Set<StudentStatus> getStudentStatuses(
+      @NonNull List<VisitResponse> visits,
+      @NonNull List<StudentPaymentResponse> payments,
       LessonResponse lastLesson) {
-    log.info(
-        "Getting student statuses: visits={}; payments={}; lastLesson={}",
-        visits,
-        payments,
-        lastLesson);
+    boolean hasAnyMarkedVisit =
+        visits.stream().anyMatch(visit -> visit.status() != VisitStatus.UNMARKED);
 
-    visits = visits == null ? List.of() : visits;
-    payments = payments == null ? List.of() : payments;
-
-    boolean allVisitsUnmarked =
-        visits.stream().allMatch(visit -> visit.status().equals(VisitStatus.UNMARKED));
-
-    if ((visits.isEmpty() || allVisitsUnmarked) && payments.isEmpty()) {
+    if (!hasAnyMarkedVisit && payments.isEmpty()) {
       return Set.of(StudentStatus.INACTIVE);
     }
 
@@ -55,7 +48,7 @@ public class StudentStatusService {
                           : StudentStatus.MISSING));
     }
 
-    LocalDate referenceDate = (lastLesson != null) ? lastLesson.date() : LocalDate.now();
+    var referenceDate = (lastLesson != null) ? lastLesson.date() : LocalDate.now();
 
     boolean isSubscriptionActive =
         payments.stream()

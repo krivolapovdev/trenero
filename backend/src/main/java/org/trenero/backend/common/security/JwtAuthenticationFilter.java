@@ -17,6 +17,7 @@ import org.trenero.backend.common.domain.TokenType;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
   private final JwtTokenProvider jwtTokenProvider;
 
   @Override

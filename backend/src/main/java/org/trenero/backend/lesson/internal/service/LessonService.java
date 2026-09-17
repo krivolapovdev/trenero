@@ -6,7 +6,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,6 +35,7 @@ import org.trenero.backend.visit.external.VisitSpi;
 @Slf4j
 @RequiredArgsConstructor
 public class LessonService implements LessonSpi {
+
   private final LessonRepository lessonRepository;
   private final LessonMapper lessonMapper;
 
@@ -49,16 +49,6 @@ public class LessonService implements LessonSpi {
     return lessonRepository.findAllByOwnerId(jwtUser.id()).stream()
         .map(lessonMapper::toResponse)
         .toList();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public @NonNull Optional<LessonResponse> getLastGroupLesson(
-      @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
-    log.info("Getting last group lesson: groupId={}; user={}", groupId, jwtUser);
-    return lessonRepository
-        .findLastGroupLesson(groupId, jwtUser.id())
-        .map(lessonMapper::toResponse);
   }
 
   @Override
@@ -97,34 +87,6 @@ public class LessonService implements LessonSpi {
     return lessonRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.id()).stream()
         .map(lessonMapper::toResponse)
         .toList();
-  }
-
-  @Transactional(readOnly = true)
-  public @NonNull Map<UUID, List<LessonResponse>> getLessonsByGroupIds(
-      @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
-    log.info("Getting lessons by group ids: groupIds={}; user={}", groupIds, jwtUser);
-
-    if (groupIds.isEmpty()) {
-      return Map.of();
-    }
-
-    return lessonRepository.findAllByGroupIds(groupIds).stream()
-        .map(lessonMapper::toResponse)
-        .collect(Collectors.groupingBy(LessonResponse::groupId));
-  }
-
-  @Transactional(readOnly = true)
-  public @NonNull Map<UUID, LessonResponse> getLessonsByIds(
-      @NonNull List<UUID> ids, @NonNull JwtUser jwtUser) {
-    log.info("Getting lessons by ids: ids={}; user={}", ids, jwtUser);
-
-    if (ids.isEmpty()) {
-      return Map.of();
-    }
-
-    return lessonRepository.findAllByIdsAndOwnerId(ids, jwtUser.id()).stream()
-        .map(lessonMapper::toResponse)
-        .collect(Collectors.toMap(LessonResponse::id, Function.identity()));
   }
 
   @Transactional

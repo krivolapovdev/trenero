@@ -13,6 +13,7 @@ import org.trenero.backend.student.internal.request.CreateStudentRequest;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface StudentMapper {
+
   StudentResponse toResponse(Student student);
 
   @Mapping(target = "ownerId", expression = "java(ownerId)")

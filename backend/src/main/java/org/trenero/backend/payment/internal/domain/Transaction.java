@@ -30,6 +30,7 @@ import org.trenero.backend.common.domain.TransactionType;
 @AllArgsConstructor
 @Builder
 public class Transaction {
+
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name = "id", updatable = false, nullable = false)

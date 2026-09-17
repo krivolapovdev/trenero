@@ -15,6 +15,7 @@ import org.trenero.backend.metric.internal.service.MetricService;
 @RequestMapping("/api/v1/metrics")
 @RequiredArgsConstructor
 public class MetricController {
+
   private final MetricService metricService;
 
   @GetMapping("/payments/monthly")

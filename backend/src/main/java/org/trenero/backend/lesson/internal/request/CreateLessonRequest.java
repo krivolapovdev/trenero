@@ -8,6 +8,7 @@ import org.trenero.backend.common.domain.StudentVisit;
 
 public record CreateLessonRequest(
     @NotNull UUID groupId, @NotNull LocalDate date, List<StudentVisit> students) {
+
   public CreateLessonRequest {
     students = students == null ? List.of() : students;
   }

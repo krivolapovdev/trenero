@@ -22,6 +22,7 @@ import org.trenero.backend.group.internal.repository.GroupStudentRepository;
 @RequiredArgsConstructor
 @Slf4j
 public class GroupStudentService implements GroupStudentSpi {
+
   private final GroupStudentRepository groupStudentRepository;
   private final GroupStudentMapper groupStudentMapper;
 
@@ -57,7 +58,7 @@ public class GroupStudentService implements GroupStudentSpi {
 
   @Transactional
   @Override
-  public @NonNull GroupStudentResponse addStudentToGroup(
+  public void addStudentToGroup(
       @NonNull UUID studentId, @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info(
         "Adding student to group: studentId={}; groupId={}; user={}", studentId, groupId, jwtUser);
@@ -69,7 +70,7 @@ public class GroupStudentService implements GroupStudentSpi {
 
     GroupStudent savedGroupStudent = self.saveGroupStudent(groupStudent);
 
-    return groupStudentMapper.toResponse(savedGroupStudent);
+    groupStudentMapper.toResponse(savedGroupStudent);
   }
 
   @Override

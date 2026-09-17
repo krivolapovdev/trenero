@@ -15,6 +15,7 @@ import org.trenero.backend.common.security.JwtUser;
 @RequiredArgsConstructor
 @Slf4j
 public class JwtTokenService {
+
   private final JwtTokenProvider jwtTokenProvider;
 
   public @NonNull JwtTokensResponse createAccessAndRefreshTokens(@NonNull JwtUser jwtUser) {

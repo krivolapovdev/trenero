@@ -27,6 +27,7 @@ import org.trenero.backend.lesson.internal.service.LessonService;
 @RequestMapping("/api/v1/lessons")
 @RequiredArgsConstructor
 public class LessonController {
+
   private final LessonService lessonService;
 
   @GetMapping

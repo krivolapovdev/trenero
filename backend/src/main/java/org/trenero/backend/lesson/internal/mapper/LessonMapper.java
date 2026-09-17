@@ -12,6 +12,7 @@ import org.trenero.backend.lesson.internal.request.UpdateLessonRequest;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface LessonMapper {
+
   LessonResponse toResponse(Lesson lesson);
 
   @Mapping(target = "ownerId", expression = "java(ownerId)")

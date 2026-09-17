@@ -7,6 +7,7 @@ import org.trenero.backend.common.response.StudentPaymentResponse;
 import org.trenero.backend.common.security.JwtUser;
 
 public interface StudentPaymentSpi {
+
   List<StudentPaymentResponse> getAllStudentPayments(JwtUser jwtUser);
 
   List<StudentPaymentResponse> getStudentPaymentsByStudentId(UUID studentId, JwtUser jwtUser);

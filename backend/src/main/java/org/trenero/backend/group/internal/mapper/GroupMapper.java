@@ -19,6 +19,7 @@ import org.trenero.backend.group.internal.response.GroupOverviewResponse;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface GroupMapper {
+
   GroupResponse toResponse(Group group);
 
   @Mapping(target = "ownerId", expression = "java(ownerId)")

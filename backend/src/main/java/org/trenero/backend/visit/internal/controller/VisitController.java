@@ -26,6 +26,7 @@ import org.trenero.backend.visit.internal.service.VisitService;
 @RequestMapping("/api/v1/visits")
 @RequiredArgsConstructor
 public class VisitController {
+
   private final VisitService visitService;
 
   @GetMapping
