@@ -230,7 +230,7 @@ public class StudentService implements StudentSpi {
     // 5. Perform fast in-memory mapping
     var lessonsMap =
         groupLessons.stream()
-            .collect(Collectors.toMap(LessonResponse::id, Function.identity(), (l1, l2) -> l1));
+            .collect(Collectors.toMap(LessonResponse::id, Function.identity(), (l1, _) -> l1));
 
     var lastGroupLesson =
         groupLessons.stream().max(Comparator.comparing(LessonResponse::date)).orElse(null);

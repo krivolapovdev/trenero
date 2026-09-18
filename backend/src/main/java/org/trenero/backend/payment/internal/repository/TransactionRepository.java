@@ -27,7 +27,7 @@ public interface TransactionRepository extends JpaRepository<@NonNull Transactio
   @Query(
       """
           SELECT t
-          FROM Transaction t
+          FROM Transaction AS t
           WHERE t.id = :transactionId
             AND t.ownerId = :ownerId
             AND t.deletedAt IS NULL
@@ -38,7 +38,7 @@ public interface TransactionRepository extends JpaRepository<@NonNull Transactio
   @Query(
       """
           SELECT t
-          FROM Transaction t
+          FROM Transaction AS t
           WHERE t.id IN :ids
             AND t.ownerId = :ownerId
             AND t.deletedAt IS NULL

@@ -1,7 +1,6 @@
 {
   "recommendations": [
-    "biomejs.biome",
-    "editorconfig.editorconfig",
-    "expo.vscode-expo-tools"
+    "dart-code.flutter",
+    "dart-code.dart-code"
   ]
 }

@@ -87,8 +87,8 @@ public interface StudentPaymentRepository
 
   @Query(
       """
-          SELECT sp FROM StudentPayment sp
-          JOIN FETCH sp.transaction t
+          SELECT sp FROM StudentPayment AS sp
+          JOIN FETCH sp.transaction AS t
           WHERE sp.studentId = :studentId
             AND t.ownerId = :ownerId
             AND t.deletedAt IS NULL
@@ -99,8 +99,8 @@ public interface StudentPaymentRepository
 
   @Query(
       """
-          SELECT sp FROM StudentPayment sp
-          JOIN FETCH sp.transaction t
+          SELECT sp FROM StudentPayment AS sp
+          JOIN FETCH sp.transaction AS t
           WHERE t.ownerId = :ownerId
             AND t.deletedAt IS NULL
           ORDER BY sp.paidUntil DESC
