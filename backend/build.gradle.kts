@@ -42,6 +42,8 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("org.mapstruct:mapstruct:$mapStructVersion")
     implementation("io.jsonwebtoken:jjwt-api:${jjwtVersion}")
+    implementation("io.jsonwebtoken:jjwt-impl:${jjwtVersion}")
+    implementation("io.jsonwebtoken:jjwt-jackson:${jjwtVersion}")
     implementation("com.google.api-client:google-api-client:${googleApiClientVersion}")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
@@ -55,9 +57,6 @@ dependencies {
     testImplementation("org.springframework:spring-webflux")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:${jjwtVersion}")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:${jjwtVersion}")
 
     compileOnly("org.projectlombok:lombok")
 

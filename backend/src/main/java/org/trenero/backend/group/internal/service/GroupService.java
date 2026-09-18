@@ -6,6 +6,8 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -14,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.trenero.backend.common.async.AsyncUtils;
 import org.trenero.backend.common.response.GroupResponse;
 import org.trenero.backend.common.response.GroupStudentResponse;
 import org.trenero.backend.common.response.LessonResponse;
@@ -42,6 +45,8 @@ public class GroupService implements GroupSpi {
   @Lazy private final StudentSpi studentSpi;
   @Lazy private final GroupService self;
 
+  private final Executor executor;
+
   @Transactional(readOnly = true)
   public @NonNull List<GroupResponse> getAllGroups(@NonNull JwtUser jwtUser) {
     log.info("Getting all groups: user={}", jwtUser);
@@ -51,16 +56,21 @@ public class GroupService implements GroupSpi {
   }
 
   @Transactional(readOnly = true)
-  public List<GroupOverviewResponse> getGroupsOverview(JwtUser jwtUser) {
+  public @NonNull List<GroupOverviewResponse> getGroupsOverview(@NonNull JwtUser jwtUser) {
     log.info("Getting all groups overview: user={}", jwtUser);
 
-    List<GroupResponse> allGroups = self.getAllGroups(jwtUser);
+    List<GroupResponse> allGroups = getAllGroups(jwtUser);
+
+    if (allGroups.isEmpty()) {
+      return List.of();
+    }
+
     List<UUID> groupIds = allGroups.stream().map(GroupResponse::id).toList();
 
     Map<UUID, List<GroupStudentResponse>> groupStudents =
         groupStudentService.getStudentsByGroupIds(groupIds, jwtUser);
 
-    return allGroups.stream()
+    return getAllGroups(jwtUser).stream()
         .map(
             group ->
                 groupMapper.toGroupOverviewResponse(
@@ -78,21 +88,48 @@ public class GroupService implements GroupSpi {
   }
 
   @Transactional(readOnly = true)
-  public GroupDetailsResponse getGroupDetailsById(UUID groupId, JwtUser jwtUser) {
-    log.info("Getting group details by id: groupId={}; user={}", groupId, jwtUser);
+  public @NonNull GroupDetailsResponse getGroupDetailsById(
+      @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
+    log.info("Fetching parallel group details for groupId={} and userId={}", groupId, jwtUser.id());
 
-    List<UUID> studentIds =
-        groupStudentService.getStudentsByGroupId(groupId, jwtUser).stream()
-            .map(GroupStudentResponse::studentId)
-            .toList();
+    // 1. Launch independent queries in parallel threads
+    var groupFuture =
+        CompletableFuture.supplyAsync(() -> this.getGroupById(groupId, jwtUser), executor);
 
-    Map<UUID, List<StudentResponse>> studentsMap = studentSpi.getStudentsByIds(studentIds, jwtUser);
+    var lessonsFuture =
+        CompletableFuture.supplyAsync(
+            () -> lessonSpi.getLessonsByGroupId(groupId, jwtUser), executor);
 
-    List<StudentResponse> groupStudents =
-        studentsMap.values().stream().flatMap(List::stream).toList();
+    // 2. Chain the student fetching (dependent on the group-student linking table)
+    var groupStudentsFuture =
+        CompletableFuture.supplyAsync(
+                () -> groupStudentService.getStudentsByGroupId(groupId, jwtUser), executor)
+            .thenComposeAsync(
+                studentLinks -> {
+                  List<UUID> studentIds =
+                      studentLinks.stream().map(GroupStudentResponse::studentId).toList();
 
-    GroupResponse group = self.getGroupById(groupId, jwtUser);
-    List<LessonResponse> groupLessons = lessonSpi.getLessonsByGroupId(groupId, jwtUser);
+                  // Short-circuit to prevent SQL IN() syntax errors if the group is empty
+                  if (studentIds.isEmpty()) {
+                    return CompletableFuture.completedFuture(List.<StudentResponse>of());
+                  }
+
+                  return CompletableFuture.supplyAsync(
+                      () ->
+                          studentSpi.getStudentsByIds(studentIds, jwtUser).values().stream()
+                              .flatMap(List::stream)
+                              .toList(),
+                      executor);
+                },
+                executor);
+
+    // 3. Await all background tasks simultaneously
+    AsyncUtils.awaitAll(groupFuture, lessonsFuture, groupStudentsFuture);
+
+    // 4. Extract values
+    GroupResponse group = groupFuture.join();
+    List<LessonResponse> groupLessons = lessonsFuture.join();
+    List<StudentResponse> groupStudents = groupStudentsFuture.join();
 
     return groupMapper.toGroupDetailsResponse(group, groupStudents, groupLessons);
   }
@@ -108,7 +145,8 @@ public class GroupService implements GroupSpi {
   }
 
   @Transactional
-  public GroupResponse createGroup(CreateGroupRequest request, JwtUser jwtUser) {
+  public @NonNull GroupResponse createGroup(
+      @NonNull CreateGroupRequest request, @NonNull JwtUser jwtUser) {
     log.info("Creating group: request={}; user={}", request, jwtUser);
 
     Group group = groupMapper.toGroup(request, jwtUser.id());
@@ -120,7 +158,8 @@ public class GroupService implements GroupSpi {
   }
 
   @Transactional
-  public GroupResponse updateGroup(UUID groupId, Map<String, Object> updates, JwtUser jwtUser) {
+  public @NonNull GroupResponse updateGroup(
+      @NonNull UUID groupId, @NonNull Map<String, Object> updates, @NonNull JwtUser jwtUser) {
     log.info("Updating group: groupId={}; updates={}; user={}", groupId, updates, jwtUser);
     return groupRepository
         .findByIdAndOwnerId(groupId, jwtUser.id())
@@ -131,7 +170,7 @@ public class GroupService implements GroupSpi {
   }
 
   @Transactional
-  public void softDeleteGroup(UUID groupId, JwtUser jwtUser) {
+  public void softDeleteGroup(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Deleting group: groupId={}; user={}", groupId, jwtUser);
 
     groupStudentService.removeAllStudentsFromGroup(groupId, jwtUser);
@@ -147,7 +186,7 @@ public class GroupService implements GroupSpi {
   }
 
   @Transactional
-  public Group saveGroup(Group group) {
+  public @NonNull Group saveGroup(@NonNull Group group) {
     log.info("Saving group: group={}", group);
     return groupRepository.saveAndFlush(group);
   }

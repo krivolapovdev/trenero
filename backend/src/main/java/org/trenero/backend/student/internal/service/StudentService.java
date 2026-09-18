@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -18,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.trenero.backend.common.async.AsyncUtils;
 import org.trenero.backend.common.response.GroupResponse;
 import org.trenero.backend.common.response.GroupStudentResponse;
 import org.trenero.backend.common.response.LessonResponse;
@@ -119,19 +119,10 @@ public class StudentService implements StudentSpi {
             executor);
 
     // 5. Await all background tasks simultaneously
-    try {
-      CompletableFuture.allOf(
-              visitsFuture, paymentsFuture, groupLinksFuture, groupsFuture, groupLessonsFuture)
-          .join();
-    } catch (CompletionException e) {
-      Throwable cause = e.getCause();
-      if (cause instanceof RuntimeException runtimeEx) {
-        throw runtimeEx;
-      }
-      throw new RuntimeException("Unexpected error during parallel batch execution", cause);
-    }
+    AsyncUtils.awaitAll(
+        visitsFuture, paymentsFuture, groupLinksFuture, groupsFuture, groupLessonsFuture);
 
-    // 6. Extract values (Instant - no blocking)
+    // 6. Extract values
     var visitsMap = visitsFuture.join();
     var paymentsMap = paymentsFuture.join();
     var studentToGroupLinkMap = groupLinksFuture.join();
@@ -226,18 +217,7 @@ public class StudentService implements StudentSpi {
             executor);
 
     // 3. Await all background tasks simultaneously
-    try {
-      CompletableFuture.allOf(
-              studentFuture, visitsFuture, paymentsFuture, groupFuture, lessonsFuture)
-          .join();
-    } catch (CompletionException e) {
-      // Unwrap exceptions so GlobalExceptionHandler handles EntityNotFoundException properly
-      var cause = e.getCause();
-      if (cause instanceof RuntimeException runtimeEx) {
-        throw runtimeEx;
-      }
-      throw new RuntimeException("Unexpected error during parallel execution", cause);
-    }
+    AsyncUtils.awaitAll(studentFuture, visitsFuture, paymentsFuture, groupFuture, lessonsFuture);
 
     // 4. Extract values
     var student = studentFuture.join();

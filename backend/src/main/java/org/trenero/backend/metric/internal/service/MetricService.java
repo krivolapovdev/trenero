@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -25,7 +26,8 @@ public class MetricService {
   @Lazy private final TransactionSpi transactionSpi;
 
   @Transactional(readOnly = true)
-  public List<MonthlyPaymentMetricResponse> getMonthlyStatistics(JwtUser jwtUser) {
+  public @NonNull List<MonthlyPaymentMetricResponse> getMonthlyStatistics(
+      @NonNull JwtUser jwtUser) {
     log.info("Calculating monthly payment statistics: user={}", jwtUser);
 
     YearMonth endMonth = YearMonth.now();

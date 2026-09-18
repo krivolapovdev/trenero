@@ -39,8 +39,8 @@ public class GroupStudentService implements GroupStudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public Map<UUID, List<GroupStudentResponse>> getStudentsByGroupIds(
-      List<UUID> groupIds, JwtUser jwtUser) {
+  public @NonNull Map<UUID, List<GroupStudentResponse>> getStudentsByGroupIds(
+      @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
     log.info("Getting students by groupIds={}", groupIds);
     return groupStudentRepository.findAllByGroupIds(groupIds, jwtUser.id()).stream()
         .map(groupStudentMapper::toResponse)
@@ -84,12 +84,17 @@ public class GroupStudentService implements GroupStudentSpi {
   }
 
   @Transactional
-  public void addStudentsToGroup(UUID groupId, List<UUID> studentIds, JwtUser jwtUser) {
+  public void addStudentsToGroup(
+      @NonNull UUID groupId, @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info(
         "Batch adding students to group: groupId={}; studentIds={}; user={}",
         groupId,
         studentIds,
         jwtUser);
+
+    if (studentIds.isEmpty()) {
+      return;
+    }
 
     groupService.getGroupById(groupId, jwtUser);
 
@@ -115,19 +120,20 @@ public class GroupStudentService implements GroupStudentSpi {
   }
 
   @Transactional
-  public void removeAllStudentsFromGroup(UUID groupId, JwtUser jwtUser) {
+  public void removeAllStudentsFromGroup(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     self.softDeleteByGroupId(groupId, jwtUser);
   }
 
   @Transactional
-  public void softDeleteByGroupId(UUID groupId, JwtUser jwtUser) {
+  public void softDeleteByGroupId(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info(
         "Soft deleting group student links by group id: groupId={}; user={}", groupId, jwtUser);
     groupStudentRepository.softDeleteByGroupId(groupId, jwtUser.id());
   }
 
   @Transactional
-  public void softDeleteByStudentIdAndGroupId(UUID studentId, UUID groupId, JwtUser jwtUser) {
+  public void softDeleteByStudentIdAndGroupId(
+      @NonNull UUID studentId, @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info(
         "Soft deleting group student link: studentId={}; groupId={}; user={}",
         studentId,
@@ -137,7 +143,7 @@ public class GroupStudentService implements GroupStudentSpi {
   }
 
   @Transactional
-  public GroupStudent saveGroupStudent(GroupStudent groupStudent) {
+  public @NonNull GroupStudent saveGroupStudent(@NonNull GroupStudent groupStudent) {
     log.info("Saving group student link: groupStudent={}", groupStudent);
     return groupStudentRepository.saveAndFlush(groupStudent);
   }

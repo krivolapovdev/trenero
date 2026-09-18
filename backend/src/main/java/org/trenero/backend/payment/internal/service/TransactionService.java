@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.trenero.backend.payment.external.TransactionSpi;
 import org.trenero.backend.payment.internal.domain.Transaction;
 import org.trenero.backend.payment.internal.mapper.TransactionMapper;
 import org.trenero.backend.payment.internal.repository.TransactionRepository;
+import org.trenero.backend.payment.internal.request.CreateTransactionRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,27 @@ public class TransactionService implements TransactionSpi {
 
   private final TransactionRepository transactionRepository;
   private final TransactionMapper transactionMapper;
+
+  @Transactional(readOnly = true)
+  public @NonNull List<TransactionResponse> getAllTransactions(@NonNull JwtUser jwtUser) {
+    log.info("Fetching all transactions from database for userId={}", jwtUser.id());
+    return transactionRepository.findAllByOwnerId(jwtUser.id()).stream()
+        .map(transactionMapper::toResponse)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public @NonNull TransactionResponse getTransactionById(
+      @NonNull UUID transactionId, @NonNull JwtUser jwtUser) {
+    log.info("Fetching transactionId={} from database for userId={}", transactionId, jwtUser.id());
+
+    Transaction transaction =
+        transactionRepository
+            .findByIdAndOwnerId(transactionId, jwtUser.id())
+            .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
+
+    return transactionMapper.toResponse(transaction);
+  }
 
   @Override
   @Transactional(readOnly = true)
@@ -46,6 +69,17 @@ public class TransactionService implements TransactionSpi {
   }
 
   @Transactional
+  public @NonNull TransactionResponse createTransaction(
+      @NonNull CreateTransactionRequest request, @NonNull JwtUser jwtUser) {
+    log.info("Saving new {} transaction to database for userId={}", request.type(), jwtUser.id());
+
+    Transaction transaction = transactionMapper.toEntity(request, jwtUser.id());
+    Transaction savedTransaction = transactionRepository.save(transaction);
+
+    return transactionMapper.toResponse(savedTransaction);
+  }
+
+  @Transactional
   public Transaction createTransactionEntity(
       BigDecimal amount, TransactionType type, LocalDate date, JwtUser jwtUser) {
     log.info(
@@ -59,6 +93,19 @@ public class TransactionService implements TransactionSpi {
         Transaction.builder().ownerId(jwtUser.id()).type(type).amount(amount).date(date).build();
 
     return saveTransaction(transaction);
+  }
+
+  @Transactional
+  public @NonNull TransactionResponse updateTransaction(
+      @NonNull UUID transactionId, @NonNull Map<String, Object> updates, @NonNull JwtUser jwtUser) {
+    log.info("Patching transactionId={} in database for userId={}", transactionId, jwtUser.id());
+
+    return transactionRepository
+        .findByIdAndOwnerId(transactionId, jwtUser.id())
+        .map(transaction -> transactionMapper.updateTransaction(transaction, updates))
+        .map(transactionRepository::save)
+        .map(transactionMapper::toResponse)
+        .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
   }
 
   @Transactional
@@ -90,7 +137,7 @@ public class TransactionService implements TransactionSpi {
   }
 
   @Transactional
-  public void softDeleteTransaction(UUID transactionId, JwtUser jwtUser) {
+  public void softDeleteTransaction(@NonNull UUID transactionId, @NonNull JwtUser jwtUser) {
     log.info("Deleting transaction: transactionId={}; user={}", transactionId, jwtUser);
 
     Transaction transaction =
@@ -103,7 +150,7 @@ public class TransactionService implements TransactionSpi {
     transactionRepository.save(transaction);
   }
 
-  private Transaction saveTransaction(Transaction transaction) {
+  private @NonNull Transaction saveTransaction(@NonNull Transaction transaction) {
     log.info("Saving transaction: transaction={}", transaction);
     return transactionRepository.saveAndFlush(transaction);
   }
