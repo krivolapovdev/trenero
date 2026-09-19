@@ -1,4 +1,4 @@
-package com.example.phone
+package org.trenero
 
 import io.flutter.embedding.android.FlutterActivity
 

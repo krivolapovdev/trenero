@@ -11,6 +11,11 @@ pre-commit:
       stage_fixed: true
       run: npm run biome
 
+    - name: phone
+      root: frontend/phone
+      stage_fixed: true
+      run: dart fix --apply && dart format .
+
     - name: backend
       root: backend
       stage_fixed: true

@@ -1,0 +1,7 @@
+{
+  "auth": {
+    "signInWithApple": "Войти через Apple",
+    "signInWithGoogle": "Войти через Google",
+    "agreePrivacyPolicy": "Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности"
+  }
+}
