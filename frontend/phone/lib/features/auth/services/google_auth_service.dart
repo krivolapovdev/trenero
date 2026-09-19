@@ -10,7 +10,7 @@ class GoogleAuthService {
 
   Future<void> _initializeGoogleSignIn() async {
     await _googleSignIn.initialize(
-      serverClientId: "130382157522-fh2klmgqgsem919l0bhp35u7d5f8eqlk.apps.googleusercontent.com",
+      serverClientId: '130382157522-fh2klmgqgsem919l0bhp35u7d5f8eqlk.apps.googleusercontent.com',
     );
 
     _isGoogleSignInInitialized = true;

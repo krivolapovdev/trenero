@@ -25,6 +25,8 @@ public class OAuth2Service {
   public @NonNull LoginResponse googleLogin(@NonNull OAuth2LoginRequest request) {
     log.info("Processing Google OAuth2 login request");
 
+    System.out.println("WHERE ARE THE LOGS????");
+
     var googleIdToken =
         googleAuthService
             .verifyIdToken(request.token())

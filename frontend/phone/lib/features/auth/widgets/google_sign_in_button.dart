@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:phone/core/constants/app_assets.dart';
 import 'package:phone/features/auth/services/google_auth_service.dart';
+import 'package:phone/features/auth/services/oauth2_service.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:phone/share/widgets/error_snack_bar.dart';
 
 class GoogleSignInButton extends StatelessWidget {
-  const GoogleSignInButton({super.key});
+  final GoogleAuthService googleAuthService = GoogleAuthService();
+  final OAuth2Service oAuth2Service = OAuth2Service();
+
+  GoogleSignInButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,12 +20,21 @@ class GoogleSignInButton extends StatelessWidget {
       child: TextButton(
         onPressed: () async {
           try {
-            final GoogleAuthService googleAuthService = GoogleAuthService();
             final String? token = await googleAuthService.getGoogleIdToken();
-            print('Google ID Token: $token');
+
+            if (token == null) {
+              return;
+            }
+
+            final LoginResponse response = await oAuth2Service.googleLogin(
+              token,
+            );
+
+            print('Access Token: ${response.accessToken}');
           } catch (e) {
             if (!context.mounted) return;
-            ErrorSnackBar.show(context, "Error: $e");
+            ErrorSnackBar.show(context, 'Error: $e');
+            print(e);
           }
         },
         style: TextButton.styleFrom(
