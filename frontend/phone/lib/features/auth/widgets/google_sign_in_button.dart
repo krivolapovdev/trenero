@@ -3,8 +3,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:phone/core/constants/app_assets.dart';
 import 'package:phone/features/auth/services/google_auth_service.dart';
 import 'package:phone/features/auth/services/oauth2_service.dart';
+import 'package:phone/generated/models/login_response.dart';
 import 'package:phone/i18n/strings.g.dart';
-import 'package:phone/share/widgets/error_snack_bar.dart';
+import 'package:phone/core/widgets/error_snack_bar.dart';
 
 class GoogleSignInButton extends StatelessWidget {
   final GoogleAuthService googleAuthService = GoogleAuthService();
@@ -30,7 +31,7 @@ class GoogleSignInButton extends StatelessWidget {
               token,
             );
 
-            print('Access Token: ${response.accessToken}');
+            print('Access Token: ${response.jwtTokens.accessToken}');
           } catch (e) {
             if (!context.mounted) return;
             ErrorSnackBar.show(context, 'Error: $e');
