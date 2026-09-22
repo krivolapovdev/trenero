@@ -39,6 +39,10 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 
 	// Translations
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
+	@override late final _Translations$statistics$ru statistics = _Translations$statistics$ru._(_root);
+	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
+	@override late final _Translations$students$ru students = _Translations$students$ru._(_root);
+	@override late final _Translations$settings$ru settings = _Translations$settings$ru._(_root);
 }
 
 // Path: auth
@@ -53,6 +57,46 @@ class _Translations$auth$ru implements Translations$auth$en {
 	@override String get agreePrivacyPolicy => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности';
 }
 
+// Path: statistics
+class _Translations$statistics$ru implements Translations$statistics$en {
+	_Translations$statistics$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Статистика';
+}
+
+// Path: groups
+class _Translations$groups$ru implements Translations$groups$en {
+	_Translations$groups$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Группы';
+}
+
+// Path: students
+class _Translations$students$ru implements Translations$students$en {
+	_Translations$students$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Студенты';
+}
+
+// Path: settings
+class _Translations$settings$ru implements Translations$settings$en {
+	_Translations$settings$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Настройки';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -64,6 +108,10 @@ extension on TranslationsRu {
 			'auth.signInWithApple' => 'Войти через Apple',
 			'auth.signInWithGoogle' => 'Войти через Google',
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',
+			'statistics.title' => 'Статистика',
+			'groups.title' => 'Группы',
+			'students.title' => 'Студенты',
+			'settings.title' => 'Настройки',
 			_ => null,
 		};
 	}

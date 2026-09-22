@@ -1,43 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:phone/core/constants/app_assets.dart';
+import 'package:phone/features/auth/providers/auth_provider.dart';
 import 'package:phone/features/auth/services/google_auth_service.dart';
 import 'package:phone/features/auth/services/oauth2_service.dart';
+import 'package:phone/features/shell/pages/main_shell_screen.dart';
 import 'package:phone/generated/models/login_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:phone/core/widgets/error_snack_bar.dart';
 
-class GoogleSignInButton extends StatelessWidget {
-  final GoogleAuthService googleAuthService = GoogleAuthService();
-  final OAuth2Service oAuth2Service = OAuth2Service();
+class GoogleSignInButton extends ConsumerWidget {
+  const new({super.key});
 
-  GoogleSignInButton({super.key});
+  Future<void> _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
+    try {
+      final String? token = await googleAuthService.getGoogleIdToken();
+
+      if (token == null) {
+        return;
+      }
+
+      final LoginResponse response = await oAuth2Service.googleLogin(token);
+
+      await ref.read(authProvider.notifier).setAuth(response);
+
+      if (!context.mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const MainShellScreen()),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ErrorSnackBar.show(context, 'Error: $e');
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
       width: double.infinity,
       height: 56,
       child: TextButton(
-        onPressed: () async {
-          try {
-            final String? token = await googleAuthService.getGoogleIdToken();
-
-            if (token == null) {
-              return;
-            }
-
-            final LoginResponse response = await oAuth2Service.googleLogin(
-              token,
-            );
-
-            print('Access Token: ${response.jwtTokens.accessToken}');
-          } catch (e) {
-            if (!context.mounted) return;
-            ErrorSnackBar.show(context, 'Error: $e');
-            print(e);
-          }
-        },
+        onPressed: () => _handleGoogleSignIn(context, ref),
         style: TextButton.styleFrom(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
@@ -50,7 +55,7 @@ class GoogleSignInButton extends StatelessWidget {
             SvgPicture.asset(AppAssets.googleLogo, height: 24, width: 24),
             const SizedBox(width: 12),
             Text(
-              t.auth.signInWithGoogle,
+              context.t.auth.signInWithGoogle,
               style: TextStyle(
                 color: Color(0xFF1E1E1E),
                 fontSize: 16,

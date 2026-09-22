@@ -4,7 +4,7 @@ class GoogleAuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _isGoogleSignInInitialized = false;
 
-  GoogleAuthService() {
+  new() {
     _initializeGoogleSignIn();
   }
 
@@ -45,3 +45,5 @@ class GoogleAuthService {
     }
   }
 }
+
+final GoogleAuthService googleAuthService = GoogleAuthService();

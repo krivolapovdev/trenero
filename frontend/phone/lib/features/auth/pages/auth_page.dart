@@ -7,7 +7,7 @@ import 'package:phone/i18n/strings.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AuthPage extends StatelessWidget {
-  const AuthPage({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class AuthPage extends StatelessWidget {
                   mode: LaunchMode.externalApplication,
                 ),
                 child: Text(
-                  t.auth.agreePrivacyPolicy,
+                  context.t.auth.agreePrivacyPolicy,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Color(0xFF6E6A78),

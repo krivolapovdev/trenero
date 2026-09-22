@@ -3,5 +3,17 @@
       "signInWithApple": "Sign in with Apple",
       "signInWithGoogle": "Sign in with Google",
       "agreePrivacyPolicy": "By signing in, you agree to our Privacy Policy"
+  },
+  "statistics": {
+    "title": "Statistics"
+  },
+  "groups": {
+    "title": "Groups"
+  },
+  "students": {
+    "title": "Students"
+  },
+  "settings": {
+    "title": "Settings"
   }
 }

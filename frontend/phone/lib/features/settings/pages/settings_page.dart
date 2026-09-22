@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/titled_page.dart';
 
-class StatisticsPage extends TitledPage {
+class SettingsPage extends TitledPage {
   const new({
     super.key,
     required super.title,
-    super.icon = Icons.analytics_outlined,
-    super.selectedIcon = Icons.analytics,
+    super.icon = Icons.settings_outlined,
+    super.selectedIcon = Icons.settings,
   });
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Statistics Page')));
+    return const Scaffold(body: Center(child: Text('Settings Page')));
   }
 }

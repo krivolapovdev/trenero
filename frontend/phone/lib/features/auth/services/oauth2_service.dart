@@ -1,6 +1,6 @@
 import 'package:phone/generated/models/login_response.dart';
 import 'package:phone/generated/models/o_auth2_login_request.dart';
-import 'package:phone/core/services/api.dart';
+import 'package:phone/core/api/api.dart';
 
 class OAuth2Service {
   Future<LoginResponse> googleLogin(String token) async {
@@ -18,3 +18,5 @@ class OAuth2Service {
     return LoginResponse.fromJson(response.data!);
   }
 }
+
+final OAuth2Service oAuth2Service = OAuth2Service();

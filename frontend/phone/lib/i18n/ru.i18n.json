@@ -3,5 +3,17 @@
     "signInWithApple": "Войти через Apple",
     "signInWithGoogle": "Войти через Google",
     "agreePrivacyPolicy": "Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности"
+  },
+  "statistics": {
+    "title": "Статистика"
+  },
+  "groups": {
+    "title": "Группы"
+  },
+  "students": {
+    "title": "Студенты"
+  },
+  "settings": {
+    "title": "Настройки"
   }
 }

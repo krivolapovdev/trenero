@@ -42,6 +42,10 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	// Translations
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
+	late final Translations$statistics$en statistics = Translations$statistics$en._(_root);
+	late final Translations$groups$en groups = Translations$groups$en._(_root);
+	late final Translations$students$en students = Translations$students$en._(_root);
+	late final Translations$settings$en settings = Translations$settings$en._(_root);
 }
 
 // Path: auth
@@ -62,6 +66,54 @@ class Translations$auth$en {
 	String get agreePrivacyPolicy => 'By signing in, you agree to our Privacy Policy';
 }
 
+// Path: statistics
+class Translations$statistics$en {
+	Translations$statistics$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Statistics'
+	String get title => 'Statistics';
+}
+
+// Path: groups
+class Translations$groups$en {
+	Translations$groups$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Groups'
+	String get title => 'Groups';
+}
+
+// Path: students
+class Translations$students$en {
+	Translations$students$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Students'
+	String get title => 'Students';
+}
+
+// Path: settings
+class Translations$settings$en {
+	Translations$settings$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Settings'
+	String get title => 'Settings';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -73,6 +125,10 @@ extension on Translations {
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',
+			'statistics.title' => 'Statistics',
+			'groups.title' => 'Groups',
+			'students.title' => 'Students',
+			'settings.title' => 'Settings',
 			_ => null,
 		};
 	}
