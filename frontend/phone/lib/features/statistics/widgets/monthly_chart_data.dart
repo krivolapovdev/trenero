@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:phone/features/statistics/data/monthly_statistic.dart';
+import 'package:phone/features/statistics/models/monthly_statistic.dart';
 import 'package:phone/features/statistics/widgets/chart_bottom_title.dart';
 
 class MonthlyChartData {

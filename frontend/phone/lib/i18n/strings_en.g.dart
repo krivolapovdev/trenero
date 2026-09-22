@@ -112,6 +112,33 @@ class Translations$settings$en {
 
 	/// en: 'Settings'
 	String get title => 'Settings';
+
+	/// en: 'Appearance'
+	String get appearance => 'Appearance';
+
+	/// en: 'Language'
+	String get language => 'Language';
+
+	/// en: 'Account'
+	String get account => 'Account';
+
+	/// en: 'Log out'
+	String get logout => 'Log out';
+
+	/// en: 'Delete account'
+	String get deleteAccount => 'Delete account';
+
+	/// en: 'Other'
+	String get other => 'Other';
+
+	/// en: 'Version'
+	String get version => 'Version';
+
+	/// en: 'Contacts'
+	String get contacts => 'Contacts';
+
+	/// en: 'Privacy Policy'
+	String get privacyPolicy => 'Privacy Policy';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -129,6 +156,15 @@ extension on Translations {
 			'groups.title' => 'Groups',
 			'students.title' => 'Students',
 			'settings.title' => 'Settings',
+			'settings.appearance' => 'Appearance',
+			'settings.language' => 'Language',
+			'settings.account' => 'Account',
+			'settings.logout' => 'Log out',
+			'settings.deleteAccount' => 'Delete account',
+			'settings.other' => 'Other',
+			'settings.version' => 'Version',
+			'settings.contacts' => 'Contacts',
+			'settings.privacyPolicy' => 'Privacy Policy',
 			_ => null,
 		};
 	}

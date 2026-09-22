@@ -14,6 +14,15 @@
     "title": "Students"
   },
   "settings": {
-    "title": "Settings"
+    "title": "Settings",
+    "appearance": "Appearance",
+    "language": "Language",
+    "account": "Account",
+    "logout": "Log out",
+    "deleteAccount": "Delete account",
+    "other": "Other",
+    "version": "Version",
+    "contacts": "Contacts",
+    "privacyPolicy": "Privacy Policy"
   }
 }

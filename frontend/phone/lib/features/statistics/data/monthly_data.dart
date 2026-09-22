@@ -1,4 +1,4 @@
-import 'package:phone/features/statistics/data/monthly_statistic.dart';
+import 'package:phone/features/statistics/models/monthly_statistic.dart';
 
 final List<MonthlyStatistic> monthlyData = [
   (month: 'Март', date: '03/2026', profit: 4500.0, expenses: 900.0),

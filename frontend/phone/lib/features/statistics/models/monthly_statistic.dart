@@ -1,1 +1,6 @@
-// TODO Implement this library.
+typedef MonthlyStatistic = ({
+  String month,
+  String date,
+  double profit,
+  double expenses,
+});

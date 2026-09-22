@@ -95,6 +95,15 @@ class _Translations$settings$ru implements Translations$settings$en {
 
 	// Translations
 	@override String get title => 'Настройки';
+	@override String get appearance => 'Внешний вид';
+	@override String get language => 'Язык';
+	@override String get account => 'Аккаунт';
+	@override String get logout => 'Выйти';
+	@override String get deleteAccount => 'Удалить аккаунт';
+	@override String get other => 'Другое';
+	@override String get version => 'Версия';
+	@override String get contacts => 'Контакты';
+	@override String get privacyPolicy => 'Политика конфиденциальности';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -112,6 +121,15 @@ extension on TranslationsRu {
 			'groups.title' => 'Группы',
 			'students.title' => 'Студенты',
 			'settings.title' => 'Настройки',
+			'settings.appearance' => 'Внешний вид',
+			'settings.language' => 'Язык',
+			'settings.account' => 'Аккаунт',
+			'settings.logout' => 'Выйти',
+			'settings.deleteAccount' => 'Удалить аккаунт',
+			'settings.other' => 'Другое',
+			'settings.version' => 'Версия',
+			'settings.contacts' => 'Контакты',
+			'settings.privacyPolicy' => 'Политика конфиденциальности',
 			_ => null,
 		};
 	}
