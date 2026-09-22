@@ -31,6 +31,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       body: IndexedStack(index: _currentIndex, children: pages),
 
       bottomNavigationBar: NavigationBar(
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           setState(() {
