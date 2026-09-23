@@ -10,39 +10,37 @@ class AuthPage extends StatelessWidget {
   const new({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            children: [
-              const Spacer(flex: 3),
-              Lottie.asset(AppLottie.profilePasswordUnlock),
-              GoogleSignInButton(),
-              const Spacer(flex: 4),
-              const Divider(color: Color(0xFFD4CDDF), thickness: 1),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => launchUrl(
-                  Uri.parse(AppConstants.privacyPolicyUrl),
-                  mode: LaunchMode.externalApplication,
-                ),
-                child: Text(
-                  context.t.auth.agreePrivacyPolicy,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFF6E6A78),
-                    fontSize: 13,
-                    height: 1.35,
-                  ),
+  Widget build(BuildContext context) => Scaffold(
+    body: SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          children: [
+            const Spacer(flex: 3),
+            Lottie.asset(AppLottie.profilePasswordUnlock),
+            GoogleSignInButton(),
+            const Spacer(flex: 4),
+            const Divider(color: Color(0xFFD4CDDF), thickness: 1),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => launchUrl(
+                Uri.parse(AppConstants.privacyPolicyUrl),
+                mode: LaunchMode.externalApplication,
+              ),
+              child: Text(
+                context.t.auth.agreePrivacyPolicy,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFF6E6A78),
+                  fontSize: 13,
+                  height: 1.35,
                 ),
               ),
-              const SizedBox(height: 16),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }

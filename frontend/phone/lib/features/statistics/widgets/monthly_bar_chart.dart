@@ -17,26 +17,24 @@ class MonthlyBarChart extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 420,
-      padding: const EdgeInsets.fromLTRB(8, 16, 8, 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Stack(
-        children: [
-          BarChart(
-            MonthlyChartData.build(data: data, selectedIndex: selectedIndex),
-          ),
+  Widget build(BuildContext context) => Container(
+    height: 420,
+    padding: const EdgeInsets.fromLTRB(8, 16, 8, 16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: Stack(
+      children: [
+        BarChart(
+          MonthlyChartData.build(data: data, selectedIndex: selectedIndex),
+        ),
 
-          ChartTouchOverlay(
-            itemCount: data.length,
-            onIndexChanged: onIndexChanged,
-          ),
-        ],
-      ),
-    );
-  }
+        ChartTouchOverlay(
+          itemCount: data.length,
+          onIndexChanged: onIndexChanged,
+        ),
+      ],
+    ),
+  );
 }

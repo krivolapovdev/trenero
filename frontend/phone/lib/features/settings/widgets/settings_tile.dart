@@ -15,15 +15,13 @@ class SettingsTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.black87),
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 16, color: Colors.black87),
-      ),
-      trailing: trailing,
-      onTap: onTap ?? () {},
-    );
-  }
+  Widget build(BuildContext context) => ListTile(
+    leading: Icon(icon, color: Colors.black87),
+    title: Text(
+      title,
+      style: const TextStyle(fontSize: 16, color: Colors.black87),
+    ),
+    trailing: trailing,
+    onTap: onTap ?? () {},
+  );
 }

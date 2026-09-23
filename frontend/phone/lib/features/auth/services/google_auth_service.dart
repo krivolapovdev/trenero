@@ -1,4 +1,5 @@
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:phone/core/constants/app_constants.dart';
 
 class GoogleAuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
@@ -10,7 +11,7 @@ class GoogleAuthService {
 
   Future<void> _initializeGoogleSignIn() async {
     await _googleSignIn.initialize(
-      serverClientId: '130382157522-fh2klmgqgsem919l0bhp35u7d5f8eqlk.apps.googleusercontent.com',
+      serverClientId: AppConstants.googleOAuth2ServerClientId,
     );
 
     _isGoogleSignInInitialized = true;
@@ -39,10 +40,15 @@ class GoogleAuthService {
       return idToken;
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
-        return null; // User closed the picker
+        return null;
       }
       rethrow;
     }
+  }
+
+  Future<void> signOut() async {
+    await _ensureGoogleSignInInitialized();
+    await _googleSignIn.signOut();
   }
 }
 

@@ -6,14 +6,12 @@ class LoadingPage extends StatelessWidget {
   const new({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: SizedBox(
-          width: double.infinity,
-          child: Lottie.asset(AppLottie.loading),
-        ),
+  Widget build(BuildContext context) => Scaffold(
+    body: Center(
+      child: SizedBox(
+        width: double.infinity,
+        child: Lottie.asset(AppLottie.loading),
       ),
-    );
-  }
+    ),
+  );
 }

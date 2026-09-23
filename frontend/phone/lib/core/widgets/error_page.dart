@@ -6,22 +6,20 @@ class GlobalErrorPage extends StatelessWidget {
   const new({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: Lottie.asset(AppLottie.error),
-            ),
-            Text(
-              'Something went wrong!',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ],
-        ),
+  Widget build(BuildContext context) => Scaffold(
+    body: Center(
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: Lottie.asset(AppLottie.error),
+          ),
+          Text(
+            'Something went wrong!',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }

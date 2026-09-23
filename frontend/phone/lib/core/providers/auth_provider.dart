@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:phone/core/providers/secure_storage_provider.dart';
 import 'package:phone/core/providers/shared_preferences_provider.dart';
+import 'package:phone/features/auth/services/google_auth_service.dart';
 import 'package:phone/features/auth/services/jwt_tokens_service.dart';
 import 'package:phone/generated/models/login_response.dart';
 import 'package:phone/generated/models/user_response.dart';
@@ -48,8 +50,6 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<bool> tryRefreshToken() async {
     final String? refreshToken = await getRefreshToken();
 
-    // throw Exception('Refresh token is null or empty');
-
     if (refreshToken == null || refreshToken.isEmpty) {
       await clear();
       return false;
@@ -72,18 +72,24 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> clear() async {
     state = const AuthState();
     await _prefs.remove(_userStorageKey);
+
     await _secureStorage.delete(key: _refreshTokenKey);
+
+    try {
+      await googleAuthService.signOut();
+    } catch (e) {
+      log('Google sign out error: $e');
+    }
   }
 
-  Future<String?> getRefreshToken() async {
-    return await _secureStorage.read(key: _refreshTokenKey);
-  }
+  Future<String?> getRefreshToken() async =>
+      await _secureStorage.read(key: _refreshTokenKey);
 }
 
 final authProvider = NotifierProvider<AuthNotifier, AuthState>(
   AuthNotifier.new,
 );
 
-final authInitializerProvider = FutureProvider<bool>((ref) async {
-  return await ref.read(authProvider.notifier).tryRefreshToken();
-});
+final authInitializerProvider = FutureProvider<bool>(
+  (ref) async => await ref.read(authProvider.notifier).tryRefreshToken(),
+);

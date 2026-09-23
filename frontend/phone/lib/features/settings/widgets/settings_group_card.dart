@@ -6,12 +6,10 @@ class SettingsGroupCard extends StatelessWidget {
   const new({super.key, required this.children});
 
   @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      clipBehavior: Clip.antiAlias,
-      child: Column(children: children),
-    );
-  }
+  Widget build(BuildContext context) => Material(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(16),
+    clipBehavior: Clip.antiAlias,
+    child: Column(children: children),
+  );
 }

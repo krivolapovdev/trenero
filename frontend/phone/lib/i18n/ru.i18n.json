@@ -1,4 +1,6 @@
 {
+  "ok": "OK",
+  "cancel": "Отменить",
   "auth": {
     "signInWithApple": "Войти через Apple",
     "signInWithGoogle": "Войти через Google",
@@ -19,6 +21,7 @@
     "language": "Язык",
     "account": "Аккаунт",
     "logout": "Выйти",
+    "logoutMessage": "Вы уверены, что хотите выйти?",
     "deleteAccount": "Удалить аккаунт",
     "other": "Другое",
     "version": "Версия",

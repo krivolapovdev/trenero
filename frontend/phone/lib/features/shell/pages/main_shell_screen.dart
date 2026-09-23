@@ -38,13 +38,15 @@ class _MainShellScreenState extends State<MainShellScreen> {
             _currentIndex = index;
           });
         },
-        destinations: pages.map((page) {
-          return NavigationDestination(
-            icon: Icon(page.icon),
-            selectedIcon: Icon(page.selectedIcon),
-            label: page.title,
-          );
-        }).toList(),
+        destinations: pages
+            .map(
+              (page) => NavigationDestination(
+                icon: Icon(page.icon),
+                selectedIcon: Icon(page.selectedIcon),
+                label: page.title,
+              ),
+            )
+            .toList(),
       ),
     );
   }

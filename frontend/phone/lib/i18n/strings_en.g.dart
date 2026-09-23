@@ -41,6 +41,13 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	Translations $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => Translations(meta: meta ?? this.$meta);
 
 	// Translations
+
+	/// en: 'OK'
+	String get ok => 'OK';
+
+	/// en: 'Cancel'
+	String get cancel => 'Cancel';
+
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
 	late final Translations$statistics$en statistics = Translations$statistics$en._(_root);
 	late final Translations$groups$en groups = Translations$groups$en._(_root);
@@ -125,6 +132,9 @@ class Translations$settings$en {
 	/// en: 'Log out'
 	String get logout => 'Log out';
 
+	/// en: 'Are you sure you want to log out?'
+	String get logoutMessage => 'Are you sure you want to log out?';
+
 	/// en: 'Delete account'
 	String get deleteAccount => 'Delete account';
 
@@ -149,6 +159,8 @@ class Translations$settings$en {
 extension on Translations {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
+			'ok' => 'OK',
+			'cancel' => 'Cancel',
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',
@@ -160,6 +172,7 @@ extension on Translations {
 			'settings.language' => 'Language',
 			'settings.account' => 'Account',
 			'settings.logout' => 'Log out',
+			'settings.logoutMessage' => 'Are you sure you want to log out?',
 			'settings.deleteAccount' => 'Delete account',
 			'settings.other' => 'Other',
 			'settings.version' => 'Version',

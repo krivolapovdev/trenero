@@ -10,7 +10,6 @@ class GroupsPage extends TitledPage {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return const Column(children: [Center(child: Text('Groups Page'))]);
-  }
+  Widget build(BuildContext context) =>
+      const Column(children: [Center(child: Text('Groups Page'))]);
 }

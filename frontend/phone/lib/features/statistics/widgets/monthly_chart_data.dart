@@ -39,69 +39,64 @@ class MonthlyChartData {
   static FlTitlesData _buildTitles(
     List<MonthlyStatistic> data,
     int selectedIndex,
-  ) {
-    return FlTitlesData(
-      show: true,
-      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-      leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-      bottomTitles: AxisTitles(
-        sideTitles: SideTitles(
-          showTitles: true,
-          reservedSize: 32,
-          getTitlesWidget: (value, meta) {
-            final index = value.toInt();
-            if (index < 0 || index >= data.length) {
-              return const SizedBox.shrink();
-            }
+  ) => FlTitlesData(
+    show: true,
+    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    bottomTitles: AxisTitles(
+      sideTitles: SideTitles(
+        showTitles: true,
+        reservedSize: 32,
+        getTitlesWidget: (value, meta) {
+          final index = value.toInt();
+          if (index < 0 || index >= data.length) {
+            return const SizedBox.shrink();
+          }
 
-            return ChartBottomTitle(
-              text: data[index].month,
-              isSelected: index == selectedIndex,
-            );
-          },
-        ),
+          return ChartBottomTitle(
+            text: data[index].month,
+            isSelected: index == selectedIndex,
+          );
+        },
       ),
-    );
-  }
+    ),
+  );
 
   static List<BarChartGroupData> _buildBarGroups(
     List<MonthlyStatistic> data,
     int selectedIndex,
-  ) {
-    return List.generate(data.length, (index) {
-      final profit = data[index].profit;
-      final expenses = data[index].expenses;
-      final isSelected = index == selectedIndex;
+  ) => List.generate(data.length, (index) {
+    final profit = data[index].profit;
+    final expenses = data[index].expenses;
+    final isSelected = index == selectedIndex;
 
-      final profitColor = isSelected
-          ? _profitColor
-          : _profitColor.withValues(alpha: _unselectedOpacity);
+    final profitColor = isSelected
+        ? _profitColor
+        : _profitColor.withValues(alpha: _unselectedOpacity);
 
-      final expensesColor = isSelected
-          ? _expensesColor
-          : _expensesColor.withValues(alpha: _unselectedOpacity);
+    final expensesColor = isSelected
+        ? _expensesColor
+        : _expensesColor.withValues(alpha: _unselectedOpacity);
 
-      return BarChartGroupData(
-        x: index,
-        barsSpace: 4,
-        barRods: [
-          _buildRod(profit, profitColor),
-          _buildRod(expenses, expensesColor),
-        ],
-      );
-    });
-  }
-
-  static BarChartRodData _buildRod(double value, Color color) {
-    return BarChartRodData(
-      toY: value,
-      width: _barWidth,
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(6),
-        topRight: Radius.circular(6),
-      ),
-      color: color,
+    return BarChartGroupData(
+      x: index,
+      barsSpace: 4,
+      barRods: [
+        _buildRod(profit, profitColor),
+        _buildRod(expenses, expensesColor),
+      ],
     );
-  }
+  });
+
+  static BarChartRodData _buildRod(double value, Color color) =>
+      BarChartRodData(
+        toY: value,
+        width: _barWidth,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(6),
+          topRight: Radius.circular(6),
+        ),
+        color: color,
+      );
 }

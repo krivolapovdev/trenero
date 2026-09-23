@@ -1,4 +1,6 @@
 {
+  "ok": "OK",
+  "cancel": "Cancel",
   "auth": {
       "signInWithApple": "Sign in with Apple",
       "signInWithGoogle": "Sign in with Google",
@@ -19,6 +21,7 @@
     "language": "Language",
     "account": "Account",
     "logout": "Log out",
+    "logoutMessage": "Are you sure you want to log out?",
     "deleteAccount": "Delete account",
     "other": "Other",
     "version": "Version",

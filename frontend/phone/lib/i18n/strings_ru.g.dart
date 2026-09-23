@@ -38,6 +38,8 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	TranslationsRu $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => TranslationsRu(meta: meta ?? this.$meta);
 
 	// Translations
+	@override String get ok => 'OK';
+	@override String get cancel => 'Отменить';
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
 	@override late final _Translations$statistics$ru statistics = _Translations$statistics$ru._(_root);
 	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
@@ -99,6 +101,7 @@ class _Translations$settings$ru implements Translations$settings$en {
 	@override String get language => 'Язык';
 	@override String get account => 'Аккаунт';
 	@override String get logout => 'Выйти';
+	@override String get logoutMessage => 'Вы уверены, что хотите выйти?';
 	@override String get deleteAccount => 'Удалить аккаунт';
 	@override String get other => 'Другое';
 	@override String get version => 'Версия';
@@ -114,6 +117,8 @@ class _Translations$settings$ru implements Translations$settings$en {
 extension on TranslationsRu {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
+			'ok' => 'OK',
+			'cancel' => 'Отменить',
 			'auth.signInWithApple' => 'Войти через Apple',
 			'auth.signInWithGoogle' => 'Войти через Google',
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',
@@ -125,6 +130,7 @@ extension on TranslationsRu {
 			'settings.language' => 'Язык',
 			'settings.account' => 'Аккаунт',
 			'settings.logout' => 'Выйти',
+			'settings.logoutMessage' => 'Вы уверены, что хотите выйти?',
 			'settings.deleteAccount' => 'Удалить аккаунт',
 			'settings.other' => 'Другое',
 			'settings.version' => 'Версия',
