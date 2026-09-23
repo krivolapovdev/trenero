@@ -11,6 +11,6 @@ class StudentsPage extends TitledPage {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Students Page')));
+    return const Column(children: [Center(child: Text('Students Page'))]);
   }
 }

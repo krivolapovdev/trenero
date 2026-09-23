@@ -1,0 +1,58 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/providers/language_provider.dart';
+import 'package:phone/i18n/strings.g.dart';
+
+class LanguageSelectionSheet extends ConsumerWidget {
+  const new({super.key});
+
+  static Future<void> show(BuildContext context) {
+    return showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => const LanguageSelectionSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentLocale = ref.watch(languageProvider);
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildLanguageTile(context, ref, currentLocale, AppLocale.ru),
+            _buildLanguageTile(context, ref, currentLocale, AppLocale.en),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageTile(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocale currentLocale,
+    AppLocale targetLocale,
+  ) {
+    final isSelected = currentLocale == targetLocale;
+
+    return ListTile(
+      title: Text(targetLocale.name, style: const TextStyle(fontSize: 16)),
+      trailing: isSelected
+          ? const Icon(Icons.check, color: Colors.deepPurple)
+          : null,
+      onTap: () {
+        ref.read(languageProvider.notifier).setLanguage(targetLocale);
+        Navigator.pop(context);
+      },
+    );
+  }
+}

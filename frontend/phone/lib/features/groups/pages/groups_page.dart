@@ -11,6 +11,6 @@ class GroupsPage extends TitledPage {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Groups Page')));
+    return const Column(children: [Center(child: Text('Groups Page'))]);
   }
 }

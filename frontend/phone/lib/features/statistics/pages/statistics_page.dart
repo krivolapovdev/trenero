@@ -17,30 +17,28 @@ class StatisticsPage extends TitledPage {
     int selectedIndex = 5;
 
     return StatefulBuilder(
-      builder: (context, setState) => Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  SummaryCard(selectedItem: monthlyData[selectedIndex]),
+      builder: (context, setState) => SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                SummaryCard(selectedItem: monthlyData[selectedIndex]),
 
-                  const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-                  MonthlyBarChart(
-                    data: monthlyData,
-                    selectedIndex: selectedIndex,
-                    onIndexChanged: (index) {
-                      if (selectedIndex != index) {
-                        setState(() {
-                          selectedIndex = index;
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
+                MonthlyBarChart(
+                  data: monthlyData,
+                  selectedIndex: selectedIndex,
+                  onIndexChanged: (index) {
+                    if (selectedIndex != index) {
+                      setState(() {
+                        selectedIndex = index;
+                      });
+                    }
+                  },
+                ),
+              ],
             ),
           ),
         ),
