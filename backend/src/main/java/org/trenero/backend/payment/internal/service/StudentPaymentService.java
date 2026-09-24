@@ -170,7 +170,7 @@ public class StudentPaymentService implements StudentPaymentSpi {
       throw entityNotFound(StudentPayment.class, paymentId, jwtUser);
     }
 
-    transactionService.softDeleteTransaction(paymentId, jwtUser);
+    transactionService.deleteTransaction(paymentId, jwtUser);
   }
 
   private StudentPayment saveStudentPayment(StudentPayment studentPayment) {

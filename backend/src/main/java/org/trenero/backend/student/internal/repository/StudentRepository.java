@@ -18,7 +18,6 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           SELECT s
           FROM Student AS s
           WHERE s.ownerId = :ownerId
-            AND s.deletedAt IS NULL
           ORDER BY s.fullName
           """)
   List<Student> findAllByOwnerId(@Param("ownerId") UUID ownerId);
@@ -29,7 +28,6 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           FROM Student AS s
           WHERE s.id = :studentId
             AND s.ownerId = :ownerId
-            AND s.deletedAt IS NULL
           """)
   Optional<Student> findByIdAndOwnerId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
@@ -40,7 +38,6 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           FROM Student AS s
           WHERE s.id IN :studentIds
             AND s.ownerId = :ownerId
-            AND s.deletedAt IS NULL
           """)
   List<Student> findAllByIdsAndOwnerId(
       @Param("studentIds") List<UUID> studentIds, @Param("ownerId") UUID ownerId);

@@ -65,7 +65,4 @@ public class Transaction {
   @UpdateTimestamp
   @Column(name = "updated_at", nullable = false)
   private OffsetDateTime updatedAt;
-
-  @Column(name = "deleted_at")
-  private OffsetDateTime deletedAt;
 }

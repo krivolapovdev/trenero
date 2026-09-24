@@ -18,7 +18,6 @@ public interface VisitRepository extends JpaRepository<@NonNull Visit, @NonNull 
           SELECT v
           FROM Visit AS v
           WHERE v.ownerId = :ownerId
-            AND v.deletedAt IS NULL
           ORDER BY v.createdAt DESC
           """)
   List<Visit> findAllByOwnerId(@Param("ownerId") UUID ownerId);
@@ -29,7 +28,6 @@ public interface VisitRepository extends JpaRepository<@NonNull Visit, @NonNull 
           FROM Visit AS v
           WHERE v.id = :visitId
             AND v.ownerId = :ownerId
-            AND v.deletedAt IS NULL
           """)
   Optional<Visit> findByIdAndOwnerId(
       @Param("visitId") UUID visitId, @Param("ownerId") UUID ownerId);
@@ -40,7 +38,6 @@ public interface VisitRepository extends JpaRepository<@NonNull Visit, @NonNull 
           FROM Visit AS v
           WHERE v.ownerId = :ownerId
             AND v.studentId = :studentId
-            AND v.deletedAt IS NULL
           """)
   List<Visit> findAllByStudentIdAndOwnerId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
@@ -51,7 +48,6 @@ public interface VisitRepository extends JpaRepository<@NonNull Visit, @NonNull 
           FROM Visit AS v
           WHERE v.ownerId = :ownerId
             AND v.lessonId = :lessonId
-            AND v.deletedAt IS NULL
           """)
   List<Visit> findAllByLessonIdAndOwnerId(
       @Param("lessonId") UUID lessonId, @Param("ownerId") UUID ownerId);
@@ -62,7 +58,6 @@ public interface VisitRepository extends JpaRepository<@NonNull Visit, @NonNull 
           FROM Visit AS v
           WHERE v.ownerId = :ownerId
             AND v.studentId IN :studentIds
-            AND v.deletedAt IS NULL
           ORDER BY v.createdAt DESC
           """)
   List<Visit> findAllByStudentIdsAndOwnerId(

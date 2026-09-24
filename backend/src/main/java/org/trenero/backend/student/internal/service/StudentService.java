@@ -2,7 +2,6 @@ package org.trenero.backend.student.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
-import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -302,17 +301,15 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional
-  public void softDeleteStudent(@NonNull UUID studentId, @NonNull JwtUser jwtUser) {
+  public void deleteStudent(@NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Deleting student: studentId={}; user={}", studentId, jwtUser);
 
-    studentRepository
-        .findByIdAndOwnerId(studentId, jwtUser.id())
-        .map(
-            student -> {
-              student.setDeletedAt(OffsetDateTime.now());
-              return self.saveStudent(student);
-            })
-        .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
+    Student student =
+        studentRepository
+            .findByIdAndOwnerId(studentId, jwtUser.id())
+            .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
+
+    studentRepository.delete(student);
   }
 
   @Transactional

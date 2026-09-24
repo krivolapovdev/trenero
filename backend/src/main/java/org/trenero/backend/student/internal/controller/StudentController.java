@@ -80,6 +80,6 @@ public class StudentController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteStudent(
       @PathVariable UUID studentId, @AuthenticationPrincipal JwtUser jwtUser) {
-    studentService.softDeleteStudent(studentId, jwtUser);
+    studentService.deleteStudent(studentId, jwtUser);
   }
 }

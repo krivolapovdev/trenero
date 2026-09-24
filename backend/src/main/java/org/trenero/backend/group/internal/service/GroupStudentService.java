@@ -116,30 +116,29 @@ public class GroupStudentService implements GroupStudentSpi {
   public void removeStudentFromGroup(
       @NonNull UUID studentId, @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Removing all students from group: groupId={}; user={}", groupId, jwtUser);
-    self.softDeleteByStudentIdAndGroupId(studentId, groupId, jwtUser);
+    self.deleteByStudentIdAndGroupId(studentId, groupId, jwtUser);
   }
 
   @Transactional
   public void removeAllStudentsFromGroup(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
-    self.softDeleteByGroupId(groupId, jwtUser);
+    self.deleteByGroupId(groupId, jwtUser);
   }
 
   @Transactional
-  public void softDeleteByGroupId(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
-    log.info(
-        "Soft deleting group student links by group id: groupId={}; user={}", groupId, jwtUser);
-    groupStudentRepository.softDeleteByGroupId(groupId, jwtUser.id());
+  public void deleteByGroupId(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
+    log.info("Deleting group student links by group id: groupId={}; user={}", groupId, jwtUser);
+    groupStudentRepository.deleteByGroupId(groupId, jwtUser.id());
   }
 
   @Transactional
-  public void softDeleteByStudentIdAndGroupId(
+  public void deleteByStudentIdAndGroupId(
       @NonNull UUID studentId, @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info(
-        "Soft deleting group student link: studentId={}; groupId={}; user={}",
+        "Deleting group student link: studentId={}; groupId={}; user={}",
         studentId,
         groupId,
         jwtUser);
-    groupStudentRepository.softDeleteByStudentIdAndGroupId(groupId, studentId, jwtUser.id());
+    groupStudentRepository.deleteByStudentIdAndGroupId(groupId, studentId, jwtUser.id());
   }
 
   @Transactional

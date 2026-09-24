@@ -1,0 +1,42 @@
+DELETE FROM visits_module.visits WHERE deleted_at IS NOT NULL;
+DELETE FROM groups_module.group_students WHERE deleted_at IS NOT NULL;
+DELETE FROM lessons_module.lessons WHERE deleted_at IS NOT NULL;
+DELETE FROM payments_module.transactions WHERE deleted_at IS NOT NULL;
+DELETE FROM groups_module.groups WHERE deleted_at IS NOT NULL;
+DELETE FROM students_module.students WHERE deleted_at IS NOT NULL;
+
+DROP INDEX IF EXISTS groups_module.idx_group_students_unique_active;
+DROP INDEX IF EXISTS groups_module.idx_groups_owner_name_unique_active;
+DROP INDEX IF EXISTS lessons_module.idx_lessons_owner_group_created;
+DROP INDEX IF EXISTS lessons_module.idx_lessons_owner_not_deleted_created;
+DROP INDEX IF EXISTS lessons_module.idx_unique_lesson_per_group_date_active;
+DROP INDEX IF EXISTS payments_module.idx_student_payments_student_paid_until_unique_active;
+DROP INDEX IF EXISTS payments_module.idx_transactions_owner_active_date;
+DROP INDEX IF EXISTS payments_module.idx_transactions_owner_type_active;
+DROP INDEX IF EXISTS students_module.idx_students_owner_full_name_unique_active;
+DROP INDEX IF EXISTS visits_module.idx_visits_owner_deleted_created;
+DROP INDEX IF EXISTS visits_module.idx_visits_owner_lesson_deleted;
+DROP INDEX IF EXISTS visits_module.idx_visits_owner_lesson_student_unique_active;
+DROP INDEX IF EXISTS visits_module.idx_visits_owner_student_deleted;
+
+ALTER TABLE groups_module.groups DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE groups_module.group_students DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE lessons_module.lessons DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE payments_module.transactions DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE payments_module.student_payments DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE students_module.students DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE visits_module.visits DROP COLUMN IF EXISTS deleted_at CASCADE;
+
+CREATE UNIQUE INDEX idx_group_students_unique ON groups_module.group_students USING btree (owner_id, group_id, student_id);
+CREATE UNIQUE INDEX idx_groups_owner_name_unique ON groups_module.groups USING btree (owner_id, name);
+CREATE INDEX idx_lessons_owner_group_created ON lessons_module.lessons USING btree (owner_id, group_id, created_at DESC);
+CREATE INDEX idx_lessons_owner_created ON lessons_module.lessons USING btree (owner_id, created_at DESC);
+CREATE UNIQUE INDEX idx_unique_lesson_per_group_date ON lessons_module.lessons USING btree (owner_id, group_id, date);
+CREATE UNIQUE INDEX idx_student_payments_student_paid_until_unique ON payments_module.student_payments USING btree (student_id, paid_until DESC);
+CREATE INDEX idx_transactions_owner_date ON payments_module.transactions USING btree (owner_id, date DESC);
+CREATE INDEX idx_transactions_owner_type ON payments_module.transactions USING btree (owner_id, type);
+CREATE UNIQUE INDEX idx_students_owner_full_name_unique ON students_module.students USING btree (owner_id, full_name);
+CREATE INDEX idx_visits_owner_created ON visits_module.visits USING btree (owner_id, created_at DESC);
+CREATE INDEX idx_visits_owner_lesson ON visits_module.visits USING btree (owner_id, lesson_id);
+CREATE UNIQUE INDEX idx_visits_owner_lesson_student_unique ON visits_module.visits USING btree (owner_id, lesson_id, student_id);
+CREATE INDEX idx_visits_owner_student ON visits_module.visits USING btree (owner_id, student_id);

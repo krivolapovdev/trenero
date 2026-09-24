@@ -2,7 +2,6 @@ package org.trenero.backend.lesson.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -140,22 +139,16 @@ public class LessonService implements LessonSpi {
 
   @Override
   public void deleteLesson(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
-    softDeleteLesson(lessonId, jwtUser);
-  }
-
-  private void softDeleteLesson(UUID lessonId, JwtUser jwtUser) {
     log.info("Deleting lesson: lessonId={}; user={}", lessonId, jwtUser);
 
     visitSpi.removeVisitsByLessonId(lessonId, jwtUser);
 
-    lessonRepository
-        .findByIdAndOwnerId(lessonId, jwtUser.id())
-        .map(
-            lesson -> {
-              lesson.setDeletedAt(OffsetDateTime.now());
-              return saveLesson(lesson);
-            })
-        .orElseThrow(entityNotFoundSupplier(Lesson.class, lessonId, jwtUser));
+    Lesson lesson =
+        lessonRepository
+            .findByIdAndOwnerId(lessonId, jwtUser.id())
+            .orElseThrow(entityNotFoundSupplier(Lesson.class, lessonId, jwtUser));
+
+    lessonRepository.delete(lesson);
   }
 
   private Lesson saveLesson(Lesson lesson) {

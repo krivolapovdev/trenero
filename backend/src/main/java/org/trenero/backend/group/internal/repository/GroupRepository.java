@@ -18,7 +18,6 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
           SELECT g
           FROM Group AS g
           WHERE g.ownerId = :ownerId
-            AND g.deletedAt IS NULL
           ORDER BY g.name
           """)
   List<Group> findAllByOwnerId(@Param("ownerId") UUID ownerId);
@@ -29,7 +28,6 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
           FROM Group AS g
           WHERE g.id = :groupId
             AND g.ownerId = :ownerId
-            AND g.deletedAt IS NULL
           """)
   Optional<Group> findByIdAndOwnerId(
       @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
@@ -40,7 +38,6 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
           FROM Group g
           WHERE g.ownerId = :ownerId
             AND g.id IN :groupIds
-            AND g.deletedAt IS NULL
           """)
   List<Group> findAllByIdsAndOwnerId(
       @Param("groupIds") List<UUID> groupIds, @Param("ownerId") UUID ownerId);

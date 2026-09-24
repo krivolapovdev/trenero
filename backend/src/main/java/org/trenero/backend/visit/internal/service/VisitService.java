@@ -2,7 +2,6 @@ package org.trenero.backend.visit.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -132,15 +131,11 @@ public class VisitService implements VisitSpi {
   }
 
   @Transactional
-  public void softDeleteVisit(UUID visitId, JwtUser jwtUser) {
+  public void deleteVisit(UUID visitId, JwtUser jwtUser) {
     log.info("Deleting visit: visitId={}; user={}", visitId, jwtUser);
     visitRepository
         .findByIdAndOwnerId(visitId, jwtUser.id())
-        .map(
-            visit -> {
-              visit.setDeletedAt(OffsetDateTime.now());
-              return saveVisit(visit);
-            })
+        .map(this::saveVisit)
         .orElseThrow(entityNotFoundSupplier(Visit.class, visitId, jwtUser));
   }
 
@@ -151,11 +146,7 @@ public class VisitService implements VisitSpi {
 
     var visits = visitRepository.findAllByLessonIdAndOwnerId(lessonId, jwtUser.id());
 
-    var now = OffsetDateTime.now();
-
-    visits.forEach(visit -> visit.setDeletedAt(now));
-
-    visitRepository.saveAllAndFlush(visits);
+    visitRepository.deleteAll(visits);
   }
 
   @Override
@@ -191,11 +182,12 @@ public class VisitService implements VisitSpi {
           }
         });
 
-    lessonVisits.stream()
-        .filter(visit -> !incomingStudentIds.contains(visit.getStudentId()))
-        .forEach(visit -> visit.setDeletedAt(OffsetDateTime.now()));
+    List<Visit> list =
+        lessonVisits.stream()
+            .filter(visit -> !incomingStudentIds.contains(visit.getStudentId()))
+            .toList();
 
-    visitRepository.saveAllAndFlush(lessonVisits);
+    visitRepository.deleteAll(list);
   }
 
   private Visit saveVisit(Visit visit) {

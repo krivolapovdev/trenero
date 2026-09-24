@@ -78,6 +78,6 @@ public class GroupController {
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteGroup(@PathVariable UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
-    groupService.softDeleteGroup(groupId, jwtUser);
+    groupService.deleteGroup(groupId, jwtUser);
   }
 }

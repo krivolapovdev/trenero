@@ -63,6 +63,6 @@ public class VisitController {
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteVisit(@PathVariable UUID visitId, @AuthenticationPrincipal JwtUser jwtUser) {
-    visitService.softDeleteVisit(visitId, jwtUser);
+    visitService.deleteVisit(visitId, jwtUser);
   }
 }

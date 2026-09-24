@@ -2,7 +2,6 @@ package org.trenero.backend.group.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -170,19 +169,17 @@ public class GroupService implements GroupSpi {
   }
 
   @Transactional
-  public void softDeleteGroup(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
+  public void deleteGroup(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Deleting group: groupId={}; user={}", groupId, jwtUser);
 
     groupStudentService.removeAllStudentsFromGroup(groupId, jwtUser);
 
-    groupRepository
-        .findByIdAndOwnerId(groupId, jwtUser.id())
-        .map(
-            group -> {
-              group.setDeletedAt(OffsetDateTime.now());
-              return self.saveGroup(group);
-            })
-        .orElseThrow(entityNotFoundSupplier(Group.class, groupId, jwtUser));
+    Group group =
+        groupRepository
+            .findByIdAndOwnerId(groupId, jwtUser.id())
+            .orElseThrow(entityNotFoundSupplier(Group.class, groupId, jwtUser));
+
+    groupRepository.delete(group);
   }
 
   @Transactional

@@ -20,7 +20,6 @@ public interface GroupStudentRepository
           FROM GroupStudent AS gs
           WHERE gs.ownerId = :ownerId
             AND gs.ownerId = :ownerId
-            AND gs.deletedAt IS NULL
           ORDER BY gs.createdAt DESC
           """)
   List<GroupStudent> findAllByOwnerId(@Param("ownerId") UUID ownerId);
@@ -31,7 +30,6 @@ public interface GroupStudentRepository
           FROM GroupStudent AS gs
           WHERE gs.studentId IN :studentIds
             AND gs.ownerId = :ownerId
-            AND gs.deletedAt IS NULL
           """)
   List<GroupStudent> findAllByStudentIds(@Param("studentIds") List<UUID> studentIds, UUID ownerId);
 
@@ -41,7 +39,6 @@ public interface GroupStudentRepository
           FROM GroupStudent AS gs
           WHERE gs.groupId IN :groupIds
             AND gs.ownerId = :ownerId
-            AND gs.deletedAt IS NULL
           """)
   List<GroupStudent> findAllByGroupIds(
       @Param("groupIds") List<UUID> groupIds, @Param("ownerId") UUID ownerId);
@@ -52,7 +49,6 @@ public interface GroupStudentRepository
           FROM GroupStudent AS gs
           WHERE gs.groupId = :groupId
             AND gs.ownerId = :ownerId
-            AND gs.deletedAt IS NULL
           """)
   List<GroupStudent> findAllByGroupId(
       @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
@@ -62,7 +58,6 @@ public interface GroupStudentRepository
           SELECT gs
           FROM GroupStudent AS gs
           WHERE gs.studentId = :studentId
-            AND gs.deletedAt IS NULL
             AND gs.ownerId = :ownerId
           """)
   List<GroupStudent> findAllByStudentId(
@@ -71,25 +66,21 @@ public interface GroupStudentRepository
   @Modifying
   @Query(
       """
-          UPDATE GroupStudent AS gs
-          SET gs.deletedAt = CURRENT_TIMESTAMP
+          DELETE FROM GroupStudent gs
           WHERE gs.groupId = :groupId
             AND gs.ownerId = :ownerId
-            AND gs.deletedAt IS NULL
           """)
-  void softDeleteByGroupId(@Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
+  void deleteByGroupId(@Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
 
   @Modifying
   @Query(
       """
-          UPDATE GroupStudent AS gs
-          SET gs.deletedAt = CURRENT_TIMESTAMP
+          DELETE FROM GroupStudent gs
           WHERE gs.groupId = :groupId
             AND gs.studentId = :studentId
             AND gs.ownerId = :ownerId
-            AND gs.deletedAt IS NULL
           """)
-  void softDeleteByStudentIdAndGroupId(
+  void deleteByStudentIdAndGroupId(
       @Param("groupId") UUID groupId,
       @Param("studentId") UUID studentId,
       @Param("ownerId") UUID uuid);

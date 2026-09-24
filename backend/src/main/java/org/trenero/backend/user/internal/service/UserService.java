@@ -64,7 +64,6 @@ public class UserService implements UserSpi {
             .orElseThrow(entityNotFoundSupplier(OAuth2User.class, jwtUser.id(), jwtUser));
 
     userRepository.delete(oAuth2User);
-    userRepository.flush();
   }
 
   private @NonNull OAuth2User saveUser(@NonNull OAuth2User user) {

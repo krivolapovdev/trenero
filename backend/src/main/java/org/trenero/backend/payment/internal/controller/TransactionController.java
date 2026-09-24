@@ -70,6 +70,6 @@ public class TransactionController {
       @PathVariable @NonNull UUID transactionId,
       @AuthenticationPrincipal @NonNull JwtUser jwtUser) {
     log.info("Deleting transactionId={} for userId={}", transactionId, jwtUser.id());
-    transactionService.softDeleteTransaction(transactionId, jwtUser);
+    transactionService.deleteTransaction(transactionId, jwtUser);
   }
 }

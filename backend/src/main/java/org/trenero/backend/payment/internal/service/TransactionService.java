@@ -4,7 +4,6 @@ import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFound
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -137,7 +136,7 @@ public class TransactionService implements TransactionSpi {
   }
 
   @Transactional
-  public void softDeleteTransaction(@NonNull UUID transactionId, @NonNull JwtUser jwtUser) {
+  public void deleteTransaction(@NonNull UUID transactionId, @NonNull JwtUser jwtUser) {
     log.info("Deleting transaction: transactionId={}; user={}", transactionId, jwtUser);
 
     Transaction transaction =
@@ -145,9 +144,7 @@ public class TransactionService implements TransactionSpi {
             .findByIdAndOwnerId(transactionId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
 
-    transaction.setDeletedAt(OffsetDateTime.now());
-
-    transactionRepository.save(transaction);
+    transactionRepository.delete(transaction);
   }
 
   private @NonNull Transaction saveTransaction(@NonNull Transaction transaction) {

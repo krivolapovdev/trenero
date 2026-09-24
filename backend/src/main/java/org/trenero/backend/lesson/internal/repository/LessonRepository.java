@@ -18,7 +18,6 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
           SELECT l
           FROM Lesson AS l
           WHERE l.ownerId = :ownerId
-            AND l.deletedAt IS NULL
           ORDER BY l.createdAt DESC
           """)
   List<Lesson> findAllByOwnerId(@Param("ownerId") UUID ownerId);
@@ -29,7 +28,6 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
           FROM Lesson AS l
           WHERE l.ownerId = :ownerId
             AND l.groupId = :groupId
-            AND l.deletedAt IS NULL
           ORDER BY l.createdAt DESC
           """)
   List<Lesson> findAllByGroupIdAndOwnerId(
@@ -41,7 +39,6 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
           FROM Lesson AS l
           WHERE l.id = :lessonId
             AND l.ownerId = :ownerId
-            AND l.deletedAt IS NULL
           """)
   Optional<Lesson> findByIdAndOwnerId(
       @Param("lessonId") UUID lessonId, @Param("ownerId") UUID ownerId);
@@ -49,50 +46,16 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
   @Query(
       """
           SELECT l
-          FROM Lesson AS l
-          WHERE l.groupId = :groupId
-            AND l.ownerId = :ownerId
-            AND l.deletedAt IS NULL
-          ORDER BY l.date DESC
-          LIMIT 1
-          """)
-  Optional<Lesson> findLastGroupLesson(
-      @Param("groupId") UUID groupId, @Param("ownerId") UUID ownerId);
-
-  @Query(
-      """
-          SELECT l
           FROM Lesson l
           WHERE l.ownerId = :ownerId
             AND l.groupId IN :groupIds
-            AND l.deletedAt IS NULL
             AND l.date = (
                 SELECT MAX(subl.date)
                 FROM Lesson subl
                 WHERE subl.groupId = l.groupId
                   AND subl.ownerId = l.ownerId
-                  AND subl.deletedAt IS NULL
             )
           """)
   List<Lesson> findLastLessonsByGroupIdsAndOwnerId(
       @Param("groupIds") List<UUID> groupIds, @Param("ownerId") UUID ownerId);
-
-  @Query(
-      """
-          SELECT l
-          FROM Lesson AS l
-          WHERE l.groupId IN :groupIds
-            AND l.deletedAt IS NULL
-          """)
-  List<Lesson> findAllByGroupIds(@Param("groupIds") List<UUID> groupIds);
-
-  @Query(
-      """
-          SELECT l
-          FROM Lesson AS l
-          WHERE l.id IN :ids
-            AND l.ownerId = :ownerId
-            AND l.deletedAt IS NULL
-          """)
-  List<Lesson> findAllByIdsAndOwnerId(@Param("ids") List<UUID> ids, @Param("ownerId") UUID ownerId);
 }
