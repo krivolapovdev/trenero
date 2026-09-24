@@ -13,12 +13,13 @@
     "title": "Группы"
   },
   "students": {
-    "title": "Студенты"
+    "title": "Ученики"
   },
   "settings": {
     "title": "Настройки",
     "appearance": "Внешний вид",
     "language": "Язык",
+    "selectLanguage": "Выберите язык приложения",
     "account": "Аккаунт",
     "logout": "Выйти",
     "logoutMessage": "Вы уверены, что хотите выйти?",

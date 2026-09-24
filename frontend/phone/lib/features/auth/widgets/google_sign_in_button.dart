@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:phone/core/constants/app_assets.dart';
 import 'package:phone/core/providers/auth_provider.dart';
+import 'package:phone/features/auth/pages/loading_page.dart';
 import 'package:phone/features/auth/services/google_auth_service.dart';
 import 'package:phone/features/auth/services/oauth2_service.dart';
 import 'package:phone/features/shell/pages/main_shell_screen.dart';
@@ -17,21 +18,25 @@ class GoogleSignInButton extends ConsumerWidget {
     try {
       final String? token = await googleAuthService.getGoogleIdToken();
 
-      if (token == null) {
+      if (token == null || !context.mounted) {
         return;
       }
 
-      final LoginResponse response = await oAuth2Service.googleLogin(token);
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => const LoadingPage()));
 
+      final LoginResponse response = await oAuth2Service.googleLogin(token);
       await ref.read(authProvider.notifier).setAuth(response);
 
       if (!context.mounted) return;
 
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainShellScreen()),
+        (route) => false,
       );
     } catch (e) {
       if (!context.mounted) return;
+      Navigator.of(context).pop();
       ErrorSnackBar.show(context, 'Error: $e');
     }
   }

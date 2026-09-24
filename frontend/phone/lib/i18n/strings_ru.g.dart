@@ -86,7 +86,7 @@ class _Translations$students$ru implements Translations$students$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
-	@override String get title => 'Студенты';
+	@override String get title => 'Ученики';
 }
 
 // Path: settings
@@ -99,6 +99,7 @@ class _Translations$settings$ru implements Translations$settings$en {
 	@override String get title => 'Настройки';
 	@override String get appearance => 'Внешний вид';
 	@override String get language => 'Язык';
+	@override String get selectLanguage => 'Выберите язык приложения';
 	@override String get account => 'Аккаунт';
 	@override String get logout => 'Выйти';
 	@override String get logoutMessage => 'Вы уверены, что хотите выйти?';
@@ -124,10 +125,11 @@ extension on TranslationsRu {
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',
 			'statistics.title' => 'Статистика',
 			'groups.title' => 'Группы',
-			'students.title' => 'Студенты',
+			'students.title' => 'Ученики',
 			'settings.title' => 'Настройки',
 			'settings.appearance' => 'Внешний вид',
 			'settings.language' => 'Язык',
+			'settings.selectLanguage' => 'Выберите язык приложения',
 			'settings.account' => 'Аккаунт',
 			'settings.logout' => 'Выйти',
 			'settings.logoutMessage' => 'Вы уверены, что хотите выйти?',

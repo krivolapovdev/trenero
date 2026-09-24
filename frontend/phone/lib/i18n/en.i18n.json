@@ -19,6 +19,7 @@
     "title": "Settings",
     "appearance": "Appearance",
     "language": "Language",
+    "selectLanguage": "Select the application language",
     "account": "Account",
     "logout": "Log out",
     "logoutMessage": "Are you sure you want to log out?",

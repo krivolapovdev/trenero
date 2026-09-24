@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/extensions/app_locale_extension.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -26,6 +27,14 @@ class LanguageSelectionSheet extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Text(
+              context.t.settings.selectLanguage,
+              style: const TextStyle(fontSize: 16, color: Colors.black),
+              textAlign: TextAlign.center,
+            ),
+
+            const SizedBox(height: 12),
+
             _buildLanguageTile(context, ref, currentLocale, AppLocale.ru),
             _buildLanguageTile(context, ref, currentLocale, AppLocale.en),
           ],
@@ -43,7 +52,8 @@ class LanguageSelectionSheet extends ConsumerWidget {
     final isSelected = currentLocale == targetLocale;
 
     return ListTile(
-      title: Text(targetLocale.name, style: const TextStyle(fontSize: 16)),
+      leading: Text(targetLocale.flag, style: const TextStyle(fontSize: 24)),
+      title: Text(targetLocale.label, style: const TextStyle(fontSize: 16)),
       trailing: isSelected
           ? const Icon(Icons.check, color: Colors.deepPurple)
           : null,

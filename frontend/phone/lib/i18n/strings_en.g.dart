@@ -126,6 +126,9 @@ class Translations$settings$en {
 	/// en: 'Language'
 	String get language => 'Language';
 
+	/// en: 'Select the application language'
+	String get selectLanguage => 'Select the application language';
+
 	/// en: 'Account'
 	String get account => 'Account';
 
@@ -170,6 +173,7 @@ extension on Translations {
 			'settings.title' => 'Settings',
 			'settings.appearance' => 'Appearance',
 			'settings.language' => 'Language',
+			'settings.selectLanguage' => 'Select the application language',
 			'settings.account' => 'Account',
 			'settings.logout' => 'Log out',
 			'settings.logoutMessage' => 'Are you sure you want to log out?',

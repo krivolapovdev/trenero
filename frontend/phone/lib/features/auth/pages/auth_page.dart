@@ -17,11 +17,16 @@ class AuthPage extends StatelessWidget {
         child: Column(
           children: [
             const Spacer(flex: 3),
+
             Lottie.asset(AppLottie.profilePasswordUnlock),
             GoogleSignInButton(),
+
             const Spacer(flex: 4),
+
             const Divider(color: Color(0xFFD4CDDF), thickness: 1),
+
             const SizedBox(height: 12),
+
             GestureDetector(
               onTap: () => launchUrl(
                 Uri.parse(AppConstants.privacyPolicyUrl),
@@ -37,6 +42,7 @@ class AuthPage extends StatelessWidget {
                 ),
               ),
             ),
+
             const SizedBox(height: 16),
           ],
         ),
