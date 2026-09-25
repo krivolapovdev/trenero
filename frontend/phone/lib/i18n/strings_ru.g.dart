@@ -77,6 +77,8 @@ class _Translations$groups$ru implements Translations$groups$en {
 
 	// Translations
 	@override String get title => 'Группы';
+	@override String get emptySubtitle => 'Групп пока нет';
+	@override String get createFirstGroup => 'Создать первую группу';
 }
 
 // Path: students
@@ -125,6 +127,8 @@ extension on TranslationsRu {
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',
 			'statistics.title' => 'Статистика',
 			'groups.title' => 'Группы',
+			'groups.emptySubtitle' => 'Групп пока нет',
+			'groups.createFirstGroup' => 'Создать первую группу',
 			'students.title' => 'Ученики',
 			'settings.title' => 'Настройки',
 			'settings.appearance' => 'Внешний вид',

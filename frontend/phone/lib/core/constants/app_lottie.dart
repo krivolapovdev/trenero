@@ -7,4 +7,6 @@ abstract class AppLottie {
   static const String loading = '$_lottie/loading.json';
 
   static const String error = '$_lottie/error.json';
+
+  static const String emptyBox = '$_lottie/empty_box.json';
 }

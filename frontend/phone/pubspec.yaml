@@ -28,6 +28,9 @@ dependencies:
   flutter_secure_storage: ^11.2.0
   fl_chart: ^1.2.0
   package_info_plus: ^10.2.1
+  custom_refresh_indicator: ^4.0.2
+  shimmer_animation: ^2.2.2+1
+  persistent_bottom_nav_bar_v2: ^6.4.0
 
 dev_dependencies:
   flutter_test:

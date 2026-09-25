@@ -95,6 +95,12 @@ class Translations$groups$en {
 
 	/// en: 'Groups'
 	String get title => 'Groups';
+
+	/// en: 'No Groups yet'
+	String get emptySubtitle => 'No Groups yet';
+
+	/// en: 'Create First Group'
+	String get createFirstGroup => 'Create First Group';
 }
 
 // Path: students
@@ -169,6 +175,8 @@ extension on Translations {
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',
 			'statistics.title' => 'Statistics',
 			'groups.title' => 'Groups',
+			'groups.emptySubtitle' => 'No Groups yet',
+			'groups.createFirstGroup' => 'Create First Group',
 			'students.title' => 'Students',
 			'settings.title' => 'Settings',
 			'settings.appearance' => 'Appearance',

@@ -10,7 +10,9 @@
     "title": "Статистика"
   },
   "groups": {
-    "title": "Группы"
+    "title": "Группы",
+    "emptySubtitle": "Групп пока нет",
+    "createFirstGroup": "Создать первую группу"
   },
   "students": {
     "title": "Ученики"

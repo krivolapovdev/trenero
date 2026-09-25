@@ -19,6 +19,7 @@ class AuthPage extends StatelessWidget {
             const Spacer(flex: 3),
 
             Lottie.asset(AppLottie.profilePasswordUnlock),
+
             GoogleSignInButton(),
 
             const Spacer(flex: 4),

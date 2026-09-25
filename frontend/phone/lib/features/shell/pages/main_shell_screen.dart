@@ -26,11 +26,17 @@ class _MainShellScreenState extends State<MainShellScreen> {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: Text(pages[_currentIndex].title)),
+      appBar: AppBar(
+        title: Text(pages[_currentIndex].title),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+      ),
 
       body: IndexedStack(index: _currentIndex, children: pages),
 
       bottomNavigationBar: NavigationBar(
+        backgroundColor: Colors.white,
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {

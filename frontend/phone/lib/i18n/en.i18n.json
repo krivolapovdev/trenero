@@ -10,7 +10,9 @@
     "title": "Statistics"
   },
   "groups": {
-    "title": "Groups"
+    "title": "Groups",
+    "emptySubtitle": "No Groups yet",
+    "createFirstGroup": "Create First Group"
   },
   "students": {
     "title": "Students"
