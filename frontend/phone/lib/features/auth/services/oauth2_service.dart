@@ -1,8 +1,14 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/providers/api_provider.dart';
 import 'package:phone/generated/models/login_response.dart';
 import 'package:phone/generated/models/o_auth2_login_request.dart';
-import 'package:phone/core/api/api.dart';
 
 class OAuth2Service {
+  final Dio api;
+
+  new(this.api);
+
   Future<LoginResponse> googleLogin(String token) async {
     final requestBody = OAuth2LoginRequest(token: token);
 
@@ -19,4 +25,8 @@ class OAuth2Service {
   }
 }
 
-final OAuth2Service oAuth2Service = OAuth2Service();
+final oAuth2ServiceProvider = Provider<OAuth2Service>((ref) {
+  final dio = ref.watch(apiProvider);
+
+  return OAuth2Service(dio);
+});

@@ -1,5 +1,6 @@
 {
-  "ok": "OK",
+  "name": "Имя",
+  "note": "Заметка",
   "cancel": "Отменить",
   "auth": {
     "signInWithApple": "Войти через Apple",
@@ -12,7 +13,9 @@
   "groups": {
     "title": "Группы",
     "emptySubtitle": "Групп пока нет",
-    "createFirstGroup": "Создать первую группу"
+    "createFirstGroup": "Создать первую группу",
+    "createGroup": "Добавить группу",
+    "defaultPrice": "Стандартная цена"
   },
   "students": {
     "title": "Ученики"

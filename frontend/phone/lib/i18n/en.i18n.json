@@ -1,5 +1,6 @@
 {
-  "ok": "OK",
+  "name": "Name",
+  "note": "Note",
   "cancel": "Cancel",
   "auth": {
       "signInWithApple": "Sign in with Apple",
@@ -12,7 +13,9 @@
   "groups": {
     "title": "Groups",
     "emptySubtitle": "No Groups yet",
-    "createFirstGroup": "Create First Group"
+    "createFirstGroup": "Create First Group",
+    "createGroup": "Add Group",
+    "defaultPrice": "Price by default"
   },
   "students": {
     "title": "Students"

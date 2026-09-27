@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/core/providers/auth_provider.dart';
+import 'package:phone/features/auth/providers/auth_provider.dart';
 import 'package:phone/features/auth/pages/auth_page.dart';
 import 'package:phone/i18n/strings.g.dart';
 

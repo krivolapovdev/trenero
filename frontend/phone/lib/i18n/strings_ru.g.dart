@@ -38,7 +38,8 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	TranslationsRu $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => TranslationsRu(meta: meta ?? this.$meta);
 
 	// Translations
-	@override String get ok => 'OK';
+	@override String get name => 'Имя';
+	@override String get note => 'Заметка';
 	@override String get cancel => 'Отменить';
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
 	@override late final _Translations$statistics$ru statistics = _Translations$statistics$ru._(_root);
@@ -79,6 +80,8 @@ class _Translations$groups$ru implements Translations$groups$en {
 	@override String get title => 'Группы';
 	@override String get emptySubtitle => 'Групп пока нет';
 	@override String get createFirstGroup => 'Создать первую группу';
+	@override String get createGroup => 'Добавить группу';
+	@override String get defaultPrice => 'Стандартная цена';
 }
 
 // Path: students
@@ -120,7 +123,8 @@ class _Translations$settings$ru implements Translations$settings$en {
 extension on TranslationsRu {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
-			'ok' => 'OK',
+			'name' => 'Имя',
+			'note' => 'Заметка',
 			'cancel' => 'Отменить',
 			'auth.signInWithApple' => 'Войти через Apple',
 			'auth.signInWithGoogle' => 'Войти через Google',
@@ -129,6 +133,8 @@ extension on TranslationsRu {
 			'groups.title' => 'Группы',
 			'groups.emptySubtitle' => 'Групп пока нет',
 			'groups.createFirstGroup' => 'Создать первую группу',
+			'groups.createGroup' => 'Добавить группу',
+			'groups.defaultPrice' => 'Стандартная цена',
 			'students.title' => 'Ученики',
 			'settings.title' => 'Настройки',
 			'settings.appearance' => 'Внешний вид',

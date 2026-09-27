@@ -42,8 +42,11 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	// Translations
 
-	/// en: 'OK'
-	String get ok => 'OK';
+	/// en: 'Name'
+	String get name => 'Name';
+
+	/// en: 'Note'
+	String get note => 'Note';
 
 	/// en: 'Cancel'
 	String get cancel => 'Cancel';
@@ -101,6 +104,12 @@ class Translations$groups$en {
 
 	/// en: 'Create First Group'
 	String get createFirstGroup => 'Create First Group';
+
+	/// en: 'Add Group'
+	String get createGroup => 'Add Group';
+
+	/// en: 'Price by default'
+	String get defaultPrice => 'Price by default';
 }
 
 // Path: students
@@ -168,7 +177,8 @@ class Translations$settings$en {
 extension on Translations {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
-			'ok' => 'OK',
+			'name' => 'Name',
+			'note' => 'Note',
 			'cancel' => 'Cancel',
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
@@ -177,6 +187,8 @@ extension on Translations {
 			'groups.title' => 'Groups',
 			'groups.emptySubtitle' => 'No Groups yet',
 			'groups.createFirstGroup' => 'Create First Group',
+			'groups.createGroup' => 'Add Group',
+			'groups.defaultPrice' => 'Price by default',
 			'students.title' => 'Students',
 			'settings.title' => 'Settings',
 			'settings.appearance' => 'Appearance',
