@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/features/auth/providers/auth_provider.dart';
-import 'package:phone/features/auth/pages/auth_page.dart';
+import 'package:phone/features/auth/providers/auth_notifier.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class LogoutConfirmationSheet extends ConsumerWidget {
@@ -45,14 +44,8 @@ class LogoutConfirmationSheet extends ConsumerWidget {
                 ),
               ),
               onPressed: () async {
-                await ref.read(authProvider.notifier).clear();
-
-                if (!context.mounted) return;
-
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const AuthPage()),
-                  (route) => false,
-                );
+                Navigator.of(context).pop();
+                await ref.read(authNotifierProvider.notifier).logout();
               },
               child: Text(
                 context.t.settings.logout,

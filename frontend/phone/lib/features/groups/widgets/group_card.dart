@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/entity_card.dart';
 import 'package:phone/core/widgets/status_badges.dart';
-import 'package:phone/features/groups/models/group_overview.dart';
+import 'package:phone/generated/models/group_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class GroupCard extends StatelessWidget {
-  final GroupOverview group;
+  final GroupResponse group;
   final VoidCallback? onTap;
 
   const new({super.key, required this.group, this.onTap});

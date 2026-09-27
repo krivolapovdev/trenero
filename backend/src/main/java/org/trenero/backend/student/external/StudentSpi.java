@@ -12,5 +12,5 @@ public interface StudentSpi {
 
   StudentResponse getStudentById(UUID studentId, JwtUser jwtUser);
 
-  Map<UUID, List<StudentResponse>> getStudentsByIds(List<UUID> studentIds, JwtUser jwtUser);
+  Map<UUID, StudentResponse> getStudentsByIds(List<UUID> studentIds, JwtUser jwtUser);
 }

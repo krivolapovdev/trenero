@@ -11,10 +11,10 @@ GroupDetailsResponse _$GroupDetailsResponseFromJson(
 ) => GroupDetailsResponse(
   id: json['id'] as String,
   name: json['name'] as String,
-  createdAt: DateTime.parse(json['createdAt'] as String),
   groupStudents: (json['groupStudents'] as List<dynamic>)
       .map((e) => StudentResponse.fromJson(e as Map<String, dynamic>))
       .toList(),
+  createdAt: DateTime.parse(json['createdAt'] as String),
   groupLessons: (json['groupLessons'] as List<dynamic>)
       .map((e) => LessonResponse.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -29,7 +29,7 @@ Map<String, dynamic> _$GroupDetailsResponseToJson(
   'name': instance.name,
   'defaultPrice': instance.defaultPrice,
   'note': instance.note,
-  'createdAt': instance.createdAt.toIso8601String(),
   'groupStudents': instance.groupStudents,
+  'createdAt': instance.createdAt.toIso8601String(),
   'groupLessons': instance.groupLessons,
 };

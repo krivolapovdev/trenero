@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:phone/core/widgets/titled_page.dart';
+import 'package:phone/core/widgets/shell_page.dart';
 import 'package:phone/features/statistics/data/monthly_data.dart';
 import 'package:phone/features/statistics/widgets/monthly_bar_chart.dart';
 import 'package:phone/features/statistics/widgets/summary_card.dart';
 
-class StatisticsPage extends TitledPage {
+class StatisticsPage extends ShellPage {
   const new({
     super.key,
     required super.title,

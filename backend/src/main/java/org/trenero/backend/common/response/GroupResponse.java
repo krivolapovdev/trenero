@@ -3,6 +3,7 @@ package org.trenero.backend.common.response;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record GroupResponse(
@@ -10,4 +11,5 @@ public record GroupResponse(
     @NotNull String name,
     BigDecimal defaultPrice,
     String note,
+    @NotNull List<StudentResponse> groupStudents,
     @NotNull OffsetDateTime createdAt) {}

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:phone/features/groups/models/group_overview.dart';
 import 'package:phone/features/groups/widgets/group_card.dart';
+import 'package:phone/generated/models/group_response.dart';
 
 class GroupPage extends StatelessWidget {
-  final GroupOverview group;
+  final GroupResponse group;
 
   const new({super.key, required this.group});
 

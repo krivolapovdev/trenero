@@ -22,6 +22,9 @@ public interface GroupMapper {
 
   GroupResponse toResponse(Group group);
 
+  @Mapping(target = "groupStudents", source = "groupStudents")
+  GroupResponse toResponse(Group group, List<StudentResponse> groupStudents);
+
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Group toGroup(CreateGroupRequest input, UUID ownerId);
 

@@ -14,8 +14,8 @@ class GroupDetailsResponse {
   const GroupDetailsResponse({
     required this.id,
     required this.name,
-    required this.createdAt,
     required this.groupStudents,
+    required this.createdAt,
     required this.groupLessons,
     this.defaultPrice,
     this.note,
@@ -28,8 +28,8 @@ class GroupDetailsResponse {
   final String name;
   final num? defaultPrice;
   final String? note;
-  final DateTime createdAt;
   final List<StudentResponse> groupStudents;
+  final DateTime createdAt;
   final List<LessonResponse> groupLessons;
 
   Map<String, Object?> toJson() => _$GroupDetailsResponseToJson(this);

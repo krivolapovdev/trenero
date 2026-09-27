@@ -19,7 +19,8 @@ class LanguageSelectionSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentLocale = ref.watch(languageProvider);
+    final languageAsync = ref.watch(languageProvider);
+    final currentLocale = languageAsync.value;
 
     return SafeArea(
       child: Padding(
@@ -46,7 +47,7 @@ class LanguageSelectionSheet extends ConsumerWidget {
   Widget _buildLanguageTile(
     BuildContext context,
     WidgetRef ref,
-    AppLocale currentLocale,
+    AppLocale? currentLocale,
     AppLocale targetLocale,
   ) {
     final isSelected = currentLocale == targetLocale;

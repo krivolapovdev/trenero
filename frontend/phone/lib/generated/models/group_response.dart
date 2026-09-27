@@ -4,6 +4,8 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
+import 'student_response.dart';
+
 part 'group_response.g.dart';
 
 @JsonSerializable()
@@ -11,6 +13,7 @@ class GroupResponse {
   const GroupResponse({
     required this.id,
     required this.name,
+    required this.groupStudents,
     required this.createdAt,
     this.defaultPrice,
     this.note,
@@ -23,6 +26,7 @@ class GroupResponse {
   final String name;
   final num? defaultPrice;
   final String? note;
+  final List<StudentResponse> groupStudents;
   final DateTime createdAt;
 
   Map<String, Object?> toJson() => _$GroupResponseToJson(this);

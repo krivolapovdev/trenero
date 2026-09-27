@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:phone/core/widgets/titled_page.dart';
+import 'package:phone/core/widgets/shell_page.dart';
 
-class StudentsPage extends TitledPage {
+class StudentsPage extends ShellPage {
   const new({
     super.key,
     required super.title,

@@ -21,7 +21,6 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
   @override
   void initState() {
     super.initState();
-    // Rebuild the UI when text changes so the Save button enables/disables dynamically
     _nameController.addListener(_onNameChanged);
   }
 

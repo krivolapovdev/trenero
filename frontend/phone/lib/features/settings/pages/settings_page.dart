@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:phone/core/constants/app_constants.dart';
 import 'package:phone/core/providers/language_provider.dart';
-import 'package:phone/core/widgets/titled_page.dart';
+import 'package:phone/core/widgets/shell_page.dart';
 import 'package:phone/features/settings/pages/contacts_page.dart';
 import 'package:phone/features/settings/widgets/language_selection_sheet.dart';
 import 'package:phone/features/settings/widgets/logout_confirmation_sheet.dart';
@@ -13,7 +13,7 @@ import 'package:phone/features/settings/widgets/settings_tile.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class SettingsPage extends TitledPage {
+class SettingsPage extends ShellPage {
   const new({
     super.key,
     required super.title,
@@ -29,15 +29,23 @@ class SettingsPage extends TitledPage {
       SettingsGroupCard(
         children: [
           Consumer(
-            builder: (context, ref, child) => SettingsTile(
-              icon: Icons.outlined_flag,
-              title: context.t.settings.language,
-              trailing: Text(
-                ref.watch(languageProvider).name,
-                style: const TextStyle(fontSize: 16, color: Colors.black54),
-              ),
-              onTap: () => LanguageSelectionSheet.show(context),
-            ),
+            builder: (context, ref, child) {
+              final languageAsync = ref.watch(languageProvider);
+
+              return SettingsTile(
+                icon: Icons.outlined_flag,
+                title: context.t.settings.language,
+                trailing: Text(
+                  languageAsync.when(
+                    data: (locale) => locale.name,
+                    loading: () => '...',
+                    error: (_, _) => '',
+                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+                onTap: () => LanguageSelectionSheet.show(context),
+              );
+            },
           ),
         ],
       ),

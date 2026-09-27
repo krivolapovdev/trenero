@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phone/core/widgets/titled_page.dart';
+import 'package:phone/core/widgets/shell_page.dart';
 import 'package:phone/features/groups/pages/groups_page.dart';
 import 'package:phone/features/settings/pages/settings_page.dart';
 import 'package:phone/features/statistics/pages/statistics_page.dart';
@@ -18,7 +18,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<TitledPage> pages = [
+    final List<ShellPage> pages = [
       StatisticsPage(title: context.t.statistics.title),
       GroupsPage(title: context.t.groups.title),
       StudentsPage(title: context.t.students.title),
@@ -29,6 +29,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       appBar: AppBar(
         title: Text(pages[_currentIndex].title),
         elevation: 0,
+        actions: pages[_currentIndex].actions(context),
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
       ),

@@ -17,7 +17,7 @@ import org.trenero.backend.user.external.UserSpi;
 @Slf4j
 public class ReviewerAuthService {
 
-  private final JwtTokenService jwtTokenService;
+  private final JwtService jwtService;
   private final ReviewerProperties reviewerProperties;
   @Lazy private final UserSpi userSpi;
 
@@ -37,7 +37,7 @@ public class ReviewerAuthService {
             OAuth2Provider.GOOGLE, "REVIEWER", "REVIEWER@TRENERO.ORG");
 
     var jwtUser = new JwtUser(user.id(), user.email());
-    var tokens = jwtTokenService.createAccessAndRefreshTokens(jwtUser);
+    var tokens = jwtService.createAccessAndRefreshTokens(jwtUser);
 
     return new LoginResponse(user, tokens);
   }

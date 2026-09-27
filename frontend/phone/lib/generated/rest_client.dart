@@ -11,7 +11,7 @@ import 'reviewer_auth_controller/reviewer_auth_controller_client.dart';
 import 'student_payment_controller/student_payment_controller_client.dart';
 import 'o_auth_2_controller/o_auth_2_controller_client.dart';
 import 'lesson_controller/lesson_controller_client.dart';
-import 'jwt_token_controller/jwt_token_controller_client.dart';
+import 'jwt_controller/jwt_controller_client.dart';
 import 'group_controller/group_controller_client.dart';
 import 'metric_controller/metric_controller_client.dart';
 import 'user_controller/user_controller_client.dart';
@@ -32,7 +32,7 @@ class RestClient {
   StudentPaymentControllerClient? _studentPaymentController;
   OAuth2ControllerClient? _oAuth2Controller;
   LessonControllerClient? _lessonController;
-  JwtTokenControllerClient? _jwtTokenController;
+  JwtControllerClient? _jwtController;
   GroupControllerClient? _groupController;
   MetricControllerClient? _metricController;
   UserControllerClient? _userController;
@@ -67,8 +67,8 @@ class RestClient {
   LessonControllerClient get lessonController =>
       _lessonController ??= LessonControllerClient(_dio, baseUrl: _baseUrl);
 
-  JwtTokenControllerClient get jwtTokenController =>
-      _jwtTokenController ??= JwtTokenControllerClient(_dio, baseUrl: _baseUrl);
+  JwtControllerClient get jwtController =>
+      _jwtController ??= JwtControllerClient(_dio, baseUrl: _baseUrl);
 
   GroupControllerClient get groupController =>
       _groupController ??= GroupControllerClient(_dio, baseUrl: _baseUrl);

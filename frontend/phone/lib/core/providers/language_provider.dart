@@ -5,17 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String _languageKey = 'language';
 
-class LanguageNotifier extends Notifier<AppLocale> {
-  late final SharedPreferences _prefs;
-
+class LanguageNotifier extends AsyncNotifier<AppLocale> {
   @override
-  AppLocale build() {
-    _prefs = ref.watch(sharedPreferencesProvider);
-    return _getSavedLocale();
+  Future<AppLocale> build() async {
+    final prefs = await ref.watch(sharedPreferencesProvider.future);
+    return _getSavedLocale(prefs);
   }
 
-  AppLocale _getSavedLocale() {
-    final String? storedLang = _prefs.getString(_languageKey);
+  AppLocale _getSavedLocale(SharedPreferences prefs) {
+    final String? storedLang = prefs.getString(_languageKey);
 
     if (storedLang != null) {
       final AppLocale locale = AppLocaleUtils.parse(storedLang);
@@ -29,12 +27,16 @@ class LanguageNotifier extends Notifier<AppLocale> {
   }
 
   Future<void> setLanguage(AppLocale newLocale) async {
-    state = newLocale;
+    final prefs = await ref.read(sharedPreferencesProvider.future);
+
     LocaleSettings.setLocale(newLocale);
-    await _prefs.setString(_languageKey, newLocale.languageTag);
+    await prefs.setString(_languageKey, newLocale.languageTag);
+
+    // Update notifier state
+    state = AsyncData(newLocale);
   }
 }
 
-final languageProvider = NotifierProvider<LanguageNotifier, AppLocale>(
+final languageProvider = AsyncNotifierProvider<LanguageNotifier, AppLocale>(
   LanguageNotifier.new,
 );

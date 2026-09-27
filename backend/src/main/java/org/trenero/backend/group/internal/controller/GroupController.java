@@ -21,26 +21,18 @@ import org.trenero.backend.common.response.GroupResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.internal.request.CreateGroupRequest;
 import org.trenero.backend.group.internal.response.GroupDetailsResponse;
-import org.trenero.backend.group.internal.response.GroupOverviewResponse;
 import org.trenero.backend.group.internal.service.GroupService;
 
 @RestController
 @RequestMapping("/api/v1/groups")
 @RequiredArgsConstructor
 public class GroupController {
-
   private final GroupService groupService;
 
   @GetMapping
   @PreAuthorize("isAuthenticated()")
-  public List<GroupResponse> getGroups(@AuthenticationPrincipal JwtUser jwtUser) {
+  public List<GroupResponse> getAllGroups(@AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.getAllGroups(jwtUser);
-  }
-
-  @GetMapping("/overview")
-  @PreAuthorize("isAuthenticated()")
-  public List<GroupOverviewResponse> getGroupsOverview(@AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.getGroupsOverview(jwtUser);
   }
 
   @GetMapping("/{groupId}")

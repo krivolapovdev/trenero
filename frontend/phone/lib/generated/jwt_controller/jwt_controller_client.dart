@@ -8,12 +8,12 @@ import 'package:retrofit/retrofit.dart';
 import '../models/jwt_tokens_response.dart';
 import '../models/refresh_token_request.dart';
 
-part 'jwt_token_controller_client.g.dart';
+part 'jwt_controller_client.g.dart';
 
 @RestApi()
-abstract class JwtTokenControllerClient {
-  factory JwtTokenControllerClient(Dio dio, {String? baseUrl}) =
-      _JwtTokenControllerClient;
+abstract class JwtControllerClient {
+  factory JwtControllerClient(Dio dio, {String? baseUrl}) =
+      _JwtControllerClient;
 
   @POST('/api/v1/jwt/refresh')
   Future<JwtTokensResponse> refreshTokens({

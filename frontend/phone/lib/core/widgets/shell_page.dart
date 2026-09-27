@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-abstract class TitledPage extends StatelessWidget {
+abstract class ShellPage extends StatelessWidget {
   final String title;
   final IconData icon;
   final IconData selectedIcon;
@@ -11,4 +11,6 @@ abstract class TitledPage extends StatelessWidget {
     required this.icon,
     required this.selectedIcon,
   });
+
+  List<Widget>? actions(BuildContext context) => null;
 }

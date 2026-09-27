@@ -161,12 +161,13 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public @NonNull Map<UUID, List<StudentResponse>> getStudentsByIds(
+  public @NonNull Map<UUID, StudentResponse> getStudentsByIds(
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info("Getting students by ids: studentIds={}; user={}", studentIds, jwtUser);
     return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.id()).stream()
         .map(studentMapper::toResponse)
-        .collect(Collectors.groupingBy(StudentResponse::id));
+        .collect(
+            Collectors.toMap(StudentResponse::id, student -> student, (existing, _) -> existing));
   }
 
   @Transactional(readOnly = true)

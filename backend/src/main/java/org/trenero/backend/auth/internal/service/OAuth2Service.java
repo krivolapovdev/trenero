@@ -19,7 +19,7 @@ import org.trenero.backend.user.external.UserSpi;
 public class OAuth2Service {
 
   private final GoogleAuthService googleAuthService;
-  private final JwtTokenService jwtTokenService;
+  private final JwtService jwtService;
   @Lazy private final UserSpi userSpi;
 
   public @NonNull LoginResponse googleLogin(@NonNull OAuth2LoginRequest request) {
@@ -38,7 +38,7 @@ public class OAuth2Service {
 
     var user = userSpi.getOrCreateUserFromOAuth2(GOOGLE, providerId, email);
     var jwtUser = new JwtUser(user.id(), user.email());
-    var tokens = jwtTokenService.createAccessAndRefreshTokens(jwtUser);
+    var tokens = jwtService.createAccessAndRefreshTokens(jwtUser);
 
     return new LoginResponse(user, tokens);
   }

@@ -359,7 +359,7 @@
         "/api/v1/jwt/refresh": {
             "post": {
                 "tags": [
-                    "jwt-token-controller"
+                    "jwt-controller"
                 ],
                 "operationId": "refreshTokens",
                 "requestBody": {
@@ -391,7 +391,7 @@
                 "tags": [
                     "group-controller"
                 ],
-                "operationId": "getGroups",
+                "operationId": "getAllGroups",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1047,26 +1047,6 @@
                 }
             }
         },
-        "/api/v1/oauth2/test": {
-            "get": {
-                "tags": [
-                    "o-auth-2-controller"
-                ],
-                "operationId": "test",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/metrics/payments/monthly": {
             "get": {
                 "tags": [
@@ -1145,29 +1125,6 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/GroupDetailsResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/groups/overview": {
-            "get": {
-                "tags": [
-                    "group-controller"
-                ],
-                "operationId": "getGroupsOverview",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/GroupOverviewResponse"
-                                    }
                                 }
                             }
                         }
@@ -1638,6 +1595,12 @@
                     "note": {
                         "type": "string"
                     },
+                    "groupStudents": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StudentResponse"
+                        }
+                    },
                     "createdAt": {
                         "type": "string",
                         "format": "date-time"
@@ -1645,6 +1608,7 @@
                 },
                 "required": [
                     "createdAt",
+                    "groupStudents",
                     "id",
                     "name"
                 ]
@@ -1901,15 +1865,15 @@
                     "note": {
                         "type": "string"
                     },
-                    "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
                     "groupStudents": {
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/StudentResponse"
                         }
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "groupLessons": {
                         "type": "array",
@@ -1921,40 +1885,6 @@
                 "required": [
                     "createdAt",
                     "groupLessons",
-                    "groupStudents",
-                    "id",
-                    "name"
-                ]
-            },
-            "GroupOverviewResponse": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "defaultPrice": {
-                        "type": "number"
-                    },
-                    "note": {
-                        "type": "string"
-                    },
-                    "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "groupStudents": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/StudentResponse"
-                        }
-                    }
-                },
-                "required": [
-                    "createdAt",
                     "groupStudents",
                     "id",
                     "name"

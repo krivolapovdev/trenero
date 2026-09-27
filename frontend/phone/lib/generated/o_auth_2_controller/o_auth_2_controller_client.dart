@@ -20,7 +20,4 @@ abstract class OAuth2ControllerClient {
 
   @POST('/api/v1/oauth2/apple')
   Future<LoginResponse> appleLogin({@Body() required OAuth2LoginRequest body});
-
-  @GET('/api/v1/oauth2/test')
-  Future<String> test();
 }

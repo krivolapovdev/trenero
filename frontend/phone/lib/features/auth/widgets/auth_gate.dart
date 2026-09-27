@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/error_page.dart';
+import 'package:phone/features/auth/pages/auth_page.dart';
 import 'package:phone/features/auth/pages/loading_page.dart';
-import 'package:phone/features/auth/providers/auth_provider.dart';
+import 'package:phone/features/auth/providers/auth_notifier.dart';
 import 'package:phone/features/shell/pages/main_shell_screen.dart';
 
 class AuthGate extends ConsumerWidget {
@@ -10,14 +11,14 @@ class AuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authInit = ref.watch(authInitializerProvider);
+    final authNotifier = ref.watch(authNotifierProvider);
 
-    return authInit.when(
+    return authNotifier.when(
       loading: () => const LoadingPage(),
       error: (_, _) => const GlobalErrorPage(),
-      data: (isAuthenticated) =>
-          // isAuthenticated ? const MainShellScreen() : const AuthPage(),
-          const MainShellScreen(),
+      data: (authStatus) => authStatus == AuthStatus.authenticated
+          ? const MainShellScreen()
+          : const AuthPage(),
     );
   }
 }
