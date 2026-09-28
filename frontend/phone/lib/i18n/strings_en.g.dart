@@ -58,7 +58,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	String get repeat => 'Repeat';
 
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
-	late final Translations$statistics$en statistics = Translations$statistics$en._(_root);
+	late final Translations$finance$en finance = Translations$finance$en._(_root);
 	late final Translations$groups$en groups = Translations$groups$en._(_root);
 	late final Translations$students$en students = Translations$students$en._(_root);
 	late final Translations$settings$en settings = Translations$settings$en._(_root);
@@ -82,16 +82,16 @@ class Translations$auth$en {
 	String get agreePrivacyPolicy => 'By signing in, you agree to our Privacy Policy';
 }
 
-// Path: statistics
-class Translations$statistics$en {
-	Translations$statistics$en._(this._root);
+// Path: finance
+class Translations$finance$en {
+	Translations$finance$en._(this._root);
 
 	final Translations _root; // ignore: unused_field
 
 	// Translations
 
-	/// en: 'Statistics'
-	String get title => 'Statistics';
+	/// en: 'Finance'
+	String get title => 'Finance';
 }
 
 // Path: groups
@@ -191,7 +191,7 @@ extension on Translations {
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',
-			'statistics.title' => 'Statistics',
+			'finance.title' => 'Finance',
 			'groups.title' => 'Groups',
 			'groups.emptySubtitle' => 'No Groups yet',
 			'groups.createFirstGroup' => 'Create First Group',

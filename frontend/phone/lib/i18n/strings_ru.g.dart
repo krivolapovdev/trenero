@@ -44,7 +44,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get search => 'Поиск';
 	@override String get repeat => 'Повторить';
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
-	@override late final _Translations$statistics$ru statistics = _Translations$statistics$ru._(_root);
+	@override late final _Translations$finance$ru finance = _Translations$finance$ru._(_root);
 	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
 	@override late final _Translations$students$ru students = _Translations$students$ru._(_root);
 	@override late final _Translations$settings$ru settings = _Translations$settings$ru._(_root);
@@ -62,14 +62,14 @@ class _Translations$auth$ru implements Translations$auth$en {
 	@override String get agreePrivacyPolicy => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности';
 }
 
-// Path: statistics
-class _Translations$statistics$ru implements Translations$statistics$en {
-	_Translations$statistics$ru._(this._root);
+// Path: finance
+class _Translations$finance$ru implements Translations$finance$en {
+	_Translations$finance$ru._(this._root);
 
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
-	@override String get title => 'Статистика';
+	@override String get title => 'Финансы';
 }
 
 // Path: groups
@@ -133,7 +133,7 @@ extension on TranslationsRu {
 			'auth.signInWithApple' => 'Войти через Apple',
 			'auth.signInWithGoogle' => 'Войти через Google',
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',
-			'statistics.title' => 'Статистика',
+			'finance.title' => 'Финансы',
 			'groups.title' => 'Группы',
 			'groups.emptySubtitle' => 'Групп пока нет',
 			'groups.createFirstGroup' => 'Создать первую группу',
