@@ -21,12 +21,12 @@ class _GroupControllerClient implements GroupControllerClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<List<GroupResponse>> getAllGroups() async {
+  Future<List<GroupSummary>> getAllGroupsSummary() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<List<GroupResponse>>(
+    final _options = _setStreamType<List<GroupSummary>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -37,10 +37,10 @@ class _GroupControllerClient implements GroupControllerClient {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<List<dynamic>>(_options);
-    late List<GroupResponse> _value;
+    late List<GroupSummary> _value;
     try {
       _value = _result.data!
-          .map((dynamic i) => GroupResponse.fromJson(i as Map<String, dynamic>))
+          .map((dynamic i) => GroupSummary.fromJson(i as Map<String, dynamic>))
           .toList();
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
@@ -78,12 +78,12 @@ class _GroupControllerClient implements GroupControllerClient {
   }
 
   @override
-  Future<GroupResponse> getGroup({required String groupId}) async {
+  Future<GroupDetails> getGroupDetailsById({required String groupId}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<GroupResponse>(
+    final _options = _setStreamType<GroupDetails>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -94,9 +94,9 @@ class _GroupControllerClient implements GroupControllerClient {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, Object?>>(_options);
-    late GroupResponse _value;
+    late GroupDetails _value;
     try {
-      _value = GroupResponse.fromJson(_result.data!);
+      _value = GroupDetails.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
@@ -147,35 +147,6 @@ class _GroupControllerClient implements GroupControllerClient {
     late GroupResponse _value;
     try {
       _value = GroupResponse.fromJson(_result.data!);
-    } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options, response: _result);
-      rethrow;
-    }
-    return _value;
-  }
-
-  @override
-  Future<GroupDetailsResponse> getGroupDetails({
-    required String groupId,
-  }) async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<GroupDetailsResponse>(
-      Options(method: 'GET', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            '/api/v1/groups/${groupId}/details',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    final _result = await _dio.fetch<Map<String, Object?>>(_options);
-    late GroupDetailsResponse _value;
-    try {
-      _value = GroupDetailsResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

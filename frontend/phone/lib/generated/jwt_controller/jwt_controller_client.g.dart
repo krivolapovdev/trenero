@@ -21,15 +21,13 @@ class _JwtControllerClient implements JwtControllerClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<JwtTokensResponse> refreshTokens({
-    required RefreshTokenRequest body,
-  }) async {
+  Future<JwtResponse> refreshTokens({required RefreshTokenRequest body}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
-    final _options = _setStreamType<JwtTokensResponse>(
+    final _options = _setStreamType<JwtResponse>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -40,9 +38,9 @@ class _JwtControllerClient implements JwtControllerClient {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, Object?>>(_options);
-    late JwtTokensResponse _value;
+    late JwtResponse _value;
     try {
-      _value = JwtTokensResponse.fromJson(_result.data!);
+      _value = JwtResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

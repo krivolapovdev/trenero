@@ -378,7 +378,7 @@
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/JwtTokensResponse"
+                                    "$ref": "#/components/schemas/JwtResponse"
                                 }
                             }
                         }
@@ -391,7 +391,7 @@
                 "tags": [
                     "group-controller"
                 ],
-                "operationId": "getAllGroups",
+                "operationId": "getAllGroupsSummary",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -400,7 +400,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/GroupResponse"
+                                        "$ref": "#/components/schemas/GroupSummary"
                                     }
                                 }
                             }
@@ -905,7 +905,7 @@
                 "tags": [
                     "group-controller"
                 ],
-                "operationId": "getGroup",
+                "operationId": "getGroupDetailsById",
                 "parameters": [
                     {
                         "name": "groupId",
@@ -923,7 +923,7 @@
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/GroupResponse"
+                                    "$ref": "#/components/schemas/GroupDetails"
                                 }
                             }
                         }
@@ -1094,37 +1094,6 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/LessonDetailsResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/groups/{groupId}/details": {
-            "get": {
-                "tags": [
-                    "group-controller"
-                ],
-                "operationId": "getGroupDetails",
-                "parameters": [
-                    {
-                        "name": "groupId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/GroupDetailsResponse"
                                 }
                             }
                         }
@@ -1342,7 +1311,7 @@
                     "id"
                 ]
             },
-            "JwtTokensResponse": {
+            "JwtResponse": {
                 "type": "object",
                 "properties": {
                     "accessToken": {
@@ -1364,7 +1333,7 @@
                         "$ref": "#/components/schemas/UserResponse"
                     },
                     "jwtTokens": {
-                        "$ref": "#/components/schemas/JwtTokensResponse"
+                        "$ref": "#/components/schemas/JwtResponse"
                     }
                 },
                 "required": [
@@ -1595,12 +1564,6 @@
                     "note": {
                         "type": "string"
                     },
-                    "groupStudents": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/StudentResponse"
-                        }
-                    },
                     "createdAt": {
                         "type": "string",
                         "format": "date-time"
@@ -1608,7 +1571,6 @@
                 },
                 "required": [
                     "createdAt",
-                    "groupStudents",
                     "id",
                     "name"
                 ]
@@ -1849,7 +1811,7 @@
                     "studentVisits"
                 ]
             },
-            "GroupDetailsResponse": {
+            "GroupSummary": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -1865,15 +1827,49 @@
                     "note": {
                         "type": "string"
                     },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
                     "groupStudents": {
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/StudentResponse"
                         }
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "groupStudents",
+                    "id",
+                    "name"
+                ]
+            },
+            "GroupDetails": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "defaultPrice": {
+                        "type": "number"
+                    },
+                    "note": {
+                        "type": "string"
                     },
                     "createdAt": {
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "groupStudents": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StudentResponse"
+                        }
                     },
                     "groupLessons": {
                         "type": "array",

@@ -14,16 +14,13 @@ import org.trenero.backend.common.response.LessonResponse;
 import org.trenero.backend.common.response.StudentResponse;
 import org.trenero.backend.group.internal.domain.Group;
 import org.trenero.backend.group.internal.request.CreateGroupRequest;
-import org.trenero.backend.group.internal.response.GroupDetailsResponse;
-import org.trenero.backend.group.internal.response.GroupOverviewResponse;
+import org.trenero.backend.group.internal.response.GroupDetails;
+import org.trenero.backend.group.internal.response.GroupSummary;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface GroupMapper {
 
   GroupResponse toResponse(Group group);
-
-  @Mapping(target = "groupStudents", source = "groupStudents")
-  GroupResponse toResponse(Group group, List<StudentResponse> groupStudents);
 
   @Mapping(target = "ownerId", expression = "java(ownerId)")
   Group toGroup(CreateGroupRequest input, UUID ownerId);
@@ -50,11 +47,11 @@ public interface GroupMapper {
   }
 
   @Mapping(target = "groupStudents", source = "groupStudents")
-  GroupOverviewResponse toGroupOverviewResponse(
+  GroupSummary toGroupOverviewResponse(
       GroupResponse group, List<GroupStudentResponse> groupStudents);
 
   @Mapping(target = "groupStudents", source = "groupStudents")
   @Mapping(target = "groupLessons", source = "groupLessons")
-  GroupDetailsResponse toGroupDetailsResponse(
+  GroupDetails toGroupDetailsResponse(
       GroupResponse group, List<StudentResponse> groupStudents, List<LessonResponse> groupLessons);
 }

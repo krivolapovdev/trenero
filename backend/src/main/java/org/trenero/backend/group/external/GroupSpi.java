@@ -7,9 +7,6 @@ import org.trenero.backend.common.response.GroupResponse;
 import org.trenero.backend.common.security.JwtUser;
 
 public interface GroupSpi {
-
-  List<GroupResponse> getAllGroups(JwtUser jwtUser);
-
   GroupResponse getGroupById(UUID groupId, JwtUser jwtUser);
 
   Map<UUID, GroupResponse> getGroupsByIds(List<UUID> groupIds, JwtUser jwtUser);

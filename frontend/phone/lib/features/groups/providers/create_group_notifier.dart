@@ -1,14 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/generated/models/create_group_request.dart';
 
-final createGroupControllerProvider =
-    AsyncNotifierProvider<CreateGroupController, void>(
-      CreateGroupController.new,
-    );
+final createGroupNotifierProvider =
+    AsyncNotifierProvider<CreateGroupNotifier, void>(CreateGroupNotifier.new);
 
-class CreateGroupController extends AsyncNotifier<void> {
+class CreateGroupNotifier extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
@@ -39,9 +38,10 @@ class CreateGroupController extends AsyncNotifier<void> {
         note: note?.trim().isEmpty ?? true ? null : note!.trim(),
       );
 
-      // final client = ref.read(groupControllerClientProvider);
-      // await client.createGroup(body: request);
-      // await ref.read(groupsNotifierProvider.notifier).refreshGroups();
+      await Future.pause(Duration(seconds: 3));
+
+      final client = ref.read(groupServiceProvider);
+      await client.createGroup(body: request);
     });
 
     return !state.hasError;

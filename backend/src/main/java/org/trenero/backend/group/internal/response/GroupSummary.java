@@ -6,5 +6,5 @@ import java.util.List;
 import org.trenero.backend.common.response.GroupResponse;
 import org.trenero.backend.common.response.StudentResponse;
 
-public record GroupOverviewResponse(
+public record GroupSummary(
     @NotNull @JsonUnwrapped GroupResponse group, @NotNull List<StudentResponse> groupStudents) {}

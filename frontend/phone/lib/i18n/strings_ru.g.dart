@@ -41,6 +41,8 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get name => 'Имя';
 	@override String get note => 'Заметка';
 	@override String get cancel => 'Отменить';
+	@override String get search => 'Поиск';
+	@override String get repeat => 'Повторить';
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
 	@override late final _Translations$statistics$ru statistics = _Translations$statistics$ru._(_root);
 	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
@@ -126,6 +128,8 @@ extension on TranslationsRu {
 			'name' => 'Имя',
 			'note' => 'Заметка',
 			'cancel' => 'Отменить',
+			'search' => 'Поиск',
+			'repeat' => 'Повторить',
 			'auth.signInWithApple' => 'Войти через Apple',
 			'auth.signInWithGoogle' => 'Войти через Google',
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',

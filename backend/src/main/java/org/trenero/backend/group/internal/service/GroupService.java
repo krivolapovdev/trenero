@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -15,8 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.trenero.backend.common.async.AsyncUtils;
 import org.trenero.backend.common.response.GroupResponse;
 import org.trenero.backend.common.response.GroupStudentResponse;
+import org.trenero.backend.common.response.LessonResponse;
 import org.trenero.backend.common.response.StudentResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.external.GroupSpi;
@@ -24,7 +27,8 @@ import org.trenero.backend.group.internal.domain.Group;
 import org.trenero.backend.group.internal.mapper.GroupMapper;
 import org.trenero.backend.group.internal.repository.GroupRepository;
 import org.trenero.backend.group.internal.request.CreateGroupRequest;
-import org.trenero.backend.group.internal.response.GroupDetailsResponse;
+import org.trenero.backend.group.internal.response.GroupDetails;
+import org.trenero.backend.group.internal.response.GroupSummary;
 import org.trenero.backend.lesson.external.LessonSpi;
 import org.trenero.backend.student.external.StudentSpi;
 
@@ -44,7 +48,7 @@ public class GroupService implements GroupSpi {
   private final Executor executor;
 
   @Transactional(readOnly = true)
-  public @NonNull List<GroupResponse> getAllGroups(@NonNull JwtUser jwtUser) {
+  public @NonNull List<GroupSummary> getAllGroupsSummary(@NonNull JwtUser jwtUser) {
     log.info("Getting all groups: user={}", jwtUser);
     List<Group> allGroups = groupRepository.findAllByOwnerId(jwtUser.id());
 
@@ -79,7 +83,8 @@ public class GroupService implements GroupSpi {
                       .filter(Objects::nonNull)
                       .toList();
 
-              return groupMapper.toResponse(group, students);
+              GroupResponse groupResponse = groupMapper.toResponse(group);
+              return new GroupSummary(groupResponse, students);
             })
         .toList();
   }
@@ -94,51 +99,56 @@ public class GroupService implements GroupSpi {
   }
 
   @Transactional(readOnly = true)
-  public @NonNull GroupDetailsResponse getGroupDetailsById(
+  public @NonNull GroupDetails getGroupDetailsById(
       @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Fetching parallel group details for groupId={} and userId={}", groupId, jwtUser.id());
 
-    return null;
-    //    // 1. Launch independent queries in parallel threads
-    //    var groupFuture =
-    //        CompletableFuture.supplyAsync(() -> this.getGroupById(groupId, jwtUser), executor);
-    //
-    //    var lessonsFuture =
-    //        CompletableFuture.supplyAsync(
-    //            () -> lessonSpi.getLessonsByGroupId(groupId, jwtUser), executor);
-    //
-    //    // 2. Chain the student fetching (dependent on the group-student linking table)
-    //    var groupStudentsFuture =
-    //        CompletableFuture.supplyAsync(
-    //                () -> groupStudentService.getStudentsByGroupId(groupId, jwtUser), executor)
-    //            .thenComposeAsync(
-    //                studentLinks -> {
-    //                  List<UUID> studentIds =
-    //                      studentLinks.stream().map(GroupStudentResponse::studentId).toList();
-    //
-    //                  // Short-circuit to prevent SQL IN() syntax errors if the group is empty
-    //                  if (studentIds.isEmpty()) {
-    //                    return CompletableFuture.completedFuture(List.<StudentResponse>of());
-    //                  }
-    //
-    //                  return CompletableFuture.supplyAsync(
-    //                      () ->
-    //                          studentSpi.getStudentsByIds(studentIds, jwtUser).values().stream()
-    //                              .flatMap(List::stream)
-    //                              .toList(),
-    //                      executor);
-    //                },
-    //                executor);
-    //
-    //    // 3. Await all background tasks simultaneously
-    //    AsyncUtils.awaitAll(groupFuture, lessonsFuture, groupStudentsFuture);
-    //
-    //    // 4. Extract values
-    //    GroupResponse group = groupFuture.join();
-    //    List<LessonResponse> groupLessons = lessonsFuture.join();
-    //    List<StudentResponse> groupStudents = groupStudentsFuture.join();
-    //
-    //    return groupMapper.toGroupDetailsResponse(group, groupStudents, groupLessons);
+    // 1. Launch independent queries in parallel threads
+    var groupFuture =
+        CompletableFuture.supplyAsync(() -> this.getGroupById(groupId, jwtUser), executor);
+
+    var lessonsFuture =
+        CompletableFuture.supplyAsync(
+            () -> lessonSpi.getLessonsByGroupId(groupId, jwtUser), executor);
+
+    // 2. Chain the student fetching (dependent on the group-student linking table)
+    var groupStudentsFuture =
+        CompletableFuture.supplyAsync(
+                () -> groupStudentService.getStudentsByGroupId(groupId, jwtUser), executor)
+            .thenComposeAsync(
+                studentLinks -> {
+                  List<UUID> studentIds =
+                      studentLinks.stream().map(GroupStudentResponse::studentId).toList();
+
+                  // Short-circuit to prevent SQL IN() syntax errors if the group is empty
+                  if (studentIds.isEmpty()) {
+                    return CompletableFuture.completedFuture(List.<StudentResponse>of());
+                  }
+
+                  return CompletableFuture.supplyAsync(
+                      () -> {
+                        Map<UUID, StudentResponse> studentsMap =
+                            studentSpi.getStudentsByIds(studentIds, jwtUser);
+
+                        // Исправлена ошибка типов: маппим ID к значениям без flatMap
+                        return studentIds.stream()
+                            .map(studentsMap::get)
+                            .filter(Objects::nonNull)
+                            .toList();
+                      },
+                      executor);
+                },
+                executor);
+
+    // 3. Await all background tasks simultaneously
+    AsyncUtils.awaitAll(groupFuture, lessonsFuture, groupStudentsFuture);
+
+    // 4. Extract values
+    GroupResponse group = groupFuture.join();
+    List<LessonResponse> groupLessons = lessonsFuture.join();
+    List<StudentResponse> groupStudents = groupStudentsFuture.join();
+
+    return groupMapper.toGroupDetailsResponse(group, groupStudents, groupLessons);
   }
 
   @Override

@@ -20,31 +20,26 @@ import org.springframework.web.bind.annotation.RestController;
 import org.trenero.backend.common.response.GroupResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.internal.request.CreateGroupRequest;
-import org.trenero.backend.group.internal.response.GroupDetailsResponse;
+import org.trenero.backend.group.internal.response.GroupDetails;
+import org.trenero.backend.group.internal.response.GroupSummary;
 import org.trenero.backend.group.internal.service.GroupService;
 
 @RestController
 @RequestMapping("/api/v1/groups")
 @RequiredArgsConstructor
 public class GroupController {
+
   private final GroupService groupService;
 
   @GetMapping
   @PreAuthorize("isAuthenticated()")
-  public List<GroupResponse> getAllGroups(@AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.getAllGroups(jwtUser);
+  public List<GroupSummary> getAllGroupsSummary(@AuthenticationPrincipal JwtUser jwtUser) {
+    return groupService.getAllGroupsSummary(jwtUser);
   }
 
   @GetMapping("/{groupId}")
   @PreAuthorize("isAuthenticated()")
-  public GroupResponse getGroup(
-      @PathVariable UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
-    return groupService.getGroupById(groupId, jwtUser);
-  }
-
-  @GetMapping("/{groupId}/details")
-  @PreAuthorize("isAuthenticated()")
-  public GroupDetailsResponse getGroupDetails(
+  public GroupDetails getGroupDetailsById(
       @PathVariable UUID groupId, @AuthenticationPrincipal JwtUser jwtUser) {
     return groupService.getGroupDetailsById(groupId, jwtUser);
   }

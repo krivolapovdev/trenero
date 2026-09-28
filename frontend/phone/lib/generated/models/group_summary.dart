@@ -4,33 +4,30 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'lesson_response.dart';
 import 'student_response.dart';
 
-part 'group_details_response.g.dart';
+part 'group_summary.g.dart';
 
 @JsonSerializable()
-class GroupDetailsResponse {
-  const GroupDetailsResponse({
+class GroupSummary {
+  const GroupSummary({
     required this.id,
     required this.name,
-    required this.groupStudents,
     required this.createdAt,
-    required this.groupLessons,
+    required this.groupStudents,
     this.defaultPrice,
     this.note,
   });
 
-  factory GroupDetailsResponse.fromJson(Map<String, Object?> json) =>
-      _$GroupDetailsResponseFromJson(json);
+  factory GroupSummary.fromJson(Map<String, Object?> json) =>
+      _$GroupSummaryFromJson(json);
 
   final String id;
   final String name;
   final num? defaultPrice;
   final String? note;
-  final List<StudentResponse> groupStudents;
   final DateTime createdAt;
-  final List<LessonResponse> groupLessons;
+  final List<StudentResponse> groupStudents;
 
-  Map<String, Object?> toJson() => _$GroupDetailsResponseToJson(this);
+  Map<String, Object?> toJson() => _$GroupSummaryToJson(this);
 }

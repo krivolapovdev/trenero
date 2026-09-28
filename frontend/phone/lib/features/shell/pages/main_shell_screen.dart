@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/shell_page.dart';
-import 'package:phone/features/groups/pages/groups_page.dart';
+import 'package:phone/features/groups/pages/group_list_page.dart';
 import 'package:phone/features/settings/pages/settings_page.dart';
 import 'package:phone/features/statistics/pages/statistics_page.dart';
 import 'package:phone/features/students/pages/students_page.dart';
@@ -20,7 +20,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   Widget build(BuildContext context) {
     final List<ShellPage> pages = [
       StatisticsPage(title: context.t.statistics.title),
-      GroupsPage(title: context.t.groups.title),
+      GroupListPage(title: context.t.groups.title),
       StudentsPage(title: context.t.students.title),
       SettingsPage(title: context.t.settings.title),
     ];

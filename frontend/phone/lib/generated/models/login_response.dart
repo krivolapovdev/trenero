@@ -4,7 +4,7 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'jwt_tokens_response.dart';
+import 'jwt_response.dart';
 import 'user_response.dart';
 
 part 'login_response.g.dart';
@@ -17,7 +17,7 @@ class LoginResponse {
       _$LoginResponseFromJson(json);
 
   final UserResponse user;
-  final JwtTokensResponse jwtTokens;
+  final JwtResponse jwtTokens;
 
   Map<String, Object?> toJson() => _$LoginResponseToJson(this);
 }

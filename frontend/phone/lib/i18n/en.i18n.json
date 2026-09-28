@@ -2,6 +2,8 @@
   "name": "Name",
   "note": "Note",
   "cancel": "Cancel",
+  "search": "Search",
+  "repeat": "Repeat",
   "auth": {
       "signInWithApple": "Sign in with Apple",
       "signInWithGoogle": "Sign in with Google",

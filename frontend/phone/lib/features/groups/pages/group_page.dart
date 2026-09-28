@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:phone/features/groups/pages/create_group_page.dart';
 import 'package:phone/features/groups/widgets/group_card.dart';
-import 'package:phone/generated/models/group_response.dart';
+import 'package:phone/generated/models/group_summary.dart';
 
 class GroupPage extends StatelessWidget {
-  final GroupResponse group;
+  final GroupSummary group;
 
   const new({super.key, required this.group});
 
@@ -12,7 +13,34 @@ class GroupPage extends StatelessWidget {
     final routeAnimation = ModalRoute.of(context)?.animation;
 
     return Scaffold(
-      appBar: AppBar(title: Text(group.name)),
+      appBar: AppBar(
+        title: Text(group.name),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const CreateGroupPage(),
+                ),
+              );
+            },
+          ),
+
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const CreateGroupPage(),
+                ),
+              );
+            },
+          ),
+
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

@@ -10,6 +10,7 @@ class OutlinedTextField extends StatefulWidget {
   final bool isMultiLine;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
+  final bool enabled;
 
   const new({
     super.key,
@@ -21,6 +22,7 @@ class OutlinedTextField extends StatefulWidget {
     this.isMultiLine = false,
     this.keyboardType,
     this.inputFormatters,
+    this.enabled = true,
   });
 
   @override
@@ -56,6 +58,7 @@ class _OutlinedTextFieldState extends State<OutlinedTextField> {
     final currentLength = widget.controller.text.length;
 
     return TextField(
+      readOnly: !widget.enabled,
       controller: widget.controller,
       focusNode: _focusNode,
       maxLength: widget.maxLength,

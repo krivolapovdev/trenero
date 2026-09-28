@@ -2,6 +2,8 @@
   "name": "Имя",
   "note": "Заметка",
   "cancel": "Отменить",
+  "search": "Поиск",
+  "repeat": "Повторить",
   "auth": {
     "signInWithApple": "Войти через Apple",
     "signInWithGoogle": "Войти через Google",

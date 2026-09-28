@@ -6,8 +6,9 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/create_group_request.dart';
-import '../models/group_details_response.dart';
+import '../models/group_details.dart';
 import '../models/group_response.dart';
+import '../models/group_summary.dart';
 
 part 'group_controller_client.g.dart';
 
@@ -17,13 +18,15 @@ abstract class GroupControllerClient {
       _GroupControllerClient;
 
   @GET('/api/v1/groups')
-  Future<List<GroupResponse>> getAllGroups();
+  Future<List<GroupSummary>> getAllGroupsSummary();
 
   @POST('/api/v1/groups')
   Future<GroupResponse> createGroup({@Body() required CreateGroupRequest body});
 
   @GET('/api/v1/groups/{groupId}')
-  Future<GroupResponse> getGroup({@Path('groupId') required String groupId});
+  Future<GroupDetails> getGroupDetailsById({
+    @Path('groupId') required String groupId,
+  });
 
   @DELETE('/api/v1/groups/{groupId}')
   Future<void> deleteGroup({@Path('groupId') required String groupId});
@@ -32,10 +35,5 @@ abstract class GroupControllerClient {
   Future<GroupResponse> updateGroup({
     @Path('groupId') required String groupId,
     @Body() required Map<String, dynamic> body,
-  });
-
-  @GET('/api/v1/groups/{groupId}/details')
-  Future<GroupDetailsResponse> getGroupDetails({
-    @Path('groupId') required String groupId,
   });
 }

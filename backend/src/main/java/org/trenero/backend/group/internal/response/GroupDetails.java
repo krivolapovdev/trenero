@@ -7,7 +7,7 @@ import org.trenero.backend.common.response.GroupResponse;
 import org.trenero.backend.common.response.LessonResponse;
 import org.trenero.backend.common.response.StudentResponse;
 
-public record GroupDetailsResponse(
+public record GroupDetails(
     @NotNull @JsonUnwrapped GroupResponse group,
     @NotNull List<StudentResponse> groupStudents,
     @NotNull List<LessonResponse> groupLessons) {}

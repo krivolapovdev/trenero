@@ -51,6 +51,12 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Cancel'
 	String get cancel => 'Cancel';
 
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'Repeat'
+	String get repeat => 'Repeat';
+
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
 	late final Translations$statistics$en statistics = Translations$statistics$en._(_root);
 	late final Translations$groups$en groups = Translations$groups$en._(_root);
@@ -180,6 +186,8 @@ extension on Translations {
 			'name' => 'Name',
 			'note' => 'Note',
 			'cancel' => 'Cancel',
+			'search' => 'Search',
+			'repeat' => 'Repeat',
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',

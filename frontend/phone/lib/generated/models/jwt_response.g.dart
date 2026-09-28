@@ -1,18 +1,17 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'jwt_tokens_response.dart';
+part of 'jwt_response.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-JwtTokensResponse _$JwtTokensResponseFromJson(Map<String, dynamic> json) =>
-    JwtTokensResponse(
-      accessToken: json['accessToken'] as String,
-      refreshToken: json['refreshToken'] as String,
-    );
+JwtResponse _$JwtResponseFromJson(Map<String, dynamic> json) => JwtResponse(
+  accessToken: json['accessToken'] as String,
+  refreshToken: json['refreshToken'] as String,
+);
 
-Map<String, dynamic> _$JwtTokensResponseToJson(JwtTokensResponse instance) =>
+Map<String, dynamic> _$JwtResponseToJson(JwtResponse instance) =>
     <String, dynamic>{
       'accessToken': instance.accessToken,
       'refreshToken': instance.refreshToken,

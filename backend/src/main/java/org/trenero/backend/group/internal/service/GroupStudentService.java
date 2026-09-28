@@ -63,7 +63,7 @@ public class GroupStudentService implements GroupStudentSpi {
     log.info(
         "Adding student to group: studentId={}; groupId={}; user={}", studentId, groupId, jwtUser);
 
-    groupService.getGroupById(groupId, jwtUser);
+    groupService.getGroupDetailsById(groupId, jwtUser);
 
     GroupStudent groupStudent =
         GroupStudent.builder().studentId(studentId).groupId(groupId).ownerId(jwtUser.id()).build();
@@ -96,7 +96,7 @@ public class GroupStudentService implements GroupStudentSpi {
       return;
     }
 
-    groupService.getGroupById(groupId, jwtUser);
+    groupService.getGroupDetailsById(groupId, jwtUser);
 
     List<GroupStudent> groupStudents =
         studentIds.stream()

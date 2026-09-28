@@ -5,7 +5,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
-import '../models/jwt_tokens_response.dart';
+import '../models/jwt_response.dart';
 import '../models/refresh_token_request.dart';
 
 part 'jwt_controller_client.g.dart';
@@ -16,7 +16,7 @@ abstract class JwtControllerClient {
       _JwtControllerClient;
 
   @POST('/api/v1/jwt/refresh')
-  Future<JwtTokensResponse> refreshTokens({
+  Future<JwtResponse> refreshTokens({
     @Body() required RefreshTokenRequest body,
   });
 }
