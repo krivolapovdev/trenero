@@ -58,10 +58,12 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	String get repeat => 'Repeat';
 
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
-	late final Translations$finance$en finance = Translations$finance$en._(_root);
+	late final Translations$home$en home = Translations$home$en._(_root);
 	late final Translations$groups$en groups = Translations$groups$en._(_root);
 	late final Translations$students$en students = Translations$students$en._(_root);
 	late final Translations$settings$en settings = Translations$settings$en._(_root);
+	late final Translations$reports$en reports = Translations$reports$en._(_root);
+	late final Translations$transactions$en transactions = Translations$transactions$en._(_root);
 }
 
 // Path: auth
@@ -82,16 +84,16 @@ class Translations$auth$en {
 	String get agreePrivacyPolicy => 'By signing in, you agree to our Privacy Policy';
 }
 
-// Path: finance
-class Translations$finance$en {
-	Translations$finance$en._(this._root);
+// Path: home
+class Translations$home$en {
+	Translations$home$en._(this._root);
 
 	final Translations _root; // ignore: unused_field
 
 	// Translations
 
-	/// en: 'Finance'
-	String get title => 'Finance';
+	/// en: 'Main'
+	String get title => 'Main';
 }
 
 // Path: groups
@@ -175,6 +177,36 @@ class Translations$settings$en {
 	String get privacyPolicy => 'Privacy Policy';
 }
 
+// Path: reports
+class Translations$reports$en {
+	Translations$reports$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Reports'
+	String get title => 'Reports';
+
+	/// en: 'Attendance and financial analytics'
+	String get subtitle => 'Attendance and financial analytics';
+}
+
+// Path: transactions
+class Translations$transactions$en {
+	Translations$transactions$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Transactions'
+	String get title => 'Transactions';
+
+	/// en: 'Income and expenses'
+	String get subtitle => 'Income and expenses';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -191,7 +223,7 @@ extension on Translations {
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',
-			'finance.title' => 'Finance',
+			'home.title' => 'Main',
 			'groups.title' => 'Groups',
 			'groups.emptySubtitle' => 'No Groups yet',
 			'groups.createFirstGroup' => 'Create First Group',
@@ -210,6 +242,10 @@ extension on Translations {
 			'settings.version' => 'Version',
 			'settings.contacts' => 'Contacts',
 			'settings.privacyPolicy' => 'Privacy Policy',
+			'reports.title' => 'Reports',
+			'reports.subtitle' => 'Attendance and financial analytics',
+			'transactions.title' => 'Transactions',
+			'transactions.subtitle' => 'Income and expenses',
 			_ => null,
 		};
 	}

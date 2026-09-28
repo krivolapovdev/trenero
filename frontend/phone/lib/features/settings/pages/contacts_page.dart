@@ -29,7 +29,7 @@ class ContactsPage extends StatelessWidget {
               title: 'Email',
               trailing: const Text(
                 AppConstants.emailContact,
-                style: TextStyle(fontSize: 14, color: Colors.black54),
+                style: TextStyle(fontSize: 14, color: Colors.black87),
               ),
               onTap: () => launchUrl(
                 Uri.parse('mailto:${AppConstants.emailContact}'),
@@ -44,7 +44,7 @@ class ContactsPage extends StatelessWidget {
               title: 'Telegram',
               trailing: const Text(
                 '@${AppConstants.telegramContact}',
-                style: TextStyle(fontSize: 14, color: Colors.black54),
+                style: TextStyle(fontSize: 14, color: Colors.black87),
               ),
               onTap: () => launchUrl(
                 Uri.parse('https://t.me/$AppConstants.emailContact'),

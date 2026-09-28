@@ -44,10 +44,12 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get search => 'Поиск';
 	@override String get repeat => 'Повторить';
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
-	@override late final _Translations$finance$ru finance = _Translations$finance$ru._(_root);
+	@override late final _Translations$home$ru home = _Translations$home$ru._(_root);
 	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
 	@override late final _Translations$students$ru students = _Translations$students$ru._(_root);
 	@override late final _Translations$settings$ru settings = _Translations$settings$ru._(_root);
+	@override late final _Translations$reports$ru reports = _Translations$reports$ru._(_root);
+	@override late final _Translations$transactions$ru transactions = _Translations$transactions$ru._(_root);
 }
 
 // Path: auth
@@ -62,14 +64,14 @@ class _Translations$auth$ru implements Translations$auth$en {
 	@override String get agreePrivacyPolicy => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности';
 }
 
-// Path: finance
-class _Translations$finance$ru implements Translations$finance$en {
-	_Translations$finance$ru._(this._root);
+// Path: home
+class _Translations$home$ru implements Translations$home$en {
+	_Translations$home$ru._(this._root);
 
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
-	@override String get title => 'Финансы';
+	@override String get title => 'Главная';
 }
 
 // Path: groups
@@ -117,6 +119,28 @@ class _Translations$settings$ru implements Translations$settings$en {
 	@override String get privacyPolicy => 'Политика конфиденциальности';
 }
 
+// Path: reports
+class _Translations$reports$ru implements Translations$reports$en {
+	_Translations$reports$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Отчеты';
+	@override String get subtitle => 'Учет и аналитика';
+}
+
+// Path: transactions
+class _Translations$transactions$ru implements Translations$transactions$en {
+	_Translations$transactions$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Транзакции';
+	@override String get subtitle => 'Доходы и расходы';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -133,7 +157,7 @@ extension on TranslationsRu {
 			'auth.signInWithApple' => 'Войти через Apple',
 			'auth.signInWithGoogle' => 'Войти через Google',
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',
-			'finance.title' => 'Финансы',
+			'home.title' => 'Главная',
 			'groups.title' => 'Группы',
 			'groups.emptySubtitle' => 'Групп пока нет',
 			'groups.createFirstGroup' => 'Создать первую группу',
@@ -152,6 +176,10 @@ extension on TranslationsRu {
 			'settings.version' => 'Версия',
 			'settings.contacts' => 'Контакты',
 			'settings.privacyPolicy' => 'Политика конфиденциальности',
+			'reports.title' => 'Отчеты',
+			'reports.subtitle' => 'Учет и аналитика',
+			'transactions.title' => 'Транзакции',
+			'transactions.subtitle' => 'Доходы и расходы',
 			_ => null,
 		};
 	}

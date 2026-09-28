@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/shell_page.dart';
-import 'package:phone/features/finance/data/monthly_data.dart';
-import 'package:phone/features/finance/widgets/monthly_bar_chart.dart';
-import 'package:phone/features/finance/widgets/summary_card.dart';
+import 'package:phone/features/home/data/monthly_data.dart';
+import 'package:phone/features/home/widgets/action_card.dart';
+import 'package:phone/features/home/widgets/monthly_bar_chart.dart';
+import 'package:phone/features/home/widgets/summary_card.dart';
+import 'package:phone/i18n/strings.g.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class FinancePage extends ShellPage {
+class HomePage extends ShellPage {
   const new({
     super.key,
     required super.title,
@@ -22,10 +25,9 @@ class FinancePage extends ShellPage {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
+              spacing: 16,
               children: [
                 SummaryCard(selectedItem: monthlyData[selectedIndex]),
-
-                const SizedBox(height: 16),
 
                 MonthlyBarChart(
                   data: monthlyData,
@@ -37,6 +39,20 @@ class FinancePage extends ShellPage {
                       });
                     }
                   },
+                ),
+
+                ActionCard(
+                  title: context.t.reports.title,
+                  subtitle: context.t.reports.subtitle,
+                  icon: FaIcon(FontAwesomeIcons.chartLine),
+                  onTap: () {},
+                ),
+
+                ActionCard(
+                  title: context.t.transactions.title,
+                  subtitle: context.t.transactions.subtitle,
+                  icon: FaIcon(FontAwesomeIcons.dollarSign),
+                  onTap: () {},
                 ),
               ],
             ),

@@ -7,6 +7,7 @@ import 'package:phone/features/groups/pages/create_group_page.dart';
 import 'package:phone/features/groups/providers/groups_notifier.dart';
 import 'package:phone/features/groups/widgets/group_list_view.dart';
 import 'package:phone/features/groups/widgets/group_search_delegate.dart';
+import 'package:phone/generated/models/group_summary.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class GroupListPage extends ShellPage {
@@ -49,6 +50,15 @@ class GroupListPage extends ShellPage {
     ),
 
     IconButton(
+      icon: Badge(smallSize: 10, child: const Icon(Icons.filter_list)),
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const CreateGroupPage()),
+        );
+      },
+    ),
+
+    IconButton(
       icon: const Icon(Icons.create_new_folder_outlined),
       onPressed: () {
         Navigator.of(context).push(
@@ -62,42 +72,56 @@ class GroupListPage extends ShellPage {
 
   @override
   Widget build(BuildContext context) => Consumer(
-    builder: (context, ref, child) => CustomMaterialIndicator(
-      color: Colors.black,
-      clipBehavior: Clip.antiAlias,
-      onRefresh: () async {
-        await ref.read(groupsNotifierProvider.notifier).refreshGroups();
-      },
-      child: Consumer(
-        builder: (context, ref, child) {
-          final groupsState = ref.watch(groupsNotifierProvider);
+    builder: (context, ref, child) {
+      final groupsState = ref.watch(groupsNotifierProvider);
+      final isLoading = groupsState.isLoading;
+      final hasError = groupsState.hasError;
+      final groups = groupsState.value ?? [];
 
-          return groupsState.when(
-            data: (groups) {
-              if (groups.isEmpty) {
-                return EmptyState(
-                  buttonText: context.t.groups.createFirstGroup,
-                  subtitle: context.t.groups.emptySubtitle,
-                  onButtonPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const CreateGroupPage(),
-                      ),
-                    );
-                  },
-                );
-              }
+      return CustomMaterialIndicator(
+        color: Colors.black,
+        clipBehavior: Clip.antiAlias,
+        onRefresh: () async {
+          await ref.read(groupsNotifierProvider.notifier).refreshGroups();
+        },
+        child: _buildBody(
+          context,
+          ref,
+          groupsState,
+          groups,
+          isLoading,
+          hasError,
+        ),
+      );
+    },
+  );
 
-              return GroupListView(groups: groups);
-            },
+  Widget _buildBody(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue groupsState,
+    List<GroupSummary> groups,
+    bool isLoading,
+    bool hasError,
+  ) {
+    if (isLoading && groups.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [Center()],
+      );
+    }
 
-            loading: () => const Center(),
-
-            error: (error, stackTrace) => Center(
+    if (hasError && groups.isEmpty) {
+      return LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('$error'),
+                  Text('${groupsState.error}'),
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: () => ref
@@ -108,9 +132,33 @@ class GroupListPage extends ShellPage {
                 ],
               ),
             ),
-          );
-        },
-      ),
-    ),
-  );
+          ),
+        ),
+      );
+    }
+
+    if (groups.isEmpty) {
+      return LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: EmptyState(
+              buttonText: context.t.groups.createFirstGroup,
+              subtitle: context.t.groups.emptySubtitle,
+              onButtonPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const CreateGroupPage(),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
+    return GroupListView(groups: groups);
+  }
 }

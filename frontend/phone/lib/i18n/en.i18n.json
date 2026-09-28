@@ -9,8 +9,8 @@
       "signInWithGoogle": "Sign in with Google",
       "agreePrivacyPolicy": "By signing in, you agree to our Privacy Policy"
   },
-  "finance": {
-    "title": "Finance"
+  "home": {
+    "title": "Main"
   },
   "groups": {
     "title": "Groups",
@@ -35,5 +35,13 @@
     "version": "Version",
     "contacts": "Contacts",
     "privacyPolicy": "Privacy Policy"
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Attendance and financial analytics"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "subtitle": "Income and expenses"
   }
 }

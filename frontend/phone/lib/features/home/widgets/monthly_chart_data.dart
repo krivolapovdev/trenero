@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:phone/features/finance/models/monthly_statistic.dart';
-import 'package:phone/features/finance/widgets/chart_bottom_title.dart';
+import 'package:phone/features/home/models/monthly_statistic.dart';
+import 'package:phone/features/home/widgets/chart_bottom_title.dart';
 
 class MonthlyChartData {
   static const _profitColor = Color(0xFF4CAF50);

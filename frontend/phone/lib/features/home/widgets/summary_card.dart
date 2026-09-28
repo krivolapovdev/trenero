@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phone/features/finance/models/monthly_statistic.dart';
+import 'package:phone/features/home/models/monthly_statistic.dart';
 
 class SummaryCard extends StatelessWidget {
   final MonthlyStatistic selectedItem;

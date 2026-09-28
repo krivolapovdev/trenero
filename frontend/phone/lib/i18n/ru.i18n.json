@@ -9,8 +9,8 @@
     "signInWithGoogle": "Войти через Google",
     "agreePrivacyPolicy": "Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности"
   },
-  "finance": {
-    "title": "Финансы"
+  "home": {
+    "title": "Главная"
   },
   "groups": {
     "title": "Группы",
@@ -35,5 +35,13 @@
     "version": "Версия",
     "contacts": "Контакты",
     "privacyPolicy": "Политика конфиденциальности"
+  },
+  "reports": {
+    "title": "Отчеты",
+    "subtitle": "Учет и аналитика"
+  },
+  "transactions": {
+    "title": "Транзакции",
+    "subtitle": "Доходы и расходы"
   }
 }

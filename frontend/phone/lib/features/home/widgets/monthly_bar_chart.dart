@@ -1,8 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:phone/features/finance/models/monthly_statistic.dart';
-import 'package:phone/features/finance/widgets/chart_touch_overlay.dart';
-import 'package:phone/features/finance/widgets/monthly_chart_data.dart';
+import 'package:phone/features/home/models/monthly_statistic.dart';
+import 'package:phone/features/home/widgets/chart_touch_overlay.dart';
+import 'package:phone/features/home/widgets/monthly_chart_data.dart';
 
 class MonthlyBarChart extends StatelessWidget {
   final List<MonthlyStatistic> data;
