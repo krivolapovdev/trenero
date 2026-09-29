@@ -43,6 +43,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get cancel => 'Отменить';
 	@override String get search => 'Поиск';
 	@override String get repeat => 'Повторить';
+	@override String get create => 'Создать';
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
 	@override late final _Translations$home$ru home = _Translations$home$ru._(_root);
 	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
@@ -50,6 +51,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$settings$ru settings = _Translations$settings$ru._(_root);
 	@override late final _Translations$reports$ru reports = _Translations$reports$ru._(_root);
 	@override late final _Translations$transactions$ru transactions = _Translations$transactions$ru._(_root);
+	@override late final _Translations$finance$ru finance = _Translations$finance$ru._(_root);
 }
 
 // Path: auth
@@ -141,6 +143,16 @@ class _Translations$transactions$ru implements Translations$transactions$en {
 	@override String get subtitle => 'Доходы и расходы';
 }
 
+// Path: finance
+class _Translations$finance$ru implements Translations$finance$en {
+	_Translations$finance$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Финансы';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -154,6 +166,7 @@ extension on TranslationsRu {
 			'cancel' => 'Отменить',
 			'search' => 'Поиск',
 			'repeat' => 'Повторить',
+			'create' => 'Создать',
 			'auth.signInWithApple' => 'Войти через Apple',
 			'auth.signInWithGoogle' => 'Войти через Google',
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',
@@ -180,6 +193,7 @@ extension on TranslationsRu {
 			'reports.subtitle' => 'Учет и аналитика',
 			'transactions.title' => 'Транзакции',
 			'transactions.subtitle' => 'Доходы и расходы',
+			'finance.title' => 'Финансы',
 			_ => null,
 		};
 	}

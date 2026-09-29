@@ -57,6 +57,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Repeat'
 	String get repeat => 'Repeat';
 
+	/// en: 'Create'
+	String get create => 'Create';
+
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
 	late final Translations$home$en home = Translations$home$en._(_root);
 	late final Translations$groups$en groups = Translations$groups$en._(_root);
@@ -64,6 +67,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$settings$en settings = Translations$settings$en._(_root);
 	late final Translations$reports$en reports = Translations$reports$en._(_root);
 	late final Translations$transactions$en transactions = Translations$transactions$en._(_root);
+	late final Translations$finance$en finance = Translations$finance$en._(_root);
 }
 
 // Path: auth
@@ -207,6 +211,18 @@ class Translations$transactions$en {
 	String get subtitle => 'Income and expenses';
 }
 
+// Path: finance
+class Translations$finance$en {
+	Translations$finance$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Finance'
+	String get title => 'Finance';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -220,6 +236,7 @@ extension on Translations {
 			'cancel' => 'Cancel',
 			'search' => 'Search',
 			'repeat' => 'Repeat',
+			'create' => 'Create',
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',
@@ -246,6 +263,7 @@ extension on Translations {
 			'reports.subtitle' => 'Attendance and financial analytics',
 			'transactions.title' => 'Transactions',
 			'transactions.subtitle' => 'Income and expenses',
+			'finance.title' => 'Finance',
 			_ => null,
 		};
 	}

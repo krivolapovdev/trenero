@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/shell_page.dart';
-import 'package:phone/features/home/data/monthly_data.dart';
-import 'package:phone/features/home/widgets/action_card.dart';
-import 'package:phone/features/home/widgets/monthly_bar_chart.dart';
-import 'package:phone/features/home/widgets/summary_card.dart';
+import 'package:phone/features/finance/data/monthly_data.dart';
+import 'package:phone/features/finance/widgets/action_card.dart';
+import 'package:phone/features/finance/widgets/monthly_bar_chart.dart';
+import 'package:phone/features/finance/widgets/summary_card.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class HomePage extends ShellPage {
+class FinancePage extends ShellPage {
   const new({
     super.key,
     required super.title,

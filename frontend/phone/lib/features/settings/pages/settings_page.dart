@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:phone/core/constants/app_constants.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/core/widgets/shell_page.dart';
+import 'package:phone/features/groups/widgets/app_bottom_sheet.dart';
 import 'package:phone/features/settings/pages/contacts_page.dart';
 import 'package:phone/features/settings/widgets/language_selection_sheet.dart';
 import 'package:phone/features/settings/widgets/logout_confirmation_sheet.dart';
@@ -43,7 +44,10 @@ class SettingsPage extends ShellPage {
                   ),
                   style: const TextStyle(fontSize: 16, color: Colors.black54),
                 ),
-                onTap: () => LanguageSelectionSheet.show(context),
+                onTap: () => AppBottomSheet.show(
+                  context: context,
+                  child: const LanguageSelectionSheet(),
+                ),
               );
             },
           ),
@@ -58,7 +62,10 @@ class SettingsPage extends ShellPage {
             icon: Icons.logout,
             title: context.t.settings.logout,
             trailing: const Icon(Icons.chevron_right, color: Colors.black54),
-            onTap: () => LogoutConfirmationSheet.show(context),
+            onTap: () => AppBottomSheet.show(
+              context: context,
+              child: const LogoutConfirmationSheet(),
+            ),
           ),
           SettingsTile(
             icon: Icons.delete_outline,

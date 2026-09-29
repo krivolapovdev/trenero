@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/empty_state.dart';
 import 'package:phone/core/widgets/shell_page.dart';
-import 'package:phone/features/groups/pages/create_group_page.dart';
 import 'package:phone/features/groups/providers/groups_notifier.dart';
+import 'package:phone/features/groups/widgets/app_bottom_sheet.dart';
+import 'package:phone/features/groups/widgets/create_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_list_view.dart';
 import 'package:phone/features/groups/widgets/group_search_delegate.dart';
 import 'package:phone/generated/models/group_summary.dart';
@@ -49,22 +50,20 @@ class GroupListPage extends ShellPage {
       ),
     ),
 
-    IconButton(
-      icon: Badge(smallSize: 10, child: const Icon(Icons.filter_list)),
-      onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const CreateGroupPage()),
-        );
-      },
-    ),
-
+    // IconButton(
+    //   icon: Badge(smallSize: 10, child: const Icon(Icons.filter_list)),
+    //   onPressed: () {
+    //     Navigator.of(context).push(
+    //       MaterialPageRoute(builder: (context) => const CreateGroupPage()),
+    //     );
+    //   },
+    // ),
     IconButton(
       icon: const Icon(Icons.create_new_folder_outlined),
-      onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const CreateGroupPage()),
-        );
-      },
+      onPressed: () => AppBottomSheet.show(
+        context: context,
+        child: const CreateGroupBottomSheet(),
+      ),
     ),
 
     const SizedBox(width: 8),
@@ -146,13 +145,10 @@ class GroupListPage extends ShellPage {
             child: EmptyState(
               buttonText: context.t.groups.createFirstGroup,
               subtitle: context.t.groups.emptySubtitle,
-              onButtonPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const CreateGroupPage(),
-                  ),
-                );
-              },
+              onButtonPressed: () => AppBottomSheet.show(
+                context: context,
+                child: const CreateGroupBottomSheet(),
+              ),
             ),
           ),
         ),

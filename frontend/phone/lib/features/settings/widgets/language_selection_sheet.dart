@@ -7,16 +7,6 @@ import 'package:phone/i18n/strings.g.dart';
 class LanguageSelectionSheet extends ConsumerWidget {
   const new({super.key});
 
-  static Future<void> show(BuildContext context) => showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.white,
-    showDragHandle: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (context) => const LanguageSelectionSheet(),
-  );
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final languageAsync = ref.watch(languageProvider);

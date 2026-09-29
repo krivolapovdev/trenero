@@ -4,6 +4,7 @@
   "cancel": "Отменить",
   "search": "Поиск",
   "repeat": "Повторить",
+  "create": "Создать",
   "auth": {
     "signInWithApple": "Войти через Apple",
     "signInWithGoogle": "Войти через Google",
@@ -43,5 +44,8 @@
   "transactions": {
     "title": "Транзакции",
     "subtitle": "Доходы и расходы"
+  },
+  "finance": {
+    "title": "Финансы"
   }
 }

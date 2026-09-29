@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phone/features/groups/pages/create_group_page.dart';
 import 'package:phone/features/groups/widgets/group_card.dart';
 import 'package:phone/generated/models/group_summary.dart';
 
@@ -19,22 +18,22 @@ class GroupPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const CreateGroupPage(),
-                ),
-              );
+              // Navigator.of(context).push(
+              //   MaterialPageRoute(
+              //     builder: (context) => const CreateGroupPage(),
+              //   ),
+              // );
             },
           ),
 
           IconButton(
             icon: const Icon(Icons.delete_outline),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const CreateGroupPage(),
-                ),
-              );
+              // Navigator.of(context).push(
+              //   MaterialPageRoute(
+              //     builder: (context) => const CreateGroupPage(),
+              //   ),
+              // );
             },
           ),
 

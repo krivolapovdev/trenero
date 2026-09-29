@@ -4,6 +4,7 @@
   "cancel": "Cancel",
   "search": "Search",
   "repeat": "Repeat",
+  "create": "Create",
   "auth": {
       "signInWithApple": "Sign in with Apple",
       "signInWithGoogle": "Sign in with Google",
@@ -43,5 +44,8 @@
   "transactions": {
     "title": "Transactions",
     "subtitle": "Income and expenses"
+  },
+  "finance": {
+    "title": "Finance"
   }
 }

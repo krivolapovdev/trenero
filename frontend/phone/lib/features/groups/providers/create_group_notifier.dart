@@ -38,8 +38,6 @@ class CreateGroupNotifier extends AsyncNotifier<void> {
         note: note?.trim().isEmpty ?? true ? null : note!.trim(),
       );
 
-      await Future.pause(Duration(seconds: 3));
-
       final client = ref.read(groupServiceProvider);
       await client.createGroup(body: request);
     });
