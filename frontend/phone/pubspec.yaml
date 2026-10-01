@@ -31,6 +31,8 @@ dependencies:
   shimmer_animation: ^2.2.2+1
   persistent_bottom_nav_bar_v2: ^6.4.0
   font_awesome_flutter: ^11.0.0
+  intl: ^0.20.3
+  timeago: ^3.7.1
 
 dev_dependencies:
   flutter_test:

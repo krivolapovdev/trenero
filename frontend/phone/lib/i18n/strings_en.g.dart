@@ -51,14 +51,20 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Cancel'
 	String get cancel => 'Cancel';
 
-	/// en: 'Search'
-	String get search => 'Search';
-
 	/// en: 'Repeat'
 	String get repeat => 'Repeat';
 
 	/// en: 'Create'
 	String get create => 'Create';
+
+	/// en: 'All'
+	String get all => 'All';
+
+	/// en: 'Today'
+	String get today => 'Today';
+
+	/// en: 'Yesterday'
+	String get yesterday => 'Yesterday';
 
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
 	late final Translations$home$en home = Translations$home$en._(_root);
@@ -221,6 +227,15 @@ class Translations$finance$en {
 
 	/// en: 'Finance'
 	String get title => 'Finance';
+
+	/// en: 'Income'
+	String get income => 'Income';
+
+	/// en: 'Expenses'
+	String get expenses => 'Expenses';
+
+	/// en: 'Last transactions'
+	String get lastTransactions => 'Last transactions';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -234,9 +249,11 @@ extension on Translations {
 			'name' => 'Name',
 			'note' => 'Note',
 			'cancel' => 'Cancel',
-			'search' => 'Search',
 			'repeat' => 'Repeat',
 			'create' => 'Create',
+			'all' => 'All',
+			'today' => 'Today',
+			'yesterday' => 'Yesterday',
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',
@@ -264,6 +281,9 @@ extension on Translations {
 			'transactions.title' => 'Transactions',
 			'transactions.subtitle' => 'Income and expenses',
 			'finance.title' => 'Finance',
+			'finance.income' => 'Income',
+			'finance.expenses' => 'Expenses',
+			'finance.lastTransactions' => 'Last transactions',
 			_ => null,
 		};
 	}

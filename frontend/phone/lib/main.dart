@@ -6,9 +6,13 @@ import 'package:phone/core/constants/app_colors.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/features/auth/widgets/auth_gate.dart';
 import 'package:phone/i18n/strings.g.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  timeago.setLocaleMessages('ru', timeago.RuMessages());
+  timeago.setLocaleMessages('en', timeago.EnMessages());
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 

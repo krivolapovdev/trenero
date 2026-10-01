@@ -5,13 +5,17 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
 import lombok.NonNull;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.ReportingPolicy;
+import org.trenero.backend.common.response.StudentResponse;
 import org.trenero.backend.common.response.TransactionResponse;
+import org.trenero.backend.payment.internal.domain.StudentPayment;
 import org.trenero.backend.payment.internal.domain.Transaction;
 import org.trenero.backend.payment.internal.request.CreateTransactionRequest;
+import org.trenero.backend.payment.internal.response.TransactionStudentPaymentResponse;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TransactionMapper {
@@ -35,5 +39,19 @@ public interface TransactionMapper {
     }
 
     return transaction;
+  }
+
+  @Mapping(target = "studentPayment", source = "transaction.studentPayment")
+  TransactionResponse toResponse(
+      Transaction transaction, @Context Map<UUID, StudentResponse> studentMap);
+
+  default TransactionStudentPaymentResponse toStudentPaymentResponse(
+      StudentPayment studentPayment, @Context Map<UUID, StudentResponse> studentMap) {
+    if (studentPayment == null) {
+      return null;
+    }
+
+    StudentResponse student = studentMap.get(studentPayment.getStudentId());
+    return new TransactionStudentPaymentResponse(student, studentPayment.getPaidUntil());
   }
 }

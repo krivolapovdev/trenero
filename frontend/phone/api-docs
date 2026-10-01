@@ -67,17 +67,36 @@
                 "tags": [
                     "transaction-controller"
                 ],
-                "operationId": "getAllTransactions",
+                "operationId": "getPaginatedTransactionsWithStudentPayment",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "default": 20
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/TransactionResponse"
-                                    }
+                                    "$ref": "#/components/schemas/PageTransactionResponse"
                                 }
                             }
                         }
@@ -1221,65 +1240,6 @@
                     "type"
                 ]
             },
-            "TransactionResponse": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "amount": {
-                        "type": "number"
-                    },
-                    "date": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "type": {
-                        "type": "string",
-                        "enum": [
-                            "INCOME",
-                            "EXPENSE"
-                        ]
-                    },
-                    "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                },
-                "required": [
-                    "amount",
-                    "createdAt",
-                    "date",
-                    "id",
-                    "type"
-                ]
-            },
-            "CreateStudentRequest": {
-                "type": "object",
-                "properties": {
-                    "fullName": {
-                        "type": "string"
-                    },
-                    "birthdate": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "phone": {
-                        "type": "string"
-                    },
-                    "note": {
-                        "type": "string"
-                    },
-                    "groupId": {
-                        "type": "string",
-                        "format": "uuid"
-                    }
-                },
-                "required": [
-                    "fullName"
-                ]
-            },
             "StudentResponse": {
                 "type": "object",
                 "properties": {
@@ -1309,6 +1269,104 @@
                     "createdAt",
                     "fullName",
                     "id"
+                ]
+            },
+            "TransactionResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "amount": {
+                        "type": "number"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "INCOME",
+                            "EXPENSE"
+                        ]
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "studentPayment": {
+                        "$ref": "#/components/schemas/TransactionStudentPaymentResponse"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "createdAt",
+                    "date",
+                    "id",
+                    "type"
+                ]
+            },
+            "TransactionStudentPaymentResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "fullName": {
+                        "type": "string"
+                    },
+                    "birthdate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "note": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "paidUntil": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "fullName",
+                    "id",
+                    "paidUntil"
+                ]
+            },
+            "CreateStudentRequest": {
+                "type": "object",
+                "properties": {
+                    "fullName": {
+                        "type": "string"
+                    },
+                    "birthdate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "note": {
+                        "type": "string"
+                    },
+                    "groupId": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "fullName"
                 ]
             },
             "JwtResponse": {
@@ -1603,6 +1661,92 @@
                         "items": {
                             "$ref": "#/components/schemas/StudentVisit"
                         }
+                    }
+                }
+            },
+            "PageTransactionResponse": {
+                "type": "object",
+                "properties": {
+                    "totalElements": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TransactionResponse"
+                        }
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "first": {
+                        "type": "boolean"
+                    },
+                    "last": {
+                        "type": "boolean"
+                    },
+                    "sort": {
+                        "$ref": "#/components/schemas/SortObject"
+                    },
+                    "numberOfElements": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "pageable": {
+                        "$ref": "#/components/schemas/PageableObject"
+                    },
+                    "empty": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "PageableObject": {
+                "type": "object",
+                "properties": {
+                    "offset": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "paged": {
+                        "type": "boolean"
+                    },
+                    "sort": {
+                        "$ref": "#/components/schemas/SortObject"
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "pageNumber": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "unpaged": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "SortObject": {
+                "type": "object",
+                "properties": {
+                    "empty": {
+                        "type": "boolean"
+                    },
+                    "sorted": {
+                        "type": "boolean"
+                    },
+                    "unsorted": {
+                        "type": "boolean"
                     }
                 }
             },

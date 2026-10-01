@@ -2,9 +2,11 @@
   "name": "Name",
   "note": "Note",
   "cancel": "Cancel",
-  "search": "Search",
   "repeat": "Repeat",
   "create": "Create",
+  "all": "All",
+  "today": "Today",
+  "yesterday": "Yesterday",
   "auth": {
       "signInWithApple": "Sign in with Apple",
       "signInWithGoogle": "Sign in with Google",
@@ -46,6 +48,9 @@
     "subtitle": "Income and expenses"
   },
   "finance": {
-    "title": "Finance"
+    "title": "Finance",
+    "income": "Income",
+    "expenses": "Expenses",
+    "lastTransactions": "Last transactions"
   }
 }

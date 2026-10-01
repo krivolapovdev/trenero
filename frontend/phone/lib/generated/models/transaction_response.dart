@@ -5,6 +5,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import 'transaction_response_type.dart';
+import 'transaction_student_payment_response.dart';
 
 part 'transaction_response.g.dart';
 
@@ -16,6 +17,7 @@ class TransactionResponse {
     required this.date,
     required this.type,
     required this.createdAt,
+    this.studentPayment,
   });
 
   factory TransactionResponse.fromJson(Map<String, Object?> json) =>
@@ -26,6 +28,7 @@ class TransactionResponse {
   final DateTime date;
   final TransactionResponseType type;
   final DateTime createdAt;
+  final TransactionStudentPaymentResponse? studentPayment;
 
   Map<String, Object?> toJson() => _$TransactionResponseToJson(this);
 }

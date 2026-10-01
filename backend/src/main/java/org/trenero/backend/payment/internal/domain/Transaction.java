@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -16,7 +17,9 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -65,4 +68,9 @@ public class Transaction {
   @UpdateTimestamp
   @Column(name = "updated_at", nullable = false)
   private OffsetDateTime updatedAt;
+
+  @OneToOne(mappedBy = "transaction")
+  @ToString.Exclude
+  @EqualsAndHashCode.Exclude
+  private StudentPayment studentPayment;
 }

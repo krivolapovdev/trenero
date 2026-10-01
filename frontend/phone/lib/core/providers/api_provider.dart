@@ -87,5 +87,14 @@ final apiProvider = Provider<Dio>((ref) {
     ),
   );
 
+  dio.interceptors.add(
+    InterceptorsWrapper(
+      onResponse: (response, handler) {
+        print('Response [${response.statusCode}] => DATA: ${response.data}');
+        return handler.next(response); // Continue
+      },
+    ),
+  );
+
   return dio;
 });

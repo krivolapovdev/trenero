@@ -1,18 +1,17 @@
+// lib/features/finance/pages/finance_page.dart
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/shell_page.dart';
 import 'package:phone/features/finance/data/monthly_data.dart';
-import 'package:phone/features/finance/widgets/action_card.dart';
 import 'package:phone/features/finance/widgets/monthly_bar_chart.dart';
+import 'package:phone/features/finance/widgets/recent_transactions.dart';
 import 'package:phone/features/finance/widgets/summary_card.dart';
-import 'package:phone/i18n/strings.g.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class FinancePage extends ShellPage {
   const new({
     super.key,
     required super.title,
-    super.icon = Icons.insert_chart_outlined_outlined,
-    super.selectedIcon = Icons.insert_chart,
+    super.icon = Icons.monetization_on_outlined,
+    super.selectedIcon = Icons.monetization_on,
   });
 
   @override
@@ -41,19 +40,7 @@ class FinancePage extends ShellPage {
                   },
                 ),
 
-                ActionCard(
-                  title: context.t.reports.title,
-                  subtitle: context.t.reports.subtitle,
-                  icon: FaIcon(FontAwesomeIcons.chartLine),
-                  onTap: () {},
-                ),
-
-                ActionCard(
-                  title: context.t.transactions.title,
-                  subtitle: context.t.transactions.subtitle,
-                  icon: FaIcon(FontAwesomeIcons.dollarSign),
-                  onTap: () {},
-                ),
+                RecentTransactions(),
               ],
             ),
           ),

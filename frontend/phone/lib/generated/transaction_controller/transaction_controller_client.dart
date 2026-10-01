@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/create_transaction_request.dart';
+import '../models/page_transaction_response.dart';
 import '../models/transaction_response.dart';
 
 part 'transaction_controller_client.g.dart';
@@ -16,7 +17,10 @@ abstract class TransactionControllerClient {
       _TransactionControllerClient;
 
   @GET('/api/v1/transactions')
-  Future<List<TransactionResponse>> getAllTransactions();
+  Future<PageTransactionResponse> getPaginatedTransactionsWithStudentPayment({
+    @Query('page') int? page = 1,
+    @Query('size') int? size = 20,
+  });
 
   @POST('/api/v1/transactions')
   Future<TransactionResponse> createTransaction({

@@ -6,10 +6,12 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import org.trenero.backend.common.domain.TransactionType;
+import org.trenero.backend.payment.internal.response.TransactionStudentPaymentResponse;
 
 public record TransactionResponse(
     @NotNull UUID id,
     @NotNull BigDecimal amount,
     @NotNull LocalDate date,
     @NotNull TransactionType type,
-    @NotNull OffsetDateTime createdAt) {}
+    @NotNull OffsetDateTime createdAt,
+    TransactionStudentPaymentResponse studentPayment) {}

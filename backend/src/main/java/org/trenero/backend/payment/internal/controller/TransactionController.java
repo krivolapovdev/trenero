@@ -1,12 +1,12 @@
 package org.trenero.backend.payment.internal.controller;
 
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.trenero.backend.common.response.TransactionResponse;
@@ -32,10 +33,16 @@ public class TransactionController {
   private final TransactionService transactionService;
 
   @GetMapping
-  public @NonNull List<TransactionResponse> getAllTransactions(
+  public @NonNull Page<TransactionResponse> getPaginatedTransactionsWithStudentPayment(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "20") int size,
       @AuthenticationPrincipal @NonNull JwtUser jwtUser) {
-    log.info("Fetching all transactions for userId={}", jwtUser.id());
-    return transactionService.getAllTransactions(jwtUser);
+    log.info(
+        "Fetching paginated transactions for userId={}, page={}, size={}",
+        jwtUser.id(),
+        page,
+        size);
+    return transactionService.getPaginatedTransactionsWithStudentPayment(page, size, jwtUser);
   }
 
   @GetMapping("/{transactionId}")

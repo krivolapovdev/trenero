@@ -14,7 +14,7 @@ class GroupSearchDelegate extends SearchDelegate {
       IconButton(
         icon: const Icon(Icons.clear),
         onPressed: () {
-          query = ''; // Clears the text
+          query = '';
         },
       ),
 

@@ -2,9 +2,11 @@
   "name": "Имя",
   "note": "Заметка",
   "cancel": "Отменить",
-  "search": "Поиск",
   "repeat": "Повторить",
   "create": "Создать",
+  "all": "Все",
+  "today": "Сегодня",
+  "yesterday": "Вчера",
   "auth": {
     "signInWithApple": "Войти через Apple",
     "signInWithGoogle": "Войти через Google",
@@ -46,6 +48,9 @@
     "subtitle": "Доходы и расходы"
   },
   "finance": {
-    "title": "Финансы"
+    "title": "Финансы",
+    "income": "Доходы",
+    "expenses": "Расходы",
+    "lastTransactions": "Последние операции"
   }
 }

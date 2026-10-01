@@ -6,20 +6,28 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.domain.TransactionType;
 import org.trenero.backend.common.response.TransactionResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.payment.external.TransactionSpi;
+import org.trenero.backend.payment.internal.domain.StudentPayment;
 import org.trenero.backend.payment.internal.domain.Transaction;
 import org.trenero.backend.payment.internal.mapper.TransactionMapper;
 import org.trenero.backend.payment.internal.repository.TransactionRepository;
 import org.trenero.backend.payment.internal.request.CreateTransactionRequest;
+import org.trenero.backend.student.external.StudentSpi;
 
 @Service
 @RequiredArgsConstructor
@@ -28,13 +36,28 @@ public class TransactionService implements TransactionSpi {
 
   private final TransactionRepository transactionRepository;
   private final TransactionMapper transactionMapper;
+  @Lazy private final StudentSpi studentSpi;
 
   @Transactional(readOnly = true)
-  public @NonNull List<TransactionResponse> getAllTransactions(@NonNull JwtUser jwtUser) {
-    log.info("Fetching all transactions from database for userId={}", jwtUser.id());
-    return transactionRepository.findAllByOwnerId(jwtUser.id()).stream()
-        .map(transactionMapper::toResponse)
-        .toList();
+  public Page<TransactionResponse> getPaginatedTransactionsWithStudentPayment(
+      int page, int size, @NonNull JwtUser jwtUser) {
+
+    int pageIndex = Math.max(0, page - 1);
+    Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(Sort.Direction.DESC, "date"));
+
+    Page<Transaction> transactions =
+        transactionRepository.findAllWithStudentPayment(jwtUser.id(), pageable);
+
+    var studentIds =
+        transactions.getContent().stream()
+            .map(Transaction::getStudentPayment)
+            .filter(Objects::nonNull)
+            .map(StudentPayment::getStudentId)
+            .toList();
+
+    var studentsByIds = studentSpi.getStudentsByIds(studentIds, jwtUser);
+
+    return transactions.map(tx -> transactionMapper.toResponse(tx, studentsByIds));
   }
 
   @Transactional(readOnly = true)

@@ -41,9 +41,11 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get name => 'Имя';
 	@override String get note => 'Заметка';
 	@override String get cancel => 'Отменить';
-	@override String get search => 'Поиск';
 	@override String get repeat => 'Повторить';
 	@override String get create => 'Создать';
+	@override String get all => 'Все';
+	@override String get today => 'Сегодня';
+	@override String get yesterday => 'Вчера';
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
 	@override late final _Translations$home$ru home = _Translations$home$ru._(_root);
 	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
@@ -151,6 +153,9 @@ class _Translations$finance$ru implements Translations$finance$en {
 
 	// Translations
 	@override String get title => 'Финансы';
+	@override String get income => 'Доходы';
+	@override String get expenses => 'Расходы';
+	@override String get lastTransactions => 'Последние операции';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -164,9 +169,11 @@ extension on TranslationsRu {
 			'name' => 'Имя',
 			'note' => 'Заметка',
 			'cancel' => 'Отменить',
-			'search' => 'Поиск',
 			'repeat' => 'Повторить',
 			'create' => 'Создать',
+			'all' => 'Все',
+			'today' => 'Сегодня',
+			'yesterday' => 'Вчера',
 			'auth.signInWithApple' => 'Войти через Apple',
 			'auth.signInWithGoogle' => 'Войти через Google',
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',
@@ -194,6 +201,9 @@ extension on TranslationsRu {
 			'transactions.title' => 'Транзакции',
 			'transactions.subtitle' => 'Доходы и расходы',
 			'finance.title' => 'Финансы',
+			'finance.income' => 'Доходы',
+			'finance.expenses' => 'Расходы',
+			'finance.lastTransactions' => 'Последние операции',
 			_ => null,
 		};
 	}

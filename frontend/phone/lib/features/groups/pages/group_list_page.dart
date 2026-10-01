@@ -34,7 +34,7 @@ class GroupListPage extends ShellPage {
               context: context,
               delegate: GroupSearchDelegate(
                 currentGroups,
-                '${context.t.search}...',
+                '${MaterialLocalizations.of(context).searchFieldLabel}...',
               ),
             );
           },
