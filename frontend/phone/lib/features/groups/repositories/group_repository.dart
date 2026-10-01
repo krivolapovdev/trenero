@@ -5,8 +5,8 @@ import 'package:phone/generated/group_controller/group_controller_client.dart';
 import 'package:phone/generated/models/group_summary.dart';
 
 final groupRepositoryProvider = Provider<GroupRepository>((ref) {
-  final client = ref.watch(groupServiceProvider);
-  return GroupRepository(client);
+  final service = ref.watch(groupServiceProvider);
+  return GroupRepository(service);
 });
 
 class GroupRepository {

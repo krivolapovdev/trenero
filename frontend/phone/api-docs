@@ -1223,11 +1223,7 @@
                         "type": "number"
                     },
                     "type": {
-                        "type": "string",
-                        "enum": [
-                            "INCOME",
-                            "EXPENSE"
-                        ]
+                        "$ref": "#/components/schemas/TransactionType"
                     },
                     "date": {
                         "type": "string",
@@ -1238,6 +1234,13 @@
                     "amount",
                     "date",
                     "type"
+                ]
+            },
+            "TransactionType": {
+                "type": "string",
+                "enum": [
+                    "INCOME",
+                    "EXPENSE"
                 ]
             },
             "StudentResponse": {
@@ -1286,11 +1289,7 @@
                         "format": "date"
                     },
                     "type": {
-                        "type": "string",
-                        "enum": [
-                            "INCOME",
-                            "EXPENSE"
-                        ]
+                        "$ref": "#/components/schemas/TransactionType"
                     },
                     "createdAt": {
                         "type": "string",
@@ -1689,21 +1688,21 @@
                         "type": "integer",
                         "format": "int32"
                     },
+                    "numberOfElements": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "sort": {
+                        "$ref": "#/components/schemas/SortObject"
+                    },
+                    "pageable": {
+                        "$ref": "#/components/schemas/PageableObject"
+                    },
                     "first": {
                         "type": "boolean"
                     },
                     "last": {
                         "type": "boolean"
-                    },
-                    "sort": {
-                        "$ref": "#/components/schemas/SortObject"
-                    },
-                    "numberOfElements": {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "pageable": {
-                        "$ref": "#/components/schemas/PageableObject"
                     },
                     "empty": {
                         "type": "boolean"

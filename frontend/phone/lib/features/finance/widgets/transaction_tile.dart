@@ -4,7 +4,7 @@ import 'package:phone/core/extensions/number_extensions.dart';
 import 'package:phone/core/extensions/string_extensions.dart';
 import 'package:phone/features/finance/models/transaction_tile_info.dart';
 import 'package:phone/generated/models/transaction_response.dart';
-import 'package:phone/generated/models/transaction_response_type.dart';
+import 'package:phone/generated/models/transaction_type.dart';
 
 class TransactionTile extends StatelessWidget {
   final TransactionResponse transaction;
@@ -13,7 +13,11 @@ class TransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = transaction.type == TransactionResponseType.income;
+    final formattedAmount =
+        (transaction.type == TransactionType.income
+                ? transaction.amount
+                : -transaction.amount)
+            .toFormattedAmount();
     final info = _getTransactionDisplayInfo(transaction);
 
     return Padding(
@@ -74,11 +78,13 @@ class TransactionTile extends StatelessWidget {
           const SizedBox(width: 8),
 
           Text(
-            transaction.amount.toFormattedAmount(),
+            formattedAmount,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: isIncome ? const Color(0xFF28A745) : Colors.black,
+              color: transaction.type == TransactionType.income
+                  ? const Color(0xFF28A745)
+                  : Colors.black,
             ),
           ),
         ],
@@ -102,7 +108,7 @@ class TransactionTile extends StatelessWidget {
       );
     }
 
-    final isIncome = tx.type == TransactionResponseType.income;
+    final isIncome = tx.type == TransactionType.income;
     final timeFormatted = DateFormat('HH:mm').format(tx.createdAt);
 
     return TransactionTileInfo(
@@ -113,7 +119,7 @@ class TransactionTile extends StatelessWidget {
           : Icons.arrow_upward_rounded,
       backgroundColor: isIncome
           ? const Color(0xFF28A745)
-          : const Color(0xFF8E8E93),
+          : const Color(0xFFE00153),
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/core/extensions/app_locale_extension.dart';
+import 'package:phone/core/extensions/app_locale_extensions.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/i18n/strings.g.dart';
 

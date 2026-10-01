@@ -33,6 +33,8 @@ dependencies:
   font_awesome_flutter: ^11.0.0
   intl: ^0.20.3
   timeago: ^3.7.1
+  fluentui_system_icons: ^1.1.273
+  syncfusion_flutter_datepicker: ^35.1.37
 
 dev_dependencies:
   flutter_test:

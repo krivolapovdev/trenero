@@ -122,7 +122,6 @@ class RecentTransactions extends ConsumerWidget {
     );
   }
 
-  /// Groups transactions purely by normalized DateTime keys (year, month, day)
   Map<DateTime, List<TransactionResponse>> _groupTransactionsByDate(
     List<TransactionResponse> transactions,
   ) {
@@ -136,7 +135,6 @@ class RecentTransactions extends ConsumerWidget {
     return grouped;
   }
 
-  /// Formats normalized DateTime key into localized date header string
   String _formatDateHeader(DateTime txDate, BuildContext context) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);

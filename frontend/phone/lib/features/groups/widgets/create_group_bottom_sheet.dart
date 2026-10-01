@@ -1,9 +1,10 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/error_snack_bar.dart';
-import 'package:phone/features/groups/providers/create_group_notifier.dart';
-import 'package:phone/features/groups/providers/groups_notifier.dart';
+import 'package:phone/features/groups/controllers/create_group_controller.dart';
+import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class CreateGroupBottomSheet extends ConsumerStatefulWidget {
@@ -45,7 +46,7 @@ class _CreateGroupBottomSheetState
     FocusScope.of(context).unfocus();
 
     final success = await ref
-        .read(createGroupNotifierProvider.notifier)
+        .read(createGroupControllerProvider.notifier)
         .saveGroup(
           name: name,
           priceText: _priceController.text,
@@ -56,9 +57,9 @@ class _CreateGroupBottomSheetState
 
     if (success) {
       Navigator.of(context).pop();
-      await ref.read(groupsNotifierProvider.notifier).refreshGroups();
+      await ref.read(groupListControllerProvider.notifier).refreshGroups();
     } else {
-      final state = ref.read(createGroupNotifierProvider);
+      final state = ref.read(createGroupControllerProvider);
       final error = state.error;
       if (error != null) {
         ErrorSnackBar.show(context, 'Error: $error');
@@ -68,7 +69,7 @@ class _CreateGroupBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final createState = ref.watch(createGroupNotifierProvider);
+    final createState = ref.watch(createGroupControllerProvider);
     final isLoading = createState.isLoading;
     final isNameEmpty = _nameController.text.trim().isEmpty;
     final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
@@ -103,7 +104,9 @@ class _CreateGroupBottomSheetState
                       TextField(
                         decoration: InputDecoration(
                           labelText: '${context.t.name}*',
-                          prefixIcon: const Icon(Icons.alternate_email),
+                          prefixIcon: const Icon(
+                            FluentIcons.mention_16_regular,
+                          ),
                         ),
                         controller: _nameController,
                         enabled: !isLoading,
@@ -113,7 +116,7 @@ class _CreateGroupBottomSheetState
                         decoration: InputDecoration(
                           labelText: context.t.groups.defaultPrice,
                           hintText: '123.45',
-                          prefixIcon: const Icon(Icons.attach_money),
+                          prefixIcon: const Icon(FluentIcons.money_16_regular),
                         ),
                         controller: _priceController,
                         keyboardType: const TextInputType.numberWithOptions(
@@ -130,7 +133,7 @@ class _CreateGroupBottomSheetState
                       TextField(
                         decoration: InputDecoration(
                           labelText: context.t.note,
-                          prefixIcon: const Icon(Icons.notes),
+                          prefixIcon: const Icon(FluentIcons.note_16_regular),
                         ),
                         controller: _noteController,
                         enabled: !isLoading,

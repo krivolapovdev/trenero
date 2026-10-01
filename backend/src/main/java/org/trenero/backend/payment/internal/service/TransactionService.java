@@ -96,7 +96,7 @@ public class TransactionService implements TransactionSpi {
     log.info("Saving new {} transaction to database for userId={}", request.type(), jwtUser.id());
 
     Transaction transaction = transactionMapper.toEntity(request, jwtUser.id());
-    Transaction savedTransaction = transactionRepository.save(transaction);
+    Transaction savedTransaction = transactionRepository.saveAndFlush(transaction);
 
     return transactionMapper.toResponse(savedTransaction);
   }

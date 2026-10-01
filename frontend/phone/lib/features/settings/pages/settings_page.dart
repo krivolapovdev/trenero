@@ -4,7 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:phone/core/constants/app_constants.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/core/widgets/shell_page.dart';
-import 'package:phone/features/groups/widgets/app_bottom_sheet.dart';
+import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/features/settings/pages/contacts_page.dart';
 import 'package:phone/features/settings/widgets/language_selection_sheet.dart';
 import 'package:phone/features/settings/widgets/logout_confirmation_sheet.dart';
