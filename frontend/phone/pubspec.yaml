@@ -28,14 +28,13 @@ dependencies:
   fl_chart: ^1.2.0
   package_info_plus: ^10.2.1
   custom_refresh_indicator: ^4.0.2
-  shimmer_animation: ^2.2.2+1
   persistent_bottom_nav_bar_v2: ^6.4.0
   font_awesome_flutter: ^11.0.0
   intl: ^0.20.3
   timeago: ^3.7.1
   fluentui_system_icons: ^1.1.273
   syncfusion_flutter_datepicker: ^35.1.37
-
+  skeletonizer: ^3.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

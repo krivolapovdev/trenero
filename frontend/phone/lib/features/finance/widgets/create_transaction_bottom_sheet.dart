@@ -128,7 +128,7 @@ class _CreateTransactionBottomSheetState
                               value: TransactionType.expense,
                               label: Text('Расход'),
                               icon: Icon(
-                                FluentIcons.arrow_down_right_24_regular,
+                                FluentIcons.arrow_down_24_regular,
                                 color: Colors.redAccent,
                               ),
                             ),
@@ -136,7 +136,7 @@ class _CreateTransactionBottomSheetState
                               value: TransactionType.income,
                               label: Text('Доход'),
                               icon: Icon(
-                                FluentIcons.arrow_up_right_24_regular,
+                                FluentIcons.arrow_up_24_regular,
                                 color: Colors.green,
                               ),
                             ),

@@ -30,14 +30,14 @@ class _MainShellScreenState extends State<MainShellScreen> {
         title: Text(pages[_currentIndex].title),
         elevation: 0,
         actions: pages[_currentIndex].actions(context),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        surfaceTintColor: Theme.of(context).colorScheme.surface,
       ),
 
       body: IndexedStack(index: _currentIndex, children: pages),
 
       bottomNavigationBar: NavigationBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {

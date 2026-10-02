@@ -11,14 +11,64 @@ final groupRepositoryProvider = Provider<GroupRepository>((ref) {
 
 class GroupRepository {
   final GroupControllerClient _service;
+  List<GroupSummary>? _cachedGroups;
 
   new(this._service);
 
-  Future<List<GroupSummary>> getAllGroups() async {
+  Future<List<GroupSummary>> getAllGroups({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedGroups != null) {
+      return List.unmodifiable(_cachedGroups!);
+    }
+
     try {
-      return await _service.getAllGroupsSummary();
+      final groups = await _service.getAllGroupsSummary();
+      _cachedGroups = groups;
+      return List.unmodifiable(_cachedGroups!);
     } on DioException catch (e) {
       throw Exception('Error: ${e.message}');
     }
+  }
+
+  List<GroupSummary> getCachedGroups() {
+    if (_cachedGroups == null) return const [];
+    return List.unmodifiable(_cachedGroups!);
+  }
+  //
+  // Future<GroupSummary> createGroup(CreateGroupRequest request) async {
+  //   try {
+  //     // 1. Отправляем запрос на сервер
+  //     final newGroup = await _service.createGroup(body: request);
+  //
+  //     // 2. Обновляем локальный кэш в памяти
+  //     if (_cachedGroups != null) {
+  //       // Создаем новый иммутабельный список с добавленным элементом
+  //       _cachedGroups = [..._cachedGroups!, newGroup];
+  //     } else {
+  //       _cachedGroups = [newGroup];
+  //     }
+  //
+  //     // 3. Возвращаем созданную группу
+  //     return newGroup;
+  //   } on DioException catch (e) {
+  //     throw Exception('Error creating group: ${e.message}');
+  //   }
+  // }
+
+  /// Удаление группы с автоматической очисткой из кэша
+  Future<void> deleteGroup(String groupId) async {
+    try {
+      await _service.deleteGroup(groupId: groupId);
+
+      // Удаляем элемент из локального кэша
+      if (_cachedGroups != null) {
+        _cachedGroups = _cachedGroups!.where((g) => g.id != groupId).toList();
+      }
+    } on DioException catch (e) {
+      throw Exception('Error deleting group: ${e.message}');
+    }
+  }
+
+  void clearCache() {
+    _cachedGroups = null;
   }
 }

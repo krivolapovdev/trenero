@@ -12,8 +12,8 @@ part 'pageable_object.g.dart';
 class PageableObject {
   const PageableObject({
     this.offset,
-    this.paged,
     this.sort,
+    this.paged,
     this.pageSize,
     this.pageNumber,
     this.unpaged,
@@ -23,8 +23,8 @@ class PageableObject {
       _$PageableObjectFromJson(json);
 
   final int? offset;
-  final bool? paged;
   final SortObject? sort;
+  final bool? paged;
   final int? pageSize;
   final int? pageNumber;
   final bool? unpaged;
