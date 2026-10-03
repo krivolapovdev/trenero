@@ -90,6 +90,7 @@ class _GroupPageState extends State<GroupPage> {
         distance: 120.0,
         children: [
           FloatingActionButton(
+            heroTag: 'edit-group',
             onPressed: () {},
             elevation: 0,
             focusElevation: 0,
@@ -98,6 +99,7 @@ class _GroupPageState extends State<GroupPage> {
           ),
 
           FloatingActionButton(
+            heroTag: 'lesson-group',
             onPressed: () {},
             elevation: 0,
             focusElevation: 0,
@@ -121,7 +123,7 @@ class _GroupPageState extends State<GroupPage> {
                 tag: 'group-card-${widget.group.id}',
                 child: Material(
                   type: MaterialType.transparency,
-                  child: GroupCard(group: widget.group, onTap: null),
+                  child: GroupCard(group: widget.group, onTap: () {}),
                 ),
               ),
             ),
