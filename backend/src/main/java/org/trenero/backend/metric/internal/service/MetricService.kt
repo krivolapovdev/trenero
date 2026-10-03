@@ -1,55 +1,56 @@
-package org.trenero.backend.metric.internal.service;
+package org.trenero.backend.metric.internal.service
 
-import java.math.BigDecimal;
-import java.time.YearMonth;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.trenero.backend.common.domain.TransactionType;
-import org.trenero.backend.common.response.TransactionResponse;
-import org.trenero.backend.common.security.JwtUser;
-import org.trenero.backend.metric.internal.response.MonthlyPaymentMetricResponse;
-import org.trenero.backend.payment.external.TransactionSpi;
+import java.math.BigDecimal
+import java.time.LocalDate
+import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Lazy
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import org.trenero.backend.common.domain.TransactionType
+import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.metric.internal.domain.MetricScope
+import org.trenero.backend.metric.internal.response.PaymentMetricResponse
+import org.trenero.backend.payment.external.TransactionSpi
 
 @Service
-@Slf4j
-@RequiredArgsConstructor
-public class MetricService {
-
-  @Lazy private final TransactionSpi transactionSpi;
+class MetricService(@Lazy private val transactionSpi: TransactionSpi) {
+  private val log = LoggerFactory.getLogger(javaClass)
 
   @Transactional(readOnly = true)
-  public @NonNull List<MonthlyPaymentMetricResponse> getMonthlyStatistics(
-      @NonNull JwtUser jwtUser) {
-    log.info("Calculating monthly payment statistics: user={}", jwtUser);
+  fun getPaymentStatistics(
+    scope: MetricScope,
+    startDate: LocalDate,
+    endDate: LocalDate,
+    jwtUser: JwtUser,
+  ): List<PaymentMetricResponse> {
+    log.info(
+      "Calculating statistics: scope={}, range=[{} to {}], user={}",
+      scope,
+      startDate,
+      endDate,
+      jwtUser,
+    )
 
-    YearMonth endMonth = YearMonth.now();
-    YearMonth startMonth = endMonth.minusMonths(6);
+    val totalsByBucket =
+      transactionSpi
+        .getTransactionsByDateRange(startDate, endDate, jwtUser)
+        .groupingBy { scope.truncate(it.date) }
+        .fold(BigDecimal.ZERO) { acc, tr ->
+          val amount = if (tr.type == TransactionType.INCOME) tr.amount else tr.amount.negate()
+          acc + amount
+        }
 
-    List<TransactionResponse> transactionsByDateRange =
-        transactionSpi.getTransactionsByDateRange(
-            startMonth.atDay(1), endMonth.atEndOfMonth(), jwtUser);
+    val startBucket = scope.truncate(startDate)
+    val endBucket = scope.truncate(endDate)
 
-    Map<YearMonth, BigDecimal> totalByMonth =
-        transactionsByDateRange.stream()
-            .collect(
-                Collectors.toMap(
-                    tr -> YearMonth.from(tr.date()),
-                    tr -> tr.type() == TransactionType.INCOME ? tr.amount() : tr.amount().negate(),
-                    BigDecimal::add));
-
-    return Stream.iterate(startMonth, m -> !m.isAfter(endMonth), m -> m.plusMonths(1))
-        .map(
-            month ->
-                new MonthlyPaymentMetricResponse(
-                    month, totalByMonth.getOrDefault(month, BigDecimal.ZERO)))
-        .toList();
+    return generateSequence(startBucket) { scope.next(it) }
+      .takeWhile { !it.isAfter(endBucket) }
+      .map { bucket ->
+        PaymentMetricResponse(
+          date = bucket,
+          total = totalsByBucket[bucket] ?: BigDecimal.ZERO,
+        )
+      }
+      .toList()
   }
 }
