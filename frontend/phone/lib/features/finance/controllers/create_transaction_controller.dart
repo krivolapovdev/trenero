@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/features/finance/controllers/payment_metrics_controller.dart';
 import 'package:phone/features/finance/controllers/recent_transactions_controller.dart';
 import 'package:phone/features/finance/repositories/transaction_repository.dart';
 import 'package:phone/generated/models/transaction_type.dart';
@@ -29,6 +33,19 @@ class CreateTransactionController extends AsyncNotifier<void> {
 
       await ref.read(recentTransactionsControllerProvider.notifier).refresh();
     });
+
+    if (!state.hasError) {
+      unawaited(
+        ref
+            .read(paymentMetricsControllerProvider.notifier)
+            .loadMetrics()
+            .catchError((error, _) {
+              log(
+                'Error refreshing metrics after creating transaction: $error',
+              );
+            }),
+      );
+    }
 
     return !state.hasError;
   }

@@ -19,12 +19,12 @@ PageTransactionResponse _$PageTransactionResponseFromJson(
   first: json['first'] as bool?,
   last: json['last'] as bool?,
   numberOfElements: (json['numberOfElements'] as num?)?.toInt(),
-  sort: json['sort'] == null
-      ? null
-      : SortObject.fromJson(json['sort'] as Map<String, dynamic>),
   pageable: json['pageable'] == null
       ? null
       : PageableObject.fromJson(json['pageable'] as Map<String, dynamic>),
+  sort: json['sort'] == null
+      ? null
+      : SortObject.fromJson(json['sort'] as Map<String, dynamic>),
   empty: json['empty'] as bool?,
 );
 
@@ -39,7 +39,7 @@ Map<String, dynamic> _$PageTransactionResponseToJson(
   'first': instance.first,
   'last': instance.last,
   'numberOfElements': instance.numberOfElements,
-  'sort': instance.sort,
   'pageable': instance.pageable,
+  'sort': instance.sort,
   'empty': instance.empty,
 };

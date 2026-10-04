@@ -35,6 +35,7 @@ dependencies:
   fluentui_system_icons: ^1.1.273
   syncfusion_flutter_datepicker: ^35.1.37
   skeletonizer: ^3.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -44,7 +45,6 @@ dev_dependencies:
   swagger_parser: ^1.44.3
   json_serializable: ^6.14.1
   retrofit_generator: ^10.2.11
-
 
 flutter:
   uses-material-design: true

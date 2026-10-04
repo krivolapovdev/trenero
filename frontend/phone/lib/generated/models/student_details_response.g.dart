@@ -19,7 +19,7 @@ StudentDetailsResponse _$StudentDetailsResponseFromJson(
       .map((e) => StudentPaymentResponse.fromJson(e as Map<String, dynamic>))
       .toList(),
   statuses: (json['statuses'] as List<dynamic>)
-      .map((e) => StudentDetailsResponseStatuses.fromJson(e as String))
+      .map((e) => StudentStatus.fromJson(e as String))
       .toList(),
   birthdate: json['birthdate'] == null
       ? null
@@ -47,18 +47,16 @@ Map<String, dynamic> _$StudentDetailsResponseToJson(
   'createdAt': instance.createdAt.toIso8601String(),
   'studentVisits': instance.studentVisits,
   'studentPayments': instance.studentPayments,
-  'statuses': instance.statuses
-      .map((e) => _$StudentDetailsResponseStatusesEnumMap[e]!)
-      .toList(),
+  'statuses': instance.statuses.map((e) => _$StudentStatusEnumMap[e]!).toList(),
   'studentGroup': instance.studentGroup,
   'groupStudentResponse': instance.groupStudentResponse,
 };
 
-const _$StudentDetailsResponseStatusesEnumMap = {
-  StudentDetailsResponseStatuses.inactive: 'INACTIVE',
-  StudentDetailsResponseStatuses.present: 'PRESENT',
-  StudentDetailsResponseStatuses.missing: 'MISSING',
-  StudentDetailsResponseStatuses.paid: 'PAID',
-  StudentDetailsResponseStatuses.unpaid: 'UNPAID',
-  StudentDetailsResponseStatuses.$unknown: r'$unknown',
+const _$StudentStatusEnumMap = {
+  StudentStatus.inactive: 'INACTIVE',
+  StudentStatus.present: 'PRESENT',
+  StudentStatus.missing: 'MISSING',
+  StudentStatus.paid: 'PAID',
+  StudentStatus.unpaid: 'UNPAID',
+  StudentStatus.$unknown: r'$unknown',
 };

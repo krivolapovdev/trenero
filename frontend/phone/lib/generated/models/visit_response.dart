@@ -4,8 +4,8 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'visit_response_status.dart';
-import 'visit_response_type.dart';
+import 'visit_status.dart';
+import 'visit_type.dart';
 
 part 'visit_response.g.dart';
 
@@ -24,8 +24,8 @@ class VisitResponse {
       _$VisitResponseFromJson(json);
 
   final String id;
-  final VisitResponseStatus status;
-  final VisitResponseType type;
+  final VisitStatus status;
+  final VisitType type;
   final String lessonId;
   final String studentId;
   final DateTime createdAt;

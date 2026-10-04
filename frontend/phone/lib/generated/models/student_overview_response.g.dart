@@ -13,7 +13,7 @@ StudentOverviewResponse _$StudentOverviewResponseFromJson(
   fullName: json['fullName'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
   statuses: (json['statuses'] as List<dynamic>)
-      .map((e) => StudentOverviewResponseStatuses.fromJson(e as String))
+      .map((e) => StudentStatus.fromJson(e as String))
       .toList(),
   birthdate: json['birthdate'] == null
       ? null
@@ -35,16 +35,14 @@ Map<String, dynamic> _$StudentOverviewResponseToJson(
   'note': instance.note,
   'createdAt': instance.createdAt.toIso8601String(),
   'studentGroup': instance.studentGroup,
-  'statuses': instance.statuses
-      .map((e) => _$StudentOverviewResponseStatusesEnumMap[e]!)
-      .toList(),
+  'statuses': instance.statuses.map((e) => _$StudentStatusEnumMap[e]!).toList(),
 };
 
-const _$StudentOverviewResponseStatusesEnumMap = {
-  StudentOverviewResponseStatuses.inactive: 'INACTIVE',
-  StudentOverviewResponseStatuses.present: 'PRESENT',
-  StudentOverviewResponseStatuses.missing: 'MISSING',
-  StudentOverviewResponseStatuses.paid: 'PAID',
-  StudentOverviewResponseStatuses.unpaid: 'UNPAID',
-  StudentOverviewResponseStatuses.$unknown: r'$unknown',
+const _$StudentStatusEnumMap = {
+  StudentStatus.inactive: 'INACTIVE',
+  StudentStatus.present: 'PRESENT',
+  StudentStatus.missing: 'MISSING',
+  StudentStatus.paid: 'PAID',
+  StudentStatus.unpaid: 'UNPAID',
+  StudentStatus.$unknown: r'$unknown',
 };

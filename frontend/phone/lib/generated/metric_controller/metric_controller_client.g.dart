@@ -21,30 +21,37 @@ class _MetricControllerClient implements MetricControllerClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<List<MonthlyPaymentMetricResponse>>
-  getMonthlyPaymentStatistics() async {
+  Future<List<PaymentMetricResponse>> getPaymentStatistics({
+    required DateTime startDate,
+    required DateTime endDate,
+    MetricScope? scope = MetricScope.month,
+  }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'startDate': startDate.toIso8601String(),
+      r'endDate': endDate.toIso8601String(),
+      r'scope': scope,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<List<MonthlyPaymentMetricResponse>>(
+    final _options = _setStreamType<List<PaymentMetricResponse>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/v1/metrics/payments/monthly',
+            '/api/v1/metrics/payments',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<List<dynamic>>(_options);
-    late List<MonthlyPaymentMetricResponse> _value;
+    late List<PaymentMetricResponse> _value;
     try {
       _value = _result.data!
           .map(
-            (dynamic i) => MonthlyPaymentMetricResponse.fromJson(
-              i as Map<String, dynamic>,
-            ),
+            (dynamic i) =>
+                PaymentMetricResponse.fromJson(i as Map<String, dynamic>),
           )
           .toList();
     } on Object catch (e, s) {

@@ -10,4 +10,9 @@ extension StringInitialsExtension on String {
 
     return parts[0][0].toUpperCase();
   }
+
+  String get capitalized {
+    if (isEmpty) return this;
+    return '${this[0].toUpperCase()}${substring(1)}';
+  }
 }

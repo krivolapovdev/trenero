@@ -4,8 +4,8 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'student_visit_status.dart';
-import 'student_visit_type.dart';
+import 'visit_status.dart';
+import 'visit_type.dart';
 
 part 'student_visit.g.dart';
 
@@ -17,8 +17,8 @@ class StudentVisit {
       _$StudentVisitFromJson(json);
 
   final String? studentId;
-  final StudentVisitStatus? status;
-  final StudentVisitType? type;
+  final VisitStatus? status;
+  final VisitType? type;
 
   Map<String, Object?> toJson() => _$StudentVisitToJson(this);
 }

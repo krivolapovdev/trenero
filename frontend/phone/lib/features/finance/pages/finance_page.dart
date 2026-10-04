@@ -1,12 +1,12 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/shell_page.dart';
-import 'package:phone/features/finance/data/monthly_data.dart';
+import 'package:phone/features/finance/controllers/payment_metrics_controller.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
-import 'package:phone/features/finance/widgets/monthly_bar_chart.dart';
+import 'package:phone/features/finance/widgets/profit_line_chart.dart';
 import 'package:phone/features/finance/widgets/recent_transactions.dart';
-import 'package:phone/features/finance/widgets/summary_card.dart';
 
 class FinancePage extends ShellPage {
   const new({
@@ -25,42 +25,59 @@ class FinancePage extends ShellPage {
         child: const CreateTransactionBottomSheet(),
       ),
     ),
-
-    SizedBox(width: 8),
+    const SizedBox(width: 8),
   ];
 
   @override
-  Widget build(BuildContext context) {
-    int selectedIndex = 5;
+  Widget build(BuildContext context) => Consumer(
+    builder: (context, ref, child) {
+      final metricsAsync = ref.watch(paymentMetricsControllerProvider);
+      final selectedIndex = ref.watch(selectedMetricIndexProvider);
 
-    return StatefulBuilder(
-      builder: (context, setState) => SafeArea(
+      return SafeArea(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               spacing: 16,
               children: [
-                SummaryCard(selectedItem: monthlyData[selectedIndex]),
-
-                MonthlyBarChart(
-                  data: monthlyData,
-                  selectedIndex: selectedIndex,
-                  onIndexChanged: (index) {
-                    if (selectedIndex != index) {
-                      setState(() {
-                        selectedIndex = index;
-                      });
+                metricsAsync.when(
+                  data: (data) {
+                    if (data.isEmpty) {
+                      return const SizedBox(
+                        height: 200,
+                        child: Center(child: Text('Нет данных')),
+                      );
                     }
-                  },
-                ),
 
-                RecentTransactions(),
+                    final safeIndex = selectedIndex.clamp(0, data.length - 1);
+
+                    return ProfitLineChart(
+                      data: data,
+                      selectedIndex: safeIndex,
+                      onIndexChanged: (index) {
+                        ref.read(selectedMetricIndexProvider.notifier).state =
+                            index;
+                      },
+                    );
+                  },
+                  loading: () => const SizedBox(
+                    height: 380,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (error, stackTrace) => SizedBox(
+                    height: 200,
+                    child: Center(
+                      child: Text('Ошибка загрузки данных: $error'),
+                    ),
+                  ),
+                ),
+                const RecentTransactions(),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
+      );
+    },
+  );
 }

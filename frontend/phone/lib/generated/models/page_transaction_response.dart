@@ -21,8 +21,8 @@ class PageTransactionResponse {
     this.first,
     this.last,
     this.numberOfElements,
-    this.sort,
     this.pageable,
+    this.sort,
     this.empty,
   });
 
@@ -37,8 +37,8 @@ class PageTransactionResponse {
   final bool? first;
   final bool? last;
   final int? numberOfElements;
-  final SortObject? sort;
   final PageableObject? pageable;
+  final SortObject? sort;
   final bool? empty;
 
   Map<String, Object?> toJson() => _$PageTransactionResponseToJson(this);

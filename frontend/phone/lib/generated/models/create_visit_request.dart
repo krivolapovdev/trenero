@@ -4,8 +4,8 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'create_visit_request_status.dart';
-import 'create_visit_request_type.dart';
+import 'visit_status.dart';
+import 'visit_type.dart';
 
 part 'create_visit_request.g.dart';
 
@@ -23,8 +23,8 @@ class CreateVisitRequest {
 
   final String lessonId;
   final String studentId;
-  final CreateVisitRequestStatus status;
-  final CreateVisitRequestType type;
+  final VisitStatus status;
+  final VisitType type;
 
   Map<String, Object?> toJson() => _$CreateVisitRequestToJson(this);
 }

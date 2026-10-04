@@ -6,8 +6,8 @@ import 'package:json_annotation/json_annotation.dart';
 
 import 'group_response.dart';
 import 'group_student_response.dart';
-import 'student_details_response_statuses.dart';
 import 'student_payment_response.dart';
+import 'student_status.dart';
 import 'visit_with_lesson_response.dart';
 
 part 'student_details_response.g.dart';
@@ -39,7 +39,7 @@ class StudentDetailsResponse {
   final DateTime createdAt;
   final List<VisitWithLessonResponse> studentVisits;
   final List<StudentPaymentResponse> studentPayments;
-  final List<StudentDetailsResponseStatuses> statuses;
+  final List<StudentStatus> statuses;
   final GroupResponse? studentGroup;
   final GroupStudentResponse? groupStudentResponse;
 

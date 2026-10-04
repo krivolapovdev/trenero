@@ -5,7 +5,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import 'group_response.dart';
-import 'student_overview_response_statuses.dart';
+import 'student_status.dart';
 
 part 'student_overview_response.g.dart';
 
@@ -32,7 +32,7 @@ class StudentOverviewResponse {
   final String? note;
   final DateTime createdAt;
   final GroupResponse? studentGroup;
-  final List<StudentOverviewResponseStatuses> statuses;
+  final List<StudentStatus> statuses;
 
   Map<String, Object?> toJson() => _$StudentOverviewResponseToJson(this);
 }
