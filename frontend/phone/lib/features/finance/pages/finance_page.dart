@@ -34,47 +34,43 @@ class FinancePage extends ShellPage {
       final metricsAsync = ref.watch(paymentMetricsControllerProvider);
       final selectedIndex = ref.watch(selectedMetricIndexProvider);
 
-      return SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              spacing: 16,
-              children: [
-                metricsAsync.when(
-                  data: (data) {
-                    if (data.isEmpty) {
-                      return const SizedBox(
-                        height: 200,
-                        child: Center(child: Text('Нет данных')),
-                      );
-                    }
-
-                    final safeIndex = selectedIndex.clamp(0, data.length - 1);
-
-                    return ProfitLineChart(
-                      data: data,
-                      selectedIndex: safeIndex,
-                      onIndexChanged: (index) {
-                        ref.read(selectedMetricIndexProvider.notifier).state =
-                            index;
-                      },
+      return SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            spacing: 16,
+            children: [
+              metricsAsync.when(
+                data: (data) {
+                  if (data.isEmpty) {
+                    return const SizedBox(
+                      height: 200,
+                      child: Center(child: Text('Нет данных')),
                     );
-                  },
-                  loading: () => const SizedBox(
-                    height: 380,
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                  error: (error, stackTrace) => SizedBox(
-                    height: 200,
-                    child: Center(
-                      child: Text('Ошибка загрузки данных: $error'),
-                    ),
-                  ),
+                  }
+
+                  final safeIndex = selectedIndex.clamp(0, data.length - 1);
+
+                  return ProfitLineChart(
+                    data: data,
+                    selectedIndex: safeIndex,
+                    onIndexChanged: (index) {
+                      ref.read(selectedMetricIndexProvider.notifier).state =
+                          index;
+                    },
+                  );
+                },
+                loading: () => const SizedBox(
+                  height: 380,
+                  child: Center(child: CircularProgressIndicator()),
                 ),
-                const RecentTransactions(),
-              ],
-            ),
+                error: (error, stackTrace) => SizedBox(
+                  height: 200,
+                  child: Center(child: Text('Ошибка загрузки данных: $error')),
+                ),
+              ),
+              const RecentTransactions(),
+            ],
           ),
         ),
       );

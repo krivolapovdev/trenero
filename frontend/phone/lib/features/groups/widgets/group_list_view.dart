@@ -5,8 +5,9 @@ import 'package:phone/generated/models/group_summary.dart';
 
 class GroupListView extends StatelessWidget {
   final List<GroupSummary> groups;
+  final bool isLoading;
 
-  const new({super.key, required this.groups});
+  const new({super.key, required this.groups, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) => ListView.builder(
@@ -26,13 +27,15 @@ class GroupListView extends StatelessWidget {
             type: MaterialType.transparency,
             child: GroupCard(
               group: group,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => GroupPage(group: group),
-                  ),
-                );
-              },
+              onTap: isLoading
+                  ? () {}
+                  : () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => GroupPage(group: group),
+                        ),
+                      );
+                    },
             ),
           ),
         ),

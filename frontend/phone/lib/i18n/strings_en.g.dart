@@ -66,6 +66,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Yesterday'
 	String get yesterday => 'Yesterday';
 
+	/// en: 'Error'
+	String get error => 'Error';
+
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
 	late final Translations$home$en home = Translations$home$en._(_root);
 	late final Translations$groups$en groups = Translations$groups$en._(_root);
@@ -254,6 +257,7 @@ extension on Translations {
 			'all' => 'All',
 			'today' => 'Today',
 			'yesterday' => 'Yesterday',
+			'error' => 'Error',
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',

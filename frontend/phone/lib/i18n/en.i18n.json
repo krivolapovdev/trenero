@@ -7,6 +7,7 @@
   "all": "All",
   "today": "Today",
   "yesterday": "Yesterday",
+  "error": "Error",
   "auth": {
       "signInWithApple": "Sign in with Apple",
       "signInWithGoogle": "Sign in with Google",

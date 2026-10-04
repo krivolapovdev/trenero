@@ -1,15 +1,17 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/empty_state.dart';
 import 'package:phone/core/widgets/shell_page.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
-import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/create_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_list_view.dart';
 import 'package:phone/features/groups/widgets/group_search_delegate.dart';
 import 'package:phone/generated/models/group_summary.dart';
 import 'package:phone/i18n/strings.g.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class GroupListPage extends ShellPage {
   const new({
@@ -19,6 +21,16 @@ class GroupListPage extends ShellPage {
     super.selectedIcon = Icons.folder_shared,
   });
 
+  static final List<GroupSummary> _dummyGroups = List.generate(
+    10,
+    (index) => GroupSummary(
+      id: 'placeholder-$index',
+      name: 'Group Name Placeholder',
+      createdAt: DateTime.now(),
+      groupStudents: const [],
+    ),
+  );
+
   @override
   List<Widget> actions(BuildContext context) => [
     Consumer(
@@ -26,7 +38,7 @@ class GroupListPage extends ShellPage {
         final groupsState = ref.watch(groupListControllerProvider);
 
         return IconButton(
-          icon: const Icon(Icons.search_rounded),
+          icon: const Icon(FluentIcons.search_24_regular),
           onPressed: () {
             final currentGroups = groupsState.value ?? [];
 
@@ -42,24 +54,22 @@ class GroupListPage extends ShellPage {
       },
     ),
 
-    Consumer(
-      builder: (context, ref, child) => IconButton(
-        icon: const Icon(Icons.refresh),
-        onPressed: () =>
-            ref.read(groupListControllerProvider.notifier).refreshGroups(),
+    IconButton(
+      icon: const Badge(
+        smallSize: 10,
+        child: Icon(FluentIcons.filter_28_regular),
       ),
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const GroupListPage(title: 'title'),
+          ),
+        );
+      },
     ),
 
-    // IconButton(
-    //   icon: Badge(smallSize: 10, child: const Icon(Icons.filter_list)),
-    //   onPressed: () {
-    //     Navigator.of(context).push(
-    //       MaterialPageRoute(builder: (context) => const CreateGroupPage()),
-    //     );
-    //   },
-    // ),
     IconButton(
-      icon: const Icon(Icons.create_new_folder_outlined),
+      icon: const Icon(FluentIcons.folder_add_24_regular),
       onPressed: () => AppBottomSheet.show(
         context: context,
         child: const CreateGroupBottomSheet(),
@@ -81,7 +91,9 @@ class GroupListPage extends ShellPage {
         color: Colors.black,
         clipBehavior: Clip.antiAlias,
         onRefresh: () async {
-          await ref.read(groupListControllerProvider.notifier).refreshGroups();
+          await ref
+              .read(groupListControllerProvider.notifier)
+              .getAllGroups(forceRefresh: true);
         },
         child: _buildBody(
           context,
@@ -103,13 +115,6 @@ class GroupListPage extends ShellPage {
     bool isLoading,
     bool hasError,
   ) {
-    if (isLoading && groups.isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: const [Center()],
-      );
-    }
-
     if (hasError && groups.isEmpty) {
       return LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(
@@ -125,7 +130,7 @@ class GroupListPage extends ShellPage {
                   FilledButton(
                     onPressed: () => ref
                         .read(groupListControllerProvider.notifier)
-                        .refreshGroups(),
+                        .getAllGroups(),
                     child: Text(context.t.repeat),
                   ),
                 ],
@@ -136,7 +141,7 @@ class GroupListPage extends ShellPage {
       );
     }
 
-    if (groups.isEmpty) {
+    if (!isLoading && groups.isEmpty) {
       return LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -155,6 +160,13 @@ class GroupListPage extends ShellPage {
       );
     }
 
-    return GroupListView(groups: groups);
+    return Skeletonizer(
+      enabled: isLoading,
+      ignorePointers: false,
+      child: GroupListView(
+        groups: isLoading && groups.isEmpty ? _dummyGroups : groups,
+        isLoading: isLoading,
+      ),
+    );
   }
 }

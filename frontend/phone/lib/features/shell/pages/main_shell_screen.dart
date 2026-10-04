@@ -32,28 +32,34 @@ class _MainShellScreenState extends State<MainShellScreen> {
         actions: pages[_currentIndex].actions(context),
         backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: Theme.of(context).colorScheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        ),
       ),
 
       body: IndexedStack(index: _currentIndex, children: pages),
 
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: pages
-            .map(
-              (page) => NavigationDestination(
-                icon: Icon(page.icon),
-                selectedIcon: Icon(page.selectedIcon),
-                label: page.title,
-              ),
-            )
-            .toList(),
+      bottomNavigationBar: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        child: NavigationBar(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          destinations: pages
+              .map(
+                (page) => NavigationDestination(
+                  icon: Icon(page.icon),
+                  selectedIcon: Icon(page.selectedIcon),
+                  label: page.title,
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }

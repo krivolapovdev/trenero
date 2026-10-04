@@ -7,6 +7,7 @@
   "all": "Все",
   "today": "Сегодня",
   "yesterday": "Вчера",
+  "error": "Ошибка",
   "auth": {
     "signInWithApple": "Войти через Apple",
     "signInWithGoogle": "Войти через Google",

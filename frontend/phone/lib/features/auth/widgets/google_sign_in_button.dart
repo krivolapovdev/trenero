@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:phone/core/constants/app_assets.dart';
-import 'package:phone/core/widgets/error_snack_bar.dart';
+import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/auth/providers/auth_notifier.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -13,7 +13,7 @@ class GoogleSignInButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<AsyncValue<AuthStatus>>(authNotifierProvider, (previous, next) {
       if (next.hasError && !next.isLoading) {
-        ErrorSnackBar.show(context, 'Error: ${next.error}');
+        AppSnackBar.show(context, 'Error: ${next.error}', SnackBarType.error);
       }
     });
 

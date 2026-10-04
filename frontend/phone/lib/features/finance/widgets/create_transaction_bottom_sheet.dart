@@ -2,7 +2,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/core/widgets/error_snack_bar.dart';
+import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/finance/controllers/create_transaction_controller.dart';
 import 'package:phone/generated/models/transaction_type.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -73,7 +73,7 @@ class _CreateTransactionBottomSheetState
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
-      ErrorSnackBar.show(context, '$e');
+      AppSnackBar.show(context, '$e', SnackBarType.error);
     } finally {
       if (mounted) {
         setState(() {
@@ -215,6 +215,10 @@ class _CreateTransactionBottomSheetState
                                       ),
                                       child: SfDateRangePicker(
                                         view: DateRangePickerView.month,
+                                        monthViewSettings:
+                                            DateRangePickerMonthViewSettings(
+                                              firstDayOfWeek: 1,
+                                            ),
                                         selectionMode:
                                             DateRangePickerSelectionMode.single,
                                         initialSelectedDate: _selectedDate,

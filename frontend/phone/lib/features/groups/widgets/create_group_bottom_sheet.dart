@@ -2,7 +2,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/core/widgets/error_snack_bar.dart';
+import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/create_group_controller.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -57,12 +57,12 @@ class _CreateGroupBottomSheetState
 
     if (success) {
       Navigator.of(context).pop();
-      await ref.read(groupListControllerProvider.notifier).refreshGroups();
+      await ref.read(groupListControllerProvider.notifier).getAllGroups();
     } else {
       final state = ref.read(createGroupControllerProvider);
       final error = state.error;
       if (error != null) {
-        ErrorSnackBar.show(context, 'Error: $error');
+        AppSnackBar.show(context, 'Error: $error', SnackBarType.error);
       }
     }
   }

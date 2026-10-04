@@ -11,16 +11,18 @@ class GroupListController extends AsyncNotifier<List<GroupSummary>> {
   @override
   Future<List<GroupSummary>> build() async {
     final repository = ref.watch(groupRepositoryProvider);
-    return repository.getAllGroups();
+    return repository.getAllGroups(forceRefresh: true);
   }
 
-  Future<void> refreshGroups() async {
+  Future<void> getAllGroups({bool forceRefresh = false}) async {
     state = const AsyncLoading();
 
     await Future.delayed(const Duration(seconds: 3));
 
     state = await AsyncValue.guard(
-      () => ref.read(groupRepositoryProvider).getAllGroups(),
+      () => ref
+          .read(groupRepositoryProvider)
+          .getAllGroups(forceRefresh: forceRefresh),
     );
   }
 }
