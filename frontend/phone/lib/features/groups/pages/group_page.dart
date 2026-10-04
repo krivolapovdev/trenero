@@ -127,6 +127,7 @@ class _GroupPageState extends State<GroupPage> {
                 ),
               ),
             ),
+
             const Expanded(
               child: Center(child: Text('Group details will go here')),
             ),

@@ -1,5 +1,6 @@
 package org.trenero.backend.lesson.internal.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,4 +59,19 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
           """)
   List<Lesson> findLastLessonsByGroupIdsAndOwnerId(
       @Param("groupIds") List<UUID> groupIds, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+          SELECT l
+          FROM Lesson AS l
+          WHERE l.groupId = :groupId
+            AND l.ownerId = :ownerId
+            AND l.date BETWEEN :from AND :to
+          ORDER BY l.date ASC
+          """)
+  List<Lesson> findAllByGroupIdAndOwnerIdAndDateBetween(
+      @Param("groupId") UUID groupId,
+      @Param("ownerId") UUID ownerId,
+      @Param("from") LocalDate from,
+      @Param("to") LocalDate to);
 }

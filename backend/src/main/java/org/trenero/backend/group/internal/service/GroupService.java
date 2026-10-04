@@ -2,6 +2,7 @@ package org.trenero.backend.group.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -149,6 +150,45 @@ public class GroupService implements GroupSpi {
     List<StudentResponse> groupStudents = groupStudentsFuture.join();
 
     return groupMapper.toGroupDetailsResponse(group, groupStudents, groupLessons);
+  }
+
+  @Transactional(readOnly = true)
+  public @NonNull List<StudentResponse> getGroupStudents(
+      @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
+    log.info("Getting students for group: groupId={}; user={}", groupId, jwtUser);
+
+    getGroupById(groupId, jwtUser);
+
+    List<GroupStudentResponse> studentLinks =
+        groupStudentService.getStudentsByGroupId(groupId, jwtUser);
+
+    List<UUID> studentIds = studentLinks.stream().map(GroupStudentResponse::studentId).toList();
+
+    if (studentIds.isEmpty()) {
+      return List.of();
+    }
+
+    Map<UUID, StudentResponse> studentsMap = studentSpi.getStudentsByIds(studentIds, jwtUser);
+
+    return studentIds.stream().map(studentsMap::get).filter(Objects::nonNull).toList();
+  }
+
+  @Transactional(readOnly = true)
+  public @NonNull List<LessonResponse> getGroupLessons(
+      @NonNull UUID groupId,
+      @NonNull LocalDate from,
+      @NonNull LocalDate to,
+      @NonNull JwtUser jwtUser) {
+    log.info(
+        "Getting lessons for group by date range: groupId={}; from={}; to={}; user={}",
+        groupId,
+        from,
+        to,
+        jwtUser);
+
+    getGroupById(groupId, jwtUser);
+
+    return lessonSpi.getLessonsByGroupIdAndDateRange(groupId, from, to, jwtUser);
   }
 
   @Override

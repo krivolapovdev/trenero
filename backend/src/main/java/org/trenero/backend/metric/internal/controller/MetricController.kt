@@ -24,7 +24,6 @@ class MetricController(private val metricService: MetricService) {
     @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) startDate: LocalDate,
     @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) endDate: LocalDate,
     @AuthenticationPrincipal jwtUser: JwtUser,
-  ): List<PaymentMetricResponse> {
-    return metricService.getPaymentStatistics(scope, startDate, endDate, jwtUser)
-  }
+  ): List<PaymentMetricResponse> =
+    metricService.getPaymentStatistics(scope, startDate, endDate, jwtUser)
 }
