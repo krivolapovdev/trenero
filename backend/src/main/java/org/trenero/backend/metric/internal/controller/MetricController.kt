@@ -21,8 +21,8 @@ class MetricController(private val metricService: MetricService) {
   @PreAuthorize("isAuthenticated()")
   fun getPaymentStatistics(
     @RequestParam(defaultValue = "MONTH") scope: MetricScope,
-    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
-    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
+    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) startDate: LocalDate,
+    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) endDate: LocalDate,
     @AuthenticationPrincipal jwtUser: JwtUser,
   ): List<PaymentMetricResponse> {
     return metricService.getPaymentStatistics(scope, startDate, endDate, jwtUser)
