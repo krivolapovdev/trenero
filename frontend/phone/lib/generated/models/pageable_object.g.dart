@@ -13,8 +13,8 @@ PageableObject _$PageableObjectFromJson(Map<String, dynamic> json) =>
       sort: json['sort'] == null
           ? null
           : SortObject.fromJson(json['sort'] as Map<String, dynamic>),
-      pageSize: (json['pageSize'] as num?)?.toInt(),
       pageNumber: (json['pageNumber'] as num?)?.toInt(),
+      pageSize: (json['pageSize'] as num?)?.toInt(),
       unpaged: json['unpaged'] as bool?,
     );
 
@@ -23,7 +23,7 @@ Map<String, dynamic> _$PageableObjectToJson(PageableObject instance) =>
       'offset': instance.offset,
       'paged': instance.paged,
       'sort': instance.sort,
-      'pageSize': instance.pageSize,
       'pageNumber': instance.pageNumber,
+      'pageSize': instance.pageSize,
       'unpaged': instance.unpaged,
     };

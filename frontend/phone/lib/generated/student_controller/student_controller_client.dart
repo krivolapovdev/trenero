@@ -6,9 +6,10 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/create_student_request.dart';
-import '../models/student_details_response.dart';
-import '../models/student_overview_response.dart';
+import '../models/student_payment_response.dart';
 import '../models/student_response.dart';
+import '../models/student_summary_response.dart';
+import '../models/visit_with_lesson_response.dart';
 
 part 'student_controller_client.g.dart';
 
@@ -39,11 +40,16 @@ abstract class StudentControllerClient {
     @Body() required Map<String, dynamic> body,
   });
 
-  @GET('/api/v1/students/{studentId}/details')
-  Future<StudentDetailsResponse> getStudentDetails({
+  @GET('/api/v1/students/{studentId}/visits')
+  Future<List<VisitWithLessonResponse>> getStudentVisits({
+    @Path('studentId') required String studentId,
+  });
+
+  @GET('/api/v1/students/{studentId}/payments')
+  Future<List<StudentPaymentResponse>> getStudentPayments({
     @Path('studentId') required String studentId,
   });
 
   @GET('/api/v1/students/overview')
-  Future<List<StudentOverviewResponse>> getStudentsOverview();
+  Future<List<StudentSummaryResponse>> getStudentsSummary();
 }

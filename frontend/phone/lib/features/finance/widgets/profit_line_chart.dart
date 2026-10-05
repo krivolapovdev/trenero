@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:phone/core/extensions/string_extensions.dart';
+import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/generated/models/payment_metric_response.dart';
 
 class ProfitLineChart extends StatelessWidget {

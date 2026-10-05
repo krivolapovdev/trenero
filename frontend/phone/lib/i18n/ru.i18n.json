@@ -24,7 +24,17 @@
     "defaultPrice": "Стандартная цена"
   },
   "students": {
-    "title": "Ученики"
+    "title": "Ученики",
+    "emptySubtitle": "Учеников пока нет",
+    "createFirstStudent": "Создать первого ученика",
+    "createStudent": "Добавить ученика",
+    "status": {
+      "inactive": "Неактивен",
+      "present": "Присутствовал",
+      "missing": "Отсутствовал",
+      "paid": "Оплачено",
+      "unpaid": "Не оплачено"
+    }
   },
   "settings": {
     "title": "Настройки",

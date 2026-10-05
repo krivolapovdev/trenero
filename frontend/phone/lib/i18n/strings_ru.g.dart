@@ -101,6 +101,10 @@ class _Translations$students$ru implements Translations$students$en {
 
 	// Translations
 	@override String get title => 'Ученики';
+	@override String get emptySubtitle => 'Учеников пока нет';
+	@override String get createFirstStudent => 'Создать первого ученика';
+	@override String get createStudent => 'Добавить ученика';
+	@override late final _Translations$students$status$ru status = _Translations$students$status$ru._(_root);
 }
 
 // Path: settings
@@ -159,6 +163,20 @@ class _Translations$finance$ru implements Translations$finance$en {
 	@override String get lastTransactions => 'Последние операции';
 }
 
+// Path: students.status
+class _Translations$students$status$ru implements Translations$students$status$en {
+	_Translations$students$status$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get inactive => 'Неактивен';
+	@override String get present => 'Присутствовал';
+	@override String get missing => 'Отсутствовал';
+	@override String get paid => 'Оплачено';
+	@override String get unpaid => 'Не оплачено';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -186,6 +204,14 @@ extension on TranslationsRu {
 			'groups.createGroup' => 'Добавить группу',
 			'groups.defaultPrice' => 'Стандартная цена',
 			'students.title' => 'Ученики',
+			'students.emptySubtitle' => 'Учеников пока нет',
+			'students.createFirstStudent' => 'Создать первого ученика',
+			'students.createStudent' => 'Добавить ученика',
+			'students.status.inactive' => 'Неактивен',
+			'students.status.present' => 'Присутствовал',
+			'students.status.missing' => 'Отсутствовал',
+			'students.status.paid' => 'Оплачено',
+			'students.status.unpaid' => 'Не оплачено',
 			'settings.title' => 'Настройки',
 			'settings.appearance' => 'Внешний вид',
 			'settings.language' => 'Язык',

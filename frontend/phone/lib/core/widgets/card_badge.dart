@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 class CardBadge extends StatelessWidget {
-  final IconData icon;
+  final Widget? icon;
   final String label;
   final Color backgroundColor;
   final Color foregroundColor;
 
   const new({
     super.key,
-    required this.icon,
+    this.icon,
     required this.label,
     required this.backgroundColor,
     required this.foregroundColor,
@@ -24,12 +24,22 @@ class CardBadge extends StatelessWidget {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 15, color: foregroundColor),
-        const SizedBox(width: 6),
+        if (icon != null) ...[
+          IconTheme(
+            data: IconThemeData(color: foregroundColor, size: 16),
+            child: icon!,
+          ),
+
+          const SizedBox(width: 6),
+        ],
+
         Text(
           label,
-          style: Theme.of(context).textTheme.labelMedium
-              ?.copyWith(color: foregroundColor),
+          style: TextStyle(
+            fontSize: 14,
+            color: foregroundColor,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     ),

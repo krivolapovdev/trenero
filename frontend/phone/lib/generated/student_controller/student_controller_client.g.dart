@@ -159,27 +159,32 @@ class _StudentControllerClient implements StudentControllerClient {
   }
 
   @override
-  Future<StudentDetailsResponse> getStudentDetails({
+  Future<List<VisitWithLessonResponse>> getStudentVisits({
     required String studentId,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<StudentDetailsResponse>(
+    final _options = _setStreamType<List<VisitWithLessonResponse>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/v1/students/${studentId}/details',
+            '/api/v1/students/${studentId}/visits',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch<Map<String, Object?>>(_options);
-    late StudentDetailsResponse _value;
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<VisitWithLessonResponse> _value;
     try {
-      _value = StudentDetailsResponse.fromJson(_result.data!);
+      _value = _result.data!
+          .map(
+            (dynamic i) =>
+                VisitWithLessonResponse.fromJson(i as Map<String, dynamic>),
+          )
+          .toList();
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
@@ -188,12 +193,46 @@ class _StudentControllerClient implements StudentControllerClient {
   }
 
   @override
-  Future<List<StudentOverviewResponse>> getStudentsOverview() async {
+  Future<List<StudentPaymentResponse>> getStudentPayments({
+    required String studentId,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<List<StudentOverviewResponse>>(
+    final _options = _setStreamType<List<StudentPaymentResponse>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/v1/students/${studentId}/payments',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<StudentPaymentResponse> _value;
+    try {
+      _value = _result.data!
+          .map(
+            (dynamic i) =>
+                StudentPaymentResponse.fromJson(i as Map<String, dynamic>),
+          )
+          .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<List<StudentSummaryResponse>> getStudentsSummary() async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<List<StudentSummaryResponse>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -204,12 +243,12 @@ class _StudentControllerClient implements StudentControllerClient {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<List<dynamic>>(_options);
-    late List<StudentOverviewResponse> _value;
+    late List<StudentSummaryResponse> _value;
     try {
       _value = _result.data!
           .map(
             (dynamic i) =>
-                StudentOverviewResponse.fromJson(i as Map<String, dynamic>),
+                StudentSummaryResponse.fromJson(i as Map<String, dynamic>),
           )
           .toList();
     } on Object catch (e, s) {

@@ -1,6 +1,6 @@
 import 'package:phone/i18n/strings.g.dart';
 
-extension AppLocaleExt on AppLocale {
+extension AppLocaleExtension on AppLocale {
   String get flag {
     switch (this) {
       case AppLocale.ru:

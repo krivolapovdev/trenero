@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:phone/core/extensions/number_extension.dart';
 import 'package:phone/core/extensions/string_extension.dart';
+import 'package:phone/features/students/extensions/student_status_extension.dart';
 import 'package:phone/core/widgets/card_badge.dart';
-import 'package:phone/generated/models/group_summary.dart';
+import 'package:phone/generated/models/student_summary_response.dart';
 
-class GroupCard extends StatelessWidget {
-  final GroupSummary group;
+class StudentCard extends StatelessWidget {
+  final StudentSummaryResponse student;
   final VoidCallback onTap;
 
-  const new({super.key, required this.group, required this.onTap});
+  const new({super.key, required this.student, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final hasNote = group.note != null && group.note!.trim().isNotEmpty;
+    final hasNote = student.note != null && student.note!.trim().isNotEmpty;
+    final badges = student.statuses.toBadges(context);
 
     return Card(
       elevation: 0,
@@ -35,10 +36,10 @@ class GroupCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: group.id.toColor(),
+                    backgroundColor: student.id.toColor(),
                     child: Text(
-                      group.name.initials,
-                      style: TextStyle(
+                      student.fullName.initials,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
@@ -53,37 +54,38 @@ class GroupCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          group.name,
+                          student.fullName,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
 
+                        if (student.phone != null &&
+                            student.phone!.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            student.phone!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+
                         const SizedBox(height: 8),
 
-                        Row(
-                          children: [
-                            CardBadge(
-                              icon: const Icon(Icons.people_alt_outlined),
-                              label: '${group.groupStudents.length}',
-                              backgroundColor: colorScheme.primaryContainer
-                                  .withValues(alpha: 0.6),
-                              foregroundColor: colorScheme.onPrimaryContainer,
-                            ),
-
-                            const SizedBox(width: 8),
-
-                            if (group.defaultPrice != null)
-                              CardBadge(
-                                icon: const Icon(Icons.sell_outlined),
-                                label: group.defaultPrice!.toFormattedAmount(
-                                  showSign: false,
+                        Wrap(
+                          spacing: 8.0,
+                          runSpacing: 8.0,
+                          children: badges
+                              .map(
+                                (badge) => CardBadge(
+                                  icon: badge.icon,
+                                  label: badge.label,
+                                  backgroundColor: badge.backgroundColor,
+                                  foregroundColor: badge.foregroundColor,
                                 ),
-                                backgroundColor: const Color(0xFFE8F5E9)
-                                    .withValues(alpha: 0.6),
-                                foregroundColor: const Color(0xFF2E7D32),
-                              ),
-                          ],
+                              )
+                              .toList(),
                         ),
                       ],
                     ),
@@ -96,7 +98,7 @@ class GroupCard extends StatelessWidget {
                 const Divider(height: 1, thickness: 0.5),
                 const SizedBox(height: 12),
                 Text(
-                  group.note!,
+                  student.note!,
                   textAlign: TextAlign.justify,
                   style: TextStyle(color: colorScheme.onSurfaceVariant),
                 ),

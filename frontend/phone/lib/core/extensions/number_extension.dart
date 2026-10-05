@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-extension AmountFormatting on num {
+extension NumberExtension on num {
   String toFormattedAmount({bool showSign = true}) {
     final absAmount = abs();
 

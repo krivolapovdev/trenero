@@ -3,7 +3,7 @@ import 'package:phone/core/widgets/shell_page.dart';
 import 'package:phone/features/finance/pages/finance_page.dart';
 import 'package:phone/features/groups/pages/group_list_page.dart';
 import 'package:phone/features/settings/pages/settings_page.dart';
-import 'package:phone/features/students/pages/students_page.dart';
+import 'package:phone/features/students/pages/student_list_page.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class MainShellScreen extends StatefulWidget {
@@ -21,7 +21,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
     final List<ShellPage> pages = [
       FinancePage(title: context.t.finance.title),
       GroupListPage(title: context.t.groups.title),
-      StudentsPage(title: context.t.students.title),
+      StudentListPage(title: context.t.students.title),
       SettingsPage(title: context.t.settings.title),
     ];
 

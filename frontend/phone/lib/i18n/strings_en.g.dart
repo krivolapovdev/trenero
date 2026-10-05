@@ -143,6 +143,17 @@ class Translations$students$en {
 
 	/// en: 'Students'
 	String get title => 'Students';
+
+	/// en: 'No students yet'
+	String get emptySubtitle => 'No students yet';
+
+	/// en: 'Create First Student'
+	String get createFirstStudent => 'Create First Student';
+
+	/// en: 'Add Student'
+	String get createStudent => 'Add Student';
+
+	late final Translations$students$status$en status = Translations$students$status$en._(_root);
 }
 
 // Path: settings
@@ -241,6 +252,30 @@ class Translations$finance$en {
 	String get lastTransactions => 'Last transactions';
 }
 
+// Path: students.status
+class Translations$students$status$en {
+	Translations$students$status$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Inactive'
+	String get inactive => 'Inactive';
+
+	/// en: 'Present'
+	String get present => 'Present';
+
+	/// en: 'Missing'
+	String get missing => 'Missing';
+
+	/// en: 'Paid'
+	String get paid => 'Paid';
+
+	/// en: 'Unpaid'
+	String get unpaid => 'Unpaid';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -268,6 +303,14 @@ extension on Translations {
 			'groups.createGroup' => 'Add Group',
 			'groups.defaultPrice' => 'Price by default',
 			'students.title' => 'Students',
+			'students.emptySubtitle' => 'No students yet',
+			'students.createFirstStudent' => 'Create First Student',
+			'students.createStudent' => 'Add Student',
+			'students.status.inactive' => 'Inactive',
+			'students.status.present' => 'Present',
+			'students.status.missing' => 'Missing',
+			'students.status.paid' => 'Paid',
+			'students.status.unpaid' => 'Unpaid',
 			'settings.title' => 'Settings',
 			'settings.appearance' => 'Appearance',
 			'settings.language' => 'Language',

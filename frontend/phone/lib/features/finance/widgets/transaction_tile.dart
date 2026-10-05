@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:phone/core/extensions/number_extensions.dart';
-import 'package:phone/core/extensions/string_extensions.dart';
+import 'package:phone/core/extensions/number_extension.dart';
+import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/features/finance/models/transaction_tile_info.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';

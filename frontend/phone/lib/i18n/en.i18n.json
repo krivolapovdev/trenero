@@ -24,7 +24,17 @@
     "defaultPrice": "Price by default"
   },
   "students": {
-    "title": "Students"
+    "title": "Students",
+    "emptySubtitle": "No students yet",
+    "createFirstStudent": "Create First Student",
+    "createStudent": "Add Student",
+    "status": {
+      "inactive": "Inactive",
+      "present": "Present",
+      "missing": "Missing",
+      "paid": "Paid",
+      "unpaid": "Unpaid"
+    }
   },
   "settings": {
     "title": "Settings",

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:phone/core/extensions/number_extensions.dart';
+import 'package:phone/core/extensions/number_extension.dart';
 import 'package:phone/generated/models/payment_metric_response.dart';
 
 class SummaryCard extends StatelessWidget {
