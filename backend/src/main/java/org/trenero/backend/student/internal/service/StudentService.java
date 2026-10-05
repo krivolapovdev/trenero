@@ -2,7 +2,6 @@ package org.trenero.backend.student.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -20,6 +19,7 @@ import org.trenero.backend.common.async.AsyncUtils;
 import org.trenero.backend.common.response.GroupResponse;
 import org.trenero.backend.common.response.GroupStudentResponse;
 import org.trenero.backend.common.response.LessonResponse;
+import org.trenero.backend.common.response.StudentPaymentResponse;
 import org.trenero.backend.common.response.StudentResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.external.GroupSpi;
@@ -31,8 +31,7 @@ import org.trenero.backend.student.internal.domain.Student;
 import org.trenero.backend.student.internal.mapper.StudentMapper;
 import org.trenero.backend.student.internal.repository.StudentRepository;
 import org.trenero.backend.student.internal.request.CreateStudentRequest;
-import org.trenero.backend.student.internal.response.StudentDetailsResponse;
-import org.trenero.backend.student.internal.response.StudentOverviewResponse;
+import org.trenero.backend.student.internal.response.StudentSummaryResponse;
 import org.trenero.backend.student.internal.response.VisitWithLessonResponse;
 import org.trenero.backend.visit.external.VisitSpi;
 
@@ -63,7 +62,7 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public @NonNull List<StudentOverviewResponse> getStudentsOverview(@NonNull JwtUser jwtUser) {
+  public @NonNull List<StudentSummaryResponse> getStudentsSummary(@NonNull JwtUser jwtUser) {
     log.info("Getting students overview: user={}", jwtUser);
 
     // 1. Fetch all students sequentially
@@ -145,7 +144,7 @@ public class StudentService implements StudentSpi {
 
               var group = (groupId != null) ? groupsMap.get(groupId) : null;
 
-              return new StudentOverviewResponse(student, group, statuses);
+              return new StudentSummaryResponse(student, group, statuses);
             })
         .toList();
   }
@@ -161,47 +160,17 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public @NonNull Map<UUID, StudentResponse> getStudentsByIds(
-      @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
-    log.info("Getting students by ids: studentIds={}; user={}", studentIds, jwtUser);
-    return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.id()).stream()
-        .map(studentMapper::toResponse)
-        .collect(
-            Collectors.toMap(StudentResponse::id, student -> student, (existing, _) -> existing));
-  }
-
-  @Transactional(readOnly = true)
-  public @NonNull StudentDetailsResponse getStudentDetailsById(
+  public @NonNull List<VisitWithLessonResponse> getStudentVisits(
       @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
-    log.info("Getting student details by id: studentId={}; user={}", studentId, jwtUser);
-
-    // 1. Launch independent queries in parallel threads
-    var studentFuture =
-        CompletableFuture.supplyAsync(() -> getStudentById(studentId, jwtUser), executor);
+    log.info("Getting visits for studentId={}; user={}", studentId, jwtUser);
 
     var visitsFuture =
         CompletableFuture.supplyAsync(
             () -> visitSpi.getVisitsByStudentId(studentId, jwtUser), executor);
 
-    var paymentsFuture =
-        CompletableFuture.supplyAsync(
-            () -> studentPaymentSpi.getStudentPaymentsByStudentId(studentId, jwtUser), executor);
-
     var groupStudentFuture =
         CompletableFuture.supplyAsync(
             () -> groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst(),
-            executor);
-
-    // 2. Chain dependent queries
-    var groupFuture =
-        groupStudentFuture.thenComposeAsync(
-            groupOpt ->
-                groupOpt
-                    .map(
-                        gs ->
-                            CompletableFuture.supplyAsync(
-                                () -> groupSpi.getGroupById(gs.groupId(), jwtUser), executor))
-                    .orElse(CompletableFuture.completedFuture(null)),
             executor);
 
     var lessonsFuture =
@@ -216,41 +185,36 @@ public class StudentService implements StudentSpi {
                     .orElse(CompletableFuture.completedFuture(List.of())),
             executor);
 
-    // 3. Await all background tasks simultaneously
-    AsyncUtils.awaitAll(studentFuture, visitsFuture, paymentsFuture, groupFuture, lessonsFuture);
+    AsyncUtils.awaitAll(visitsFuture, lessonsFuture);
 
-    // 4. Extract values
-    var student = studentFuture.join();
     var studentVisits = visitsFuture.join();
-    var studentPayments = paymentsFuture.join();
-    var groupStudentOpt = groupStudentFuture.join();
-    var groupResponse = groupFuture.join();
     var groupLessons = lessonsFuture.join();
 
-    // 5. Perform fast in-memory mapping
     var lessonsMap =
         groupLessons.stream()
             .collect(Collectors.toMap(LessonResponse::id, Function.identity(), (l1, _) -> l1));
 
-    var lastGroupLesson =
-        groupLessons.stream().max(Comparator.comparing(LessonResponse::date)).orElse(null);
+    return studentVisits.stream()
+        .filter(visit -> lessonsMap.containsKey(visit.lessonId()))
+        .map(visit -> new VisitWithLessonResponse(visit, lessonsMap.get(visit.lessonId())))
+        .toList();
+  }
 
-    var studentStatuses =
-        studentStatusService.getStudentStatuses(studentVisits, studentPayments, lastGroupLesson);
+  @Transactional(readOnly = true)
+  public @NonNull List<StudentPaymentResponse> getStudentPayments(
+      @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
+    log.info("Getting payments for studentId={}; user={}", studentId, jwtUser);
+    return studentPaymentSpi.getStudentPaymentsByStudentId(studentId, jwtUser);
+  }
 
-    var visitsWithLessons =
-        studentVisits.stream()
-            .filter(visit -> lessonsMap.containsKey(visit.lessonId()))
-            .map(visit -> new VisitWithLessonResponse(visit, lessonsMap.get(visit.lessonId())))
-            .toList();
-
-    return new StudentDetailsResponse(
-        student,
-        visitsWithLessons,
-        studentPayments,
-        studentStatuses,
-        groupResponse,
-        groupStudentOpt.orElse(null));
+  @Transactional(readOnly = true)
+  public @NonNull Map<UUID, StudentResponse> getStudentsByIds(
+      @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
+    log.info("Getting students by ids: studentIds={}; user={}", studentIds, jwtUser);
+    return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.id()).stream()
+        .map(studentMapper::toResponse)
+        .collect(
+            Collectors.toMap(StudentResponse::id, student -> student, (existing, _) -> existing));
   }
 
   @Transactional

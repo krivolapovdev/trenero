@@ -14,11 +14,12 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.trenero.backend.common.response.StudentPaymentResponse
 import org.trenero.backend.common.response.StudentResponse
 import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.student.internal.request.CreateStudentRequest
-import org.trenero.backend.student.internal.response.StudentDetailsResponse
-import org.trenero.backend.student.internal.response.StudentOverviewResponse
+import org.trenero.backend.student.internal.response.StudentSummaryResponse
+import org.trenero.backend.student.internal.response.VisitWithLessonResponse
 import org.trenero.backend.student.internal.service.StudentService
 
 @RestController
@@ -32,9 +33,8 @@ class StudentController(private val studentService: StudentService) {
 
   @GetMapping("/overview")
   @PreAuthorize("isAuthenticated()")
-  fun getStudentsOverview(
-    @AuthenticationPrincipal jwtUser: JwtUser
-  ): List<StudentOverviewResponse> = studentService.getStudentsOverview(jwtUser)
+  fun getStudentsSummary(@AuthenticationPrincipal jwtUser: JwtUser): List<StudentSummaryResponse> =
+    studentService.getStudentsSummary(jwtUser)
 
   @GetMapping("/{studentId}")
   @PreAuthorize("isAuthenticated()")
@@ -43,12 +43,19 @@ class StudentController(private val studentService: StudentService) {
     @AuthenticationPrincipal jwtUser: JwtUser,
   ): StudentResponse = studentService.getStudentById(studentId, jwtUser)
 
-  @GetMapping("/{studentId}/details")
+  @GetMapping("/{studentId}/visits")
   @PreAuthorize("isAuthenticated()")
-  fun getStudentDetails(
+  fun getStudentVisits(
     @PathVariable studentId: UUID,
     @AuthenticationPrincipal jwtUser: JwtUser,
-  ): StudentDetailsResponse = studentService.getStudentDetailsById(studentId, jwtUser)
+  ): List<VisitWithLessonResponse> = studentService.getStudentVisits(studentId, jwtUser)
+
+  @GetMapping("/{studentId}/payments")
+  @PreAuthorize("isAuthenticated()")
+  fun getStudentPayments(
+    @PathVariable studentId: UUID,
+    @AuthenticationPrincipal jwtUser: JwtUser,
+  ): List<StudentPaymentResponse> = studentService.getStudentPayments(studentId, jwtUser)
 
   @PostMapping
   @PreAuthorize("isAuthenticated()")
