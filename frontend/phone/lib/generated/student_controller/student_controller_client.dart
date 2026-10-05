@@ -6,9 +6,9 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/create_student_request.dart';
-import '../models/student_payment_response.dart';
 import '../models/student_response.dart';
 import '../models/student_summary_response.dart';
+import '../models/transaction_response.dart';
 import '../models/visit_with_lesson_response.dart';
 
 part 'student_controller_client.g.dart';
@@ -46,7 +46,7 @@ abstract class StudentControllerClient {
   });
 
   @GET('/api/v1/students/{studentId}/payments')
-  Future<List<StudentPaymentResponse>> getStudentPayments({
+  Future<List<TransactionResponse>> getStudentPayments({
     @Path('studentId') required String studentId,
   });
 

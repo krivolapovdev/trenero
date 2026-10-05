@@ -13,10 +13,10 @@ TransactionResponse _$TransactionResponseFromJson(Map<String, dynamic> json) =>
       date: DateTime.parse(json['date'] as String),
       type: TransactionType.fromJson(json['type'] as String),
       createdAt: DateTime.parse(json['createdAt'] as String),
-      studentPayment: json['studentPayment'] == null
+      paymentDetails: json['paymentDetails'] == null
           ? null
-          : TransactionStudentPaymentResponse.fromJson(
-              json['studentPayment'] as Map<String, dynamic>,
+          : StudentPaymentDetailsResponse.fromJson(
+              json['paymentDetails'] as Map<String, dynamic>,
             ),
     );
 
@@ -28,7 +28,7 @@ Map<String, dynamic> _$TransactionResponseToJson(
   'date': instance.date.toIso8601String(),
   'type': _$TransactionTypeEnumMap[instance.type]!,
   'createdAt': instance.createdAt.toIso8601String(),
-  'studentPayment': instance.studentPayment,
+  'paymentDetails': instance.paymentDetails,
 };
 
 const _$TransactionTypeEnumMap = {

@@ -17,7 +17,7 @@ abstract class TransactionControllerClient {
       _TransactionControllerClient;
 
   @GET('/api/v1/transactions')
-  Future<PageTransactionResponse> getPaginatedTransactionsWithStudentPayment({
+  Future<PageTransactionResponse> getPaginatedTransactions({
     @Query('page') int? page = 1,
     @Query('size') int? size = 20,
   });

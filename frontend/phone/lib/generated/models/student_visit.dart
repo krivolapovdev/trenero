@@ -11,14 +11,18 @@ part 'student_visit.g.dart';
 
 @JsonSerializable()
 class StudentVisit {
-  const StudentVisit({this.studentId, this.status, this.type});
+  const StudentVisit({
+    required this.studentId,
+    required this.status,
+    required this.type,
+  });
 
   factory StudentVisit.fromJson(Map<String, Object?> json) =>
       _$StudentVisitFromJson(json);
 
-  final String? studentId;
-  final VisitStatus? status;
-  final VisitType? type;
+  final String studentId;
+  final VisitStatus status;
+  final VisitType type;
 
   Map<String, Object?> toJson() => _$StudentVisitToJson(this);
 }

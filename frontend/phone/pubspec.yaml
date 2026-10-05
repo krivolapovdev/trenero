@@ -56,3 +56,6 @@ flutter:
 swagger_parser:
   schema_url: http://localhost:8080/v3/api-docs
   output_directory: lib/generated
+  language: dart
+  json_serializer: json_serializable
+  infer_required_from_nullable: true

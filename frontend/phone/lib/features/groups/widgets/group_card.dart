@@ -67,7 +67,7 @@ class GroupCard extends StatelessWidget {
                           children: [
                             CardBadge(
                               icon: const Icon(Icons.people_alt_outlined),
-                              label: '${group.groupStudents.length}',
+                              label: '${group.countOfStudents}',
                               backgroundColor: colorScheme.primaryContainer
                                   .withValues(alpha: 0.6),
                               foregroundColor: colorScheme.onPrimaryContainer,

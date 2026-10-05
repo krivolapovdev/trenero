@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:phone/core/extensions/number_extension.dart';
 import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/features/finance/models/transaction_tile_info.dart';
+import 'package:phone/generated/models/student_payment_details_response.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';
 
@@ -93,12 +94,12 @@ class TransactionTile extends StatelessWidget {
   }
 
   TransactionTileInfo _getTransactionDisplayInfo(TransactionResponse tx) {
-    final studentPayment = tx.studentPayment;
+    final details = tx.paymentDetails;
 
-    if (studentPayment != null) {
-      final studentName = studentPayment.fullName;
+    if (details is StudentPaymentDetailsResponse) {
+      final studentName = details.studentName;
       final paidUntilFormatted = DateFormat('dd.MM.yyyy')
-          .format(studentPayment.paidUntil);
+          .format(details.paidUntil);
 
       return TransactionTileInfo(
         title: studentName,

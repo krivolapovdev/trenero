@@ -8,13 +8,13 @@ part 'payment_metric_response.g.dart';
 
 @JsonSerializable()
 class PaymentMetricResponse {
-  const PaymentMetricResponse({this.date, this.total});
+  const PaymentMetricResponse({required this.date, required this.total});
 
   factory PaymentMetricResponse.fromJson(Map<String, Object?> json) =>
       _$PaymentMetricResponseFromJson(json);
 
-  final DateTime? date;
-  final num? total;
+  final DateTime date;
+  final num total;
 
   Map<String, Object?> toJson() => _$PaymentMetricResponseToJson(this);
 }

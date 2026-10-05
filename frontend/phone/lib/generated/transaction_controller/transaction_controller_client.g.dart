@@ -21,7 +21,7 @@ class _TransactionControllerClient implements TransactionControllerClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<PageTransactionResponse> getPaginatedTransactionsWithStudentPayment({
+  Future<PageTransactionResponse> getPaginatedTransactions({
     int? page = 1,
     int? size = 20,
   }) async {

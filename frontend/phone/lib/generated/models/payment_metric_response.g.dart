@@ -9,13 +9,13 @@ part of 'payment_metric_response.dart';
 PaymentMetricResponse _$PaymentMetricResponseFromJson(
   Map<String, dynamic> json,
 ) => PaymentMetricResponse(
-  date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
-  total: json['total'] as num?,
+  date: DateTime.parse(json['date'] as String),
+  total: json['total'] as num,
 );
 
 Map<String, dynamic> _$PaymentMetricResponseToJson(
   PaymentMetricResponse instance,
 ) => <String, dynamic>{
-  'date': instance.date?.toIso8601String(),
+  'date': instance.date.toIso8601String(),
   'total': instance.total,
 };

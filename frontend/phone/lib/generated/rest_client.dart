@@ -8,7 +8,6 @@ import 'visit_controller/visit_controller_client.dart';
 import 'transaction_controller/transaction_controller_client.dart';
 import 'student_controller/student_controller_client.dart';
 import 'reviewer_auth_controller/reviewer_auth_controller_client.dart';
-import 'student_payment_controller/student_payment_controller_client.dart';
 import 'o_auth_2_controller/o_auth_2_controller_client.dart';
 import 'lesson_controller/lesson_controller_client.dart';
 import 'jwt_controller/jwt_controller_client.dart';
@@ -29,7 +28,6 @@ class RestClient {
   TransactionControllerClient? _transactionController;
   StudentControllerClient? _studentController;
   ReviewerAuthControllerClient? _reviewerAuthController;
-  StudentPaymentControllerClient? _studentPaymentController;
   OAuth2ControllerClient? _oAuth2Controller;
   LessonControllerClient? _lessonController;
   JwtControllerClient? _jwtController;
@@ -51,12 +49,6 @@ class RestClient {
 
   ReviewerAuthControllerClient get reviewerAuthController =>
       _reviewerAuthController ??= ReviewerAuthControllerClient(
-        _dio,
-        baseUrl: _baseUrl,
-      );
-
-  StudentPaymentControllerClient get studentPaymentController =>
-      _studentPaymentController ??= StudentPaymentControllerClient(
         _dio,
         baseUrl: _baseUrl,
       );

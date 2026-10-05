@@ -8,21 +8,19 @@ part of 'pageable_object.dart';
 
 PageableObject _$PageableObjectFromJson(Map<String, dynamic> json) =>
     PageableObject(
-      offset: (json['offset'] as num?)?.toInt(),
-      paged: json['paged'] as bool?,
-      sort: json['sort'] == null
-          ? null
-          : SortObject.fromJson(json['sort'] as Map<String, dynamic>),
-      pageSize: (json['pageSize'] as num?)?.toInt(),
-      pageNumber: (json['pageNumber'] as num?)?.toInt(),
-      unpaged: json['unpaged'] as bool?,
+      offset: (json['offset'] as num).toInt(),
+      sort: SortObject.fromJson(json['sort'] as Map<String, dynamic>),
+      paged: json['paged'] as bool,
+      pageSize: (json['pageSize'] as num).toInt(),
+      pageNumber: (json['pageNumber'] as num).toInt(),
+      unpaged: json['unpaged'] as bool,
     );
 
 Map<String, dynamic> _$PageableObjectToJson(PageableObject instance) =>
     <String, dynamic>{
       'offset': instance.offset,
-      'paged': instance.paged,
       'sort': instance.sort,
+      'paged': instance.paged,
       'pageSize': instance.pageSize,
       'pageNumber': instance.pageNumber,
       'unpaged': instance.unpaged,

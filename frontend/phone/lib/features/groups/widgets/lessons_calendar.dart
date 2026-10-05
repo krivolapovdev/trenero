@@ -20,7 +20,6 @@ class LessonsCalendar extends StatefulWidget {
 
 class _LessonsCalendarState extends State<LessonsCalendar> {
   late DateTime _focusedDay;
-  DateTime? _selectedDay;
 
   static const Color _lightGreenAlpha = Color(0x4D4CAF50);
   static const Color _darkForestGreen = Color(0xFF1B5E20);
@@ -29,6 +28,49 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
   void initState() {
     super.initState();
     _focusedDay = DateTime.now();
+  }
+
+  void _showLessonsBottomSheet(
+    DateTime selectedDay,
+    List<LessonResponse> dayLessons,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Lessons for ${selectedDay.day}/${selectedDay.month}/${selectedDay.year}',
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            if (dayLessons.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: Text('No lessons scheduled for this day.'),
+              )
+            else
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: dayLessons.length,
+                  itemBuilder: (context, index) => ListTile(
+                    title: Text('Lesson ${index + 1}'),
+                    // Replace with your lesson fields (e.g., lesson.title, lesson.time)
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -45,14 +87,23 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
       lastDay: DateTime.now().add(const Duration(days: 365)),
       focusedDay: _focusedDay,
       onPageChanged: (focusedDay) {
-        _focusedDay = focusedDay;
-      },
-      selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-      onDaySelected: (selectedDay, focusedDay) {
         setState(() {
-          _selectedDay = selectedDay;
           _focusedDay = focusedDay;
         });
+      },
+      // Prevents any day from visually maintaining a selected state
+      selectedDayPredicate: (day) => false,
+      onDaySelected: (selectedDay, focusedDay) {
+        setState(() {
+          _focusedDay = focusedDay;
+        });
+
+        final dayLessons = widget.lessons
+            .where((lesson) => isSameDay(lesson.date, selectedDay))
+            .toList();
+
+        _showLessonsBottomSheet(selectedDay, dayLessons);
+
         widget.onDaySelected?.call(selectedDay, focusedDay);
       },
       eventLoader: (day) => widget.lessons

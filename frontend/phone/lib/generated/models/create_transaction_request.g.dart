@@ -10,16 +10,22 @@ CreateTransactionRequest _$CreateTransactionRequestFromJson(
   Map<String, dynamic> json,
 ) => CreateTransactionRequest(
   amount: json['amount'] as num,
-  type: TransactionType.fromJson(json['type'] as String),
   date: DateTime.parse(json['date'] as String),
+  type: TransactionType.fromJson(json['type'] as String),
+  paymentDetails: json['paymentDetails'] == null
+      ? null
+      : CreateStudentPaymentDetailsRequest.fromJson(
+          json['paymentDetails'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$CreateTransactionRequestToJson(
   CreateTransactionRequest instance,
 ) => <String, dynamic>{
   'amount': instance.amount,
-  'type': _$TransactionTypeEnumMap[instance.type]!,
   'date': instance.date.toIso8601String(),
+  'type': _$TransactionTypeEnumMap[instance.type]!,
+  'paymentDetails': instance.paymentDetails,
 };
 
 const _$TransactionTypeEnumMap = {

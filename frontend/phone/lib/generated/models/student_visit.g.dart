@@ -7,20 +7,16 @@ part of 'student_visit.dart';
 // **************************************************************************
 
 StudentVisit _$StudentVisitFromJson(Map<String, dynamic> json) => StudentVisit(
-  studentId: json['studentId'] as String?,
-  status: json['status'] == null
-      ? null
-      : VisitStatus.fromJson(json['status'] as String),
-  type: json['type'] == null
-      ? null
-      : VisitType.fromJson(json['type'] as String),
+  studentId: json['studentId'] as String,
+  status: VisitStatus.fromJson(json['status'] as String),
+  type: VisitType.fromJson(json['type'] as String),
 );
 
 Map<String, dynamic> _$StudentVisitToJson(StudentVisit instance) =>
     <String, dynamic>{
       'studentId': instance.studentId,
-      'status': _$VisitStatusEnumMap[instance.status],
-      'type': _$VisitTypeEnumMap[instance.type],
+      'status': _$VisitStatusEnumMap[instance.status]!,
+      'type': _$VisitTypeEnumMap[instance.type]!,
     };
 
 const _$VisitStatusEnumMap = {

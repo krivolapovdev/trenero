@@ -28,7 +28,7 @@ class ProfitLineChart extends StatelessWidget {
 
     final spots = data.asMap().entries.map((entry) {
       final index = entry.key;
-      final value = entry.value.total?.toDouble() ?? 0.0;
+      final value = entry.value.total.toDouble();
       return FlSpot(index.toDouble(), value);
     }).toList();
 
@@ -158,9 +158,7 @@ class ProfitLineChart extends StatelessWidget {
                   }
 
                   final itemDate = data[index].date;
-                  final rawLabel = itemDate != null
-                      ? DateFormat('MMM', 'ru').format(itemDate)
-                      : '';
+                  final rawLabel = DateFormat('MMM', 'ru').format(itemDate);
                   final label = rawLabel.replaceAll('.', '').capitalized;
 
                   return SideTitleWidget(

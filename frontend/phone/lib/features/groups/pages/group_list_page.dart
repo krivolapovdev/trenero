@@ -27,7 +27,7 @@ class GroupListPage extends ShellPage {
       id: 'placeholder-$index',
       name: 'Group Name Placeholder',
       createdAt: DateTime.now(),
-      groupStudents: const [],
+      countOfStudents: 99,
     ),
   );
 

@@ -10,13 +10,13 @@ part 'update_lesson_request.g.dart';
 
 @JsonSerializable()
 class UpdateLessonRequest {
-  const UpdateLessonRequest({this.date, this.students});
+  const UpdateLessonRequest({required this.date, required this.students});
 
   factory UpdateLessonRequest.fromJson(Map<String, Object?> json) =>
       _$UpdateLessonRequestFromJson(json);
 
-  final DateTime? date;
-  final List<StudentVisit>? students;
+  final DateTime date;
+  final List<StudentVisit> students;
 
   Map<String, Object?> toJson() => _$UpdateLessonRequestToJson(this);
 }

@@ -8,14 +8,18 @@ part 'sort_object.g.dart';
 
 @JsonSerializable()
 class SortObject {
-  const SortObject({this.empty, this.sorted, this.unsorted});
+  const SortObject({
+    required this.empty,
+    required this.sorted,
+    required this.unsorted,
+  });
 
   factory SortObject.fromJson(Map<String, Object?> json) =>
       _$SortObjectFromJson(json);
 
-  final bool? empty;
-  final bool? sorted;
-  final bool? unsorted;
+  final bool empty;
+  final bool sorted;
+  final bool unsorted;
 
   Map<String, Object?> toJson() => _$SortObjectToJson(this);
 }

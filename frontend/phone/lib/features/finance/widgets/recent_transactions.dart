@@ -62,7 +62,7 @@ class RecentTransactions extends ConsumerWidget {
 
           transactionsState.when(
             data: (pageResponse) {
-              final transactions = pageResponse.content ?? [];
+              final transactions = pageResponse.content;
 
               if (transactions.isEmpty) {
                 return const Padding(

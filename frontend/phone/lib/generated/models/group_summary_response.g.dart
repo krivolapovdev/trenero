@@ -12,11 +12,9 @@ GroupSummaryResponse _$GroupSummaryResponseFromJson(
   id: json['id'] as String,
   name: json['name'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
-  groupStudents: (json['groupStudents'] as List<dynamic>)
-      .map((e) => StudentResponse.fromJson(e as Map<String, dynamic>))
-      .toList(),
   defaultPrice: json['defaultPrice'] as num?,
   note: json['note'] as String?,
+  countOfStudents: (json['countOfStudents'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$GroupSummaryResponseToJson(
@@ -27,5 +25,5 @@ Map<String, dynamic> _$GroupSummaryResponseToJson(
   'defaultPrice': instance.defaultPrice,
   'note': instance.note,
   'createdAt': instance.createdAt.toIso8601String(),
-  'groupStudents': instance.groupStudents,
+  'countOfStudents': instance.countOfStudents,
 };

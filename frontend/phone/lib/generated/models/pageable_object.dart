@@ -11,23 +11,23 @@ part 'pageable_object.g.dart';
 @JsonSerializable()
 class PageableObject {
   const PageableObject({
-    this.offset,
-    this.paged,
-    this.sort,
-    this.pageSize,
-    this.pageNumber,
-    this.unpaged,
+    required this.offset,
+    required this.sort,
+    required this.paged,
+    required this.pageSize,
+    required this.pageNumber,
+    required this.unpaged,
   });
 
   factory PageableObject.fromJson(Map<String, Object?> json) =>
       _$PageableObjectFromJson(json);
 
-  final int? offset;
-  final bool? paged;
-  final SortObject? sort;
-  final int? pageSize;
-  final int? pageNumber;
-  final bool? unpaged;
+  final int offset;
+  final SortObject sort;
+  final bool paged;
+  final int pageSize;
+  final int pageNumber;
+  final bool unpaged;
 
   Map<String, Object?> toJson() => _$PageableObjectToJson(this);
 }

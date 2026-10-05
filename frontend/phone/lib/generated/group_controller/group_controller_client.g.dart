@@ -81,33 +81,6 @@ class _GroupControllerClient implements GroupControllerClient {
   }
 
   @override
-  Future<GroupDetails> getGroupDetailsById({required String groupId}) async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<GroupDetails>(
-      Options(method: 'GET', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            '/api/v1/groups/${groupId}',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    final _result = await _dio.fetch<Map<String, Object?>>(_options);
-    late GroupDetails _value;
-    try {
-      _value = GroupDetails.fromJson(_result.data!);
-    } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options, response: _result);
-      rethrow;
-    }
-    return _value;
-  }
-
-  @override
   Future<void> deleteGroup({required String groupId}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

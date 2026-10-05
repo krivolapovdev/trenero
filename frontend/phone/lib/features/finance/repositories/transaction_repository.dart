@@ -18,10 +18,7 @@ class TransactionRepository {
   Future<PageTransactionResponse> getTransactionsByPage({
     int page = 1,
     int size = 20,
-  }) async => await _client.getPaginatedTransactionsWithStudentPayment(
-    page: page,
-    size: size,
-  );
+  }) async => await _client.getPaginatedTransactions(page: page, size: size);
 
   Future<void> createTransaction({
     required TransactionType type,
