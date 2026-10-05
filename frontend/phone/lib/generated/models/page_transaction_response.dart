@@ -13,32 +13,32 @@ part 'page_transaction_response.g.dart';
 @JsonSerializable()
 class PageTransactionResponse {
   const PageTransactionResponse({
-    this.totalPages,
     this.totalElements,
+    this.totalPages,
     this.size,
     this.content,
     this.number,
     this.first,
     this.last,
     this.numberOfElements,
-    this.pageable,
     this.sort,
+    this.pageable,
     this.empty,
   });
 
   factory PageTransactionResponse.fromJson(Map<String, Object?> json) =>
       _$PageTransactionResponseFromJson(json);
 
-  final int? totalPages;
   final int? totalElements;
+  final int? totalPages;
   final int? size;
   final List<TransactionResponse>? content;
   final int? number;
   final bool? first;
   final bool? last;
   final int? numberOfElements;
-  final PageableObject? pageable;
   final SortObject? sort;
+  final PageableObject? pageable;
   final bool? empty;
 
   Map<String, Object?> toJson() => _$PageTransactionResponseToJson(this);

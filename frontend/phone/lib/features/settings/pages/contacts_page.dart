@@ -16,7 +16,9 @@ class ContactsPage extends StatelessWidget {
         context.t.settings.contacts,
         style: const TextStyle(color: Colors.black87),
       ),
-      iconTheme: const IconThemeData(color: Colors.black87),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+      ),
     ),
     body: ListView(
       padding: const EdgeInsets.all(16.0),

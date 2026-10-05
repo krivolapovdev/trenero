@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/core/widgets/radial_expandable_fab.dart';
+import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/widgets/group_card.dart';
+import 'package:phone/features/groups/widgets/lessons_calendar.dart'; // Import extracted widget
 import 'package:phone/generated/models/group_summary.dart';
 
-class GroupPage extends StatefulWidget {
+class GroupPage extends ConsumerStatefulWidget {
   final GroupSummary group;
 
   const new({super.key, required this.group});
 
   @override
-  State<GroupPage> createState() => _GroupPageState();
+  ConsumerState<GroupPage> createState() => _GroupPageState();
 }
 
-class _GroupPageState extends State<GroupPage> {
+class _GroupPageState extends ConsumerState<GroupPage> {
   @override
   Widget build(BuildContext context) {
     final routeAnimation = ModalRoute.of(context)?.animation;
+    final lessonsAsync = ref.watch(groupLessonsProvider(widget.group.id));
+    final localeAsync = ref.watch(languageProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -36,10 +42,9 @@ class _GroupPageState extends State<GroupPage> {
                   ],
                 ),
               ),
-
               PopupMenuItem<String>(
                 onTap: () {},
-                child: Row(
+                child: const Row(
                   children: [
                     Icon(Icons.calendar_month, size: 20),
                     SizedBox(width: 12),
@@ -47,10 +52,9 @@ class _GroupPageState extends State<GroupPage> {
                   ],
                 ),
               ),
-
               PopupMenuItem<String>(
                 onTap: () {},
-                child: Row(
+                child: const Row(
                   children: [
                     Icon(Icons.inventory, size: 20),
                     SizedBox(width: 12),
@@ -58,7 +62,6 @@ class _GroupPageState extends State<GroupPage> {
                   ],
                 ),
               ),
-
               PopupMenuItem<String>(
                 onTap: () {},
                 child: Row(
@@ -68,7 +71,7 @@ class _GroupPageState extends State<GroupPage> {
                       size: 20,
                       color: Theme.of(context).colorScheme.error,
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Text(
                       'Delete',
                       style: TextStyle(
@@ -80,11 +83,12 @@ class _GroupPageState extends State<GroupPage> {
               ),
             ],
           ),
-
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
         ],
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        ),
       ),
-
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: RadialExpandableFab(
         distance: 120.0,
@@ -97,7 +101,6 @@ class _GroupPageState extends State<GroupPage> {
             highlightElevation: 0,
             child: const Icon(Icons.edit),
           ),
-
           FloatingActionButton(
             heroTag: 'lesson-group',
             onPressed: () {},
@@ -108,10 +111,10 @@ class _GroupPageState extends State<GroupPage> {
           ),
         ],
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          spacing: 16,
           children: [
             AnimatedBuilder(
               animation: routeAnimation ?? const AlwaysStoppedAnimation(0),
@@ -128,8 +131,17 @@ class _GroupPageState extends State<GroupPage> {
               ),
             ),
 
-            const Expanded(
-              child: Center(child: Text('Group details will go here')),
+            lessonsAsync.when(
+              data: (lessons) => LessonsCalendar(
+                lessons: lessons,
+                locale: localeAsync.value?.languageTag,
+                onDaySelected: (selectedDay, focusedDay) {
+                  // Handle day tap here if needed
+                },
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) =>
+                  Center(child: Text('Error loading lessons: $error')),
             ),
           ],
         ),

@@ -10,33 +10,31 @@ class GroupListView extends StatelessWidget {
   const new({super.key, required this.groups, this.isLoading = false});
 
   @override
-  Widget build(BuildContext context) => ListView.builder(
+  Widget build(BuildContext context) => ListView.separated(
     padding: const EdgeInsets.all(16.0),
     physics: const BouncingScrollPhysics(
       parent: AlwaysScrollableScrollPhysics(),
     ),
+    separatorBuilder: (context, index) => const SizedBox(height: 12.0),
     itemCount: groups.length,
     itemBuilder: (context, index) {
       final group = groups[index];
 
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Hero(
-          tag: 'group-card-${group.id}',
-          child: Material(
-            type: MaterialType.transparency,
-            child: GroupCard(
-              group: group,
-              onTap: isLoading
-                  ? () {}
-                  : () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => GroupPage(group: group),
-                        ),
-                      );
-                    },
-            ),
+      return Hero(
+        tag: 'group-card-${group.id}',
+        child: Material(
+          type: MaterialType.transparency,
+          child: GroupCard(
+            group: group,
+            onTap: isLoading
+                ? () {}
+                : () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => GroupPage(group: group),
+                      ),
+                    );
+                  },
           ),
         ),
       );

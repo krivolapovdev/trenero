@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/generated/group_controller/group_controller_client.dart';
 import 'package:phone/generated/models/group_summary.dart';
+import 'package:phone/generated/models/lesson_response.dart';
 
 final groupRepositoryProvider = Provider<GroupRepository>((ref) {
   final service = ref.watch(groupServiceProvider);
@@ -65,6 +66,22 @@ class GroupRepository {
       }
     } on DioException catch (e) {
       throw Exception('Error deleting group: ${e.message}');
+    }
+  }
+
+  Future<List<LessonResponse>> getGroupLessons({
+    required String groupId,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    try {
+      return await _service.getGroupLessons(
+        groupId: groupId,
+        from: from,
+        to: to,
+      );
+    } on DioException catch (e) {
+      throw Exception('Failed to fetch group lessons: ${e.message}');
     }
   }
 

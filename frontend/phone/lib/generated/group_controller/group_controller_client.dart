@@ -9,6 +9,8 @@ import '../models/create_group_request.dart';
 import '../models/group_details.dart';
 import '../models/group_response.dart';
 import '../models/group_summary.dart';
+import '../models/lesson_response.dart';
+import '../models/student_response.dart';
 
 part 'group_controller_client.g.dart';
 
@@ -35,5 +37,17 @@ abstract class GroupControllerClient {
   Future<GroupResponse> updateGroup({
     @Path('groupId') required String groupId,
     @Body() required Map<String, dynamic> body,
+  });
+
+  @GET('/api/v1/groups/{groupId}/students')
+  Future<List<StudentResponse>> getGroupStudents({
+    @Path('groupId') required String groupId,
+  });
+
+  @GET('/api/v1/groups/{groupId}/lessons')
+  Future<List<LessonResponse>> getGroupLessons({
+    @Path('groupId') required String groupId,
+    @Query('from') required DateTime from,
+    @Query('to') required DateTime to,
   });
 }

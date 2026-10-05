@@ -13,9 +13,9 @@ class PageableObject {
   const PageableObject({
     this.offset,
     this.paged,
-    this.pageNumber,
-    this.pageSize,
     this.sort,
+    this.pageSize,
+    this.pageNumber,
     this.unpaged,
   });
 
@@ -24,9 +24,9 @@ class PageableObject {
 
   final int? offset;
   final bool? paged;
-  final int? pageNumber;
-  final int? pageSize;
   final SortObject? sort;
+  final int? pageSize;
+  final int? pageNumber;
   final bool? unpaged;
 
   Map<String, Object?> toJson() => _$PageableObjectToJson(this);
