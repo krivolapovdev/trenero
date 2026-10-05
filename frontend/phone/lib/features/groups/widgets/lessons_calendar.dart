@@ -114,15 +114,14 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
         todayDecoration: BoxDecoration(
           color: Colors.white,
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.blue, width: 1.5),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary,
+            width: 1.5,
+          ),
         ),
-        todayTextStyle: const TextStyle(
-          color: Colors.blue,
+        todayTextStyle: TextStyle(
+          color: Theme.of(context).colorScheme.primary,
           fontWeight: FontWeight.bold,
-        ),
-        selectedDecoration: const BoxDecoration(
-          color: Colors.purple,
-          shape: BoxShape.circle,
         ),
       ),
     ),

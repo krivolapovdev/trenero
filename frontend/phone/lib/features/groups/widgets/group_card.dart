@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:phone/core/extensions/number_extension.dart';
 import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/core/widgets/card_badge.dart';
-import 'package:phone/generated/models/group_summary.dart';
+import 'package:phone/generated/models/group_summary_response.dart';
 
 class GroupCard extends StatelessWidget {
-  final GroupSummary group;
+  final GroupSummaryResponse group;
   final VoidCallback onTap;
 
   const new({super.key, required this.group, required this.onTap});
@@ -54,8 +54,10 @@ class GroupCard extends StatelessWidget {
                       children: [
                         Text(
                           group.name,
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: const TextStyle(
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            height: 1.5,
                           ),
                         ),
 

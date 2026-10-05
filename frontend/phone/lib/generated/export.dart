@@ -48,7 +48,8 @@ export 'models/student_summary_response.dart';
 export 'models/metric_scope.dart';
 export 'models/payment_metric_response.dart';
 export 'models/lesson_details_response.dart';
-export 'models/group_summary.dart';
+export 'models/group_summary_response.dart';
 export 'models/group_details.dart';
+export 'models/group_student_summary_response.dart';
 // Root client
 export 'rest_client.dart';

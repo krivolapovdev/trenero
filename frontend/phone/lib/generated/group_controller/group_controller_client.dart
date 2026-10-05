@@ -8,9 +8,9 @@ import 'package:retrofit/retrofit.dart';
 import '../models/create_group_request.dart';
 import '../models/group_details.dart';
 import '../models/group_response.dart';
-import '../models/group_summary.dart';
+import '../models/group_student_summary_response.dart';
+import '../models/group_summary_response.dart';
 import '../models/lesson_response.dart';
-import '../models/student_response.dart';
 
 part 'group_controller_client.g.dart';
 
@@ -20,7 +20,7 @@ abstract class GroupControllerClient {
       _GroupControllerClient;
 
   @GET('/api/v1/groups')
-  Future<List<GroupSummary>> getAllGroupsSummary();
+  Future<List<GroupSummaryResponse>> getAllGroupsSummary();
 
   @POST('/api/v1/groups')
   Future<GroupResponse> createGroup({@Body() required CreateGroupRequest body});
@@ -40,7 +40,7 @@ abstract class GroupControllerClient {
   });
 
   @GET('/api/v1/groups/{groupId}/students')
-  Future<List<StudentResponse>> getGroupStudents({
+  Future<List<GroupStudentSummaryResponse>> getGroupStudents({
     @Path('groupId') required String groupId,
   });
 

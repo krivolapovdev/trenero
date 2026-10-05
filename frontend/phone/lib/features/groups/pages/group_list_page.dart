@@ -9,7 +9,7 @@ import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/widgets/create_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_list_view.dart';
 import 'package:phone/features/groups/widgets/group_search_delegate.dart';
-import 'package:phone/generated/models/group_summary.dart';
+import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -21,9 +21,9 @@ class GroupListPage extends ShellPage {
     super.selectedIcon = Icons.folder_shared,
   });
 
-  static final List<GroupSummary> _dummyGroups = List.generate(
+  static final List<GroupSummaryResponse> _dummyGroups = List.generate(
     10,
-    (index) => GroupSummary(
+    (index) => GroupSummaryResponse(
       id: 'placeholder-$index',
       name: 'Group Name Placeholder',
       createdAt: DateTime.now(),
@@ -111,7 +111,7 @@ class GroupListPage extends ShellPage {
     BuildContext context,
     WidgetRef ref,
     AsyncValue groupsState,
-    List<GroupSummary> groups,
+    List<GroupSummaryResponse> groups,
     bool isLoading,
     bool hasError,
   ) {

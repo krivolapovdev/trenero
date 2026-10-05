@@ -24,7 +24,7 @@ import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.group.internal.request.CreateGroupRequest
 import org.trenero.backend.group.internal.response.GroupDetails
 import org.trenero.backend.group.internal.response.GroupStudentSummaryResponse
-import org.trenero.backend.group.internal.response.GroupSummary
+import org.trenero.backend.group.internal.response.GroupSummaryResponse
 import org.trenero.backend.group.internal.service.GroupService
 
 @RestController
@@ -33,7 +33,7 @@ class GroupController(private val groupService: GroupService) {
 
   @GetMapping
   @PreAuthorize("isAuthenticated()")
-  fun getAllGroupsSummary(@AuthenticationPrincipal jwtUser: JwtUser): List<GroupSummary> =
+  fun getAllGroupsSummary(@AuthenticationPrincipal jwtUser: JwtUser): List<GroupSummaryResponse> =
     groupService.getAllGroupsSummary(jwtUser)
 
   @GetMapping("/{groupId}")

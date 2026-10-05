@@ -31,7 +31,7 @@ import org.trenero.backend.group.internal.repository.GroupRepository;
 import org.trenero.backend.group.internal.request.CreateGroupRequest;
 import org.trenero.backend.group.internal.response.GroupDetails;
 import org.trenero.backend.group.internal.response.GroupStudentSummaryResponse;
-import org.trenero.backend.group.internal.response.GroupSummary;
+import org.trenero.backend.group.internal.response.GroupSummaryResponse;
 import org.trenero.backend.lesson.external.LessonSpi;
 import org.trenero.backend.student.external.StudentSpi;
 
@@ -51,7 +51,7 @@ public class GroupService implements GroupSpi {
   private final Executor executor;
 
   @Transactional(readOnly = true)
-  public @NonNull List<GroupSummary> getAllGroupsSummary(@NonNull JwtUser jwtUser) {
+  public @NonNull List<GroupSummaryResponse> getAllGroupsSummary(@NonNull JwtUser jwtUser) {
     log.info("Getting all groups: user={}", jwtUser);
     List<Group> allGroups = groupRepository.findAllByOwnerId(jwtUser.id());
 
@@ -87,7 +87,7 @@ public class GroupService implements GroupSpi {
                       .toList();
 
               GroupResponse groupResponse = groupMapper.toResponse(group);
-              return new GroupSummary(groupResponse, students);
+              return new GroupSummaryResponse(groupResponse, students);
             })
         .toList();
   }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:phone/features/groups/widgets/group_list_view.dart';
-import 'package:phone/generated/models/group_summary.dart';
+import 'package:phone/generated/models/group_summary_response.dart';
 
 class GroupSearchDelegate extends SearchDelegate {
-  final List<GroupSummary> groups;
+  final List<GroupSummaryResponse> groups;
 
   new(this.groups, String searchLabel)
     : super(searchFieldLabel: searchLabel, keyboardType: TextInputType.text);

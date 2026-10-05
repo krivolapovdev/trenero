@@ -6,6 +6,6 @@ import org.trenero.backend.common.domain.StudentStatus
 import org.trenero.backend.common.response.StudentResponse
 
 data class GroupStudentSummaryResponse(
-  @field:JsonUnwrapped val student: StudentResponse,
-  @field:NotNull val statuses: Set<StudentStatus>,
+  @get:NotNull @get:JsonUnwrapped val student: StudentResponse,
+  @get:NotNull val statuses: Set<StudentStatus>,
 )

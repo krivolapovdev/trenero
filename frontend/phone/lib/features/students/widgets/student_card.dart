@@ -55,8 +55,10 @@ class StudentCard extends StatelessWidget {
                       children: [
                         Text(
                           student.fullName,
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: const TextStyle(
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            height: 1.5,
                           ),
                         ),
 

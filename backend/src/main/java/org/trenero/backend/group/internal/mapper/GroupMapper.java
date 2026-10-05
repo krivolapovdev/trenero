@@ -15,7 +15,7 @@ import org.trenero.backend.common.response.StudentResponse;
 import org.trenero.backend.group.internal.domain.Group;
 import org.trenero.backend.group.internal.request.CreateGroupRequest;
 import org.trenero.backend.group.internal.response.GroupDetails;
-import org.trenero.backend.group.internal.response.GroupSummary;
+import org.trenero.backend.group.internal.response.GroupSummaryResponse;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface GroupMapper {
@@ -47,7 +47,7 @@ public interface GroupMapper {
   }
 
   @Mapping(target = "groupStudents", source = "groupStudents")
-  GroupSummary toGroupOverviewResponse(
+  GroupSummaryResponse toGroupOverviewResponse(
       GroupResponse group, List<GroupStudentResponse> groupStudents);
 
   @Mapping(target = "groupStudents", source = "groupStudents")

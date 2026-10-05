@@ -2,7 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/generated/group_controller/group_controller_client.dart';
-import 'package:phone/generated/models/group_summary.dart';
+import 'package:phone/generated/models/group_student_summary_response.dart';
+import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
 
 final groupRepositoryProvider = Provider<GroupRepository>((ref) {
@@ -12,11 +13,13 @@ final groupRepositoryProvider = Provider<GroupRepository>((ref) {
 
 class GroupRepository {
   final GroupControllerClient _service;
-  List<GroupSummary>? _cachedGroups;
+  List<GroupSummaryResponse>? _cachedGroups;
 
   new(this._service);
 
-  Future<List<GroupSummary>> getAllGroups({bool forceRefresh = false}) async {
+  Future<List<GroupSummaryResponse>> getAllGroups({
+    bool forceRefresh = false,
+  }) async {
     if (!forceRefresh && _cachedGroups != null) {
       return List.unmodifiable(_cachedGroups!);
     }
@@ -30,10 +33,11 @@ class GroupRepository {
     }
   }
 
-  List<GroupSummary> getCachedGroups() {
+  List<GroupSummaryResponse> getCachedGroups() {
     if (_cachedGroups == null) return const [];
     return List.unmodifiable(_cachedGroups!);
   }
+
   //
   // Future<GroupSummary> createGroup(CreateGroupRequest request) async {
   //   try {
@@ -82,6 +86,16 @@ class GroupRepository {
       );
     } on DioException catch (e) {
       throw Exception('Failed to fetch group lessons: ${e.message}');
+    }
+  }
+
+  Future<List<GroupStudentSummaryResponse>> getGroupStudents(
+    String groupId,
+  ) async {
+    try {
+      return await _service.getGroupStudents(groupId: groupId);
+    } on DioException catch (e) {
+      throw Exception('Failed to fetch group students: ${e.message}');
     }
   }
 

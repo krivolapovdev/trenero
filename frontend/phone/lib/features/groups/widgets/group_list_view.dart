@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:phone/features/groups/pages/group_page.dart';
 import 'package:phone/features/groups/widgets/group_card.dart';
-import 'package:phone/generated/models/group_summary.dart';
+import 'package:phone/generated/models/group_summary_response.dart';
 
 class GroupListView extends StatelessWidget {
-  final List<GroupSummary> groups;
+  final List<GroupSummaryResponse> groups;
   final bool isLoading;
 
   const new({super.key, required this.groups, this.isLoading = false});
