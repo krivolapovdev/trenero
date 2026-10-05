@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.trenero.backend.common.response.GroupResponse
 import org.trenero.backend.common.response.LessonResponse
-import org.trenero.backend.common.response.StudentResponse
 import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.group.internal.request.CreateGroupRequest
 import org.trenero.backend.group.internal.response.GroupDetails
+import org.trenero.backend.group.internal.response.GroupStudentSummaryResponse
 import org.trenero.backend.group.internal.response.GroupSummary
 import org.trenero.backend.group.internal.service.GroupService
 
@@ -48,7 +48,7 @@ class GroupController(private val groupService: GroupService) {
   fun getGroupStudents(
     @PathVariable groupId: UUID,
     @AuthenticationPrincipal jwtUser: JwtUser,
-  ): List<StudentResponse> = groupService.getGroupStudents(groupId, jwtUser)
+  ): List<GroupStudentSummaryResponse> = groupService.getGroupStudents(groupId, jwtUser)
 
   @GetMapping("/{groupId}/lessons")
   @PreAuthorize("isAuthenticated()")

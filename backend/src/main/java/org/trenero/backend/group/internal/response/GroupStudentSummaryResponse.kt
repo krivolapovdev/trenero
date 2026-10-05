@@ -1,13 +1,11 @@
-package org.trenero.backend.student.internal.response
+package org.trenero.backend.group.internal.response
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import jakarta.validation.constraints.NotNull
 import org.trenero.backend.common.domain.StudentStatus
-import org.trenero.backend.common.response.GroupResponse
 import org.trenero.backend.common.response.StudentResponse
 
-data class StudentSummaryResponse(
+data class GroupStudentSummaryResponse(
   @field:JsonUnwrapped val student: StudentResponse,
-  val studentGroup: GroupResponse?,
   @field:NotNull val statuses: Set<StudentStatus>,
 )

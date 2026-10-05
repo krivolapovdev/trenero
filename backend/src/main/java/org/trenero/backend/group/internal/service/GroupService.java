@@ -22,6 +22,7 @@ import org.trenero.backend.common.response.GroupResponse;
 import org.trenero.backend.common.response.GroupStudentResponse;
 import org.trenero.backend.common.response.LessonResponse;
 import org.trenero.backend.common.response.StudentResponse;
+import org.trenero.backend.common.response.StudentWithStatusesResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.external.GroupSpi;
 import org.trenero.backend.group.internal.domain.Group;
@@ -29,6 +30,7 @@ import org.trenero.backend.group.internal.mapper.GroupMapper;
 import org.trenero.backend.group.internal.repository.GroupRepository;
 import org.trenero.backend.group.internal.request.CreateGroupRequest;
 import org.trenero.backend.group.internal.response.GroupDetails;
+import org.trenero.backend.group.internal.response.GroupStudentSummaryResponse;
 import org.trenero.backend.group.internal.response.GroupSummary;
 import org.trenero.backend.lesson.external.LessonSpi;
 import org.trenero.backend.student.external.StudentSpi;
@@ -153,7 +155,7 @@ public class GroupService implements GroupSpi {
   }
 
   @Transactional(readOnly = true)
-  public @NonNull List<StudentResponse> getGroupStudents(
+  public @NonNull List<GroupStudentSummaryResponse> getGroupStudents(
       @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Getting students for group: groupId={}; user={}", groupId, jwtUser);
 
@@ -162,15 +164,21 @@ public class GroupService implements GroupSpi {
     List<GroupStudentResponse> studentLinks =
         groupStudentService.getStudentsByGroupId(groupId, jwtUser);
 
-    List<UUID> studentIds = studentLinks.stream().map(GroupStudentResponse::studentId).toList();
-
-    if (studentIds.isEmpty()) {
+    if (studentLinks.isEmpty()) {
       return List.of();
     }
 
-    Map<UUID, StudentResponse> studentsMap = studentSpi.getStudentsByIds(studentIds, jwtUser);
+    List<UUID> studentIds =
+        studentLinks.stream().map(GroupStudentResponse::studentId).distinct().toList();
 
-    return studentIds.stream().map(studentsMap::get).filter(Objects::nonNull).toList();
+    Map<UUID, StudentWithStatusesResponse> studentMap =
+        studentSpi.getStudentsWithStatusesByIds(studentIds, jwtUser);
+
+    return studentIds.stream()
+        .map(studentMap::get)
+        .filter(Objects::nonNull)
+        .map(s -> new GroupStudentSummaryResponse(s.getStudent(), s.getStatuses()))
+        .toList();
   }
 
   @Transactional(readOnly = true)

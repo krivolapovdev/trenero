@@ -1,4 +1,4 @@
-package org.trenero.backend.student.internal.domain;
+package org.trenero.backend.common.domain;
 
 public enum StudentStatus {
   INACTIVE,

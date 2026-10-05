@@ -21,6 +21,7 @@ import org.trenero.backend.common.response.GroupStudentResponse;
 import org.trenero.backend.common.response.LessonResponse;
 import org.trenero.backend.common.response.StudentPaymentResponse;
 import org.trenero.backend.common.response.StudentResponse;
+import org.trenero.backend.common.response.StudentWithStatusesResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.external.GroupSpi;
 import org.trenero.backend.group.external.GroupStudentSpi;
@@ -263,6 +264,79 @@ public class StudentService implements StudentSpi {
     var savedStudent = self.saveStudent(updatedStudent);
 
     return studentMapper.toResponse(savedStudent);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public @NonNull Map<UUID, StudentWithStatusesResponse> getStudentsWithStatusesByIds(
+      @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
+    log.info("Getting students with statuses by ids: studentIds={}; user={}", studentIds, jwtUser);
+
+    if (studentIds.isEmpty()) {
+      return Map.of();
+    }
+
+    var studentsMap = getStudentsByIds(studentIds, jwtUser);
+    if (studentsMap.isEmpty()) {
+      return Map.of();
+    }
+
+    var distinctStudentIds = studentsMap.keySet().stream().toList();
+
+    var visitsFuture =
+        CompletableFuture.supplyAsync(
+            () -> visitSpi.getVisitsByStudentIds(distinctStudentIds, jwtUser), executor);
+
+    var paymentsFuture =
+        CompletableFuture.supplyAsync(
+            () -> studentPaymentSpi.getStudentPaymentsByStudentIds(distinctStudentIds, jwtUser),
+            executor);
+
+    var groupLinksFuture =
+        CompletableFuture.supplyAsync(
+            () -> groupStudentSpi.getGroupStudentsByStudentIds(distinctStudentIds, jwtUser),
+            executor);
+
+    var groupLessonsFuture =
+        groupLinksFuture.thenComposeAsync(
+            links -> {
+              var groupIds =
+                  links.values().stream().map(GroupStudentResponse::groupId).distinct().toList();
+
+              if (groupIds.isEmpty()) {
+                return CompletableFuture.completedFuture(Map.<UUID, LessonResponse>of());
+              }
+              return CompletableFuture.supplyAsync(
+                  () -> lessonSpi.getLastGroupLessonsByGroupIds(groupIds, jwtUser), executor);
+            },
+            executor);
+
+    AsyncUtils.awaitAll(visitsFuture, paymentsFuture, groupLinksFuture, groupLessonsFuture);
+
+    var visitsMap = visitsFuture.join();
+    var paymentsMap = paymentsFuture.join();
+    var studentToGroupLinkMap = groupLinksFuture.join();
+    var groupLessonMap = groupLessonsFuture.join();
+
+    return studentsMap.values().stream()
+        .collect(
+            Collectors.toMap(
+                StudentResponse::id,
+                student -> {
+                  var link = studentToGroupLinkMap.get(student.id());
+                  var groupId = (link != null) ? link.groupId() : null;
+
+                  var studentVisits = visitsMap.getOrDefault(student.id(), List.of());
+                  var studentPayments = paymentsMap.getOrDefault(student.id(), List.of());
+                  var lastLesson = (groupId != null) ? groupLessonMap.get(groupId) : null;
+
+                  var statuses =
+                      studentStatusService.getStudentStatuses(
+                          studentVisits, studentPayments, lastLesson);
+
+                  return new StudentWithStatusesResponse(student, statuses);
+                },
+                (existing, _) -> existing));
   }
 
   @Transactional
