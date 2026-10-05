@@ -1,4 +1,4 @@
-package org.trenero.backend.payment.internal.request;
+package org.trenero.backend.transaction.internal.request;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;

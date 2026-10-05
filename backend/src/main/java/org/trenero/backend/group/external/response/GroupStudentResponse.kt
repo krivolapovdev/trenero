@@ -8,5 +8,5 @@ data class GroupStudentResponse(
   @get:NotNull val id: UUID,
   @get:NotNull val groupId: UUID,
   @get:NotNull val studentId: UUID,
-  val leftAt: OffsetDateTime?,
+  val leftAt: OffsetDateTime? = null,
 )

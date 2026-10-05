@@ -1,13 +1,13 @@
-package org.trenero.backend.payment.internal.service;
+package org.trenero.backend.transaction.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,16 +18,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.trenero.backend.common.domain.TransactionType;
 import org.trenero.backend.common.security.JwtUser;
-import org.trenero.backend.payment.external.TransactionSpi;
-import org.trenero.backend.payment.external.response.TransactionResponse;
-import org.trenero.backend.payment.internal.domain.StudentPayment;
-import org.trenero.backend.payment.internal.domain.Transaction;
-import org.trenero.backend.payment.internal.mapper.TransactionMapper;
-import org.trenero.backend.payment.internal.repository.TransactionRepository;
-import org.trenero.backend.payment.internal.request.CreateTransactionRequest;
 import org.trenero.backend.student.external.StudentSpi;
+import org.trenero.backend.transaction.external.TransactionSpi;
+import org.trenero.backend.transaction.external.response.TransactionResponse;
+import org.trenero.backend.transaction.internal.domain.StudentPayment;
+import org.trenero.backend.transaction.internal.domain.Transaction;
+import org.trenero.backend.transaction.internal.mapper.TransactionMapper;
+import org.trenero.backend.transaction.internal.repository.StudentPaymentRepository;
+import org.trenero.backend.transaction.internal.repository.TransactionRepository;
+import org.trenero.backend.transaction.internal.request.CreateStudentPaymentDetailsRequest;
+import org.trenero.backend.transaction.internal.request.CreateTransactionRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -35,11 +36,12 @@ import org.trenero.backend.student.external.StudentSpi;
 public class TransactionService implements TransactionSpi {
 
   private final TransactionRepository transactionRepository;
+  private final StudentPaymentRepository studentPaymentRepository;
   private final TransactionMapper transactionMapper;
   @Lazy private final StudentSpi studentSpi;
 
   @Transactional(readOnly = true)
-  public Page<TransactionResponse> getPaginatedTransactionsWithStudentPayment(
+  public Page<TransactionResponse> getPaginatedTransactions(
       int page, int size, @NonNull JwtUser jwtUser) {
 
     int pageIndex = Math.max(0, page - 1);
@@ -90,31 +92,61 @@ public class TransactionService implements TransactionSpi {
         .toList();
   }
 
-  @Transactional
-  public @NonNull TransactionResponse createTransaction(
-      @NonNull CreateTransactionRequest request, @NonNull JwtUser jwtUser) {
-    log.info("Saving new {} transaction to database for userId={}", request.type(), jwtUser.id());
+  @Override
+  @Transactional(readOnly = true)
+  public @NonNull List<TransactionResponse> getTransactionsByStudentId(
+      @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
+    log.info("Getting transactions by studentId: studentId={}; user={}", studentId, jwtUser.id());
 
-    Transaction transaction = transactionMapper.toEntity(request, jwtUser.id());
-    Transaction savedTransaction = transactionRepository.saveAndFlush(transaction);
+    var studentPayments =
+        studentPaymentRepository.findAllByStudentIdAndOwnerIdSorted(studentId, jwtUser.id());
 
-    return transactionMapper.toResponse(savedTransaction);
+    return studentPayments.stream()
+        .map(StudentPayment::getTransaction)
+        .filter(Objects::nonNull)
+        .map(transactionMapper::toResponse)
+        .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public @NonNull Map<UUID, List<TransactionResponse>> getTransactionsByStudentIds(
+      @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
+    log.info(
+        "Getting transactions by studentIds: studentIds={}; user={}", studentIds, jwtUser.id());
+
+    var studentPayments =
+        studentPaymentRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.id());
+
+    return studentPayments.stream()
+        .filter(sp -> sp.getTransaction() != null)
+        .collect(
+            Collectors.groupingBy(
+                StudentPayment::getStudentId,
+                Collectors.mapping(
+                    sp -> transactionMapper.toResponse(sp.getTransaction()), Collectors.toList())));
   }
 
   @Transactional
-  public Transaction createTransactionEntity(
-      BigDecimal amount, TransactionType type, LocalDate date, JwtUser jwtUser) {
+  public @NonNull TransactionResponse createTransaction(
+      @NonNull CreateTransactionRequest request, @NonNull JwtUser jwtUser) {
     log.info(
-        "Creating transaction entity:amount={}; type={}; date={}; user={}",
-        amount,
-        type,
-        date,
-        jwtUser);
+        "Saving new {} transaction to database for userId={}", request.getType(), jwtUser.id());
 
-    Transaction transaction =
-        Transaction.builder().ownerId(jwtUser.id()).type(type).amount(amount).date(date).build();
+    if (request.getPaymentDetails() instanceof CreateStudentPaymentDetailsRequest studentDetails) {
+      studentSpi.getStudentById(studentDetails.getStudentId(), jwtUser);
+    }
 
-    return saveTransaction(transaction);
+    Transaction transaction = transactionMapper.toEntity(request, jwtUser.id());
+
+    // Устанавливаем двунаправленную связь, если есть детали платежа
+    if (transaction.getStudentPayment() != null) {
+      transaction.getStudentPayment().setTransaction(transaction);
+    }
+
+    Transaction savedTransaction = transactionRepository.saveAndFlush(transaction);
+
+    return transactionMapper.toResponse(savedTransaction);
   }
 
   @Transactional
@@ -131,36 +163,8 @@ public class TransactionService implements TransactionSpi {
   }
 
   @Transactional
-  public TransactionResponse updateTransaction(
-      UUID transactionId, BigDecimal amount, LocalDate date, JwtUser jwtUser) {
-    log.info(
-        "Updating transaction: transactionId={}; amount={}; date={}; user={}",
-        transactionId,
-        amount,
-        date,
-        jwtUser);
-
-    Transaction transaction =
-        transactionRepository
-            .findByIdAndOwnerId(transactionId, jwtUser.id())
-            .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
-
-    if (amount != null) {
-      transaction.setAmount(amount);
-    }
-
-    if (date != null) {
-      transaction.setDate(date);
-    }
-
-    Transaction savedTransaction = saveTransaction(transaction);
-
-    return transactionMapper.toResponse(savedTransaction);
-  }
-
-  @Transactional
   public void deleteTransaction(@NonNull UUID transactionId, @NonNull JwtUser jwtUser) {
-    log.info("Deleting transaction: transactionId={}; user={}", transactionId, jwtUser);
+    log.info("Deleting transaction: transactionId={}; user={}", transactionId, jwtUser.id());
 
     Transaction transaction =
         transactionRepository
@@ -170,8 +174,9 @@ public class TransactionService implements TransactionSpi {
     transactionRepository.delete(transaction);
   }
 
-  private @NonNull Transaction saveTransaction(@NonNull Transaction transaction) {
-    log.info("Saving transaction: transaction={}", transaction);
-    return transactionRepository.saveAndFlush(transaction);
+  @Override
+  @Transactional
+  public void deleteTransactionById(@NonNull UUID transactionId, @NonNull JwtUser jwtUser) {
+    deleteTransaction(transactionId, jwtUser);
   }
 }

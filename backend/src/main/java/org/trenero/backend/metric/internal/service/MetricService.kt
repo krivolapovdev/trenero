@@ -10,7 +10,7 @@ import org.trenero.backend.common.domain.TransactionType
 import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.metric.internal.domain.MetricScope
 import org.trenero.backend.metric.internal.response.PaymentMetricResponse
-import org.trenero.backend.payment.external.TransactionSpi
+import org.trenero.backend.transaction.external.TransactionSpi
 
 @Service
 class MetricService(@Lazy private val transactionSpi: TransactionSpi) {

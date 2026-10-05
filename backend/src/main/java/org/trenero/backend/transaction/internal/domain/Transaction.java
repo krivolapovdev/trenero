@@ -1,4 +1,4 @@
-package org.trenero.backend.payment.internal.domain;
+package org.trenero.backend.transaction.internal.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -8,7 +8,7 @@ import java.util.UUID
 data class GroupResponse(
   @get:NotNull val id: UUID,
   @get:NotNull val name: String,
-  val defaultPrice: BigDecimal?,
-  val note: String?,
+  val defaultPrice: BigDecimal? = null,
+  val note: String? = null,
   @get:NotNull val createdAt: OffsetDateTime,
 )

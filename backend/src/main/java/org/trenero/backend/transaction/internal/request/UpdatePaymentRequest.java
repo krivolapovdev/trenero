@@ -1,4 +1,4 @@
-package org.trenero.backend.payment.internal.request;
+package org.trenero.backend.transaction.internal.request;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

@@ -1,4 +1,4 @@
 @ApplicationModule
-package org.trenero.backend.payment.internal;
+package org.trenero.backend.transaction.internal;
 
 import org.springframework.modulith.ApplicationModule;

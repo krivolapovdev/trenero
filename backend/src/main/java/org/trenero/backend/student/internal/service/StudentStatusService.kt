@@ -7,7 +7,8 @@ import org.trenero.backend.common.domain.StudentStatus
 import org.trenero.backend.common.domain.VisitStatus
 import org.trenero.backend.common.domain.VisitType
 import org.trenero.backend.lesson.external.response.LessonResponse
-import org.trenero.backend.payment.external.response.StudentPaymentResponse
+import org.trenero.backend.transaction.external.response.StudentPaymentDetailsResponse
+import org.trenero.backend.transaction.external.response.TransactionResponse
 import org.trenero.backend.visit.external.response.VisitResponse
 
 @Service
@@ -15,7 +16,7 @@ class StudentStatusService {
 
   fun getStudentStatuses(
     visits: List<VisitResponse>,
-    payments: List<StudentPaymentResponse>,
+    payments: List<TransactionResponse>,
     lastLesson: LessonResponse? = null,
   ): Set<StudentStatus> {
     val hasAnyMarkedVisit = visits.any { it.status != VisitStatus.UNMARKED }
@@ -39,8 +40,12 @@ class StudentStatusService {
 
     val referenceDate = lastLesson?.date ?: LocalDate.now()
 
-    val isSubscriptionActive =
-      payments.maxByOrNull { it.paidUntil }?.paidUntil?.let { !it.isBefore(referenceDate) } ?: false
+    val maxPaidUntil =
+      payments
+        .mapNotNull { (it.paymentDetails as? StudentPaymentDetailsResponse)?.paidUntil }
+        .maxOrNull()
+
+    val isSubscriptionActive = maxPaidUntil?.let { !it.isBefore(referenceDate) } ?: false
 
     statuses.add(if (isSubscriptionActive) StudentStatus.PAID else StudentStatus.UNPAID)
 

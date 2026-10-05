@@ -8,8 +8,8 @@ import java.util.UUID
 data class StudentResponse(
   @get:NotNull val id: UUID,
   @get:NotNull val fullName: String,
-  val birthdate: LocalDate?,
-  val phone: String?,
-  val note: String?,
+  val birthdate: LocalDate? = null,
+  val phone: String? = null,
+  val note: String? = null,
   @get:NotNull val createdAt: OffsetDateTime,
 )

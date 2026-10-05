@@ -23,8 +23,6 @@ import org.trenero.backend.group.external.response.GroupResponse;
 import org.trenero.backend.group.external.response.GroupStudentResponse;
 import org.trenero.backend.lesson.external.LessonSpi;
 import org.trenero.backend.lesson.external.response.LessonResponse;
-import org.trenero.backend.payment.external.StudentPaymentSpi;
-import org.trenero.backend.payment.external.response.StudentPaymentResponse;
 import org.trenero.backend.student.external.StudentSpi;
 import org.trenero.backend.student.external.response.StudentResponse;
 import org.trenero.backend.student.external.response.StudentWithStatusesResponse;
@@ -34,6 +32,8 @@ import org.trenero.backend.student.internal.repository.StudentRepository;
 import org.trenero.backend.student.internal.request.CreateStudentRequest;
 import org.trenero.backend.student.internal.response.StudentSummaryResponse;
 import org.trenero.backend.student.internal.response.VisitWithLessonResponse;
+import org.trenero.backend.transaction.external.TransactionSpi;
+import org.trenero.backend.transaction.external.response.TransactionResponse;
 import org.trenero.backend.visit.external.VisitSpi;
 
 @Service
@@ -48,7 +48,7 @@ public class StudentService implements StudentSpi {
   @Lazy private final StudentStatusService studentStatusService;
   @Lazy private final GroupSpi groupSpi;
   @Lazy private final GroupStudentSpi groupStudentSpi;
-  @Lazy private final StudentPaymentSpi studentPaymentSpi;
+  @Lazy private final TransactionSpi transactionSpi;
   @Lazy private final VisitSpi visitSpi;
   @Lazy private final LessonSpi lessonSpi;
 
@@ -66,7 +66,6 @@ public class StudentService implements StudentSpi {
   public @NonNull List<StudentSummaryResponse> getStudentsSummary(@NonNull JwtUser jwtUser) {
     log.info("Getting students overview: user={}", jwtUser);
 
-    // 1. Fetch all students sequentially
     var students = self.getAllStudents(jwtUser);
 
     if (students.isEmpty()) {
@@ -75,26 +74,23 @@ public class StudentService implements StudentSpi {
 
     var studentIds = students.stream().map(StudentResponse::getId).toList();
 
-    // 2. Launch Level 1 Parallel Tasks
     var visitsFuture =
         CompletableFuture.supplyAsync(
             () -> visitSpi.getVisitsByStudentIds(studentIds, jwtUser), executor);
 
     var paymentsFuture =
         CompletableFuture.supplyAsync(
-            () -> studentPaymentSpi.getStudentPaymentsByStudentIds(studentIds, jwtUser), executor);
+            () -> transactionSpi.getTransactionsByStudentIds(studentIds, jwtUser), executor);
 
     var groupLinksFuture =
         CompletableFuture.supplyAsync(
             () -> groupStudentSpi.getGroupStudentsByStudentIds(studentIds, jwtUser), executor);
 
-    // 3. Extract group IDs quickly once groupLinksFuture completes
     var groupIdsFuture =
         groupLinksFuture.thenApply(
             links ->
                 links.values().stream().map(GroupStudentResponse::getGroupId).distinct().toList());
 
-    // 4. Chain Level 2 Parallel Tasks (Depend on groupIds)
     var groupsFuture =
         groupIdsFuture.thenComposeAsync(
             groupIds -> {
@@ -117,18 +113,15 @@ public class StudentService implements StudentSpi {
             },
             executor);
 
-    // 5. Await all background tasks simultaneously
     AsyncUtils.awaitAll(
         visitsFuture, paymentsFuture, groupLinksFuture, groupsFuture, groupLessonsFuture);
 
-    // 6. Extract values
     var visitsMap = visitsFuture.join();
     var paymentsMap = paymentsFuture.join();
     var studentToGroupLinkMap = groupLinksFuture.join();
     var groupsMap = groupsFuture.join();
     var groupLessonMap = groupLessonsFuture.join();
 
-    // 7. Perform fast in-memory assembly
     return students.stream()
         .map(
             student -> {
@@ -202,10 +195,10 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public @NonNull List<StudentPaymentResponse> getStudentPayments(
+  public @NonNull List<TransactionResponse> getStudentPayments(
       @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting payments for studentId={}; user={}", studentId, jwtUser);
-    return studentPaymentSpi.getStudentPaymentsByStudentId(studentId, jwtUser);
+    return transactionSpi.getTransactionsByStudentId(studentId, jwtUser);
   }
 
   @Transactional(readOnly = true)
@@ -290,7 +283,7 @@ public class StudentService implements StudentSpi {
 
     var paymentsFuture =
         CompletableFuture.supplyAsync(
-            () -> studentPaymentSpi.getStudentPaymentsByStudentIds(distinctStudentIds, jwtUser),
+            () -> transactionSpi.getTransactionsByStudentIds(distinctStudentIds, jwtUser),
             executor);
 
     var groupLinksFuture =
