@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import org.trenero.backend.common.response.LessonResponse
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.lesson.external.response.LessonResponse
 import org.trenero.backend.lesson.internal.request.CreateLessonRequest
 import org.trenero.backend.lesson.internal.request.UpdateLessonRequest
 import org.trenero.backend.lesson.internal.response.LessonDetailsResponse

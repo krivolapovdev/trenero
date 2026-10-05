@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import org.trenero.backend.common.response.StudentPaymentResponse
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.payment.external.response.StudentPaymentResponse
 import org.trenero.backend.payment.internal.request.CreateStudentPaymentRequest
 import org.trenero.backend.payment.internal.request.UpdatePaymentRequest
 import org.trenero.backend.payment.internal.service.StudentPaymentService

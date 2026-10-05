@@ -16,18 +16,18 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.async.AsyncUtils;
-import org.trenero.backend.common.response.GroupResponse;
-import org.trenero.backend.common.response.GroupStudentResponse;
-import org.trenero.backend.common.response.LessonResponse;
-import org.trenero.backend.common.response.StudentPaymentResponse;
-import org.trenero.backend.common.response.StudentResponse;
-import org.trenero.backend.common.response.StudentWithStatusesResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.external.GroupSpi;
 import org.trenero.backend.group.external.GroupStudentSpi;
+import org.trenero.backend.group.external.response.GroupResponse;
+import org.trenero.backend.group.external.response.GroupStudentResponse;
 import org.trenero.backend.lesson.external.LessonSpi;
+import org.trenero.backend.lesson.external.response.LessonResponse;
 import org.trenero.backend.payment.external.StudentPaymentSpi;
+import org.trenero.backend.payment.external.response.StudentPaymentResponse;
 import org.trenero.backend.student.external.StudentSpi;
+import org.trenero.backend.student.external.response.StudentResponse;
+import org.trenero.backend.student.external.response.StudentWithStatusesResponse;
 import org.trenero.backend.student.internal.domain.Student;
 import org.trenero.backend.student.internal.mapper.StudentMapper;
 import org.trenero.backend.student.internal.repository.StudentRepository;
@@ -73,7 +73,7 @@ public class StudentService implements StudentSpi {
       return List.of();
     }
 
-    var studentIds = students.stream().map(StudentResponse::id).toList();
+    var studentIds = students.stream().map(StudentResponse::getId).toList();
 
     // 2. Launch Level 1 Parallel Tasks
     var visitsFuture =
@@ -92,7 +92,7 @@ public class StudentService implements StudentSpi {
     var groupIdsFuture =
         groupLinksFuture.thenApply(
             links ->
-                links.values().stream().map(GroupStudentResponse::groupId).distinct().toList());
+                links.values().stream().map(GroupStudentResponse::getGroupId).distinct().toList());
 
     // 4. Chain Level 2 Parallel Tasks (Depend on groupIds)
     var groupsFuture =
@@ -132,11 +132,11 @@ public class StudentService implements StudentSpi {
     return students.stream()
         .map(
             student -> {
-              var link = studentToGroupLinkMap.get(student.id());
-              var groupId = (link != null) ? link.groupId() : null;
+              var link = studentToGroupLinkMap.get(student.getId());
+              var groupId = (link != null) ? link.getGroupId() : null;
 
-              var studentVisits = visitsMap.getOrDefault(student.id(), List.of());
-              var studentPayments = paymentsMap.getOrDefault(student.id(), List.of());
+              var studentVisits = visitsMap.getOrDefault(student.getId(), List.of());
+              var studentPayments = paymentsMap.getOrDefault(student.getId(), List.of());
               var lastLesson = (groupId != null) ? groupLessonMap.get(groupId) : null;
 
               var statuses =
@@ -181,7 +181,7 @@ public class StudentService implements StudentSpi {
                     .map(
                         gs ->
                             CompletableFuture.supplyAsync(
-                                () -> lessonSpi.getLessonsByGroupId(gs.groupId(), jwtUser),
+                                () -> lessonSpi.getLessonsByGroupId(gs.getGroupId(), jwtUser),
                                 executor))
                     .orElse(CompletableFuture.completedFuture(List.of())),
             executor);
@@ -193,11 +193,11 @@ public class StudentService implements StudentSpi {
 
     var lessonsMap =
         groupLessons.stream()
-            .collect(Collectors.toMap(LessonResponse::id, Function.identity(), (l1, _) -> l1));
+            .collect(Collectors.toMap(LessonResponse::getId, Function.identity(), (l1, _) -> l1));
 
     return studentVisits.stream()
-        .filter(visit -> lessonsMap.containsKey(visit.lessonId()))
-        .map(visit -> new VisitWithLessonResponse(visit, lessonsMap.get(visit.lessonId())))
+        .filter(visit -> lessonsMap.containsKey(visit.getLessonId()))
+        .map(visit -> new VisitWithLessonResponse(visit, lessonsMap.get(visit.getLessonId())))
         .toList();
   }
 
@@ -215,7 +215,8 @@ public class StudentService implements StudentSpi {
     return studentRepository.findAllByIdsAndOwnerId(studentIds, jwtUser.id()).stream()
         .map(studentMapper::toResponse)
         .collect(
-            Collectors.toMap(StudentResponse::id, student -> student, (existing, _) -> existing));
+            Collectors.toMap(
+                StudentResponse::getId, student -> student, (existing, _) -> existing));
   }
 
   @Transactional
@@ -250,7 +251,7 @@ public class StudentService implements StudentSpi {
       optionalGroupStudentResponse.ifPresent(
           groupStudentResponse ->
               groupStudentSpi.removeStudentFromGroup(
-                  studentId, groupStudentResponse.groupId(), jwtUser));
+                  studentId, groupStudentResponse.getGroupId(), jwtUser));
 
       var rawGroupId = updates.get("groupId");
 
@@ -301,7 +302,7 @@ public class StudentService implements StudentSpi {
         groupLinksFuture.thenComposeAsync(
             links -> {
               var groupIds =
-                  links.values().stream().map(GroupStudentResponse::groupId).distinct().toList();
+                  links.values().stream().map(GroupStudentResponse::getGroupId).distinct().toList();
 
               if (groupIds.isEmpty()) {
                 return CompletableFuture.completedFuture(Map.<UUID, LessonResponse>of());
@@ -321,13 +322,13 @@ public class StudentService implements StudentSpi {
     return studentsMap.values().stream()
         .collect(
             Collectors.toMap(
-                StudentResponse::id,
+                StudentResponse::getId,
                 student -> {
-                  var link = studentToGroupLinkMap.get(student.id());
-                  var groupId = (link != null) ? link.groupId() : null;
+                  var link = studentToGroupLinkMap.get(student.getId());
+                  var groupId = (link != null) ? link.getGroupId() : null;
 
-                  var studentVisits = visitsMap.getOrDefault(student.id(), List.of());
-                  var studentPayments = paymentsMap.getOrDefault(student.id(), List.of());
+                  var studentVisits = visitsMap.getOrDefault(student.getId(), List.of());
+                  var studentPayments = paymentsMap.getOrDefault(student.getId(), List.of());
                   var lastLesson = (groupId != null) ? groupLessonMap.get(groupId) : null;
 
                   var statuses =

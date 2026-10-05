@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
+import org.trenero.backend.auth.external.response.LoginResponse;
 import org.trenero.backend.auth.internal.request.OAuth2LoginRequest;
-import org.trenero.backend.common.response.LoginResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.user.external.UserSpi;
 
@@ -37,7 +37,7 @@ public class OAuth2Service {
     var email = payload.getEmail();
 
     var user = userSpi.getOrCreateUserFromOAuth2(GOOGLE, providerId, email);
-    var jwtUser = new JwtUser(user.id(), user.email());
+    var jwtUser = new JwtUser(user.getId(), user.getEmail());
     var tokens = jwtService.createAccessAndRefreshTokens(jwtUser);
 
     return new LoginResponse(user, tokens);

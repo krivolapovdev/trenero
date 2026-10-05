@@ -2,8 +2,8 @@ package org.trenero.backend.lesson.external
 
 import java.time.LocalDate
 import java.util.*
-import org.trenero.backend.common.response.LessonResponse
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.lesson.external.response.LessonResponse
 
 interface LessonSpi {
   fun getAllLessons(jwtUser: JwtUser): List<LessonResponse>

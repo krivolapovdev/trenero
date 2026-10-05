@@ -5,7 +5,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.ReportingPolicy;
-import org.trenero.backend.common.response.LessonResponse;
+import org.trenero.backend.lesson.external.response.LessonResponse;
 import org.trenero.backend.lesson.internal.domain.Lesson;
 import org.trenero.backend.lesson.internal.request.CreateLessonRequest;
 import org.trenero.backend.lesson.internal.request.UpdateLessonRequest;

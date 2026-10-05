@@ -1,8 +1,8 @@
 package org.trenero.backend.payment.external
 
 import java.time.LocalDate
-import org.trenero.backend.common.response.TransactionResponse
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.payment.external.response.TransactionResponse
 
 interface TransactionSpi {
   fun getTransactionsByDateRange(

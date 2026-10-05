@@ -1,9 +1,9 @@
 package org.trenero.backend.student.external
 
 import java.util.UUID
-import org.trenero.backend.common.response.StudentResponse
-import org.trenero.backend.common.response.StudentWithStatusesResponse
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.student.external.response.StudentResponse
+import org.trenero.backend.student.external.response.StudentWithStatusesResponse
 
 interface StudentSpi {
   fun getAllStudents(jwtUser: JwtUser): List<StudentResponse>

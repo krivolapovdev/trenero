@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service
 import org.trenero.backend.common.domain.StudentStatus
 import org.trenero.backend.common.domain.VisitStatus
 import org.trenero.backend.common.domain.VisitType
-import org.trenero.backend.common.response.LessonResponse
-import org.trenero.backend.common.response.StudentPaymentResponse
-import org.trenero.backend.common.response.VisitResponse
+import org.trenero.backend.lesson.external.response.LessonResponse
+import org.trenero.backend.payment.external.response.StudentPaymentResponse
+import org.trenero.backend.visit.external.response.VisitResponse
 
 @Service
 class StudentStatusService {

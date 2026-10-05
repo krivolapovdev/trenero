@@ -1,8 +1,8 @@
 package org.trenero.backend.payment.external
 
 import java.util.UUID
-import org.trenero.backend.common.response.StudentPaymentResponse
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.payment.external.response.StudentPaymentResponse
 
 interface StudentPaymentSpi {
   fun getAllStudentPayments(jwtUser: JwtUser): List<StudentPaymentResponse>

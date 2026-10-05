@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import org.trenero.backend.common.response.TransactionResponse
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.payment.external.response.TransactionResponse
 import org.trenero.backend.payment.internal.request.CreateTransactionRequest
 import org.trenero.backend.payment.internal.service.TransactionService
 

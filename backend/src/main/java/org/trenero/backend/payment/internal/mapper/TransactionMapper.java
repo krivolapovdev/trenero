@@ -10,12 +10,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.ReportingPolicy;
-import org.trenero.backend.common.response.StudentResponse;
-import org.trenero.backend.common.response.TransactionResponse;
+import org.trenero.backend.payment.external.response.TransactionResponse;
 import org.trenero.backend.payment.internal.domain.StudentPayment;
 import org.trenero.backend.payment.internal.domain.Transaction;
 import org.trenero.backend.payment.internal.request.CreateTransactionRequest;
 import org.trenero.backend.payment.internal.response.TransactionStudentPaymentResponse;
+import org.trenero.backend.student.external.response.StudentResponse;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TransactionMapper {

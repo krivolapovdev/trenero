@@ -1,8 +1,8 @@
 package org.trenero.backend.group.external
 
 import java.util.UUID
-import org.trenero.backend.common.response.GroupResponse
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.group.external.response.GroupResponse
 
 interface GroupSpi {
 

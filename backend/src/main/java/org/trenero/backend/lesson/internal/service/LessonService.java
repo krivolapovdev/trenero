@@ -18,11 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.domain.StudentVisit;
 import org.trenero.backend.common.domain.VisitStatus;
 import org.trenero.backend.common.domain.VisitType;
-import org.trenero.backend.common.response.LessonResponse;
-import org.trenero.backend.common.response.VisitResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.external.GroupStudentSpi;
 import org.trenero.backend.lesson.external.LessonSpi;
+import org.trenero.backend.lesson.external.response.LessonResponse;
 import org.trenero.backend.lesson.internal.domain.Lesson;
 import org.trenero.backend.lesson.internal.mapper.LessonMapper;
 import org.trenero.backend.lesson.internal.repository.LessonRepository;
@@ -30,6 +29,7 @@ import org.trenero.backend.lesson.internal.request.CreateLessonRequest;
 import org.trenero.backend.lesson.internal.request.UpdateLessonRequest;
 import org.trenero.backend.lesson.internal.response.LessonDetailsResponse;
 import org.trenero.backend.visit.external.VisitSpi;
+import org.trenero.backend.visit.external.response.VisitResponse;
 
 @Service
 @Slf4j
@@ -58,7 +58,7 @@ public class LessonService implements LessonSpi {
     log.info("Getting last group lessons: groupIds={}; user={}", groupIds, jwtUser);
     return lessonRepository.findLastLessonsByGroupIdsAndOwnerId(groupIds, jwtUser.id()).stream()
         .map(lessonMapper::toResponse)
-        .collect(Collectors.toMap(LessonResponse::groupId, Function.identity()));
+        .collect(Collectors.toMap(LessonResponse::getGroupId, Function.identity()));
   }
 
   @Transactional(readOnly = true)
@@ -106,9 +106,9 @@ public class LessonService implements LessonSpi {
             .map(
                 res ->
                     requestStudentMap.getOrDefault(
-                        res.studentId(),
+                        res.getStudentId(),
                         new StudentVisit(
-                            res.studentId(), VisitStatus.UNMARKED, VisitType.UNMARKED)))
+                            res.getStudentId(), VisitStatus.UNMARKED, VisitType.UNMARKED)))
             .toList();
 
     visitSpi.createVisits(lesson.getId(), studentVisitList, jwtUser);
@@ -153,7 +153,7 @@ public class LessonService implements LessonSpi {
   }
 
   @Override
-  public List<LessonResponse> getLessonsByGroupIdAndDateRange(
+  public @NonNull List<LessonResponse> getLessonsByGroupIdAndDateRange(
       @NonNull UUID groupId,
       @NonNull LocalDate from,
       @NonNull LocalDate to,

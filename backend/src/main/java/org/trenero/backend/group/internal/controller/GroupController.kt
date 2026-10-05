@@ -18,14 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import org.trenero.backend.common.response.GroupResponse
-import org.trenero.backend.common.response.LessonResponse
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.group.external.response.GroupResponse
 import org.trenero.backend.group.internal.request.CreateGroupRequest
-import org.trenero.backend.group.internal.response.GroupDetails
 import org.trenero.backend.group.internal.response.GroupStudentSummaryResponse
 import org.trenero.backend.group.internal.response.GroupSummaryResponse
 import org.trenero.backend.group.internal.service.GroupService
+import org.trenero.backend.lesson.external.response.LessonResponse
 
 @RestController
 @RequestMapping("/api/v1/groups")
@@ -35,13 +34,6 @@ class GroupController(private val groupService: GroupService) {
   @PreAuthorize("isAuthenticated()")
   fun getAllGroupsSummary(@AuthenticationPrincipal jwtUser: JwtUser): List<GroupSummaryResponse> =
     groupService.getAllGroupsSummary(jwtUser)
-
-  @GetMapping("/{groupId}")
-  @PreAuthorize("isAuthenticated()")
-  fun getGroupDetailsById(
-    @PathVariable groupId: UUID,
-    @AuthenticationPrincipal jwtUser: JwtUser,
-  ): GroupDetails = groupService.getGroupDetailsById(groupId, jwtUser)
 
   @GetMapping("/{groupId}/students")
   @PreAuthorize("isAuthenticated()")

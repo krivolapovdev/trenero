@@ -5,9 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
+import org.trenero.backend.auth.external.response.JwtResponse;
 import org.trenero.backend.auth.internal.request.RefreshTokenRequest;
 import org.trenero.backend.common.domain.TokenType;
-import org.trenero.backend.common.response.JwtResponse;
 import org.trenero.backend.common.security.JwtTokenProvider;
 import org.trenero.backend.common.security.JwtUser;
 

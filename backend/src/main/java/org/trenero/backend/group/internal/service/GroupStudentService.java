@@ -11,10 +11,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.trenero.backend.common.response.GroupStudentResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.external.GroupStudentSpi;
+import org.trenero.backend.group.external.response.GroupStudentResponse;
 import org.trenero.backend.group.internal.domain.GroupStudent;
+import org.trenero.backend.group.internal.domain.GroupStudentCount;
 import org.trenero.backend.group.internal.mapper.GroupStudentMapper;
 import org.trenero.backend.group.internal.repository.GroupStudentRepository;
 
@@ -39,21 +40,23 @@ public class GroupStudentService implements GroupStudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public @NonNull Map<UUID, List<GroupStudentResponse>> getStudentsByGroupIds(
-      @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
-    log.info("Getting students by groupIds={}", groupIds);
-    return groupStudentRepository.findAllByGroupIds(groupIds, jwtUser.id()).stream()
-        .map(groupStudentMapper::toResponse)
-        .collect(Collectors.groupingBy(GroupStudentResponse::groupId));
-  }
-
-  @Transactional(readOnly = true)
   public @NonNull List<GroupStudentResponse> getGroupsByStudentId(
       @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting groups by student id: studentId={}; user={}", studentId, jwtUser);
     return groupStudentRepository.findAllByStudentId(studentId, jwtUser.id()).stream()
         .map(groupStudentMapper::toResponse)
         .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public @NonNull Map<UUID, Long> getStudentCountsByGroupIds(
+      @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
+    log.info("Getting student counts by groupIds={}", groupIds);
+    if (groupIds.isEmpty()) {
+      return Map.of();
+    }
+    return groupStudentRepository.countStudentsByGroupIds(groupIds, jwtUser.id()).stream()
+        .collect(Collectors.toMap(GroupStudentCount::getGroupId, GroupStudentCount::getCount));
   }
 
   @Transactional
@@ -63,7 +66,7 @@ public class GroupStudentService implements GroupStudentSpi {
     log.info(
         "Adding student to group: studentId={}; groupId={}; user={}", studentId, groupId, jwtUser);
 
-    groupService.getGroupDetailsById(groupId, jwtUser);
+    groupService.getGroupById(groupId, jwtUser);
 
     GroupStudent groupStudent =
         GroupStudent.builder().studentId(studentId).groupId(groupId).ownerId(jwtUser.id()).build();
@@ -80,7 +83,7 @@ public class GroupStudentService implements GroupStudentSpi {
     log.info("Getting group students by student ids: studentIds={}; user={}", studentIds, jwtUser);
     return groupStudentRepository.findAllByStudentIds(studentIds, jwtUser.id()).stream()
         .map(groupStudentMapper::toResponse)
-        .collect(Collectors.toMap(GroupStudentResponse::studentId, Function.identity()));
+        .collect(Collectors.toMap(GroupStudentResponse::getStudentId, Function.identity()));
   }
 
   @Transactional
@@ -96,7 +99,7 @@ public class GroupStudentService implements GroupStudentSpi {
       return;
     }
 
-    groupService.getGroupDetailsById(groupId, jwtUser);
+    groupService.getGroupById(groupId, jwtUser);
 
     List<GroupStudent> groupStudents =
         studentIds.stream()

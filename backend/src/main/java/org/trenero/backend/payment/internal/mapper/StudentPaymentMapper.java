@@ -5,8 +5,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.ReportingPolicy;
-import org.trenero.backend.common.response.StudentPaymentResponse;
-import org.trenero.backend.common.response.TransactionResponse;
+import org.trenero.backend.payment.external.response.StudentPaymentResponse;
+import org.trenero.backend.payment.external.response.TransactionResponse;
 import org.trenero.backend.payment.internal.domain.StudentPayment;
 import org.trenero.backend.payment.internal.domain.Transaction;
 

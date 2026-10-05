@@ -3,8 +3,8 @@ package org.trenero.backend.visit.external
 import java.util.*
 import org.trenero.backend.common.domain.StudentVisit
 import org.trenero.backend.common.request.CreateVisitRequest
-import org.trenero.backend.common.response.VisitResponse
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.visit.external.response.VisitResponse
 
 interface VisitSpi {
   fun getVisitsByStudentId(studentId: UUID, jwtUser: JwtUser): List<VisitResponse>

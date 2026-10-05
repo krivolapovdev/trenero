@@ -16,10 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.domain.StudentVisit;
 import org.trenero.backend.common.request.CreateVisitRequest;
-import org.trenero.backend.common.response.VisitResponse;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.lesson.external.LessonSpi;
 import org.trenero.backend.visit.external.VisitSpi;
+import org.trenero.backend.visit.external.response.VisitResponse;
 import org.trenero.backend.visit.internal.domain.Visit;
 import org.trenero.backend.visit.internal.mapper.VisitMapper;
 import org.trenero.backend.visit.internal.repository.VisitRepository;
@@ -66,7 +66,7 @@ public class VisitService implements VisitSpi {
     log.info("Getting visits by student ids: studentIds={}; user={}", studentIds, jwtUser);
     return visitRepository.findAllByStudentIdsAndOwnerId(studentIds, jwtUser.id()).stream()
         .map(visitMapper::toResponse)
-        .collect(Collectors.groupingBy(VisitResponse::studentId));
+        .collect(Collectors.groupingBy(VisitResponse::getStudentId));
   }
 
   @Transactional(readOnly = true)

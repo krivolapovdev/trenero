@@ -1,8 +1,8 @@
 package org.trenero.backend.group.external
 
 import java.util.*
-import org.trenero.backend.common.response.GroupStudentResponse
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.group.external.response.GroupStudentResponse
 
 interface GroupStudentSpi {
   fun getStudentsByGroupId(groupId: UUID, jwtUser: JwtUser): List<GroupStudentResponse>

@@ -1,21 +1,15 @@
 package org.trenero.backend.group.internal.mapper;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.ReportingPolicy;
-import org.trenero.backend.common.response.GroupResponse;
-import org.trenero.backend.common.response.GroupStudentResponse;
-import org.trenero.backend.common.response.LessonResponse;
-import org.trenero.backend.common.response.StudentResponse;
+import org.trenero.backend.group.external.response.GroupResponse;
 import org.trenero.backend.group.internal.domain.Group;
 import org.trenero.backend.group.internal.request.CreateGroupRequest;
-import org.trenero.backend.group.internal.response.GroupDetails;
-import org.trenero.backend.group.internal.response.GroupSummaryResponse;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface GroupMapper {
@@ -45,13 +39,4 @@ public interface GroupMapper {
 
     return group;
   }
-
-  @Mapping(target = "groupStudents", source = "groupStudents")
-  GroupSummaryResponse toGroupOverviewResponse(
-      GroupResponse group, List<GroupStudentResponse> groupStudents);
-
-  @Mapping(target = "groupStudents", source = "groupStudents")
-  @Mapping(target = "groupLessons", source = "groupLessons")
-  GroupDetails toGroupDetailsResponse(
-      GroupResponse group, List<StudentResponse> groupStudents, List<LessonResponse> groupLessons);
 }
