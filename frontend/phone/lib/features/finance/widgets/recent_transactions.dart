@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:phone/features/finance/controllers/recent_transactions_controller.dart';
+import 'package:phone/core/widgets/transaction_tile.dart';
+import 'package:phone/features/finance/controllers/transaction_list_controller.dart';
 import 'package:phone/features/finance/pages/transaction_list_page.dart';
-import 'package:phone/features/finance/widgets/transaction_tile.dart';
-import 'package:phone/generated/models/transaction_response.dart';
+import 'package:phone/features/finance/utils/transaction_date_formatter.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class RecentTransactions extends ConsumerWidget {
@@ -12,8 +11,7 @@ class RecentTransactions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsState = ref.watch(recentTransactionsControllerProvider);
-
+    final state = ref.watch(transactionsControllerProvider);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
@@ -33,7 +31,7 @@ class RecentTransactions extends ConsumerWidget {
               FilledButton.icon(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => const TransactionListPage(),
+                    builder: (context) => const TransactionList(),
                   ),
                 ),
                 iconAlignment: IconAlignment.end,
@@ -59,12 +57,11 @@ class RecentTransactions extends ConsumerWidget {
               ),
             ],
           ),
+          state.when(
+            data: (data) {
+              final recentItems = data.transactions.take(5).toList();
 
-          transactionsState.when(
-            data: (pageResponse) {
-              final transactions = pageResponse.content;
-
-              if (transactions.isEmpty) {
+              if (recentItems.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.symmetric(vertical: 24.0),
                   child: Center(
@@ -76,14 +73,16 @@ class RecentTransactions extends ConsumerWidget {
                 );
               }
 
-              final groupedTransactions = _groupTransactionsByDate(
-                transactions,
-              );
+              final groupedTransactions =
+                  TransactionDateFormatter.groupTransactionsByDate(recentItems);
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: groupedTransactions.entries.expand((entry) {
-                  final dateHeader = _formatDateHeader(entry.key, context);
+                  final dateHeader = TransactionDateFormatter.formatDateHeader(
+                    entry.key,
+                    context,
+                  );
                   final items = entry.value;
 
                   return [
@@ -120,42 +119,5 @@ class RecentTransactions extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Map<DateTime, List<TransactionResponse>> _groupTransactionsByDate(
-    List<TransactionResponse> transactions,
-  ) {
-    final Map<DateTime, List<TransactionResponse>> grouped = {};
-
-    for (final tx in transactions) {
-      final dateKey = DateTime(tx.date.year, tx.date.month, tx.date.day);
-      grouped.putIfAbsent(dateKey, () => []).add(tx);
-    }
-
-    return grouped;
-  }
-
-  String _formatDateHeader(DateTime txDate, BuildContext context) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-
-    if (txDate == today) {
-      return context.t.today;
-    }
-
-    if (txDate == yesterday) {
-      return context.t.yesterday;
-    }
-
-    final rawFormatted = DateFormat('d MMMM, EEE', 'ru_RU').format(txDate);
-    final parts = rawFormatted.split(', ');
-
-    if (parts.length == 2 && parts[1].isNotEmpty) {
-      final dayOfWeek = parts[1][0].toUpperCase() + parts[1].substring(1);
-      return '${parts[0]}, $dayOfWeek';
-    }
-
-    return rawFormatted;
   }
 }
