@@ -1,9 +1,9 @@
 package org.trenero.backend.user.external.response
 
-import jakarta.validation.constraints.NotNull
+import io.swagger.v3.oas.annotations.media.Schema
 import java.util.UUID
 
 data class UserResponse(
-  @get:NotNull val id: UUID,
-  @get:NotNull val email: String,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val id: UUID,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val email: String,
 )

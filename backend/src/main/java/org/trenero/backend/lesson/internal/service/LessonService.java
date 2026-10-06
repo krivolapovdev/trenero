@@ -19,17 +19,17 @@ import org.trenero.backend.common.domain.StudentVisit;
 import org.trenero.backend.common.domain.VisitStatus;
 import org.trenero.backend.common.domain.VisitType;
 import org.trenero.backend.common.security.JwtUser;
-import org.trenero.backend.group.external.GroupStudentSpi;
-import org.trenero.backend.lesson.external.LessonSpi;
+import org.trenero.backend.group.external.spi.GroupStudentSpi;
 import org.trenero.backend.lesson.external.response.LessonResponse;
+import org.trenero.backend.lesson.external.spi.LessonSpi;
 import org.trenero.backend.lesson.internal.domain.Lesson;
 import org.trenero.backend.lesson.internal.mapper.LessonMapper;
 import org.trenero.backend.lesson.internal.repository.LessonRepository;
 import org.trenero.backend.lesson.internal.request.CreateLessonRequest;
 import org.trenero.backend.lesson.internal.request.UpdateLessonRequest;
 import org.trenero.backend.lesson.internal.response.LessonDetailsResponse;
-import org.trenero.backend.visit.external.VisitSpi;
 import org.trenero.backend.visit.external.response.VisitResponse;
+import org.trenero.backend.visit.external.spi.VisitSpi;
 
 @Service
 @Slf4j

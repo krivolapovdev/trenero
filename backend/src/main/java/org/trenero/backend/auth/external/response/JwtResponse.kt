@@ -1,8 +1,8 @@
 package org.trenero.backend.auth.external.response
 
-import jakarta.validation.constraints.NotNull
+import io.swagger.v3.oas.annotations.media.Schema
 
 data class JwtResponse(
-  @get:NotNull val accessToken: String,
-  @get:NotNull val refreshToken: String,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val accessToken: String,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val refreshToken: String,
 )

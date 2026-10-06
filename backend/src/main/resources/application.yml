@@ -33,7 +33,7 @@ spring:
 app:
   oauth2:
     google:
-      client-ids: ${GOOGLE_WEB_CLIENT_ID}
+      client-id: ${GOOGLE_WEB_CLIENT_ID}
   reviewer:
     key: ${REVIEWER_SECRET_KEY:your-reviewer-secret-key}
   jwt:

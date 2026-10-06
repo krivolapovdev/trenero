@@ -34,7 +34,7 @@ public class Lesson {
   @NotNull
   private UUID ownerId;
 
-  @Column(name = "group_id", nullable = false, updatable = false)
+  @Column(name = "group_id", updatable = false)
   @NotNull
   private UUID groupId;
 

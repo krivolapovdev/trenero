@@ -17,24 +17,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.async.AsyncUtils;
 import org.trenero.backend.common.security.JwtUser;
-import org.trenero.backend.group.external.GroupSpi;
-import org.trenero.backend.group.external.GroupStudentSpi;
 import org.trenero.backend.group.external.response.GroupResponse;
 import org.trenero.backend.group.external.response.GroupStudentResponse;
-import org.trenero.backend.lesson.external.LessonSpi;
+import org.trenero.backend.group.external.spi.GroupSpi;
+import org.trenero.backend.group.external.spi.GroupStudentSpi;
 import org.trenero.backend.lesson.external.response.LessonResponse;
-import org.trenero.backend.student.external.StudentSpi;
+import org.trenero.backend.lesson.external.spi.LessonSpi;
 import org.trenero.backend.student.external.response.StudentResponse;
 import org.trenero.backend.student.external.response.StudentWithStatusesResponse;
+import org.trenero.backend.student.external.spi.StudentSpi;
 import org.trenero.backend.student.internal.domain.Student;
 import org.trenero.backend.student.internal.mapper.StudentMapper;
 import org.trenero.backend.student.internal.repository.StudentRepository;
 import org.trenero.backend.student.internal.request.CreateStudentRequest;
 import org.trenero.backend.student.internal.response.StudentSummaryResponse;
 import org.trenero.backend.student.internal.response.VisitWithLessonResponse;
-import org.trenero.backend.transaction.external.TransactionSpi;
 import org.trenero.backend.transaction.external.response.TransactionResponse;
-import org.trenero.backend.visit.external.VisitSpi;
+import org.trenero.backend.transaction.external.spi.TransactionSpi;
+import org.trenero.backend.visit.external.spi.VisitSpi;
 
 @Service
 @RequiredArgsConstructor

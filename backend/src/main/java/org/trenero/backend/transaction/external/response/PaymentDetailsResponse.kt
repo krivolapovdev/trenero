@@ -2,7 +2,7 @@ package org.trenero.backend.transaction.external.response
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import jakarta.validation.constraints.NotNull
+import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 import java.util.UUID
 
@@ -15,8 +15,8 @@ import java.util.UUID
 sealed interface PaymentDetailsResponse
 
 data class StudentPaymentDetailsResponse(
-  @get:NotNull val studentId: UUID,
-  @get:NotNull val paidUntil: LocalDate,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val studentId: UUID,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val paidUntil: LocalDate,
   val paidFrom: LocalDate? = null,
   val studentName: String? = null,
 ) : PaymentDetailsResponse

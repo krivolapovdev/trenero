@@ -1,6 +1,6 @@
 package org.trenero.backend.transaction.external.response
 
-import jakarta.validation.constraints.NotNull
+import io.swagger.v3.oas.annotations.media.Schema
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -8,10 +8,10 @@ import java.util.UUID
 import org.trenero.backend.common.domain.TransactionType
 
 data class TransactionResponse(
-  @get:NotNull val id: UUID,
-  @get:NotNull val amount: BigDecimal,
-  @get:NotNull val date: LocalDate,
-  @get:NotNull val type: TransactionType,
-  @get:NotNull val createdAt: OffsetDateTime,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val id: UUID,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val amount: BigDecimal,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val date: LocalDate,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val type: TransactionType,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val createdAt: OffsetDateTime,
   val paymentDetails: PaymentDetailsResponse? = null,
 )

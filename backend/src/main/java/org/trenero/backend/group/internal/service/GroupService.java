@@ -16,19 +16,19 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.security.JwtUser;
-import org.trenero.backend.group.external.GroupSpi;
 import org.trenero.backend.group.external.response.GroupResponse;
 import org.trenero.backend.group.external.response.GroupStudentResponse;
+import org.trenero.backend.group.external.spi.GroupSpi;
 import org.trenero.backend.group.internal.domain.Group;
 import org.trenero.backend.group.internal.mapper.GroupMapper;
 import org.trenero.backend.group.internal.repository.GroupRepository;
 import org.trenero.backend.group.internal.request.CreateGroupRequest;
 import org.trenero.backend.group.internal.response.GroupStudentSummaryResponse;
 import org.trenero.backend.group.internal.response.GroupSummaryResponse;
-import org.trenero.backend.lesson.external.LessonSpi;
 import org.trenero.backend.lesson.external.response.LessonResponse;
-import org.trenero.backend.student.external.StudentSpi;
+import org.trenero.backend.lesson.external.spi.LessonSpi;
 import org.trenero.backend.student.external.response.StudentWithStatusesResponse;
+import org.trenero.backend.student.external.spi.StudentSpi;
 
 @Service
 @Slf4j
