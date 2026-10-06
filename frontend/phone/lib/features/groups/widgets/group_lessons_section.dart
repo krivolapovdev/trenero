@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/providers/language_provider.dart';
+import 'package:phone/core/widgets/lessons_calendar.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
-import 'package:phone/features/groups/widgets/lessons_calendar.dart';
 
 class GroupLessonsSection extends ConsumerWidget {
   final String groupId;
@@ -18,9 +18,7 @@ class GroupLessonsSection extends ConsumerWidget {
       data: (lessons) => LessonsCalendar(
         lessons: lessons,
         locale: localeAsync.value?.languageTag,
-        onDaySelected: (selectedDay, focusedDay) {
-          // Handle day tap here if needed
-        },
+        onDaySelected: (selectedDay, focusedDay) {},
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) =>

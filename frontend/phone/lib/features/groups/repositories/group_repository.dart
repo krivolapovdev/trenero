@@ -64,7 +64,6 @@ class GroupRepository {
     try {
       await _service.deleteGroup(groupId: groupId);
 
-      // Удаляем элемент из локального кэша
       if (_cachedGroups != null) {
         _cachedGroups = _cachedGroups!.where((g) => g.id != groupId).toList();
       }

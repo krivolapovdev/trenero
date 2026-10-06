@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/radial_expandable_fab.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
+import 'package:phone/features/students/widgets/student_lessons_section.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 
 class StudentPage extends ConsumerStatefulWidget {
@@ -106,7 +107,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           spacing: 16,
@@ -125,6 +126,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 ),
               ),
             ),
+            StudentLessonsSection(studentId: widget.student.id),
           ],
         ),
       ),
