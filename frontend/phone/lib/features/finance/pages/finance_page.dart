@@ -2,11 +2,13 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
+import 'package:phone/core/widgets/recent_transactions.dart';
 import 'package:phone/core/widgets/shell_page.dart';
 import 'package:phone/features/finance/controllers/payment_metrics_controller.dart';
+import 'package:phone/features/finance/controllers/transaction_list_controller.dart';
+import 'package:phone/features/finance/pages/transaction_list_page.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
 import 'package:phone/features/finance/widgets/profit_line_chart.dart';
-import 'package:phone/features/finance/widgets/recent_transactions.dart';
 
 class FinancePage extends ShellPage {
   const new({
@@ -33,6 +35,10 @@ class FinancePage extends ShellPage {
     builder: (context, ref, child) {
       final metricsAsync = ref.watch(paymentMetricsControllerProvider);
       final selectedIndex = ref.watch(selectedMetricIndexProvider);
+      final transactionsState = ref.watch(transactionsControllerProvider);
+      final transactionsAsync = transactionsState.whenData(
+        (s) => s.transactions,
+      );
 
       return SingleChildScrollView(
         child: Padding(
@@ -69,7 +75,15 @@ class FinancePage extends ShellPage {
                   child: Center(child: Text('Ошибка загрузки данных: $error')),
                 ),
               ),
-              const RecentTransactions(),
+
+              RecentTransactions(
+                asyncTransactions: transactionsAsync,
+                onSeeAllPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const TransactionListPage(),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

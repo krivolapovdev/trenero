@@ -58,4 +58,3 @@ swagger_parser:
   output_directory: lib/generated
   language: dart
   json_serializer: json_serializable
-  infer_required_from_nullable: true

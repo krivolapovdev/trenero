@@ -3,14 +3,14 @@ import 'package:intl/intl.dart';
 import 'package:phone/core/extensions/number_extension.dart';
 import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/features/finance/models/transaction_tile_info.dart';
-import 'package:phone/generated/models/student_payment_details_response.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';
 
 class TransactionTile extends StatelessWidget {
   final TransactionResponse transaction;
+  final String? overrideTitle;
 
-  const new({super.key, required this.transaction});
+  const new({super.key, required this.transaction, this.overrideTitle});
 
   @override
   Widget build(BuildContext context) {
@@ -96,15 +96,15 @@ class TransactionTile extends StatelessWidget {
   TransactionTileInfo _getTransactionDisplayInfo(TransactionResponse tx) {
     final details = tx.paymentDetails;
 
-    if (details is StudentPaymentDetailsResponse) {
-      final studentName = details.studentName;
+    if (details != null) {
+      final title = overrideTitle ?? details.studentName ?? 'Пополнение';
       final paidUntilFormatted = DateFormat('dd.MM.yyyy')
-          .format(details.paidUntil);
+          .format(details.paidUntil!);
 
       return TransactionTileInfo(
-        title: studentName,
+        title: title,
         subtitle: 'Оплачено до $paidUntilFormatted',
-        initials: studentName.initials,
+        initials: title.initials,
         backgroundColor: const Color(0xFF28A745),
       );
     }

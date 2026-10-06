@@ -1,4 +1,3 @@
-// lib/features/finance/controllers/transactions_controller.dart
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,11 +45,12 @@ class TransactionsController extends AsyncNotifier<TransactionsState> {
       page: 1,
       size: _pageSize,
     );
+    final content = response.content ?? [];
 
     return TransactionsState(
-      transactions: response.content,
+      transactions: content,
       page: 1,
-      hasMore: response.content.length >= _pageSize,
+      hasMore: content.length >= _pageSize,
     );
   }
 
@@ -71,12 +71,13 @@ class TransactionsController extends AsyncNotifier<TransactionsState> {
         page: nextPage,
         size: _pageSize,
       );
+      final content = response.content ?? [];
 
       state = AsyncData(
         currentState.copyWith(
-          transactions: [...currentState.transactions, ...response.content],
+          transactions: [...currentState.transactions, ...content],
           page: nextPage,
-          hasMore: response.content.length >= _pageSize,
+          hasMore: content.length >= _pageSize,
           isLoadingMore: false,
         ),
       );
@@ -93,10 +94,12 @@ class TransactionsController extends AsyncNotifier<TransactionsState> {
         page: 1,
         size: _pageSize,
       );
+      final content = response.content ?? [];
+
       return TransactionsState(
-        transactions: response.content,
+        transactions: content,
         page: 1,
-        hasMore: response.content.length >= _pageSize,
+        hasMore: content.length >= _pageSize,
       );
     });
   }

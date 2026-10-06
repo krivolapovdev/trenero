@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/radial_expandable_fab.dart';
+import 'package:phone/core/widgets/recent_transactions.dart';
+import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
+import 'package:phone/features/students/pages/student_payment_list_page.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
 import 'package:phone/features/students/widgets/student_lessons_section.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
@@ -18,6 +21,9 @@ class _StudentPageState extends ConsumerState<StudentPage> {
   @override
   Widget build(BuildContext context) {
     final routeAnimation = ModalRoute.of(context)?.animation;
+    final paymentsAsync = ref.watch(
+      studentPaymentsControllerProvider(widget.student.id),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -126,7 +132,21 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 ),
               ),
             ),
+
             StudentLessonsSection(studentId: widget.student.id),
+
+            RecentTransactions(
+              asyncTransactions: paymentsAsync,
+              overrideTitle: widget.student.fullName,
+              onSeeAllPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        StudentPaymentListPage(student: widget.student),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),

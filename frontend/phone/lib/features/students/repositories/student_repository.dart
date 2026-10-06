@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
+import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/visit_with_lesson_response.dart';
 import 'package:phone/generated/student_controller/student_controller_client.dart';
 
@@ -58,6 +59,18 @@ class StudentRepository {
   }) async {
     try {
       return await _service.getStudentVisits(studentId: studentId);
+    } on DioException catch (e) {
+      throw Exception('Failed to fetch student lessons: ${e.message}');
+    }
+  }
+
+  Future<List<TransactionResponse>> getStudentPayments({
+    required String studentId,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    try {
+      return await _service.getStudentPayments(studentId: studentId);
     } on DioException catch (e) {
       throw Exception('Failed to fetch student lessons: ${e.message}');
     }

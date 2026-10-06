@@ -11,9 +11,9 @@ final studentLessonsProvider =
 
 class StudentLessonsController
     extends AsyncNotifier<List<VisitWithLessonResponse>> {
-  new(this.studentId);
-
   final String studentId;
+
+  new(this.studentId);
 
   @override
   Future<List<VisitWithLessonResponse>> build() async {
