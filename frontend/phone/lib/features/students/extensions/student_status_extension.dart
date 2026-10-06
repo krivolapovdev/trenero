@@ -31,7 +31,7 @@ extension StudentStatusExtension on List<StudentStatus> {
           id: status.name,
           icon: const Icon(CupertinoIcons.xmark),
           label: t.students.status.missing,
-          backgroundColor: const Color(0xFFFFEDD5),
+          backgroundColor: const Color(0xFFFFEDD5).withValues(alpha: 0.8),
           foregroundColor: const Color(0xFF9A3412),
         ),
 
@@ -39,8 +39,8 @@ extension StudentStatusExtension on List<StudentStatus> {
           id: status.name,
           icon: const Icon(CupertinoIcons.plus),
           label: t.students.status.paid,
-          backgroundColor: const Color(0xFFE8F5E9),
-          foregroundColor: const Color(0xFF2E7D32),
+          backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.5),
+          foregroundColor: colorScheme.primary,
         ),
 
         StudentStatus.unpaid => StudentBadgeData(

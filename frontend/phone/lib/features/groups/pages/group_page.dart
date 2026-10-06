@@ -53,6 +53,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           spacing: 16,
           children: [

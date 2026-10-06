@@ -115,6 +115,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           spacing: 16,
           children: [
