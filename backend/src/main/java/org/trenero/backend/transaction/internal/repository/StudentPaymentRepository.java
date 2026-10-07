@@ -52,10 +52,12 @@ public interface StudentPaymentRepository
           FROM StudentPayment AS sp
           JOIN sp.transaction AS t
           WHERE sp.studentId = :studentId
+            AND t.ownerId = :ownerId
           ORDER BY sp.paidUntil DESC
           LIMIT 1
           """)
-  Optional<LocalDate> findLatestPaidUntilByStudentId(@Param("studentId") UUID studentId);
+  Optional<LocalDate> findLatestPaidUntilByStudentId(
+      @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 
   @Query(
       """
@@ -63,10 +65,13 @@ public interface StudentPaymentRepository
           FROM StudentPayment AS sp
           JOIN sp.transaction AS t
           WHERE sp.studentId = :studentId
+            AND t.ownerId = :ownerId
             AND sp.paidUntil < :currentPaidUntil
           """)
   Optional<LocalDate> findLatestPaidUntilBeforeDate(
-      @Param("studentId") UUID studentId, @Param("currentPaidUntil") LocalDate currentPaidUntil);
+      @Param("studentId") UUID studentId,
+      @Param("currentPaidUntil") LocalDate currentPaidUntil,
+      @Param("ownerId") UUID ownerId);
 
   @Query(
       """

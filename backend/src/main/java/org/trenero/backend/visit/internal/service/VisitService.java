@@ -61,6 +61,7 @@ public class VisitService implements VisitSpi {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public @NonNull Map<UUID, List<VisitResponse>> getVisitsByStudentIds(
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info("Getting visits by student ids: studentIds={}; user={}", studentIds, jwtUser);
@@ -104,6 +105,7 @@ public class VisitService implements VisitSpi {
   }
 
   @Override
+  @Transactional
   public void createVisits(
       @NonNull UUID lessonId,
       @NonNull List<StudentVisit> studentVisitList,
@@ -133,10 +135,13 @@ public class VisitService implements VisitSpi {
   @Transactional
   public void deleteVisit(UUID visitId, JwtUser jwtUser) {
     log.info("Deleting visit: visitId={}; user={}", visitId, jwtUser);
-    visitRepository
-        .findByIdAndOwnerId(visitId, jwtUser.id())
-        .map(this::saveVisit)
-        .orElseThrow(entityNotFoundSupplier(Visit.class, visitId, jwtUser));
+
+    Visit visit =
+        visitRepository
+            .findByIdAndOwnerId(visitId, jwtUser.id())
+            .orElseThrow(entityNotFoundSupplier(Visit.class, visitId, jwtUser));
+
+    visitRepository.delete(visit);
   }
 
   @Override
@@ -182,12 +187,19 @@ public class VisitService implements VisitSpi {
           }
         });
 
-    List<Visit> list =
+    List<Visit> visitsToDelete =
         lessonVisits.stream()
             .filter(visit -> !incomingStudentIds.contains(visit.getStudentId()))
             .toList();
 
-    visitRepository.deleteAll(list);
+    visitRepository.deleteAll(visitsToDelete);
+
+    List<Visit> visitsToSave =
+        lessonVisits.stream()
+            .filter(visit -> incomingStudentIds.contains(visit.getStudentId()))
+            .toList();
+
+    visitRepository.saveAllAndFlush(visitsToSave);
   }
 
   private Visit saveVisit(Visit visit) {
