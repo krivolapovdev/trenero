@@ -4,6 +4,7 @@
   "cancel": "Cancel",
   "repeat": "Repeat",
   "create": "Create",
+  "update": "Update",
   "all": "All",
   "today": "Today",
   "yesterday": "Yesterday",
@@ -21,6 +22,7 @@
     "emptySubtitle": "No Groups yet",
     "createFirstGroup": "Create First Group",
     "createGroup": "Add Group",
+    "editGroup": "Edit Group",
     "defaultPrice": "Price by default"
   },
   "students": {

@@ -1,10 +1,12 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/radial_expandable_fab.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
+import 'package:phone/features/groups/widgets/edit_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_hero_card.dart';
 import 'package:phone/features/groups/widgets/group_lessons_section.dart';
 import 'package:phone/features/groups/widgets/group_popup_menu.dart';
@@ -24,6 +26,22 @@ class GroupPage extends ConsumerStatefulWidget {
 class _GroupPageState extends ConsumerState<GroupPage> {
   late GroupSummaryResponse _group = widget.group;
 
+  Future<void> _openEditGroupSheet() async {
+    await AppBottomSheet.show(
+      context: context,
+      child: EditGroupBottomSheet(group: _group),
+    );
+
+    if (!mounted) return;
+
+    final listState = ref.read(groupListControllerProvider);
+    final updated = (listState.value ?? const <GroupSummaryResponse>[])
+        .where((g) => g.id == _group.id)
+        .firstOrNull;
+
+    if (updated != null) setState(() => _group = updated);
+  }
+
   @override
   Widget build(BuildContext context) {
     final routeAnimation = ModalRoute.of(context)?.animation;
@@ -32,7 +50,10 @@ class _GroupPageState extends ConsumerState<GroupPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_group.name),
-        actions: const [GroupPopupMenu(), SizedBox(width: 8)],
+        actions: [
+          GroupPopupMenu(group: _group),
+          const SizedBox(width: 8),
+        ],
         backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
@@ -45,7 +66,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
         children: [
           FloatingActionButton(
             heroTag: 'edit-group',
-            onPressed: () {},
+            onPressed: _openEditGroupSheet,
             elevation: 0,
             focusElevation: 0,
             highlightElevation: 0,
@@ -106,7 +127,9 @@ class _GroupPageState extends ConsumerState<GroupPage> {
               GroupLessonsSection(groupId: _group.id),
               GroupStudentsSection(
                 groupId: _group.id,
-                studentCount: _group.countOfStudents,
+                studentCount: _group.countOfStudents == 0
+                    ? null
+                    : _group.countOfStudents,
               ),
             ],
           ),

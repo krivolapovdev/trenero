@@ -43,6 +43,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get cancel => 'Отменить';
 	@override String get repeat => 'Повторить';
 	@override String get create => 'Создать';
+	@override String get update => 'Обновить';
 	@override String get all => 'Все';
 	@override String get today => 'Сегодня';
 	@override String get yesterday => 'Вчера';
@@ -90,6 +91,7 @@ class _Translations$groups$ru implements Translations$groups$en {
 	@override String get emptySubtitle => 'Групп пока нет';
 	@override String get createFirstGroup => 'Создать первую группу';
 	@override String get createGroup => 'Добавить группу';
+	@override String get editGroup => 'Редактировать группу';
 	@override String get defaultPrice => 'Стандартная цена';
 }
 
@@ -190,6 +192,7 @@ extension on TranslationsRu {
 			'cancel' => 'Отменить',
 			'repeat' => 'Повторить',
 			'create' => 'Создать',
+			'update' => 'Обновить',
 			'all' => 'Все',
 			'today' => 'Сегодня',
 			'yesterday' => 'Вчера',
@@ -202,6 +205,7 @@ extension on TranslationsRu {
 			'groups.emptySubtitle' => 'Групп пока нет',
 			'groups.createFirstGroup' => 'Создать первую группу',
 			'groups.createGroup' => 'Добавить группу',
+			'groups.editGroup' => 'Редактировать группу',
 			'groups.defaultPrice' => 'Стандартная цена',
 			'students.title' => 'Ученики',
 			'students.emptySubtitle' => 'Учеников пока нет',

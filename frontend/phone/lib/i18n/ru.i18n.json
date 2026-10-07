@@ -4,6 +4,7 @@
   "cancel": "Отменить",
   "repeat": "Повторить",
   "create": "Создать",
+  "update": "Обновить",
   "all": "Все",
   "today": "Сегодня",
   "yesterday": "Вчера",
@@ -21,6 +22,7 @@
     "emptySubtitle": "Групп пока нет",
     "createFirstGroup": "Создать первую группу",
     "createGroup": "Добавить группу",
+    "editGroup": "Редактировать группу",
     "defaultPrice": "Стандартная цена"
   },
   "students": {

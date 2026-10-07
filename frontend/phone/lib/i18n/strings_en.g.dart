@@ -57,6 +57,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Create'
 	String get create => 'Create';
 
+	/// en: 'Update'
+	String get update => 'Update';
+
 	/// en: 'All'
 	String get all => 'All';
 
@@ -128,6 +131,9 @@ class Translations$groups$en {
 
 	/// en: 'Add Group'
 	String get createGroup => 'Add Group';
+
+	/// en: 'Edit Group'
+	String get editGroup => 'Edit Group';
 
 	/// en: 'Price by default'
 	String get defaultPrice => 'Price by default';
@@ -289,6 +295,7 @@ extension on Translations {
 			'cancel' => 'Cancel',
 			'repeat' => 'Repeat',
 			'create' => 'Create',
+			'update' => 'Update',
 			'all' => 'All',
 			'today' => 'Today',
 			'yesterday' => 'Yesterday',
@@ -301,6 +308,7 @@ extension on Translations {
 			'groups.emptySubtitle' => 'No Groups yet',
 			'groups.createFirstGroup' => 'Create First Group',
 			'groups.createGroup' => 'Add Group',
+			'groups.editGroup' => 'Edit Group',
 			'groups.defaultPrice' => 'Price by default',
 			'students.title' => 'Students',
 			'students.emptySubtitle' => 'No students yet',

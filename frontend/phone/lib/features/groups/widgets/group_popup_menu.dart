@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/widgets/app_bottom_sheet.dart';
+import 'package:phone/features/groups/widgets/edit_group_bottom_sheet.dart';
+import 'package:phone/generated/models/group_summary_response.dart';
 
 class GroupPopupMenu extends StatelessWidget {
-  const new({super.key});
+  final GroupSummaryResponse group;
+
+  const new({super.key, required this.group});
 
   @override
   Widget build(BuildContext context) => PopupMenuButton<String>(
     tooltip: '',
     offset: const Offset(-8, 0),
     color: Theme.of(context).colorScheme.surface,
-    itemBuilder: (BuildContext context) => [
+    itemBuilder: (menuContext) => [
       PopupMenuItem<String>(
-        onTap: () {},
+        onTap: () => AppBottomSheet.show(
+          context: context,
+          child: EditGroupBottomSheet(group: group),
+        ),
         child: const Row(
           children: [
             Icon(Icons.edit, size: 20),

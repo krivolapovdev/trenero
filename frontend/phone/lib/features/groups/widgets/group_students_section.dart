@@ -28,6 +28,8 @@ class GroupStudentsSection extends ConsumerWidget {
     final studentsAsync = ref.watch(groupStudentsProvider(groupId));
 
     return studentsAsync.when(
+      skipLoadingOnRefresh: false,
+
       data: (students) {
         if (students.isEmpty) {
           return const SizedBox.shrink();
@@ -35,14 +37,21 @@ class GroupStudentsSection extends ConsumerWidget {
 
         return _buildSection(context, students);
       },
-      loading: () => Skeletonizer(
-        ignorePointers: false,
-        child: _buildSection(
-          context,
-          studentsAsync.value ?? _dummyStudents(studentCount ?? 6),
-          isLoading: true,
-        ),
-      ),
+      loading: () {
+        final previousData = studentsAsync.value;
+        final hasValidData = previousData != null && previousData.isNotEmpty;
+
+        final displayStudents = hasValidData
+            ? previousData
+            : _dummyStudents(
+                (studentCount == null || studentCount == 0) ? 1 : studentCount!,
+              );
+
+        return Skeletonizer(
+          ignorePointers: false,
+          child: _buildSection(context, displayStudents, isLoading: true),
+        );
+      },
       error: (error, stack) =>
           Center(child: Text('Error loading students: $error')),
     );
