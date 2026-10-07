@@ -42,7 +42,12 @@ public interface TransactionRepository extends JpaRepository<@NonNull Transactio
               WHERE t.ownerId = :ownerId
               ORDER BY t.date DESC, t.createdAt DESC
               """,
-      countQuery = "SELECT COUNT(t) FROM Transaction t")
+      countQuery =
+          """
+              SELECT COUNT(t)
+              FROM Transaction AS t
+              WHERE t.ownerId = :ownerId
+              """)
   Page<Transaction> findAllWithStudentPayment(@Param("ownerId") UUID ownerId, Pageable pageable);
 
   @Query(
