@@ -37,6 +37,8 @@ class PaymentMetricsController
       final start = startDate ?? DateTime(now.year, now.month - 6, 1);
       final end = endDate ?? DateTime(now.year, now.month + 1, 0);
 
+      await Future.delayed(Duration(seconds: 2));
+
       return repository.getPaymentStatistics(
         startDate: start,
         endDate: end,

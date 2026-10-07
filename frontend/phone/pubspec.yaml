@@ -37,6 +37,7 @@ dependencies:
   skeletonizer: ^3.0.0
   awesome_snackbar_content: ^0.1.8
   table_calendar: ^3.3.0
+  shimmer: ^4.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

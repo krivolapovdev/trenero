@@ -4,11 +4,24 @@ import 'package:phone/features/groups/controllers/group_students_controller.dart
 import 'package:phone/features/students/pages/student_page.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
 import 'package:phone/generated/export.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class GroupStudentsSection extends ConsumerWidget {
   final String groupId;
+  final int? studentCount;
 
-  const new({super.key, required this.groupId});
+  const new({super.key, required this.groupId, this.studentCount});
+
+  static List<GroupStudentSummaryResponse> _dummyStudents(int count) =>
+      List.generate(
+        count,
+        (index) => GroupStudentSummaryResponse(
+          id: 'placeholder-$index',
+          fullName: 'Student Name Placeholder',
+          createdAt: DateTime.now(),
+          statuses: const [],
+        ),
+      );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,29 +33,50 @@ class GroupStudentsSection extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+        return _buildSection(context, students);
+      },
+      loading: () => Skeletonizer(
+        ignorePointers: false,
+        child: _buildSection(
+          context,
+          _dummyStudents(studentCount ?? 6),
+          isLoading: true,
+        ),
+      ),
+      error: (error, stack) =>
+          Center(child: Text('Error loading students: $error')),
+    );
+  }
+
+  Widget _buildSection(
+    BuildContext context,
+    List<GroupStudentSummaryResponse> students, {
+    bool isLoading = false,
+  }) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      itemCount: students.length,
+      separatorBuilder: (context, index) =>
+          const Divider(height: 16, thickness: 1),
+      itemBuilder: (context, index) {
+        final student = students[index];
+        return StudentCard(
+          student: StudentSummaryResponse(
+            id: student.id,
+            fullName: '${index + 1}. ${student.fullName}',
+            createdAt: student.createdAt,
+            statuses: student.statuses,
           ),
-          child: ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.zero,
-            itemCount: students.length,
-            separatorBuilder: (context, index) =>
-                const Divider(height: 16, thickness: 1),
-            itemBuilder: (context, index) {
-              final student = students[index];
-              return StudentCard(
-                student: StudentSummaryResponse(
-                  id: student.id,
-                  fullName: '${index + 1}. ${student.fullName}',
-                  createdAt: student.createdAt,
-                  statuses: student.statuses,
-                ),
-                onTap: () {
+          onTap: isLoading
+              ? () {}
+              : () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => StudentPage(
@@ -56,14 +90,8 @@ class GroupStudentsSection extends ConsumerWidget {
                     ),
                   );
                 },
-              );
-            },
-          ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) =>
-          Center(child: Text('Error loading students: $error')),
-    );
-  }
+    ),
+  );
 }

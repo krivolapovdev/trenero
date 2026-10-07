@@ -19,6 +19,8 @@ class GroupLessonsController extends AsyncNotifier<List<LessonResponse>> {
     final from = DateTime(2000, 1, 1);
     final to = DateTime.now();
 
+    await Future.delayed(Duration(seconds: 2));
+
     final repository = ref.watch(groupRepositoryProvider);
     return repository.getGroupLessons(groupId: groupId, from: from, to: to);
   }

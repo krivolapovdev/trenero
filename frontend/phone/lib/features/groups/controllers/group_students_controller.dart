@@ -23,6 +23,7 @@ class GroupStudentsController
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();
+    await Future.delayed(Duration(seconds: 3));
     state = await AsyncValue.guard(build);
   }
 }

@@ -73,6 +73,8 @@ class TransactionsController extends AsyncNotifier<TransactionsState> {
       );
       final content = response.content ?? [];
 
+      await Future.delayed(Duration(seconds: 2));
+
       state = AsyncData(
         currentState.copyWith(
           transactions: [...currentState.transactions, ...content],
@@ -95,6 +97,8 @@ class TransactionsController extends AsyncNotifier<TransactionsState> {
         size: _pageSize,
       );
       final content = response.content ?? [];
+
+      await Future.delayed(Duration(seconds: 2));
 
       return TransactionsState(
         transactions: content,

@@ -52,19 +52,10 @@ class _TransactionListViewState extends State<TransactionListView> {
   @override
   Widget build(BuildContext context) {
     if (widget.transactions.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: widget.onRefresh,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            const SizedBox(height: 100),
-            Center(
-              child: Text(
-                widget.emptyText,
-                style: const TextStyle(color: Color(0xFF8E8E93)),
-              ),
-            ),
-          ],
+      return Center(
+        child: Text(
+          widget.emptyText,
+          style: const TextStyle(color: Color(0xFF8E8E93)),
         ),
       );
     }
@@ -72,61 +63,55 @@ class _TransactionListViewState extends State<TransactionListView> {
     final groupedTransactions =
         TransactionDateFormatter.groupTransactionsByDate(widget.transactions);
 
-    return RefreshIndicator(
-      onRefresh: widget.onRefresh,
-      child: ListView(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 0),
-        children: [
-          ...groupedTransactions.entries.expand((entry) {
-            final dateHeader = TransactionDateFormatter.formatDateHeader(
-              entry.key,
-              context,
-            );
-            final items = entry.value;
+    return ListView(
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 0),
+      children: [
+        ...groupedTransactions.entries.expand((entry) {
+          final dateHeader = TransactionDateFormatter.formatDateHeader(
+            entry.key,
+            context,
+          );
+          final items = entry.value;
 
-            return [
-              Padding(
-                padding: const EdgeInsets.only(top: 20, bottom: 8),
-                child: Text(
-                  dateHeader,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF8E8E93),
-                    fontWeight: FontWeight.w400,
-                  ),
+          return [
+            Padding(
+              padding: const EdgeInsets.only(top: 20, bottom: 8),
+              child: Text(
+                dateHeader,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF8E8E93),
+                  fontWeight: FontWeight.w400,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    ...items.map(
-                      (tx) => TransactionTile(
-                        transaction: tx,
-                        overrideTitle: widget.overrideTitle,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ];
-          }),
-          if (widget.isLoadingMore)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
-              child: Center(child: CircularProgressIndicator()),
             ),
-        ],
-      ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  ...items.map(
+                    (tx) => TransactionTile(
+                      transaction: tx,
+                      overrideTitle: widget.overrideTitle,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ];
+        }),
+        if (widget.isLoadingMore)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+      ],
     );
   }
 }

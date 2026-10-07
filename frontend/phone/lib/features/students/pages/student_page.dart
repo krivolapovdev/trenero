@@ -1,12 +1,16 @@
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/radial_expandable_fab.dart';
 import 'package:phone/core/widgets/recent_transactions.dart';
+import 'package:phone/features/students/controllers/student_lessons_controller.dart';
+import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
 import 'package:phone/features/students/widgets/student_lessons_section.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class StudentPage extends ConsumerStatefulWidget {
   final StudentSummaryResponse student;
@@ -18,16 +22,19 @@ class StudentPage extends ConsumerStatefulWidget {
 }
 
 class _StudentPageState extends ConsumerState<StudentPage> {
+  late StudentSummaryResponse _student = widget.student;
+  bool _isRefreshing = false;
+
   @override
   Widget build(BuildContext context) {
     final routeAnimation = ModalRoute.of(context)?.animation;
     final paymentsAsync = ref.watch(
-      studentPaymentsControllerProvider(widget.student.id),
+      studentPaymentsControllerProvider(_student.id),
     );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.student.fullName),
+        title: Text(_student.fullName),
         actions: [
           PopupMenuButton<String>(
             tooltip: '',
@@ -113,42 +120,85 @@ class _StudentPageState extends ConsumerState<StudentPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          spacing: 16,
-          children: [
-            AnimatedBuilder(
-              animation: routeAnimation ?? const AlwaysStoppedAnimation(0),
-              builder: (context, child) => HeroMode(
-                enabled: routeAnimation?.status != AnimationStatus.reverse,
-                child: child!,
-              ),
-              child: Hero(
-                tag: 'student-card-${widget.student.id}',
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: StudentCard(student: widget.student, onTap: () {}),
+      body: CustomMaterialIndicator(
+        color: Colors.black,
+        clipBehavior: Clip.antiAlias,
+        onRefresh: () async {
+          setState(() => _isRefreshing = true);
+
+          try {
+            await Future.wait([
+              ref.read(studentLessonsProvider(_student.id).notifier).refresh(),
+              ref
+                  .read(studentPaymentsControllerProvider(_student.id).notifier)
+                  .refresh(),
+              ref
+                  .read(studentListControllerProvider.notifier)
+                  .getAllStudents(forceRefresh: true),
+            ]);
+
+            if (!context.mounted) return;
+
+            final listState = ref.read(studentListControllerProvider);
+            if (listState.hasError) return;
+
+            final updated = (listState.value ?? const [])
+                .where((s) => s.id == _student.id)
+                .firstOrNull;
+
+            if (updated == null) {
+              Navigator.of(context).pop();
+              return;
+            }
+
+            setState(() => _student = updated);
+          } finally {
+            if (mounted) {
+              setState(() => _isRefreshing = false);
+            }
+          }
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            spacing: 16,
+            children: [
+              Skeletonizer(
+                enabled: _isRefreshing,
+                ignorePointers: false,
+                child: AnimatedBuilder(
+                  animation: routeAnimation ?? const AlwaysStoppedAnimation(0),
+                  builder: (context, child) => HeroMode(
+                    enabled: routeAnimation?.status != AnimationStatus.reverse,
+                    child: child!,
+                  ),
+                  child: Hero(
+                    tag: 'student-card-${_student.id}',
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: StudentCard(student: _student, onTap: () {}),
+                    ),
+                  ),
                 ),
               ),
-            ),
 
-            StudentLessonsSection(studentId: widget.student.id),
+              StudentLessonsSection(studentId: _student.id),
 
-            RecentTransactions(
-              asyncTransactions: paymentsAsync,
-              overrideTitle: widget.student.fullName,
-              onSeeAllPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        StudentPaymentListPage(student: widget.student),
-                  ),
-                );
-              },
-            ),
-          ],
+              RecentTransactions(
+                asyncTransactions: paymentsAsync,
+                overrideTitle: _student.fullName,
+                onSeeAllPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          StudentPaymentListPage(student: _student),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
