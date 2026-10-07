@@ -62,28 +62,31 @@ class RecentTransactions extends StatelessWidget {
               style: const TextStyle(fontSize: 22, color: Colors.black),
             ),
             if (onSeeAllPressed != null)
-              FilledButton.icon(
-                onPressed: onSeeAllPressed,
-                iconAlignment: IconAlignment.end,
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFFE8DEF8),
-                  foregroundColor: const Color(0xFF1D192B),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+              Skeletonizer(
+                enabled: asyncTransactions.isLoading,
+                child: FilledButton.icon(
+                  onPressed: onSeeAllPressed,
+                  iconAlignment: IconAlignment.end,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFE8DEF8),
+                    foregroundColor: const Color(0xFF1D192B),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
                   ),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  textStyle: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
+                  label: Text(context.t.all),
+                  icon: const Icon(Icons.chevron_right, size: 18),
                 ),
-                label: Text(context.t.all),
-                icon: const Icon(Icons.chevron_right, size: 18),
               ),
           ],
         ),
