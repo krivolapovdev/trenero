@@ -4,6 +4,7 @@ import jakarta.validation.Valid
 import java.util.UUID
 import org.springframework.data.domain.Page
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -25,6 +26,7 @@ import org.trenero.backend.transaction.internal.service.TransactionService
 class TransactionController(private val transactionService: TransactionService) {
 
   @GetMapping
+  @PreAuthorize("isAuthenticated()")
   fun getPaginatedTransactions(
     @RequestParam(defaultValue = "1") page: Int,
     @RequestParam(defaultValue = "20") size: Int,
@@ -32,6 +34,7 @@ class TransactionController(private val transactionService: TransactionService) 
   ): Page<TransactionResponse> = transactionService.getPaginatedTransactions(page, size, jwtUser)
 
   @GetMapping("/{transactionId}")
+  @PreAuthorize("isAuthenticated()")
   fun getTransactionById(
     @PathVariable transactionId: UUID,
     @AuthenticationPrincipal jwtUser: JwtUser,
@@ -39,12 +42,14 @@ class TransactionController(private val transactionService: TransactionService) 
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("isAuthenticated()")
   fun createTransaction(
     @Valid @RequestBody request: CreateTransactionRequest,
     @AuthenticationPrincipal jwtUser: JwtUser,
   ): TransactionResponse = transactionService.createTransaction(request, jwtUser)
 
   @PatchMapping("/{transactionId}")
+  @PreAuthorize("isAuthenticated()")
   fun updateTransaction(
     @PathVariable transactionId: UUID,
     @RequestBody @Valid updates: Map<String, Any?>,
@@ -53,6 +58,7 @@ class TransactionController(private val transactionService: TransactionService) 
 
   @DeleteMapping("/{transactionId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("isAuthenticated()")
   fun deleteTransaction(
     @PathVariable transactionId: UUID,
     @AuthenticationPrincipal jwtUser: JwtUser,

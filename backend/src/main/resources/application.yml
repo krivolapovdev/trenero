@@ -30,6 +30,9 @@ spring:
         fail-on-numbers-for-enums: true
     mapper:
       accept-case-insensitive-enums: true
+  mvc:
+    problemdetails:
+      enabled: true
 app:
   oauth2:
     google:
