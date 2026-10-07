@@ -40,7 +40,6 @@ public interface TransactionMapper {
           new StudentPaymentDetailsResponse(
               studentDetails.getStudentId(),
               studentDetails.getPaidUntil(),
-              studentDetails.getPaidFrom(),
               studentDetails.getStudentName());
 
       return new TransactionResponse(

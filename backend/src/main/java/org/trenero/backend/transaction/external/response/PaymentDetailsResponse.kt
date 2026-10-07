@@ -17,6 +17,5 @@ sealed interface PaymentDetailsResponse
 data class StudentPaymentDetailsResponse(
   @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val studentId: UUID,
   @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val paidUntil: LocalDate,
-  val paidFrom: LocalDate? = null,
   val studentName: String? = null,
 ) : PaymentDetailsResponse
