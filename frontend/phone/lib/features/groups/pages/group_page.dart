@@ -33,6 +33,8 @@ class _GroupPageState extends ConsumerState<GroupPage> {
       appBar: AppBar(
         title: Text(_group.name),
         actions: const [GroupPopupMenu(), SizedBox(width: 8)],
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        surfaceTintColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
         ),

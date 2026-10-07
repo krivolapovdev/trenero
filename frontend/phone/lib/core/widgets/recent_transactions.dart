@@ -107,7 +107,10 @@ class RecentTransactions extends StatelessWidget {
           },
           loading: () => Skeletonizer(
             ignorePointers: false,
-            child: _buildGroupedTransactions(context, _dummyTransactions),
+            child: _buildGroupedTransactions(
+              context,
+              asyncTransactions.value ?? _dummyTransactions,
+            ),
           ),
           error: (error, stack) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 24.0),

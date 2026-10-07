@@ -39,7 +39,7 @@ class GroupStudentsSection extends ConsumerWidget {
         ignorePointers: false,
         child: _buildSection(
           context,
-          _dummyStudents(studentCount ?? 6),
+          studentsAsync.value ?? _dummyStudents(studentCount ?? 6),
           isLoading: true,
         ),
       ),

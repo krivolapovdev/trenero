@@ -33,7 +33,7 @@ class GroupLessonsSection extends ConsumerWidget {
       ),
       loading: () => Skeletonizer(
         child: LessonsCalendar(
-          lessons: _dummyLessons,
+          lessons: lessonsAsync.value ?? _dummyLessons,
           locale: localeAsync.value?.languageTag,
           onDaySelected: (selectedDay, focusedDay) {},
         ),
