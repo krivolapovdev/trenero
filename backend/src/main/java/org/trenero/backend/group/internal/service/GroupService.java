@@ -160,8 +160,6 @@ public class GroupService implements GroupSpi {
   public void deleteGroup(@NonNull UUID groupId, @NonNull JwtUser jwtUser) {
     log.info("Deleting group: groupId={}; user={}", groupId, jwtUser);
 
-    groupStudentService.removeAllStudentsFromGroup(groupId, jwtUser);
-
     Group group =
         groupRepository
             .findByIdAndOwnerId(groupId, jwtUser.id())
