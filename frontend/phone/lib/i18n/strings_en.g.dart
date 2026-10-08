@@ -72,6 +72,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Yesterday'
 	String get yesterday => 'Yesterday';
 
+	/// en: 'Print'
+	String get print => 'Print';
+
 	/// en: 'Error'
 	String get error => 'Error';
 
@@ -461,6 +464,7 @@ extension on Translations {
 			'all' => 'All',
 			'today' => 'Today',
 			'yesterday' => 'Yesterday',
+			'print' => 'Print',
 			'error' => 'Error',
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',

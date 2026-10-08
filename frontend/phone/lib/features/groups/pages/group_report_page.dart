@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/providers/language_provider.dart';
+import 'package:phone/core/services/pdf_printer.dart';
+import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/group_report_controller.dart';
 import 'package:phone/features/groups/models/group_report_period.dart';
+import 'package:phone/features/groups/services/group_report_pdf_service.dart';
 import 'package:phone/features/groups/widgets/group_report_period_picker.dart';
 import 'package:phone/features/groups/widgets/group_report_table.dart';
 import 'package:phone/generated/models/group_report_response.dart';
@@ -30,6 +34,7 @@ class GroupReportPage extends ConsumerStatefulWidget {
 class _GroupReportPageState extends ConsumerState<GroupReportPage> {
   late int _year = DateTime.now().year;
   late int _month = DateTime.now().month;
+  bool _isPrinting = false;
 
   GroupReportPeriod get _period =>
       GroupReportPeriod(groupId: widget.group.id, year: _year, month: _month);
@@ -44,6 +49,65 @@ class _GroupReportPageState extends ConsumerState<GroupReportPage> {
     ];
   }
 
+  /// Turns the report of the selected month into a PDF and hands it over to the
+  /// print dialog of the platform.
+  Future<void> _printReport() async {
+    final report = ref.read(groupReportProvider(_period)).value;
+
+    if (report == null || _isPrinting) return;
+
+    final t = context.t;
+    final locale = ref.read(languageProvider).value?.languageCode;
+
+    setState(() => _isPrinting = true);
+
+    try {
+      final bytes = await ref
+          .read(groupReportPdfServiceProvider)
+          .build(report, t: t, locale: locale);
+
+      if (!mounted) return;
+
+      await ref
+          .read(pdfPrinterProvider)
+          .print(
+            bytes: bytes,
+            name: GroupReportPdfService.documentName(report),
+          );
+    } catch (error) {
+      if (!mounted) return;
+      AppSnackBar.show(context, 'Error: $error', SnackBarType.error);
+      print(error);
+    } finally {
+      if (mounted) setState(() => _isPrinting = false);
+    }
+  }
+
+  /// Print action of the app bar: disabled until the month has been loaded.
+  Widget _buildPrintAction(
+    BuildContext context,
+    AsyncValue<GroupReportResponse> reportState,
+  ) {
+    if (_isPrinting) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    return IconButton(
+      tooltip: context.t.print,
+      icon: const Icon(Icons.print),
+      onPressed: reportState.value == null ? null : _printReport,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final reportState = ref.watch(groupReportProvider(_period));
@@ -51,6 +115,10 @@ class _GroupReportPageState extends ConsumerState<GroupReportPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.t.groups.report),
+        actions: [
+          _buildPrintAction(context, reportState),
+          const SizedBox(width: 8),
+        ],
         backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(

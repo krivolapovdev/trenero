@@ -9,6 +9,7 @@
   "all": "Все",
   "today": "Сегодня",
   "yesterday": "Вчера",
+  "print": "Печать",
   "error": "Ошибка",
   "auth": {
     "signInWithApple": "Войти через Apple",

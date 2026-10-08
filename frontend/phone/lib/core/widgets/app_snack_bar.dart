@@ -16,7 +16,7 @@ class AppSnackBar {
           SnackBarType.success => ContentType.success,
           SnackBarType.warning => ContentType.warning,
           SnackBarType.help => ContentType.help,
-          _ => ContentType.success,
+          SnackBarType.error => ContentType.failure,
         },
       ),
     );

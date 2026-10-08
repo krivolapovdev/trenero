@@ -9,6 +9,7 @@
   "all": "All",
   "today": "Today",
   "yesterday": "Yesterday",
+  "print": "Print",
   "error": "Error",
   "auth": {
       "signInWithApple": "Sign in with Apple",

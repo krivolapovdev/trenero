@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:phone/core/providers/language_provider.dart';
+import 'package:phone/core/services/pdf_printer.dart';
 import 'package:phone/features/groups/pages/group_report_page.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/features/groups/widgets/group_report_table.dart';
@@ -93,10 +96,22 @@ class _FakeLanguageNotifier extends LanguageNotifier {
   Future<AppLocale> build() async => AppLocale.en;
 }
 
-Widget _wrap(_FakeGroupClient client) => ProviderScope(
+/// Collects the PDF documents the page hands over to the print dialog.
+class _FakePdfPrinter implements PdfPrinter {
+  final List<({Uint8List bytes, String name})> printed = [];
+
+  @override
+  Future<bool> print({required Uint8List bytes, required String name}) async {
+    printed.add((bytes: bytes, name: name));
+    return true;
+  }
+}
+
+Widget _wrap(_FakeGroupClient client, {PdfPrinter? printer}) => ProviderScope(
   overrides: [
     groupServiceProvider.overrideWithValue(client),
     languageProvider.overrideWith(_FakeLanguageNotifier.new),
+    if (printer != null) pdfPrinterProvider.overrideWithValue(printer),
   ],
   child: TranslationProvider(
     child: MaterialApp(home: GroupReportPage(group: _group)),
@@ -171,5 +186,66 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(client.requestedPeriods.last.year, nextYear);
+  });
+
+  testWidgets('the app bar print action prints the shown month as a PDF', (
+    tester,
+  ) async {
+    final client = _FakeGroupClient();
+    final printer = _FakePdfPrinter();
+
+    await tester.pumpWidget(_wrap(client, printer: printer));
+    await tester.pumpAndSettle();
+
+    final now = DateTime.now();
+
+    await tester.tap(find.byIcon(Icons.print));
+    await tester.pumpAndSettle();
+
+    expect(printer.printed, hasLength(1));
+
+    final printed = printer.printed.single;
+
+    expect(
+      printed.name,
+      'Group A ${now.year}-${now.month.toString().padLeft(2, '0')}.pdf',
+    );
+    expect(
+      String.fromCharCodes(printed.bytes.take(5)),
+      '%PDF-',
+      reason: 'the print action should hand over a PDF document',
+    );
+    expect(printed.bytes.length, greaterThan(1000));
+  });
+
+  testWidgets('the print action follows the month picked afterwards', (
+    tester,
+  ) async {
+    final client = _FakeGroupClient();
+    final printer = _FakePdfPrinter();
+
+    await tester.pumpWidget(_wrap(client, printer: printer));
+    await tester.pumpAndSettle();
+
+    final now = DateTime.now();
+    final nextMonth = now.month == 12 ? 1 : now.month + 1;
+
+    await tester.tap(find.byType(PopupMenuButton<int>).last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find
+          .text(DateFormat.MMMM('en').format(DateTime(now.year, nextMonth)))
+          .last,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.print));
+    await tester.pumpAndSettle();
+
+    expect(
+      printer.printed.single.name,
+      'Group A ${now.year}-${nextMonth.toString().padLeft(2, '0')}.pdf',
+    );
   });
 }

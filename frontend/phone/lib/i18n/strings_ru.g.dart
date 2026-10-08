@@ -48,6 +48,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get all => 'Все';
 	@override String get today => 'Сегодня';
 	@override String get yesterday => 'Вчера';
+	@override String get print => 'Печать';
 	@override String get error => 'Ошибка';
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
 	@override late final _Translations$home$ru home = _Translations$home$ru._(_root);
@@ -264,6 +265,7 @@ extension on TranslationsRu {
 			'all' => 'Все',
 			'today' => 'Сегодня',
 			'yesterday' => 'Вчера',
+			'print' => 'Печать',
 			'error' => 'Ошибка',
 			'auth.signInWithApple' => 'Войти через Apple',
 			'auth.signInWithGoogle' => 'Войти через Google',

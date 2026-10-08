@@ -38,6 +38,8 @@ dependencies:
   awesome_snackbar_content: ^0.1.8
   table_calendar: ^3.3.0
   shimmer: ^4.0.0
+  pdf: ^3.13.1
+  printing: ^5.15.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -53,6 +55,7 @@ flutter:
   assets:
     - assets/images/
     - assets/lottie/
+    - assets/fonts/
 
 swagger_parser:
   schema_url: http://localhost:8080/v3/api-docs
