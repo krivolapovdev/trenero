@@ -14,6 +14,7 @@ import 'package:phone/generated/metric_controller/metric_controller_client.dart'
 import 'package:phone/generated/models/create_student_payment_request.dart';
 import 'package:phone/generated/models/create_student_request.dart';
 import 'package:phone/generated/models/create_transaction_request.dart';
+import 'package:phone/generated/models/group_response.dart';
 import 'package:phone/generated/models/metric_scope.dart';
 import 'package:phone/generated/models/page_transaction_response.dart';
 import 'package:phone/generated/models/payment_metric_response.dart';
@@ -30,15 +31,29 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 StudentSummaryResponse _student({
   required String id,
   required String fullName,
+  GroupResponse? group,
 }) => StudentSummaryResponse(
   id: id,
   fullName: fullName,
   createdAt: DateTime(2025, 1, 1),
   statuses: const [],
+  studentGroup: group,
+);
+
+GroupResponse _group({required num defaultPrice}) => GroupResponse(
+  id: 'group-1',
+  name: 'Beginners',
+  createdAt: DateTime(2025, 1, 1),
+  defaultPrice: defaultPrice,
 );
 
 /// Answers the student endpoints and records the created student payments.
 class _FakeStudentClient implements StudentControllerClient {
+  new({this.studentsSummary});
+
+  /// Served instead of the default students when set.
+  final List<StudentSummaryResponse>? studentsSummary;
+
   /// When set, [createStudentPayment] waits for it before answering.
   Completer<void>? paymentGate;
 
@@ -46,10 +61,12 @@ class _FakeStudentClient implements StudentControllerClient {
   final List<CreateStudentPaymentRequest> paymentBodies = [];
 
   @override
-  Future<List<StudentSummaryResponse>> getStudentsSummary() async => [
-    _student(id: 'student-1', fullName: 'Ivan Petrov'),
-    _student(id: 'student-2', fullName: 'Anna Smirnova'),
-  ];
+  Future<List<StudentSummaryResponse>> getStudentsSummary() async =>
+      studentsSummary ??
+      [
+        _student(id: 'student-1', fullName: 'Ivan Petrov'),
+        _student(id: 'student-2', fullName: 'Anna Smirnova'),
+      ];
 
   @override
   Future<TransactionResponse> createStudentPayment({
@@ -226,6 +243,10 @@ String _formatDate(DateTime date) {
   return '$day.$month.${date.year}';
 }
 
+/// The amount is the first text field of the sheet.
+String _amountText(WidgetTester tester) =>
+    tester.widget<TextField>(find.byType(TextField).first).controller!.text;
+
 Future<void> _save(WidgetTester tester) async {
   await tester.tap(find.text('Создать'));
   await tester.pump();
@@ -301,6 +322,120 @@ void main() {
     expect(find.text('Anna Smirnova'), findsNothing);
     expect(find.text('${t.finance.paidUntil}*'), findsOneWidget);
     expect(find.text(_formatDate(_defaultPaidUntil())), findsOneWidget);
+  });
+
+  testWidgets('the amount is prefilled with the given initial amount', (
+    tester,
+  ) async {
+    await _openSheet(
+      tester,
+      studentClient: _FakeStudentClient(),
+      transactionClient: _FakeTransactionClient(),
+      sheet: const CreateTransactionBottomSheet(
+        initialStudentId: 'student-1',
+        initialAmount: 5999,
+        isIncomeOnly: true,
+      ),
+    );
+
+    expect(_amountText(tester), '5999');
+  });
+
+  testWidgets('picking a student fills the amount with the group price', (
+    tester,
+  ) async {
+    final studentClient = _FakeStudentClient(
+      studentsSummary: [
+        _student(
+          id: 'student-1',
+          fullName: 'Ivan Petrov',
+          group: _group(defaultPrice: 5999),
+        ),
+        _student(
+          id: 'student-2',
+          fullName: 'Anna Smirnova',
+          group: _group(defaultPrice: 4500.5),
+        ),
+        _student(id: 'student-3', fullName: 'Oleg Sidorov'),
+      ],
+    );
+
+    await _openSheet(
+      tester,
+      studentClient: studentClient,
+      transactionClient: _FakeTransactionClient(),
+    );
+
+    await _pickStudent(tester, 'Ivan Petrov');
+
+    expect(_amountText(tester), '5999');
+
+    // Without a group the amount stays as it is.
+    await _pickStudent(tester, 'Oleg Sidorov');
+
+    expect(_amountText(tester), '5999');
+
+    // Another group price replaces the auto-filled amount.
+    await _pickStudent(tester, 'Anna Smirnova');
+
+    expect(_amountText(tester), '4500.5');
+  });
+
+  testWidgets('a sum typed by the user is kept when a student is picked', (
+    tester,
+  ) async {
+    final studentClient = _FakeStudentClient(
+      studentsSummary: [
+        _student(
+          id: 'student-1',
+          fullName: 'Ivan Petrov',
+          group: _group(defaultPrice: 5999),
+        ),
+      ],
+    );
+
+    await _openSheet(
+      tester,
+      studentClient: studentClient,
+      transactionClient: _FakeTransactionClient(),
+    );
+
+    await tester.enterText(find.byType(TextField).first, '1500');
+    await tester.pump();
+
+    await _pickStudent(tester, 'Ivan Petrov');
+
+    expect(_amountText(tester), '1500');
+  });
+
+  testWidgets('the group price of a picked student is used for saving', (
+    tester,
+  ) async {
+    final studentClient = _FakeStudentClient(
+      studentsSummary: [
+        _student(
+          id: 'student-2',
+          fullName: 'Anna Smirnova',
+          group: _group(defaultPrice: 5999),
+        ),
+      ],
+    );
+
+    await _openSheet(
+      tester,
+      studentClient: studentClient,
+      transactionClient: _FakeTransactionClient(),
+      sheet: const CreateTransactionBottomSheet(
+        initialStudentId: 'student-2',
+        initialAmount: 5999,
+        isIncomeOnly: true,
+      ),
+    );
+
+    await _save(tester);
+
+    expect(studentClient.paymentStudentIds, ['student-2']);
+    expect(studentClient.paymentBodies.single.amount, 5999);
   });
 
   testWidgets('an income with a student is saved as a student payment', (

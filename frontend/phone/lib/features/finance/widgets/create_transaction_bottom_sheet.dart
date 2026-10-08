@@ -19,7 +19,16 @@ class CreateTransactionBottomSheet extends ConsumerStatefulWidget {
   /// Hides the type selector and always creates an income transaction.
   final bool isIncomeOnly;
 
-  const new({super.key, this.initialStudentId, this.isIncomeOnly = false});
+  /// Amount prefilled when the sheet opens, usually the group default price of
+  /// [initialStudentId].
+  final num? initialAmount;
+
+  const new({
+    super.key,
+    this.initialStudentId,
+    this.isIncomeOnly = false,
+    this.initialAmount,
+  });
 
   @override
   ConsumerState<CreateTransactionBottomSheet> createState() =>
@@ -39,9 +48,23 @@ class _CreateTransactionBottomSheetState
   bool _isCalendarExpanded = false;
   bool _isStudentExpanded = false;
 
+  /// The last amount taken from a group default price. It allows the sheet to
+  /// refresh that amount when another student is picked, while a sum typed by
+  /// the user stays untouched.
+  double? _autoFilledAmount;
+
   @override
   void initState() {
     super.initState();
+
+    final initialAmount = widget.initialAmount?.toDouble();
+    if (initialAmount != null) {
+      _autoFilledAmount = initialAmount;
+      _amountController.text = _formatAmount(initialAmount);
+    }
+
+    // Registered after the prefill so that it does not call setState during
+    // initState.
     _amountController.addListener(_onAmountChanged);
 
     final initialStudentId = widget.initialStudentId;
@@ -100,6 +123,8 @@ class _CreateTransactionBottomSheetState
     final paidUntil = studentId == null
         ? null
         : (_paidUntil ?? _defaultPaidUntil);
+
+    _applyGroupDefaultAmount(studentId);
 
     setState(() {
       _selectedStudentId = studentId;
@@ -204,6 +229,50 @@ class _CreateTransactionBottomSheetState
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
     return '$day.$month.${date.year}';
+  }
+
+  /// Formats [amount] without trailing zeros, the way price fields do.
+  String _formatAmount(num amount) {
+    final asDouble = amount.toDouble();
+
+    return asDouble == asDouble.roundToDouble()
+        ? asDouble.toInt().toString()
+        : asDouble.toString();
+  }
+
+  /// The default price of the group the given student belongs to, if any.
+  double? _groupDefaultAmount(String? studentId) {
+    if (studentId == null) return null;
+
+    final students =
+        ref.read(studentListControllerProvider).value ??
+        const <StudentSummaryResponse>[];
+
+    for (final student in students) {
+      if (student.id == studentId) {
+        return student.studentGroup?.defaultPrice?.toDouble();
+      }
+    }
+
+    return null;
+  }
+
+  /// Fills the amount with the group default price of the picked student.
+  ///
+  /// The value is refreshed while the field still shows the previously
+  /// auto-filled price, so a sum typed by the user is never overwritten.
+  void _applyGroupDefaultAmount(String? studentId) {
+    final defaultAmount = _groupDefaultAmount(studentId);
+    if (defaultAmount == null || defaultAmount <= 0) return;
+
+    final currentAmount = double.tryParse(_amountController.text.trim());
+    final isAutoFilled =
+        _autoFilledAmount != null && currentAmount == _autoFilledAmount;
+
+    if (currentAmount != null && !isAutoFilled) return;
+
+    _autoFilledAmount = defaultAmount;
+    _amountController.text = _formatAmount(defaultAmount);
   }
 
   Widget _buildStudentField(

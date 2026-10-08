@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/extensions/string_extension.dart';
-import 'package:phone/features/students/extensions/student_status_extension.dart';
 import 'package:phone/core/widgets/card_badge.dart';
+import 'package:phone/features/students/extensions/student_status_extension.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 
 class StudentCard extends StatelessWidget {
@@ -68,7 +68,9 @@ class StudentCard extends StatelessWidget {
                         if (hasGroup) ...[
                           const SizedBox(height: 2),
                           Text(
-                            groupName,
+                            student.studentGroup?.defaultPrice != null
+                                ? '$groupName · ${student.studentGroup!.defaultPrice}'
+                                : groupName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodyMedium?.copyWith(

@@ -8,6 +8,7 @@ import 'package:phone/features/students/pages/student_page.dart';
 import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/models/create_student_payment_request.dart';
 import 'package:phone/generated/models/create_student_request.dart';
+import 'package:phone/generated/models/group_response.dart';
 import 'package:phone/generated/models/student_response.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/models/transaction_response.dart';
@@ -18,12 +19,14 @@ import 'package:phone/i18n/strings.g.dart';
 
 const String _studentId = 'student-1';
 
-StudentSummaryResponse _student() => StudentSummaryResponse(
-  id: _studentId,
-  fullName: 'Ivan Petrov',
-  createdAt: DateTime(2025, 1, 1),
-  statuses: const [],
-);
+StudentSummaryResponse _student({GroupResponse? group}) =>
+    StudentSummaryResponse(
+      id: _studentId,
+      fullName: 'Ivan Petrov',
+      createdAt: DateTime(2025, 1, 1),
+      statuses: const [],
+      studentGroup: group,
+    );
 
 /// Answers the student endpoints used by the page and by the payment sheet.
 class _FakeStudentClient implements StudentControllerClient {
@@ -133,6 +136,35 @@ void main() {
     // Payments are always income, so the type selector is not offered.
     expect(find.text('Доход'), findsNothing);
     expect(find.text('Расход'), findsNothing);
+  });
+
+  testWidgets('the payment sheet prefills the amount with the group price', (
+    tester,
+  ) async {
+    final student = _student(
+      group: GroupResponse(
+        id: 'group-1',
+        name: 'Beginners',
+        createdAt: DateTime(2025, 1, 1),
+        defaultPrice: 5999,
+      ),
+    );
+
+    await tester.pumpWidget(_wrap(student, _FakeStudentClient()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Payment'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CreateTransactionBottomSheet), findsOneWidget);
+
+    // The amount is the first text field of the sheet.
+    final amountField = tester.widget<TextField>(find.byType(TextField).first);
+
+    expect(amountField.controller!.text, '5999');
   });
 
   testWidgets('the floating button creates a payment for the student', (
