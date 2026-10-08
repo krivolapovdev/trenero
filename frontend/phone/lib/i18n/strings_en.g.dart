@@ -60,6 +60,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Update'
 	String get update => 'Update';
 
+	/// en: 'Delete'
+	String get delete => 'Delete';
+
 	/// en: 'All'
 	String get all => 'All';
 
@@ -310,6 +313,15 @@ class Translations$finance$en {
 
 	/// en: 'Withdrawal'
 	String get withdrawal => 'Withdrawal';
+
+	/// en: 'Edit transaction'
+	String get editTransaction => 'Edit transaction';
+
+	/// en: 'Delete transaction?'
+	String get deleteTransaction => 'Delete transaction?';
+
+	/// en: 'The transaction will be deleted permanently. This action cannot be undone.'
+	String get deleteTransactionMessage => 'The transaction will be deleted permanently. This action cannot be undone.';
 }
 
 // Path: students.status
@@ -350,6 +362,7 @@ extension on Translations {
 			'repeat' => 'Repeat',
 			'create' => 'Create',
 			'update' => 'Update',
+			'delete' => 'Delete',
 			'all' => 'All',
 			'today' => 'Today',
 			'yesterday' => 'Yesterday',
@@ -411,6 +424,9 @@ extension on Translations {
 			'finance.createdAt' => 'Created at',
 			'finance.deposit' => 'Deposit',
 			'finance.withdrawal' => 'Withdrawal',
+			'finance.editTransaction' => 'Edit transaction',
+			'finance.deleteTransaction' => 'Delete transaction?',
+			'finance.deleteTransactionMessage' => 'The transaction will be deleted permanently. This action cannot be undone.',
 			_ => null,
 		};
 	}

@@ -5,6 +5,7 @@
   "repeat": "Повторить",
   "create": "Создать",
   "update": "Обновить",
+  "delete": "Удалить",
   "all": "Все",
   "today": "Сегодня",
   "yesterday": "Вчера",
@@ -82,6 +83,9 @@
     "paidUntil": "Оплачено до",
     "createdAt": "Создано",
     "deposit": "Пополнение",
-    "withdrawal": "Списание"
+    "withdrawal": "Списание",
+    "editTransaction": "Редактировать транзакцию",
+    "deleteTransaction": "Удалить транзакцию?",
+    "deleteTransactionMessage": "Транзакция будет удалена безвозвратно. Действие нельзя отменить."
   }
 }

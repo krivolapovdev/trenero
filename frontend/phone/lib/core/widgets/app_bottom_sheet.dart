@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 abstract class AppBottomSheet {
-  static Future<void> show({
+  static Future<T?> show<T>({
     required BuildContext context,
     required Widget child,
-  }) => showModalBottomSheet(
+  }) => showModalBottomSheet<T>(
     context: context,
     backgroundColor: Colors.white,
     showDragHandle: true,

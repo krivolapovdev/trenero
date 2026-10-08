@@ -92,20 +92,11 @@ class TransactionTicketCard extends StatelessWidget {
                       color: info.backgroundColor.withAlpha(25),
                       shape: BoxShape.circle,
                     ),
-                    child: info.initials != null
-                        ? Text(
-                            info.initials!,
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w600,
-                              color: info.backgroundColor,
-                            ),
-                          )
-                        : Icon(
-                            info.icon,
-                            size: 34,
-                            color: info.backgroundColor,
-                          ),
+                    child: Icon(
+                      info.icon,
+                      size: 34,
+                      color: info.backgroundColor,
+                    ),
                   ),
 
                   const SizedBox(height: 16),

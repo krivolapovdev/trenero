@@ -45,15 +45,7 @@ class TransactionTile extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Center(
-                  child: info.initials != null
-                      ? Text(
-                          info.initials!,
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: info.backgroundColor,
-                          ),
-                        )
-                      : Icon(info.icon, color: info.backgroundColor, size: 20),
+                  child: Icon(info.icon, color: info.backgroundColor, size: 20),
                 ),
               ),
               const SizedBox(width: 12),

@@ -44,6 +44,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get repeat => 'Повторить';
 	@override String get create => 'Создать';
 	@override String get update => 'Обновить';
+	@override String get delete => 'Удалить';
 	@override String get all => 'Все';
 	@override String get today => 'Сегодня';
 	@override String get yesterday => 'Вчера';
@@ -181,6 +182,9 @@ class _Translations$finance$ru implements Translations$finance$en {
 	@override String get createdAt => 'Создано';
 	@override String get deposit => 'Пополнение';
 	@override String get withdrawal => 'Списание';
+	@override String get editTransaction => 'Редактировать транзакцию';
+	@override String get deleteTransaction => 'Удалить транзакцию?';
+	@override String get deleteTransactionMessage => 'Транзакция будет удалена безвозвратно. Действие нельзя отменить.';
 }
 
 // Path: students.status
@@ -211,6 +215,7 @@ extension on TranslationsRu {
 			'repeat' => 'Повторить',
 			'create' => 'Создать',
 			'update' => 'Обновить',
+			'delete' => 'Удалить',
 			'all' => 'Все',
 			'today' => 'Сегодня',
 			'yesterday' => 'Вчера',
@@ -272,6 +277,9 @@ extension on TranslationsRu {
 			'finance.createdAt' => 'Создано',
 			'finance.deposit' => 'Пополнение',
 			'finance.withdrawal' => 'Списание',
+			'finance.editTransaction' => 'Редактировать транзакцию',
+			'finance.deleteTransaction' => 'Удалить транзакцию?',
+			'finance.deleteTransactionMessage' => 'Транзакция будет удалена безвозвратно. Действие нельзя отменить.',
 			_ => null,
 		};
 	}

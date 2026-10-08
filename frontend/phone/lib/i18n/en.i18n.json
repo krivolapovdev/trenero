@@ -5,6 +5,7 @@
   "repeat": "Repeat",
   "create": "Create",
   "update": "Update",
+  "delete": "Delete",
   "all": "All",
   "today": "Today",
   "yesterday": "Yesterday",
@@ -82,6 +83,9 @@
     "paidUntil": "Paid until",
     "createdAt": "Created at",
     "deposit": "Deposit",
-    "withdrawal": "Withdrawal"
+    "withdrawal": "Withdrawal",
+    "editTransaction": "Edit transaction",
+    "deleteTransaction": "Delete transaction?",
+    "deleteTransactionMessage": "The transaction will be deleted permanently. This action cannot be undone."
   }
 }

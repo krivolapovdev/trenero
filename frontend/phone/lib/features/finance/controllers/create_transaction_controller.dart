@@ -1,9 +1,5 @@
-import 'dart:async';
-import 'dart:developer';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/features/finance/controllers/payment_metrics_controller.dart';
-import 'package:phone/features/finance/controllers/transaction_list_controller.dart';
+import 'package:phone/features/finance/controllers/transaction_mutation_refresh.dart';
 import 'package:phone/features/finance/repositories/transaction_repository.dart';
 import 'package:phone/generated/models/transaction_type.dart';
 
@@ -31,21 +27,8 @@ class CreateTransactionController extends AsyncNotifier<void> {
         date: date,
       );
 
-      await ref.read(transactionsControllerProvider.notifier).refresh();
+      await refreshAfterTransactionMutation(ref, action: 'creating');
     });
-
-    if (!state.hasError) {
-      unawaited(
-        ref
-            .read(paymentMetricsControllerProvider.notifier)
-            .loadMetrics()
-            .catchError((error, _) {
-              log(
-                'Error refreshing metrics after creating transaction: $error',
-              );
-            }),
-      );
-    }
 
     return !state.hasError;
   }
