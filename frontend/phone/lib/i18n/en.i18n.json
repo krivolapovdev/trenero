@@ -23,6 +23,7 @@
     "createFirstGroup": "Create First Group",
     "createGroup": "Add Group",
     "editGroup": "Edit Group",
+    "noGroup": "No group",
     "defaultPrice": "Price by default"
   },
   "students": {
@@ -30,6 +31,11 @@
     "emptySubtitle": "No students yet",
     "createFirstStudent": "Create First Student",
     "createStudent": "Add Student",
+    "editStudent": "Edit Student",
+    "fullName": "Full name",
+    "birthdate": "Date of birth",
+    "phone": "Phone",
+    "group": "Group",
     "status": {
       "inactive": "Inactive",
       "present": "Present",

@@ -2,23 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
-import 'package:phone/features/students/controllers/create_student_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
+import 'package:phone/features/students/controllers/update_student_controller.dart';
 import 'package:phone/features/students/widgets/student_form_sheet.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
+import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-class CreateStudentBottomSheet extends ConsumerStatefulWidget {
-  const new({super.key});
+class EditStudentBottomSheet extends ConsumerStatefulWidget {
+  final StudentSummaryResponse student;
+
+  const new({super.key, required this.student});
 
   @override
-  ConsumerState<CreateStudentBottomSheet> createState() =>
-      _CreateStudentBottomSheetState();
+  ConsumerState<EditStudentBottomSheet> createState() =>
+      _EditStudentBottomSheetState();
 }
 
-class _CreateStudentBottomSheetState
-    extends ConsumerState<CreateStudentBottomSheet> {
-  Future<void> _onSave({
+class _EditStudentBottomSheetState
+    extends ConsumerState<EditStudentBottomSheet> {
+  Future<void> _onUpdate({
     required String fullName,
     required DateTime? birthdate,
     required String? phone,
@@ -26,8 +29,9 @@ class _CreateStudentBottomSheetState
     required String? groupId,
   }) async {
     final success = await ref
-        .read(createStudentControllerProvider.notifier)
-        .saveStudent(
+        .read(updateStudentControllerProvider.notifier)
+        .updateStudent(
+          studentId: widget.student.id,
           fullName: fullName,
           birthdate: birthdate,
           phone: phone,
@@ -38,12 +42,14 @@ class _CreateStudentBottomSheetState
     if (!mounted) return;
 
     if (success) {
-      Navigator.of(context).pop();
       await ref
           .read(studentListControllerProvider.notifier)
           .getAllStudents(forceRefresh: true);
+
+      if (!mounted) return;
+      Navigator.of(context).pop();
     } else {
-      final state = ref.read(createStudentControllerProvider);
+      final state = ref.read(updateStudentControllerProvider);
       final error = state.error;
       if (error != null) {
         AppSnackBar.show(context, 'Error: $error', SnackBarType.error);
@@ -53,17 +59,23 @@ class _CreateStudentBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(createStudentControllerProvider).isLoading;
+    final isLoading = ref.watch(updateStudentControllerProvider).isLoading;
     final groupsState = ref.watch(groupListControllerProvider);
+    final student = widget.student;
 
     return StudentFormSheet(
-      title: context.t.students.createStudent,
-      submitLabel: context.t.create,
-      submitIcon: Icons.add,
+      title: context.t.students.editStudent,
+      submitLabel: context.t.update,
+      submitIcon: Icons.check,
       isLoading: isLoading,
       groups: groupsState.value ?? const <GroupSummaryResponse>[],
       isGroupsLoading: groupsState.isLoading,
-      onSubmit: _onSave,
+      initialFullName: student.fullName,
+      initialBirthdate: student.birthdate,
+      initialPhone: student.phone,
+      initialNote: student.note,
+      initialGroupId: student.studentGroup?.id,
+      onSubmit: _onUpdate,
     );
   }
 }

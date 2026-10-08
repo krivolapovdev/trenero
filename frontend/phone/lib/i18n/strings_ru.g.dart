@@ -92,6 +92,7 @@ class _Translations$groups$ru implements Translations$groups$en {
 	@override String get createFirstGroup => 'Создать первую группу';
 	@override String get createGroup => 'Добавить группу';
 	@override String get editGroup => 'Редактировать группу';
+	@override String get noGroup => 'Без группы';
 	@override String get defaultPrice => 'Стандартная цена';
 }
 
@@ -106,6 +107,11 @@ class _Translations$students$ru implements Translations$students$en {
 	@override String get emptySubtitle => 'Учеников пока нет';
 	@override String get createFirstStudent => 'Создать первого ученика';
 	@override String get createStudent => 'Добавить ученика';
+	@override String get editStudent => 'Редактировать ученика';
+	@override String get fullName => 'ФИО';
+	@override String get birthdate => 'Дата рождения';
+	@override String get phone => 'Телефон';
+	@override String get group => 'Группа';
 	@override late final _Translations$students$status$ru status = _Translations$students$status$ru._(_root);
 }
 
@@ -206,11 +212,17 @@ extension on TranslationsRu {
 			'groups.createFirstGroup' => 'Создать первую группу',
 			'groups.createGroup' => 'Добавить группу',
 			'groups.editGroup' => 'Редактировать группу',
+			'groups.noGroup' => 'Без группы',
 			'groups.defaultPrice' => 'Стандартная цена',
 			'students.title' => 'Ученики',
 			'students.emptySubtitle' => 'Учеников пока нет',
 			'students.createFirstStudent' => 'Создать первого ученика',
 			'students.createStudent' => 'Добавить ученика',
+			'students.editStudent' => 'Редактировать ученика',
+			'students.fullName' => 'ФИО',
+			'students.birthdate' => 'Дата рождения',
+			'students.phone' => 'Телефон',
+			'students.group' => 'Группа',
 			'students.status.inactive' => 'Неактивен',
 			'students.status.present' => 'Присутствовал',
 			'students.status.missing' => 'Отсутствовал',

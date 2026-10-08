@@ -23,6 +23,7 @@
     "createFirstGroup": "Создать первую группу",
     "createGroup": "Добавить группу",
     "editGroup": "Редактировать группу",
+    "noGroup": "Без группы",
     "defaultPrice": "Стандартная цена"
   },
   "students": {
@@ -30,6 +31,11 @@
     "emptySubtitle": "Учеников пока нет",
     "createFirstStudent": "Создать первого ученика",
     "createStudent": "Добавить ученика",
+    "editStudent": "Редактировать ученика",
+    "fullName": "ФИО",
+    "birthdate": "Дата рождения",
+    "phone": "Телефон",
+    "group": "Группа",
     "status": {
       "inactive": "Неактивен",
       "present": "Присутствовал",

@@ -1,12 +1,14 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/radial_expandable_fab.dart';
 import 'package:phone/core/widgets/recent_transactions.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
+import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
 import 'package:phone/features/students/widgets/student_lessons_section.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
@@ -25,6 +27,22 @@ class _StudentPageState extends ConsumerState<StudentPage> {
   late StudentSummaryResponse _student = widget.student;
   bool _isRefreshing = false;
 
+  Future<void> _openEditStudentSheet() async {
+    await AppBottomSheet.show(
+      context: context,
+      child: EditStudentBottomSheet(student: _student),
+    );
+
+    if (!mounted) return;
+
+    final listState = ref.read(studentListControllerProvider);
+    final updated = (listState.value ?? const <StudentSummaryResponse>[])
+        .where((s) => s.id == _student.id)
+        .firstOrNull;
+
+    if (updated != null) setState(() => _student = updated);
+  }
+
   @override
   Widget build(BuildContext context) {
     final routeAnimation = ModalRoute.of(context)?.animation;
@@ -40,9 +58,9 @@ class _StudentPageState extends ConsumerState<StudentPage> {
             tooltip: '',
             offset: const Offset(-8, 0),
             color: Theme.of(context).colorScheme.surface,
-            itemBuilder: (BuildContext context) => [
+            itemBuilder: (menuContext) => [
               PopupMenuItem<String>(
-                onTap: () {},
+                onTap: _openEditStudentSheet,
                 child: const Row(
                   children: [
                     Icon(Icons.edit, size: 20),
@@ -106,7 +124,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
         children: [
           FloatingActionButton(
             heroTag: 'edit-student',
-            onPressed: () {},
+            onPressed: _openEditStudentSheet,
             elevation: 0,
             focusElevation: 0,
             highlightElevation: 0,

@@ -15,6 +15,9 @@ class StudentCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final hasNote = student.note != null && student.note!.trim().isNotEmpty;
+    final hasPhone = student.phone != null && student.phone!.isNotEmpty;
+    final groupName = student.studentGroup?.name;
+    final hasGroup = groupName != null && groupName.trim().isNotEmpty;
     final badges = student.statuses.toBadges(context);
 
     return Card(
@@ -62,8 +65,19 @@ class StudentCard extends StatelessWidget {
                           ),
                         ),
 
-                        if (student.phone != null &&
-                            student.phone!.isNotEmpty) ...[
+                        if (hasGroup) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            groupName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+
+                        if (hasPhone) ...[
                           const SizedBox(height: 2),
                           Text(
                             student.phone!,

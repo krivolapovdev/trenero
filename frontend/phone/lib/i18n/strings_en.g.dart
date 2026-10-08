@@ -135,6 +135,9 @@ class Translations$groups$en {
 	/// en: 'Edit Group'
 	String get editGroup => 'Edit Group';
 
+	/// en: 'No group'
+	String get noGroup => 'No group';
+
 	/// en: 'Price by default'
 	String get defaultPrice => 'Price by default';
 }
@@ -158,6 +161,21 @@ class Translations$students$en {
 
 	/// en: 'Add Student'
 	String get createStudent => 'Add Student';
+
+	/// en: 'Edit Student'
+	String get editStudent => 'Edit Student';
+
+	/// en: 'Full name'
+	String get fullName => 'Full name';
+
+	/// en: 'Date of birth'
+	String get birthdate => 'Date of birth';
+
+	/// en: 'Phone'
+	String get phone => 'Phone';
+
+	/// en: 'Group'
+	String get group => 'Group';
 
 	late final Translations$students$status$en status = Translations$students$status$en._(_root);
 }
@@ -309,11 +327,17 @@ extension on Translations {
 			'groups.createFirstGroup' => 'Create First Group',
 			'groups.createGroup' => 'Add Group',
 			'groups.editGroup' => 'Edit Group',
+			'groups.noGroup' => 'No group',
 			'groups.defaultPrice' => 'Price by default',
 			'students.title' => 'Students',
 			'students.emptySubtitle' => 'No students yet',
 			'students.createFirstStudent' => 'Create First Student',
 			'students.createStudent' => 'Add Student',
+			'students.editStudent' => 'Edit Student',
+			'students.fullName' => 'Full name',
+			'students.birthdate' => 'Date of birth',
+			'students.phone' => 'Phone',
+			'students.group' => 'Group',
 			'students.status.inactive' => 'Inactive',
 			'students.status.present' => 'Present',
 			'students.status.missing' => 'Missing',
