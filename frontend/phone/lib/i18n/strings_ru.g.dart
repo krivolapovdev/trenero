@@ -113,6 +113,7 @@ class _Translations$students$ru implements Translations$students$en {
 	@override String get birthdate => 'Дата рождения';
 	@override String get phone => 'Телефон';
 	@override String get group => 'Группа';
+	@override String get noStudent => 'Без ученика';
 	@override late final _Translations$students$status$ru status = _Translations$students$status$ru._(_root);
 }
 
@@ -240,6 +241,7 @@ extension on TranslationsRu {
 			'students.birthdate' => 'Дата рождения',
 			'students.phone' => 'Телефон',
 			'students.group' => 'Группа',
+			'students.noStudent' => 'Без ученика',
 			'students.status.inactive' => 'Неактивен',
 			'students.status.present' => 'Присутствовал',
 			'students.status.missing' => 'Отсутствовал',

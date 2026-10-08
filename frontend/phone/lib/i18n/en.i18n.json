@@ -37,6 +37,7 @@
     "birthdate": "Date of birth",
     "phone": "Phone",
     "group": "Group",
+    "noStudent": "No student",
     "status": {
       "inactive": "Inactive",
       "present": "Present",

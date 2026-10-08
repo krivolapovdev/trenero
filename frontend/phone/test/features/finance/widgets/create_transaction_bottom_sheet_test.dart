@@ -1,0 +1,374 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:phone/core/widgets/app_bottom_sheet.dart';
+import 'package:phone/features/finance/services/metric_service.dart';
+import 'package:phone/features/finance/services/transaction_service.dart';
+import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
+import 'package:phone/features/students/services/student_service.dart';
+import 'package:phone/generated/metric_controller/metric_controller_client.dart';
+import 'package:phone/generated/models/create_student_payment_request.dart';
+import 'package:phone/generated/models/create_student_request.dart';
+import 'package:phone/generated/models/create_transaction_request.dart';
+import 'package:phone/generated/models/metric_scope.dart';
+import 'package:phone/generated/models/page_transaction_response.dart';
+import 'package:phone/generated/models/payment_metric_response.dart';
+import 'package:phone/generated/models/student_response.dart';
+import 'package:phone/generated/models/student_summary_response.dart';
+import 'package:phone/generated/models/transaction_response.dart';
+import 'package:phone/generated/models/transaction_type.dart';
+import 'package:phone/generated/models/visit_with_lesson_response.dart';
+import 'package:phone/generated/student_controller/student_controller_client.dart';
+import 'package:phone/generated/transaction_controller/transaction_controller_client.dart';
+import 'package:phone/i18n/strings.g.dart';
+
+StudentSummaryResponse _student({
+  required String id,
+  required String fullName,
+}) => StudentSummaryResponse(
+  id: id,
+  fullName: fullName,
+  createdAt: DateTime(2025, 1, 1),
+  statuses: const [],
+);
+
+/// Answers the student endpoints and records the created student payments.
+class _FakeStudentClient implements StudentControllerClient {
+  final List<String> paymentStudentIds = [];
+  final List<CreateStudentPaymentRequest> paymentBodies = [];
+
+  @override
+  Future<List<StudentSummaryResponse>> getStudentsSummary() async => [
+    _student(id: 'student-1', fullName: 'Ivan Petrov'),
+    _student(id: 'student-2', fullName: 'Anna Smirnova'),
+  ];
+
+  @override
+  Future<TransactionResponse> createStudentPayment({
+    required String studentId,
+    required CreateStudentPaymentRequest body,
+  }) async {
+    paymentStudentIds.add(studentId);
+    paymentBodies.add(body);
+
+    return TransactionResponse(
+      id: 'payment-1',
+      amount: body.amount,
+      date: body.date,
+      type: TransactionType.income,
+      createdAt: DateTime(2025, 8, 22),
+    );
+  }
+
+  @override
+  Future<List<StudentResponse>> getStudents() => throw UnimplementedError();
+
+  @override
+  Future<StudentResponse> createStudent({required CreateStudentRequest body}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<StudentResponse> getStudent({required String studentId}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> deleteStudent({required String studentId}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<StudentResponse> updateStudent({
+    required String studentId,
+    required Map<String, dynamic> body,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<List<VisitWithLessonResponse>> getStudentVisits({
+    required String studentId,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<List<TransactionResponse>> getStudentPayments({
+    required String studentId,
+  }) => throw UnimplementedError();
+}
+
+/// Records the created transactions and serves an empty page.
+class _FakeTransactionClient implements TransactionControllerClient {
+  final List<CreateTransactionRequest> createBodies = [];
+
+  @override
+  Future<TransactionResponse> createTransaction({
+    required CreateTransactionRequest body,
+  }) async {
+    createBodies.add(body);
+
+    return TransactionResponse(
+      id: 'transaction-1',
+      amount: body.amount,
+      date: body.date,
+      type: body.type,
+      createdAt: DateTime(2025, 8, 22),
+    );
+  }
+
+  @override
+  Future<PageTransactionResponse> getPaginatedTransactions({
+    int? page = 1,
+    int? size = 20,
+  }) async => const PageTransactionResponse(content: [], totalElements: 0);
+
+  @override
+  Future<TransactionResponse> getTransactionById({
+    required String transactionId,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<TransactionResponse> updateTransaction({
+    required String transactionId,
+    required Map<String, dynamic> body,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<void> deleteTransaction({required String transactionId}) =>
+      throw UnimplementedError();
+}
+
+class _FakeMetricClient implements MetricControllerClient {
+  @override
+  Future<List<PaymentMetricResponse>> getPaymentStatistics({
+    required DateTime startDate,
+    required DateTime endDate,
+    MetricScope? scope = MetricScope.month,
+  }) async => const [];
+}
+
+Widget _wrap(
+  Widget child, {
+  required _FakeStudentClient studentClient,
+  required _FakeTransactionClient transactionClient,
+}) => ProviderScope(
+  overrides: [
+    studentServiceProvider.overrideWithValue(studentClient),
+    transactionServiceProvider.overrideWithValue(transactionClient),
+    metricServiceProvider.overrideWithValue(_FakeMetricClient()),
+  ],
+  child: TranslationProvider(
+    child: MaterialApp(
+      home: Scaffold(
+        body: Builder(
+          builder: (context) => TextButton(
+            onPressed: () =>
+                AppBottomSheet.show(context: context, child: child),
+            child: const Text('open sheet'),
+          ),
+        ),
+      ),
+    ),
+  ),
+);
+
+/// Opens the bottom sheet the same way the finance page does.
+Future<void> _openSheet(
+  WidgetTester tester, {
+  required _FakeStudentClient studentClient,
+  required _FakeTransactionClient transactionClient,
+}) async {
+  await tester.pumpWidget(
+    _wrap(
+      const CreateTransactionBottomSheet(),
+      studentClient: studentClient,
+      transactionClient: transactionClient,
+    ),
+  );
+
+  await tester.tap(find.text('open sheet'));
+  await tester.pumpAndSettle();
+}
+
+/// The date field and the student field share the same chevron icon, the
+/// student field is rendered last.
+Finder get _studentField =>
+    find.byIcon(FluentIcons.chevron_down_24_regular).last;
+
+Future<void> _pickStudent(WidgetTester tester, String fullName) async {
+  await tester.tap(_studentField);
+  await tester.pumpAndSettle();
+
+  await tester.tap(find.text(fullName));
+  await tester.pumpAndSettle();
+}
+
+/// The sheet prefills the paid until date with one month from the payment date.
+DateTime _defaultPaidUntil() {
+  final now = DateTime.now();
+
+  return DateTime(now.year, now.month + 1, now.day);
+}
+
+DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
+
+String _formatDate(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+
+  return '$day.$month.${date.year}';
+}
+
+Future<void> _save(WidgetTester tester) async {
+  await tester.tap(find.text('Создать'));
+  await tester.pump();
+
+  // The transaction list and the metrics are reloaded with a delay.
+  await tester.pump(const Duration(seconds: 3));
+  await tester.pump(const Duration(seconds: 3));
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  setUpAll(() async {
+    await initializeDateFormatting();
+    LocaleSettings.setLocaleSync(AppLocale.en);
+  });
+
+  testWidgets('the student field is only offered for income transactions', (
+    tester,
+  ) async {
+    await _openSheet(
+      tester,
+      studentClient: _FakeStudentClient(),
+      transactionClient: _FakeTransactionClient(),
+    );
+
+    expect(find.text(t.finance.student), findsOneWidget);
+    expect(find.text(t.students.noStudent), findsOneWidget);
+
+    await tester.tap(find.text('Расход'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(t.finance.student), findsNothing);
+    expect(find.text(t.students.noStudent), findsNothing);
+  });
+
+  testWidgets('the student options are hidden until the field is tapped', (
+    tester,
+  ) async {
+    await _openSheet(
+      tester,
+      studentClient: _FakeStudentClient(),
+      transactionClient: _FakeTransactionClient(),
+    );
+
+    expect(find.byIcon(FluentIcons.chevron_down_24_regular), findsNWidgets(2));
+    expect(find.text('Ivan Petrov'), findsNothing);
+    expect(find.text('Anna Smirnova'), findsNothing);
+
+    await tester.tap(_studentField);
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(FluentIcons.chevron_up_24_regular), findsOneWidget);
+    expect(find.text('Ivan Petrov'), findsOneWidget);
+    expect(find.text('Anna Smirnova'), findsOneWidget);
+  });
+
+  testWidgets('picking a student reveals the paid until field with a default', (
+    tester,
+  ) async {
+    await _openSheet(
+      tester,
+      studentClient: _FakeStudentClient(),
+      transactionClient: _FakeTransactionClient(),
+    );
+
+    expect(find.text('${t.finance.paidUntil}*'), findsNothing);
+
+    await _pickStudent(tester, 'Ivan Petrov');
+
+    // The options are collapsed and the picked student is shown by the field.
+    expect(find.byIcon(FluentIcons.chevron_down_24_regular), findsNWidgets(2));
+    expect(find.text('Ivan Petrov'), findsOneWidget);
+    expect(find.text('Anna Smirnova'), findsNothing);
+    expect(find.text('${t.finance.paidUntil}*'), findsOneWidget);
+    expect(find.text(_formatDate(_defaultPaidUntil())), findsOneWidget);
+  });
+
+  testWidgets('an income with a student is saved as a student payment', (
+    tester,
+  ) async {
+    final studentClient = _FakeStudentClient();
+    final transactionClient = _FakeTransactionClient();
+
+    await _openSheet(
+      tester,
+      studentClient: studentClient,
+      transactionClient: transactionClient,
+    );
+
+    await tester.enterText(find.byType(TextField).first, '5000');
+    await tester.pump();
+
+    await _pickStudent(tester, 'Ivan Petrov');
+
+    await _save(tester);
+
+    expect(studentClient.paymentStudentIds, ['student-1']);
+    expect(studentClient.paymentBodies, hasLength(1));
+
+    final body = studentClient.paymentBodies.single;
+    expect(body.amount, 5000);
+    expect(_dateOnly(body.date), _dateOnly(DateTime.now()));
+    expect(_dateOnly(body.paidUntil), _defaultPaidUntil());
+    expect(transactionClient.createBodies, isEmpty);
+    expect(find.byType(CreateTransactionBottomSheet), findsNothing);
+  });
+
+  testWidgets('an income without a student is saved as a plain transaction', (
+    tester,
+  ) async {
+    final studentClient = _FakeStudentClient();
+    final transactionClient = _FakeTransactionClient();
+
+    await _openSheet(
+      tester,
+      studentClient: studentClient,
+      transactionClient: transactionClient,
+    );
+
+    await tester.enterText(find.byType(TextField).first, '1200');
+    await tester.pump();
+
+    await _save(tester);
+
+    expect(studentClient.paymentBodies, isEmpty);
+    expect(transactionClient.createBodies, hasLength(1));
+    expect(transactionClient.createBodies.single.type, TransactionType.income);
+    expect(transactionClient.createBodies.single.amount, 1200);
+  });
+
+  testWidgets('an expense stays a plain transaction even after a student was '
+      'picked', (tester) async {
+    final studentClient = _FakeStudentClient();
+    final transactionClient = _FakeTransactionClient();
+
+    await _openSheet(
+      tester,
+      studentClient: studentClient,
+      transactionClient: transactionClient,
+    );
+
+    await _pickStudent(tester, 'Ivan Petrov');
+
+    await tester.tap(find.text('Расход'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '300');
+    await tester.pump();
+
+    await _save(tester);
+
+    expect(studentClient.paymentBodies, isEmpty);
+    expect(transactionClient.createBodies, hasLength(1));
+    expect(transactionClient.createBodies.single.type, TransactionType.expense);
+  });
+}

@@ -37,6 +37,7 @@
     "birthdate": "Дата рождения",
     "phone": "Телефон",
     "group": "Группа",
+    "noStudent": "Без ученика",
     "status": {
       "inactive": "Неактивен",
       "present": "Присутствовал",

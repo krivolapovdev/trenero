@@ -180,6 +180,9 @@ class Translations$students$en {
 	/// en: 'Group'
 	String get group => 'Group';
 
+	/// en: 'No student'
+	String get noStudent => 'No student';
+
 	late final Translations$students$status$en status = Translations$students$status$en._(_root);
 }
 
@@ -387,6 +390,7 @@ extension on Translations {
 			'students.birthdate' => 'Date of birth',
 			'students.phone' => 'Phone',
 			'students.group' => 'Group',
+			'students.noStudent' => 'No student',
 			'students.status.inactive' => 'Inactive',
 			'students.status.present' => 'Present',
 			'students.status.missing' => 'Missing',

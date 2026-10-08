@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/students/services/student_service.dart';
+import 'package:phone/generated/models/create_student_payment_request.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/visit_with_lesson_response.dart';
@@ -73,6 +74,26 @@ class StudentRepository {
       return await _service.getStudentPayments(studentId: studentId);
     } on DioException catch (e) {
       throw Exception('Failed to fetch student lessons: ${e.message}');
+    }
+  }
+
+  Future<TransactionResponse> createStudentPayment({
+    required String studentId,
+    required double amount,
+    required DateTime date,
+    required DateTime paidUntil,
+  }) async {
+    try {
+      return await _service.createStudentPayment(
+        studentId: studentId,
+        body: CreateStudentPaymentRequest(
+          amount: amount,
+          date: date,
+          paidUntil: paidUntil,
+        ),
+      );
+    } on DioException catch (e) {
+      throw Exception('Failed to create student payment: ${e.message}');
     }
   }
 
