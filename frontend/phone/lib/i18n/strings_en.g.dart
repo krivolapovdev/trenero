@@ -274,6 +274,42 @@ class Translations$finance$en {
 
 	/// en: 'Last transactions'
 	String get lastTransactions => 'Last transactions';
+
+	/// en: 'Transaction'
+	String get transactionTitle => 'Transaction';
+
+	/// en: 'Transaction ID'
+	String get transactionId => 'Transaction ID';
+
+	/// en: 'Date'
+	String get date => 'Date';
+
+	/// en: 'Amount'
+	String get amount => 'Amount';
+
+	/// en: 'Type'
+	String get type => 'Type';
+
+	/// en: 'Income'
+	String get typeIncome => 'Income';
+
+	/// en: 'Expense'
+	String get typeExpense => 'Expense';
+
+	/// en: 'Student'
+	String get student => 'Student';
+
+	/// en: 'Paid until'
+	String get paidUntil => 'Paid until';
+
+	/// en: 'Created at'
+	String get createdAt => 'Created at';
+
+	/// en: 'Deposit'
+	String get deposit => 'Deposit';
+
+	/// en: 'Withdrawal'
+	String get withdrawal => 'Withdrawal';
 }
 
 // Path: students.status
@@ -363,6 +399,18 @@ extension on Translations {
 			'finance.income' => 'Income',
 			'finance.expenses' => 'Expenses',
 			'finance.lastTransactions' => 'Last transactions',
+			'finance.transactionTitle' => 'Transaction',
+			'finance.transactionId' => 'Transaction ID',
+			'finance.date' => 'Date',
+			'finance.amount' => 'Amount',
+			'finance.type' => 'Type',
+			'finance.typeIncome' => 'Income',
+			'finance.typeExpense' => 'Expense',
+			'finance.student' => 'Student',
+			'finance.paidUntil' => 'Paid until',
+			'finance.createdAt' => 'Created at',
+			'finance.deposit' => 'Deposit',
+			'finance.withdrawal' => 'Withdrawal',
 			_ => null,
 		};
 	}

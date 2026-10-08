@@ -70,6 +70,18 @@
     "title": "Finance",
     "income": "Income",
     "expenses": "Expenses",
-    "lastTransactions": "Last transactions"
+    "lastTransactions": "Last transactions",
+    "transactionTitle": "Transaction",
+    "transactionId": "Transaction ID",
+    "date": "Date",
+    "amount": "Amount",
+    "type": "Type",
+    "typeIncome": "Income",
+    "typeExpense": "Expense",
+    "student": "Student",
+    "paidUntil": "Paid until",
+    "createdAt": "Created at",
+    "deposit": "Deposit",
+    "withdrawal": "Withdrawal"
   }
 }

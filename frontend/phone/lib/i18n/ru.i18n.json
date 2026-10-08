@@ -70,6 +70,18 @@
     "title": "Финансы",
     "income": "Доходы",
     "expenses": "Расходы",
-    "lastTransactions": "Последние операции"
+    "lastTransactions": "Последние операции",
+    "transactionTitle": "Транзакция",
+    "transactionId": "ID операции",
+    "date": "Дата",
+    "amount": "Сумма",
+    "type": "Тип",
+    "typeIncome": "Доход",
+    "typeExpense": "Расход",
+    "student": "Ученик",
+    "paidUntil": "Оплачено до",
+    "createdAt": "Создано",
+    "deposit": "Пополнение",
+    "withdrawal": "Списание"
   }
 }

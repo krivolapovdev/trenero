@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/transaction_tile.dart';
+import 'package:phone/features/finance/pages/transaction_page.dart';
 import 'package:phone/features/finance/utils/transaction_date_formatter.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';
@@ -113,6 +114,7 @@ class RecentTransactions extends StatelessWidget {
             child: _buildGroupedTransactions(
               context,
               asyncTransactions.value ?? _dummyTransactions,
+              isTappable: false,
             ),
           ),
           error: (error, stack) => Padding(
@@ -131,8 +133,9 @@ class RecentTransactions extends StatelessWidget {
 
   Widget _buildGroupedTransactions(
     BuildContext context,
-    List<TransactionResponse> transactions,
-  ) {
+    List<TransactionResponse> transactions, {
+    bool isTappable = true,
+  }) {
     final groupedTransactions =
         TransactionDateFormatter.groupTransactionsByDate(transactions);
 
@@ -158,11 +161,28 @@ class RecentTransactions extends StatelessWidget {
             ),
           ),
           ...items.map(
-            (tx) =>
-                TransactionTile(transaction: tx, overrideTitle: overrideTitle),
+            (tx) => TransactionTile(
+              transaction: tx,
+              overrideTitle: overrideTitle,
+              onTap: isTappable
+                  ? () => _openTransactionPage(context, tx)
+                  : null,
+            ),
           ),
         ];
       }).toList(),
     );
   }
+
+  void _openTransactionPage(
+    BuildContext context,
+    TransactionResponse transaction,
+  ) => Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => TransactionPage(
+        transaction: transaction,
+        overrideTitle: overrideTitle,
+      ),
+    ),
+  );
 }

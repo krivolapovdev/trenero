@@ -103,6 +103,7 @@ class TransactionListPage extends ConsumerWidget {
         transactions: isLoading && transactions.isEmpty
             ? _dummyTransactions
             : transactions,
+        isLoading: isLoading,
         isLoadingMore: listState.value?.isLoadingMore ?? false,
         onRefresh: () =>
             ref.read(transactionsControllerProvider.notifier).refresh(),

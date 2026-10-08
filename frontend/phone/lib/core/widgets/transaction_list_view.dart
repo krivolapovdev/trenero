@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/transaction_tile.dart';
+import 'package:phone/features/finance/pages/transaction_page.dart';
 import 'package:phone/features/finance/utils/transaction_date_formatter.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 
@@ -8,6 +9,7 @@ class TransactionListView extends StatefulWidget {
   final Future<void> Function() onRefresh;
   final VoidCallback? onFetchNextPage;
   final bool isLoadingMore;
+  final bool isLoading;
   final String? overrideTitle;
   final String emptyText;
 
@@ -17,6 +19,7 @@ class TransactionListView extends StatefulWidget {
     required this.onRefresh,
     this.onFetchNextPage,
     this.isLoadingMore = false,
+    this.isLoading = false,
     this.overrideTitle,
     this.emptyText = 'Нет операций',
   });
@@ -88,7 +91,6 @@ class _TransactionListViewState extends State<TransactionListView> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -96,9 +98,22 @@ class _TransactionListViewState extends State<TransactionListView> {
               child: Column(
                 children: [
                   ...items.map(
-                    (tx) => TransactionTile(
-                      transaction: tx,
-                      overrideTitle: widget.overrideTitle,
+                    (tx) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: TransactionTile(
+                        transaction: tx,
+                        overrideTitle: widget.overrideTitle,
+                        onTap: widget.isLoading
+                            ? null
+                            : () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => TransactionPage(
+                                    transaction: tx,
+                                    overrideTitle: widget.overrideTitle,
+                                  ),
+                                ),
+                              ),
+                      ),
                     ),
                   ),
                 ],

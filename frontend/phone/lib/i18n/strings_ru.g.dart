@@ -169,6 +169,18 @@ class _Translations$finance$ru implements Translations$finance$en {
 	@override String get income => 'Доходы';
 	@override String get expenses => 'Расходы';
 	@override String get lastTransactions => 'Последние операции';
+	@override String get transactionTitle => 'Транзакция';
+	@override String get transactionId => 'ID операции';
+	@override String get date => 'Дата';
+	@override String get amount => 'Сумма';
+	@override String get type => 'Тип';
+	@override String get typeIncome => 'Доход';
+	@override String get typeExpense => 'Расход';
+	@override String get student => 'Ученик';
+	@override String get paidUntil => 'Оплачено до';
+	@override String get createdAt => 'Создано';
+	@override String get deposit => 'Пополнение';
+	@override String get withdrawal => 'Списание';
 }
 
 // Path: students.status
@@ -248,6 +260,18 @@ extension on TranslationsRu {
 			'finance.income' => 'Доходы',
 			'finance.expenses' => 'Расходы',
 			'finance.lastTransactions' => 'Последние операции',
+			'finance.transactionTitle' => 'Транзакция',
+			'finance.transactionId' => 'ID операции',
+			'finance.date' => 'Дата',
+			'finance.amount' => 'Сумма',
+			'finance.type' => 'Тип',
+			'finance.typeIncome' => 'Доход',
+			'finance.typeExpense' => 'Расход',
+			'finance.student' => 'Ученик',
+			'finance.paidUntil' => 'Оплачено до',
+			'finance.createdAt' => 'Создано',
+			'finance.deposit' => 'Пополнение',
+			'finance.withdrawal' => 'Списание',
 			_ => null,
 		};
 	}
