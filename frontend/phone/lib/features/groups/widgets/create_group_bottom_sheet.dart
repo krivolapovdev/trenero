@@ -29,7 +29,9 @@ class _CreateGroupBottomSheetState
 
     if (success) {
       Navigator.of(context).pop();
-      await ref.read(groupListControllerProvider.notifier).getAllGroups();
+      await ref
+          .read(groupListControllerProvider.notifier)
+          .getAllGroups(forceRefresh: true);
     } else {
       final state = ref.read(createGroupControllerProvider);
       final error = state.error;

@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/cache/cache_cleaner.dart';
 import 'package:phone/features/auth/repository/auth_repository.dart';
 
 enum AuthStatus { authenticated, unauthenticated }
@@ -56,6 +58,14 @@ class AuthNotifier extends AsyncNotifier<AuthStatus> {
       await ref.read(authRepositoryProvider).logout();
       return AuthStatus.unauthenticated;
     });
+
+    // The shell is swapped for the auth page during the frame below. Clearing
+    // the caches only afterwards keeps the data providers from rebuilding (and
+    // requesting the API with the removed tokens) while the pages listening to
+    // them are still mounted.
+    await WidgetsBinding.instance.endOfFrame;
+
+    ref.read(cacheCleanerProvider).clearSessionCaches();
   }
 
   /// Opens the session without a sign in request.
