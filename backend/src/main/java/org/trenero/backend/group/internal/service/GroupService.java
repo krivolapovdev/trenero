@@ -13,8 +13,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.external.response.GroupResponse;
 import org.trenero.backend.group.external.response.GroupStudentResponse;
@@ -23,12 +25,18 @@ import org.trenero.backend.group.internal.domain.Group;
 import org.trenero.backend.group.internal.mapper.GroupMapper;
 import org.trenero.backend.group.internal.repository.GroupRepository;
 import org.trenero.backend.group.internal.request.CreateGroupRequest;
+import org.trenero.backend.group.internal.response.GroupReportResponse;
 import org.trenero.backend.group.internal.response.GroupStudentSummaryResponse;
 import org.trenero.backend.group.internal.response.GroupSummaryResponse;
 import org.trenero.backend.lesson.external.response.LessonResponse;
 import org.trenero.backend.lesson.external.spi.LessonSpi;
+import org.trenero.backend.student.external.response.StudentResponse;
 import org.trenero.backend.student.external.response.StudentWithStatusesResponse;
 import org.trenero.backend.student.external.spi.StudentSpi;
+import org.trenero.backend.transaction.external.response.TransactionResponse;
+import org.trenero.backend.transaction.external.spi.TransactionSpi;
+import org.trenero.backend.visit.external.response.VisitResponse;
+import org.trenero.backend.visit.external.spi.VisitSpi;
 
 @Service
 @Slf4j
@@ -37,10 +45,13 @@ public class GroupService implements GroupSpi {
 
   private final GroupRepository groupRepository;
   private final GroupMapper groupMapper;
+  private final GroupReportService groupReportService;
 
   @Lazy private final GroupStudentService groupStudentService;
   @Lazy private final LessonSpi lessonSpi;
   @Lazy private final StudentSpi studentSpi;
+  @Lazy private final VisitSpi visitSpi;
+  @Lazy private final TransactionSpi transactionSpi;
   @Lazy private final GroupService self;
 
   @Transactional(readOnly = true)
@@ -119,6 +130,68 @@ public class GroupService implements GroupSpi {
     getGroupById(groupId, jwtUser);
 
     return lessonSpi.getLessonsByGroupIdAndDateRange(groupId, from, to, jwtUser);
+  }
+
+  @Transactional(readOnly = true)
+  public @NonNull GroupReportResponse getGroupReport(
+      @NonNull UUID groupId, int year, int month, @NonNull JwtUser jwtUser) {
+    log.info(
+        "Getting group report: groupId={}; year={}; month={}; user={}",
+        groupId,
+        year,
+        month,
+        jwtUser);
+
+    validateReportPeriod(year, month);
+
+    GroupResponse group = getGroupById(groupId, jwtUser);
+
+    LocalDate from = LocalDate.of(year, month, 1);
+    LocalDate to = from.withDayOfMonth(from.lengthOfMonth());
+
+    List<UUID> studentIds =
+        groupStudentService.getStudentsByGroupId(groupId, jwtUser).stream()
+            .map(GroupStudentResponse::getStudentId)
+            .distinct()
+            .toList();
+
+    if (studentIds.isEmpty()) {
+      return groupReportService.buildReport(
+          group, year, month, List.of(), List.of(), Map.of(), Map.of(), LocalDate.now());
+    }
+
+    Map<UUID, StudentResponse> studentsMap = studentSpi.getStudentsByIds(studentIds, jwtUser);
+    List<StudentResponse> students =
+        studentIds.stream().map(studentsMap::get).filter(Objects::nonNull).toList();
+
+    List<LessonResponse> lessons =
+        lessonSpi.getLessonsByGroupIdAndDateRange(groupId, from, to, jwtUser);
+    Map<UUID, List<VisitResponse>> visitsByStudentId =
+        visitSpi.getVisitsByStudentIds(studentIds, jwtUser);
+    Map<UUID, List<TransactionResponse>> paymentsByStudentId =
+        transactionSpi.getTransactionsByStudentIds(studentIds, jwtUser);
+
+    return groupReportService.buildReport(
+        group,
+        year,
+        month,
+        students,
+        lessons,
+        visitsByStudentId,
+        paymentsByStudentId,
+        LocalDate.now());
+  }
+
+  private static void validateReportPeriod(int year, int month) {
+    if (month < 1 || month > 12) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "month must be in range 1..12, but was " + month);
+    }
+
+    if (year < 1 || year > 9999) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "year must be in range 1..9999, but was " + year);
+    }
   }
 
   @Override

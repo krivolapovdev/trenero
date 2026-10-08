@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/generated/group_controller/group_controller_client.dart';
+import 'package:phone/generated/models/group_report_response.dart';
 import 'package:phone/generated/models/group_student_summary_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
@@ -95,6 +96,22 @@ class GroupRepository {
       return await _service.getGroupStudents(groupId: groupId);
     } on DioException catch (e) {
       throw Exception('Failed to fetch group students: ${e.message}');
+    }
+  }
+
+  Future<GroupReportResponse> getGroupReport({
+    required String groupId,
+    required int year,
+    required int month,
+  }) async {
+    try {
+      return await _service.getGroupReport(
+        groupId: groupId,
+        year: year,
+        month: month,
+      );
+    } on DioException catch (e) {
+      throw Exception('Failed to fetch group report: ${e.message}');
     }
   }
 

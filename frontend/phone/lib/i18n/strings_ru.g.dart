@@ -52,6 +52,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
 	@override late final _Translations$home$ru home = _Translations$home$ru._(_root);
 	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
+	@override late final _Translations$lessons$ru lessons = _Translations$lessons$ru._(_root);
 	@override late final _Translations$students$ru students = _Translations$students$ru._(_root);
 	@override late final _Translations$settings$ru settings = _Translations$settings$ru._(_root);
 	@override late final _Translations$reports$ru reports = _Translations$reports$ru._(_root);
@@ -97,6 +98,23 @@ class _Translations$groups$ru implements Translations$groups$en {
 	@override String get editGroup => 'Редактировать группу';
 	@override String get noGroup => 'Без группы';
 	@override String get defaultPrice => 'Стандартная цена';
+	@override String get report => 'Отчет';
+}
+
+// Path: lessons
+class _Translations$lessons$ru implements Translations$lessons$en {
+	_Translations$lessons$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Урок';
+	@override String get createLesson => 'Добавить урок';
+	@override String get date => 'Дата';
+	@override String get selectAll => 'Выбрать всех';
+	@override String get deselectAll => 'Снять выбор';
+	@override String get noStudents => 'В группе пока нет учеников';
+	@override String presentCount({required Object present, required Object total}) => '${present}/${total}';
 }
 
 // Path: students
@@ -152,6 +170,11 @@ class _Translations$reports$ru implements Translations$reports$en {
 	// Translations
 	@override String get title => 'Отчеты';
 	@override String get subtitle => 'Учет и аналитика';
+	@override String get number => '№';
+	@override String get fullName => 'ФИО';
+	@override String get paid => 'Оплачено';
+	@override String get result => 'Итог';
+	@override String get total => 'Всего';
 }
 
 // Path: transactions
@@ -254,6 +277,14 @@ extension on TranslationsRu {
 			'groups.editGroup' => 'Редактировать группу',
 			'groups.noGroup' => 'Без группы',
 			'groups.defaultPrice' => 'Стандартная цена',
+			'groups.report' => 'Отчет',
+			'lessons.title' => 'Урок',
+			'lessons.createLesson' => 'Добавить урок',
+			'lessons.date' => 'Дата',
+			'lessons.selectAll' => 'Выбрать всех',
+			'lessons.deselectAll' => 'Снять выбор',
+			'lessons.noStudents' => 'В группе пока нет учеников',
+			'lessons.presentCount' => ({required Object present, required Object total}) => '${present}/${total}',
 			'students.title' => 'Ученики',
 			'students.emptySubtitle' => 'Учеников пока нет',
 			'students.createFirstStudent' => 'Создать первого ученика',
@@ -291,6 +322,11 @@ extension on TranslationsRu {
 			'settings.privacyPolicy' => 'Политика конфиденциальности',
 			'reports.title' => 'Отчеты',
 			'reports.subtitle' => 'Учет и аналитика',
+			'reports.number' => '№',
+			'reports.fullName' => 'ФИО',
+			'reports.paid' => 'Оплачено',
+			'reports.result' => 'Итог',
+			'reports.total' => 'Всего',
 			'transactions.title' => 'Транзакции',
 			'transactions.subtitle' => 'Доходы и расходы',
 			'finance.title' => 'Финансы',

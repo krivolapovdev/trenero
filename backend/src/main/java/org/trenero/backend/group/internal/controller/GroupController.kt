@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.group.external.response.GroupResponse
 import org.trenero.backend.group.internal.request.CreateGroupRequest
+import org.trenero.backend.group.internal.response.GroupReportResponse
 import org.trenero.backend.group.internal.response.GroupStudentSummaryResponse
 import org.trenero.backend.group.internal.response.GroupSummaryResponse
 import org.trenero.backend.group.internal.service.GroupService
@@ -50,6 +51,15 @@ class GroupController(private val groupService: GroupService) {
     @RequestParam @DateTimeFormat(iso = ISO.DATE_TIME) to: LocalDate,
     @AuthenticationPrincipal jwtUser: JwtUser,
   ): List<LessonResponse> = groupService.getGroupLessons(groupId, from, to, jwtUser)
+
+  @GetMapping("/{groupId}/report")
+  @PreAuthorize("isAuthenticated()")
+  fun getGroupReport(
+    @PathVariable groupId: UUID,
+    @RequestParam year: Int,
+    @RequestParam month: Int,
+    @AuthenticationPrincipal jwtUser: JwtUser,
+  ): GroupReportResponse = groupService.getGroupReport(groupId, year, month, jwtUser)
 
   @PostMapping
   @PreAuthorize("isAuthenticated()")

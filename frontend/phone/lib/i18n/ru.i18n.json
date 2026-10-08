@@ -27,7 +27,17 @@
     "createGroup": "Добавить группу",
     "editGroup": "Редактировать группу",
     "noGroup": "Без группы",
-    "defaultPrice": "Стандартная цена"
+    "defaultPrice": "Стандартная цена",
+    "report": "Отчет"
+  },
+  "lessons": {
+    "title": "Урок",
+    "createLesson": "Добавить урок",
+    "date": "Дата",
+    "selectAll": "Выбрать всех",
+    "deselectAll": "Снять выбор",
+    "noStudents": "В группе пока нет учеников",
+    "presentCount": "$present/$total"
   },
   "students": {
     "title": "Ученики",
@@ -74,7 +84,12 @@
   },
   "reports": {
     "title": "Отчеты",
-    "subtitle": "Учет и аналитика"
+    "subtitle": "Учет и аналитика",
+    "number": "№",
+    "fullName": "ФИО",
+    "paid": "Оплачено",
+    "result": "Итог",
+    "total": "Всего"
   },
   "transactions": {
     "title": "Транзакции",

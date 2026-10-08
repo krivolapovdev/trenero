@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
+import 'package:phone/features/groups/pages/group_report_page.dart';
+import 'package:phone/features/groups/widgets/create_lesson_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/edit_group_bottom_sheet.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
+import 'package:phone/i18n/strings.g.dart';
 
 class GroupPopupMenu extends StatelessWidget {
   final GroupSummaryResponse group;
 
   const new({super.key, required this.group});
+
+  void _openReportPage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => GroupReportPage(group: group)),
+    );
+  }
+
+  void _openCreateLessonSheet(BuildContext context) {
+    AppBottomSheet.show(
+      context: context,
+      child: CreateLessonBottomSheet(groupId: group.id),
+    );
+  }
 
   @override
   Widget build(BuildContext context) => PopupMenuButton<String>(
@@ -28,12 +44,22 @@ class GroupPopupMenu extends StatelessWidget {
         ),
       ),
       PopupMenuItem<String>(
-        onTap: () {},
-        child: const Row(
+        onTap: () => _openReportPage(context),
+        child: Row(
           children: [
-            Icon(Icons.calendar_month, size: 20),
-            SizedBox(width: 12),
-            Text('Lesson'),
+            const Icon(Icons.print, size: 20),
+            const SizedBox(width: 12),
+            Text(context.t.groups.report),
+          ],
+        ),
+      ),
+      PopupMenuItem<String>(
+        onTap: () => _openCreateLessonSheet(context),
+        child: Row(
+          children: [
+            const Icon(Icons.calendar_month, size: 20),
+            const SizedBox(width: 12),
+            Text(context.t.lessons.title),
           ],
         ),
       ),

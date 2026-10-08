@@ -27,7 +27,17 @@
     "createGroup": "Add Group",
     "editGroup": "Edit Group",
     "noGroup": "No group",
-    "defaultPrice": "Price by default"
+    "defaultPrice": "Price by default",
+    "report": "Report"
+  },
+  "lessons": {
+    "title": "Lesson",
+    "createLesson": "Add lesson",
+    "date": "Date",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "noStudents": "This group has no students yet",
+    "presentCount": "$present/$total"
   },
   "students": {
     "title": "Students",
@@ -74,7 +84,12 @@
   },
   "reports": {
     "title": "Reports",
-    "subtitle": "Attendance and financial analytics"
+    "subtitle": "Attendance and financial analytics",
+    "number": "№",
+    "fullName": "Full name",
+    "paid": "Paid",
+    "result": "Result",
+    "total": "Total"
   },
   "transactions": {
     "title": "Transactions",

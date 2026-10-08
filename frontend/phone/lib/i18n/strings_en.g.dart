@@ -78,6 +78,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
 	late final Translations$home$en home = Translations$home$en._(_root);
 	late final Translations$groups$en groups = Translations$groups$en._(_root);
+	late final Translations$lessons$en lessons = Translations$lessons$en._(_root);
 	late final Translations$students$en students = Translations$students$en._(_root);
 	late final Translations$settings$en settings = Translations$settings$en._(_root);
 	late final Translations$reports$en reports = Translations$reports$en._(_root);
@@ -149,6 +150,39 @@ class Translations$groups$en {
 
 	/// en: 'Price by default'
 	String get defaultPrice => 'Price by default';
+
+	/// en: 'Report'
+	String get report => 'Report';
+}
+
+// Path: lessons
+class Translations$lessons$en {
+	Translations$lessons$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Lesson'
+	String get title => 'Lesson';
+
+	/// en: 'Add lesson'
+	String get createLesson => 'Add lesson';
+
+	/// en: 'Date'
+	String get date => 'Date';
+
+	/// en: 'Select all'
+	String get selectAll => 'Select all';
+
+	/// en: 'Deselect all'
+	String get deselectAll => 'Deselect all';
+
+	/// en: 'This group has no students yet'
+	String get noStudents => 'This group has no students yet';
+
+	/// en: '$present/$total'
+	String presentCount({required Object present, required Object total}) => '${present}/${total}';
 }
 
 // Path: students
@@ -257,6 +291,21 @@ class Translations$reports$en {
 
 	/// en: 'Attendance and financial analytics'
 	String get subtitle => 'Attendance and financial analytics';
+
+	/// en: '№'
+	String get number => '№';
+
+	/// en: 'Full name'
+	String get fullName => 'Full name';
+
+	/// en: 'Paid'
+	String get paid => 'Paid';
+
+	/// en: 'Result'
+	String get result => 'Result';
+
+	/// en: 'Total'
+	String get total => 'Total';
 }
 
 // Path: transactions
@@ -423,6 +472,14 @@ extension on Translations {
 			'groups.editGroup' => 'Edit Group',
 			'groups.noGroup' => 'No group',
 			'groups.defaultPrice' => 'Price by default',
+			'groups.report' => 'Report',
+			'lessons.title' => 'Lesson',
+			'lessons.createLesson' => 'Add lesson',
+			'lessons.date' => 'Date',
+			'lessons.selectAll' => 'Select all',
+			'lessons.deselectAll' => 'Deselect all',
+			'lessons.noStudents' => 'This group has no students yet',
+			'lessons.presentCount' => ({required Object present, required Object total}) => '${present}/${total}',
 			'students.title' => 'Students',
 			'students.emptySubtitle' => 'No students yet',
 			'students.createFirstStudent' => 'Create First Student',
@@ -460,6 +517,11 @@ extension on Translations {
 			'settings.privacyPolicy' => 'Privacy Policy',
 			'reports.title' => 'Reports',
 			'reports.subtitle' => 'Attendance and financial analytics',
+			'reports.number' => '№',
+			'reports.fullName' => 'Full name',
+			'reports.paid' => 'Paid',
+			'reports.result' => 'Result',
+			'reports.total' => 'Total',
 			'transactions.title' => 'Transactions',
 			'transactions.subtitle' => 'Income and expenses',
 			'finance.title' => 'Finance',

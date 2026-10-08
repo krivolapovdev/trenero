@@ -6,6 +6,8 @@ import 'package:phone/core/widgets/radial_expandable_fab.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
+import 'package:phone/features/groups/pages/group_report_page.dart';
+import 'package:phone/features/groups/widgets/create_lesson_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/edit_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_hero_card.dart';
 import 'package:phone/features/groups/widgets/group_lessons_section.dart';
@@ -42,6 +44,19 @@ class _GroupPageState extends ConsumerState<GroupPage> {
     if (updated != null) setState(() => _group = updated);
   }
 
+  Future<void> _openReportPage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => GroupReportPage(group: _group)),
+    );
+  }
+
+  Future<void> _openCreateLessonSheet() async {
+    await AppBottomSheet.show(
+      context: context,
+      child: CreateLessonBottomSheet(groupId: _group.id),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final routeAnimation = ModalRoute.of(context)?.animation;
@@ -74,11 +89,19 @@ class _GroupPageState extends ConsumerState<GroupPage> {
           ),
           FloatingActionButton(
             heroTag: 'lesson-group',
-            onPressed: () {},
+            onPressed: _openCreateLessonSheet,
             elevation: 0,
             focusElevation: 0,
             highlightElevation: 0,
             child: const Icon(Icons.calendar_month),
+          ),
+          FloatingActionButton(
+            heroTag: 'report-group',
+            onPressed: _openReportPage,
+            elevation: 0,
+            focusElevation: 0,
+            highlightElevation: 0,
+            child: const Icon(Icons.print),
           ),
         ],
       ),

@@ -87,14 +87,18 @@ final apiProvider = Provider<Dio>((ref) {
     ),
   );
 
-  dio.interceptors.add(
-    InterceptorsWrapper(
-      onResponse: (response, handler) {
-        print('Response [${response.statusCode}] => DATA: ${response.data}');
-        return handler.next(response); // Continue
-      },
-    ),
-  );
+  // The response bodies are only dumped in debug builds: they hold the data of
+  // the signed in user, and `print` is not meant for production code.
+  if (kDebugMode) {
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onResponse: (response, handler) {
+          log('Response [${response.statusCode}] => DATA: ${response.data}');
+          return handler.next(response);
+        },
+      ),
+    );
+  }
 
   return dio;
 });

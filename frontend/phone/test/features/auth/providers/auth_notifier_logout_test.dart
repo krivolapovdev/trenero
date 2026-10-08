@@ -17,6 +17,7 @@ import 'package:phone/generated/group_controller/group_controller_client.dart';
 import 'package:phone/generated/models/create_group_request.dart';
 import 'package:phone/generated/models/create_student_payment_request.dart';
 import 'package:phone/generated/models/create_student_request.dart';
+import 'package:phone/generated/models/group_report_response.dart';
 import 'package:phone/generated/models/group_response.dart';
 import 'package:phone/generated/models/group_student_summary_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
@@ -65,6 +66,13 @@ class _FakeGroupService implements GroupControllerClient {
   @override
   Future<List<GroupStudentSummaryResponse>> getGroupStudents({
     required String groupId,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<GroupReportResponse> getGroupReport({
+    required String groupId,
+    required int year,
+    required int month,
   }) => throw UnimplementedError();
 
   @override
