@@ -135,6 +135,8 @@ class _Translations$settings$ru implements Translations$settings$en {
 	@override String get logout => 'Выйти';
 	@override String get logoutMessage => 'Вы уверены, что хотите выйти?';
 	@override String get deleteAccount => 'Удалить аккаунт';
+	@override String get deleteAccountMessage => 'Аккаунт и все связанные данные будут удалены безвозвратно. Действие нельзя отменить.';
+	@override String deleteAccountCountdown({required Object seconds}) => 'Удалить аккаунт можно будет через ${seconds} с';
 	@override String get other => 'Другое';
 	@override String get version => 'Версия';
 	@override String get contacts => 'Контакты';
@@ -281,6 +283,8 @@ extension on TranslationsRu {
 			'settings.logout' => 'Выйти',
 			'settings.logoutMessage' => 'Вы уверены, что хотите выйти?',
 			'settings.deleteAccount' => 'Удалить аккаунт',
+			'settings.deleteAccountMessage' => 'Аккаунт и все связанные данные будут удалены безвозвратно. Действие нельзя отменить.',
+			'settings.deleteAccountCountdown' => ({required Object seconds}) => 'Удалить аккаунт можно будет через ${seconds} с',
 			'settings.other' => 'Другое',
 			'settings.version' => 'Версия',
 			'settings.contacts' => 'Контакты',

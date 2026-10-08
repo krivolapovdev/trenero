@@ -143,7 +143,6 @@ public class TransactionService implements TransactionSpi {
 
     Transaction transaction = transactionMapper.toEntity(request, jwtUser.id());
 
-    // Устанавливаем двунаправленную связь, если есть детали платежа
     if (transaction.getStudentPayment() != null) {
       transaction.getStudentPayment().setTransaction(transaction);
     }
@@ -153,6 +152,8 @@ public class TransactionService implements TransactionSpi {
     if (savedTransaction.getStudentPayment() != null) {
       studentPaymentRepository.saveAndFlush(savedTransaction.getStudentPayment());
     }
+
+    transactionRepository.flush();
 
     return transactionMapper.toResponse(savedTransaction);
   }

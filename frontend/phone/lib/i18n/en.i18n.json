@@ -65,6 +65,8 @@
     "logout": "Log out",
     "logoutMessage": "Are you sure you want to log out?",
     "deleteAccount": "Delete account",
+    "deleteAccountMessage": "The account and all its data will be deleted permanently. This action cannot be undone.",
+    "deleteAccountCountdown": "You will be able to delete the account in $seconds s",
     "other": "Other",
     "version": "Version",
     "contacts": "Contacts",

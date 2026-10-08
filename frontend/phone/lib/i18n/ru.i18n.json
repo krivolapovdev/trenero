@@ -65,6 +65,8 @@
     "logout": "Выйти",
     "logoutMessage": "Вы уверены, что хотите выйти?",
     "deleteAccount": "Удалить аккаунт",
+    "deleteAccountMessage": "Аккаунт и все связанные данные будут удалены безвозвратно. Действие нельзя отменить.",
+    "deleteAccountCountdown": "Удалить аккаунт можно будет через $seconds с",
     "other": "Другое",
     "version": "Версия",
     "contacts": "Контакты",

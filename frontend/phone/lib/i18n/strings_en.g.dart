@@ -225,6 +225,12 @@ class Translations$settings$en {
 	/// en: 'Delete account'
 	String get deleteAccount => 'Delete account';
 
+	/// en: 'The account and all its data will be deleted permanently. This action cannot be undone.'
+	String get deleteAccountMessage => 'The account and all its data will be deleted permanently. This action cannot be undone.';
+
+	/// en: 'You will be able to delete the account in $seconds s'
+	String deleteAccountCountdown({required Object seconds}) => 'You will be able to delete the account in ${seconds} s';
+
 	/// en: 'Other'
 	String get other => 'Other';
 
@@ -446,6 +452,8 @@ extension on Translations {
 			'settings.logout' => 'Log out',
 			'settings.logoutMessage' => 'Are you sure you want to log out?',
 			'settings.deleteAccount' => 'Delete account',
+			'settings.deleteAccountMessage' => 'The account and all its data will be deleted permanently. This action cannot be undone.',
+			'settings.deleteAccountCountdown' => ({required Object seconds}) => 'You will be able to delete the account in ${seconds} s',
 			'settings.other' => 'Other',
 			'settings.version' => 'Version',
 			'settings.contacts' => 'Contacts',

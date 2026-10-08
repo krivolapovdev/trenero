@@ -6,6 +6,7 @@ import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/shell_page.dart';
 import 'package:phone/features/settings/pages/contacts_page.dart';
+import 'package:phone/features/settings/widgets/delete_account_bottom_sheet.dart';
 import 'package:phone/features/settings/widgets/language_selection_sheet.dart';
 import 'package:phone/features/settings/widgets/logout_confirmation_sheet.dart';
 import 'package:phone/features/settings/widgets/settings_group_card.dart';
@@ -83,7 +84,10 @@ class SettingsPage extends ShellPage {
                 style: TextStyle(fontSize: 16, color: deleteColor),
               ),
               trailing: Icon(Icons.chevron_right, color: Colors.black54),
-              onTap: () {},
+              onTap: () => AppBottomSheet.show(
+                context: context,
+                child: const DeleteAccountBottomSheet(),
+              ),
             ),
           ],
         ),
