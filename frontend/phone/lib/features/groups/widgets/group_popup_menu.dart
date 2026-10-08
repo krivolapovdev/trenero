@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/features/groups/pages/group_report_page.dart';
-import 'package:phone/features/groups/widgets/create_lesson_bottom_sheet.dart';
+import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/widgets/edit_group_bottom_sheet.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -17,10 +17,12 @@ class GroupPopupMenu extends StatelessWidget {
     );
   }
 
-  void _openCreateLessonSheet(BuildContext context) {
-    AppBottomSheet.show(
-      context: context,
-      child: CreateLessonBottomSheet(groupId: group.id),
+  void _openCreateLessonPage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) =>
+            LessonPage(groupId: group.id, date: DateTime.now()),
+      ),
     );
   }
 
@@ -54,7 +56,7 @@ class GroupPopupMenu extends StatelessWidget {
         ),
       ),
       PopupMenuItem<String>(
-        onTap: () => _openCreateLessonSheet(context),
+        onTap: () => _openCreateLessonPage(context),
         child: Row(
           children: [
             const Icon(Icons.calendar_month, size: 20),

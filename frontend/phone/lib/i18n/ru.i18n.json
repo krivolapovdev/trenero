@@ -37,7 +37,8 @@
     "selectAll": "Выбрать всех",
     "deselectAll": "Снять выбор",
     "noStudents": "В группе пока нет учеников",
-    "presentCount": "$present/$total"
+    "deleteLesson": "Удалить урок?",
+    "deleteLessonMessage": "Урок и отметки посещаемости будут удалены безвозвратно. Действие нельзя отменить."
   },
   "students": {
     "title": "Ученики",

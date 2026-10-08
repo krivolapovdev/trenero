@@ -114,7 +114,8 @@ class _Translations$lessons$ru implements Translations$lessons$en {
 	@override String get selectAll => 'Выбрать всех';
 	@override String get deselectAll => 'Снять выбор';
 	@override String get noStudents => 'В группе пока нет учеников';
-	@override String presentCount({required Object present, required Object total}) => '${present}/${total}';
+	@override String get deleteLesson => 'Удалить урок?';
+	@override String get deleteLessonMessage => 'Урок и отметки посещаемости будут удалены безвозвратно. Действие нельзя отменить.';
 }
 
 // Path: students
@@ -284,7 +285,8 @@ extension on TranslationsRu {
 			'lessons.selectAll' => 'Выбрать всех',
 			'lessons.deselectAll' => 'Снять выбор',
 			'lessons.noStudents' => 'В группе пока нет учеников',
-			'lessons.presentCount' => ({required Object present, required Object total}) => '${present}/${total}',
+			'lessons.deleteLesson' => 'Удалить урок?',
+			'lessons.deleteLessonMessage' => 'Урок и отметки посещаемости будут удалены безвозвратно. Действие нельзя отменить.',
 			'students.title' => 'Ученики',
 			'students.emptySubtitle' => 'Учеников пока нет',
 			'students.createFirstStudent' => 'Создать первого ученика',

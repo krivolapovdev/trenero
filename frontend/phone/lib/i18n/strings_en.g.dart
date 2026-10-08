@@ -181,8 +181,11 @@ class Translations$lessons$en {
 	/// en: 'This group has no students yet'
 	String get noStudents => 'This group has no students yet';
 
-	/// en: '$present/$total'
-	String presentCount({required Object present, required Object total}) => '${present}/${total}';
+	/// en: 'Delete lesson?'
+	String get deleteLesson => 'Delete lesson?';
+
+	/// en: 'The lesson and its attendance will be deleted permanently. This action cannot be undone.'
+	String get deleteLessonMessage => 'The lesson and its attendance will be deleted permanently. This action cannot be undone.';
 }
 
 // Path: students
@@ -479,7 +482,8 @@ extension on Translations {
 			'lessons.selectAll' => 'Select all',
 			'lessons.deselectAll' => 'Deselect all',
 			'lessons.noStudents' => 'This group has no students yet',
-			'lessons.presentCount' => ({required Object present, required Object total}) => '${present}/${total}',
+			'lessons.deleteLesson' => 'Delete lesson?',
+			'lessons.deleteLessonMessage' => 'The lesson and its attendance will be deleted permanently. This action cannot be undone.',
 			'students.title' => 'Students',
 			'students.emptySubtitle' => 'No students yet',
 			'students.createFirstStudent' => 'Create First Student',

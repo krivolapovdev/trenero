@@ -37,7 +37,8 @@
     "selectAll": "Select all",
     "deselectAll": "Deselect all",
     "noStudents": "This group has no students yet",
-    "presentCount": "$present/$total"
+    "deleteLesson": "Delete lesson?",
+    "deleteLessonMessage": "The lesson and its attendance will be deleted permanently. This action cannot be undone."
   },
   "students": {
     "title": "Students",

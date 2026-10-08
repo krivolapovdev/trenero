@@ -5,9 +5,9 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/features/groups/pages/group_page.dart';
 import 'package:phone/features/groups/pages/group_report_page.dart';
+import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/features/groups/services/lesson_service.dart';
-import 'package:phone/features/groups/widgets/create_lesson_bottom_sheet.dart';
 import 'package:phone/generated/group_controller/group_controller_client.dart';
 import 'package:phone/generated/lesson_controller/lesson_controller_client.dart';
 import 'package:phone/generated/models/create_group_request.dart';
@@ -28,8 +28,19 @@ final GroupSummaryResponse _group = GroupSummaryResponse(
   createdAt: DateTime(2026, 1, 15),
 );
 
+String _formatDate(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+
+  return '$day.$month.${date.year}';
+}
+
 /// Minimal answers for the group page itself plus the report it can open.
 class _FakeGroupClient implements GroupControllerClient {
+  final List<LessonResponse> lessons;
+
+  new({this.lessons = const []});
+
   @override
   Future<List<GroupSummaryResponse>> getAllGroupsSummary() async => [_group];
 
@@ -69,7 +80,7 @@ class _FakeGroupClient implements GroupControllerClient {
     required String groupId,
     required DateTime from,
     required DateTime to,
-  }) async => const [];
+  }) async => lessons;
 
   @override
   Future<GroupResponse> createGroup({required CreateGroupRequest body}) =>
@@ -117,8 +128,15 @@ class _FakeLessonClient implements LessonControllerClient {
       throw UnimplementedError();
 
   @override
-  Future<LessonDetailsResponse> getLessonDetails({required String lessonId}) =>
-      throw UnimplementedError();
+  Future<LessonDetailsResponse> getLessonDetails({
+    required String lessonId,
+  }) async => LessonDetailsResponse(
+    id: lessonId,
+    date: DateTime(2026, 10, 8),
+    createdAt: DateTime(2026, 10, 8),
+    groupId: 'group-1',
+    studentVisits: const [],
+  );
 
   @override
   Future<LessonResponse> updateLesson({
@@ -177,7 +195,7 @@ void main() {
     expect(find.text('Anna Smirnova'), findsOneWidget);
   });
 
-  testWidgets('the app bar menu opens the add lesson sheet', (tester) async {
+  testWidgets('the app bar menu opens the add lesson page', (tester) async {
     await tester.pumpWidget(_wrap(_FakeGroupClient()));
     await tester.pumpAndSettle();
 
@@ -187,11 +205,11 @@ void main() {
     await tester.tap(find.text(t.lessons.title));
     await tester.pumpAndSettle();
 
-    expect(find.byType(CreateLessonBottomSheet), findsOneWidget);
+    expect(find.byType(LessonPage), findsOneWidget);
     expect(find.text(t.lessons.createLesson), findsOneWidget);
   });
 
-  testWidgets('the floating button opens the add lesson sheet', (tester) async {
+  testWidgets('the floating button opens the add lesson page', (tester) async {
     await tester.pumpWidget(_wrap(_FakeGroupClient()));
     await tester.pumpAndSettle();
 
@@ -201,7 +219,52 @@ void main() {
     await tester.tap(find.byIcon(Icons.calendar_month));
     await tester.pumpAndSettle();
 
-    expect(find.byType(CreateLessonBottomSheet), findsOneWidget);
+    expect(find.byType(LessonPage), findsOneWidget);
     expect(find.text(t.lessons.createLesson), findsOneWidget);
+  });
+
+  testWidgets('tapping a day without a lesson creates a lesson on that day', (
+    tester,
+  ) async {
+    final today = DateTime.now();
+
+    await tester.pumpWidget(_wrap(_FakeGroupClient()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('${today.day}'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LessonPage), findsOneWidget);
+    expect(find.text(t.lessons.createLesson), findsOneWidget);
+    expect(find.text(_formatDate(today)), findsOneWidget);
+  });
+
+  testWidgets('tapping a day with a lesson opens the stored lesson', (
+    tester,
+  ) async {
+    final today = DateTime.now();
+
+    await tester.pumpWidget(
+      _wrap(
+        _FakeGroupClient(
+          lessons: [
+            LessonResponse(
+              id: 'lesson-1',
+              date: today,
+              createdAt: today,
+              groupId: _group.id,
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('${today.day}'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LessonPage), findsOneWidget);
+    expect(find.text(t.lessons.title), findsOneWidget);
+    expect(find.text(t.lessons.createLesson), findsNothing);
   });
 }

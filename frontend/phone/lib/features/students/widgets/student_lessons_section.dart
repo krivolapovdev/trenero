@@ -41,9 +41,6 @@ class StudentLessonsSection extends ConsumerWidget {
       data: (visitsWithLessons) => LessonsCalendar(
         lessons: _toLessons(visitsWithLessons),
         locale: localeAsync.value?.languageTag,
-        onDaySelected: (selectedDay, focusedDay) {
-          // Handle day tap if needed
-        },
       ),
       loading: () {
         final previousVisits = visitsAsync.value;
@@ -54,7 +51,6 @@ class StudentLessonsSection extends ConsumerWidget {
                 ? _dummyLessons
                 : _toLessons(previousVisits),
             locale: localeAsync.value?.languageTag,
-            onDaySelected: (selectedDay, focusedDay) {},
           ),
         );
       },

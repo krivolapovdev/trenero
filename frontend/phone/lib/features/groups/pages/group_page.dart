@@ -7,7 +7,7 @@ import 'package:phone/features/groups/controllers/group_lessons_controller.dart'
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/groups/pages/group_report_page.dart';
-import 'package:phone/features/groups/widgets/create_lesson_bottom_sheet.dart';
+import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/widgets/edit_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_hero_card.dart';
 import 'package:phone/features/groups/widgets/group_lessons_section.dart';
@@ -50,10 +50,12 @@ class _GroupPageState extends ConsumerState<GroupPage> {
     );
   }
 
-  Future<void> _openCreateLessonSheet() async {
-    await AppBottomSheet.show(
-      context: context,
-      child: CreateLessonBottomSheet(groupId: _group.id),
+  Future<void> _openCreateLessonPage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) =>
+            LessonPage(groupId: _group.id, date: DateTime.now()),
+      ),
     );
   }
 
@@ -89,7 +91,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
           ),
           FloatingActionButton(
             heroTag: 'lesson-group',
-            onPressed: _openCreateLessonSheet,
+            onPressed: _openCreateLessonPage,
             elevation: 0,
             focusElevation: 0,
             highlightElevation: 0,
