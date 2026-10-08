@@ -34,7 +34,13 @@ class GroupReportTable extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Table(
-        defaultVerticalAlignment: TableCellVerticalAlignment.fill,
+        // Every cell is built without its own vertical alignment, so the row
+        // height comes from this default. `intrinsicHeight` sizes a row to its
+        // tallest cell and then stretches the remaining cells to that height,
+        // which is what lets the per cell backgrounds fill the row. `fill`
+        // would collapse every row to zero height instead, because no cell
+        // reports a height to size the row from.
+        defaultVerticalAlignment: TableCellVerticalAlignment.intrinsicHeight,
         border: TableBorder.all(
           color: theme.dividerColor,
           width: 0.5,

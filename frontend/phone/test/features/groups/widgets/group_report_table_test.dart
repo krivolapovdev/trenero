@@ -85,4 +85,21 @@ void main() {
     expect(find.text('Total'), findsOneWidget);
     expect(find.text('2/4'), findsOneWidget);
   });
+
+  testWidgets('gives every row a visible height', (tester) async {
+    await tester.pumpWidget(_wrap(_report()));
+
+    // Regression: with `TableCellVerticalAlignment.fill` on every cell the row
+    // height collapses to zero, so the grid was laid out but entirely
+    // invisible while every `find.text` assertion above still passed.
+    expect(tester.getSize(find.byType(Table)).height, greaterThan(0));
+
+    for (final text in ['Anna Smirnova', 'Ivan Petrov', 'Total', '+', '1/2']) {
+      expect(
+        tester.getRect(find.text(text).first).height,
+        greaterThan(0),
+        reason: '"$text" should be rendered with a visible height',
+      );
+    }
+  });
 }

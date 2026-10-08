@@ -28,7 +28,6 @@ class GroupReportPage extends ConsumerStatefulWidget {
 }
 
 class _GroupReportPageState extends ConsumerState<GroupReportPage> {
-  // The current month is selected by default.
   late int _year = DateTime.now().year;
   late int _month = DateTime.now().month;
 
