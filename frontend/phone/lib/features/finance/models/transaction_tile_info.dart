@@ -20,17 +20,12 @@ class TransactionTileInfo {
     required this.backgroundColor,
   });
 
-  /// Builds the tile info for [transaction].
-  ///
-  /// The avatar is always the transaction type icon - the down arrow for income
-  /// and the up arrow for expenses - tinted with [backgroundColor].
   static TransactionTileInfo fromTransaction(
     TransactionResponse transaction, {
     String? overrideTitle,
   }) {
     final details = transaction.paymentDetails;
     final isIncome = transaction.type == TransactionType.income;
-    final timeFormatted = DateFormat('HH:mm').format(transaction.createdAt);
     final typeIcon = isIncome
         ? Icons.arrow_downward_rounded
         : Icons.arrow_upward_rounded;
@@ -44,7 +39,7 @@ class TransactionTileInfo {
         title: title,
         subtitle: paidUntil != null
             ? '${t.finance.paidUntil} ${DateFormat('dd.MM.yyyy').format(paidUntil)}'
-            : timeFormatted,
+            : '',
         icon: typeIcon,
         backgroundColor: typeColor,
       );
@@ -52,7 +47,7 @@ class TransactionTileInfo {
 
     return TransactionTileInfo(
       title: isIncome ? t.finance.deposit : t.finance.withdrawal,
-      subtitle: timeFormatted,
+      subtitle: '',
       icon: typeIcon,
       backgroundColor: typeColor,
     );

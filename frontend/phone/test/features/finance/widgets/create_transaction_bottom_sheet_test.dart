@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,6 +38,9 @@ StudentSummaryResponse _student({
 
 /// Answers the student endpoints and records the created student payments.
 class _FakeStudentClient implements StudentControllerClient {
+  /// When set, [createStudentPayment] waits for it before answering.
+  Completer<void>? paymentGate;
+
   final List<String> paymentStudentIds = [];
   final List<CreateStudentPaymentRequest> paymentBodies = [];
 
@@ -50,6 +55,9 @@ class _FakeStudentClient implements StudentControllerClient {
     required String studentId,
     required CreateStudentPaymentRequest body,
   }) async {
+    final gate = paymentGate;
+    if (gate != null) await gate.future;
+
     paymentStudentIds.add(studentId);
     paymentBodies.add(body);
 
@@ -174,10 +182,11 @@ Future<void> _openSheet(
   WidgetTester tester, {
   required _FakeStudentClient studentClient,
   required _FakeTransactionClient transactionClient,
+  Widget sheet = const CreateTransactionBottomSheet(),
 }) async {
   await tester.pumpWidget(
     _wrap(
-      const CreateTransactionBottomSheet(),
+      sheet,
       studentClient: studentClient,
       transactionClient: transactionClient,
     ),
@@ -370,5 +379,83 @@ void main() {
     expect(studentClient.paymentBodies, isEmpty);
     expect(transactionClient.createBodies, hasLength(1));
     expect(transactionClient.createBodies.single.type, TransactionType.expense);
+  });
+
+  testWidgets('the sheet can be opened for an already picked student', (
+    tester,
+  ) async {
+    final studentClient = _FakeStudentClient();
+    final transactionClient = _FakeTransactionClient();
+
+    await _openSheet(
+      tester,
+      studentClient: studentClient,
+      transactionClient: transactionClient,
+      sheet: const CreateTransactionBottomSheet(initialStudentId: 'student-2'),
+    );
+
+    // The student is shown by the field and the paid until date is prefilled.
+    expect(find.text('Anna Smirnova'), findsOneWidget);
+    expect(find.text(t.students.noStudent), findsNothing);
+    expect(find.text('${t.finance.paidUntil}*'), findsOneWidget);
+    expect(find.text(_formatDate(_defaultPaidUntil())), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).first, '900');
+    await tester.pump();
+
+    await _save(tester);
+
+    expect(studentClient.paymentStudentIds, ['student-2']);
+    expect(studentClient.paymentBodies.single.amount, 900);
+    expect(transactionClient.createBodies, isEmpty);
+  });
+
+  testWidgets('the student section is closed and disabled while saving', (
+    tester,
+  ) async {
+    final studentClient = _FakeStudentClient()..paymentGate = Completer<void>();
+    final transactionClient = _FakeTransactionClient();
+
+    await _openSheet(
+      tester,
+      studentClient: studentClient,
+      transactionClient: transactionClient,
+    );
+
+    await tester.enterText(find.byType(TextField).first, '700');
+    await tester.pump();
+    await _pickStudent(tester, 'Ivan Petrov');
+
+    // The options are re-opened before saving.
+    await tester.tap(_studentField);
+    await tester.pumpAndSettle();
+    expect(find.text('Anna Smirnova'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Создать'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Создать'));
+    await tester.pump();
+
+    // The section is closed and the form is disabled while the request is in
+    // flight.
+    expect(find.text('Anna Smirnova'), findsNothing);
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).enabled,
+      false,
+    );
+
+    await tester.tap(_studentField, warnIfMissed: false);
+    await tester.pump();
+
+    expect(find.text('Anna Smirnova'), findsNothing);
+
+    studentClient.paymentGate!.complete();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+
+    expect(studentClient.paymentBodies, hasLength(1));
+    expect(find.byType(CreateTransactionBottomSheet), findsNothing);
   });
 }

@@ -33,7 +33,10 @@ class CreateStudentPaymentController extends AsyncNotifier<void> {
           );
 
       ref.invalidate(studentPaymentsControllerProvider(studentId));
-      ref.invalidate(studentListControllerProvider);
+
+      await ref
+          .read(studentListControllerProvider.notifier)
+          .getAllStudents(forceRefresh: true);
 
       await refreshAfterTransactionMutation(ref, action: 'creating');
     });

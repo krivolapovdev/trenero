@@ -13,7 +13,10 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class CreateTransactionBottomSheet extends ConsumerStatefulWidget {
-  const new({super.key});
+  /// Student the payment is created for, pre-selected when the sheet opens.
+  final String? initialStudentId;
+
+  const new({super.key, this.initialStudentId});
 
   @override
   ConsumerState<CreateTransactionBottomSheet> createState() =>
@@ -37,6 +40,13 @@ class _CreateTransactionBottomSheetState
   void initState() {
     super.initState();
     _amountController.addListener(_onAmountChanged);
+
+    final initialStudentId = widget.initialStudentId;
+    if (initialStudentId != null) {
+      _selectedStudentId = initialStudentId;
+      _paidUntil = _defaultPaidUntil;
+      _paidUntilController.text = _formatDate(_paidUntil!);
+    }
   }
 
   void _onAmountChanged() {
@@ -133,6 +143,7 @@ class _CreateTransactionBottomSheetState
 
     setState(() {
       _isLoading = true;
+      _isStudentExpanded = false;
     });
 
     try {
@@ -226,6 +237,7 @@ class _CreateTransactionBottomSheetState
             decoration: InputDecoration(
               labelText: context.t.finance.student,
               prefixIcon: const Icon(FluentIcons.person_16_regular),
+              enabled: !_isLoading,
               suffixIcon: Icon(
                 _isStudentExpanded
                     ? FluentIcons.chevron_up_24_regular
@@ -236,7 +248,10 @@ class _CreateTransactionBottomSheetState
               selectedStudent?.fullName ?? context.t.students.noStudent,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+                color: _isLoading ? Theme.of(context).disabledColor : null,
+              ),
             ),
           ),
         ),

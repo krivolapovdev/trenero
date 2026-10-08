@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/radial_expandable_fab.dart';
 import 'package:phone/core/widgets/recent_transactions.dart';
+import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
@@ -43,6 +44,22 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     if (updated != null) setState(() => _student = updated);
   }
 
+  Future<void> _openCreatePaymentSheet() async {
+    await AppBottomSheet.show(
+      context: context,
+      child: CreateTransactionBottomSheet(initialStudentId: _student.id),
+    );
+
+    if (!mounted) return;
+
+    final listState = ref.read(studentListControllerProvider);
+    final updated = (listState.value ?? const <StudentSummaryResponse>[])
+        .where((s) => s.id == _student.id)
+        .firstOrNull;
+
+    if (updated != null) setState(() => _student = updated);
+  }
+
   @override
   Widget build(BuildContext context) {
     final routeAnimation = ModalRoute.of(context)?.animation;
@@ -66,6 +83,16 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                     Icon(Icons.edit, size: 20),
                     SizedBox(width: 12),
                     Text('Edit'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                onTap: _openCreatePaymentSheet,
+                child: const Row(
+                  children: [
+                    Icon(Icons.payments, size: 20),
+                    SizedBox(width: 12),
+                    Text('Payment'),
                   ],
                 ),
               ),
@@ -129,6 +156,14 @@ class _StudentPageState extends ConsumerState<StudentPage> {
             focusElevation: 0,
             highlightElevation: 0,
             child: const Icon(Icons.edit),
+          ),
+          FloatingActionButton(
+            heroTag: 'payment-student',
+            onPressed: _openCreatePaymentSheet,
+            elevation: 0,
+            focusElevation: 0,
+            highlightElevation: 0,
+            child: const Icon(Icons.payments),
           ),
           FloatingActionButton(
             heroTag: 'lesson-student',
