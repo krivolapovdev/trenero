@@ -2,6 +2,7 @@ package org.trenero.backend.transaction.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +17,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import org.trenero.backend.common.domain.TransactionType;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.student.external.spi.StudentSpi;
 import org.trenero.backend.transaction.external.response.TransactionResponse;
@@ -144,7 +148,52 @@ public class TransactionService implements TransactionSpi {
       transaction.getStudentPayment().setTransaction(transaction);
     }
 
+    Transaction savedTransaction = transactionRepository.save(transaction);
+
+    if (savedTransaction.getStudentPayment() != null) {
+      studentPaymentRepository.saveAndFlush(savedTransaction.getStudentPayment());
+    }
+
+    return transactionMapper.toResponse(savedTransaction);
+  }
+
+  @Override
+  @Transactional
+  public @NonNull TransactionResponse createStudentPayment(
+      @NonNull UUID studentId,
+      @NonNull BigDecimal amount,
+      @NonNull LocalDate date,
+      @NonNull LocalDate paidUntil,
+      @NonNull JwtUser jwtUser) {
+    log.info(
+        "Saving new student payment to database: studentId={}; user={}", studentId, jwtUser.id());
+
+    studentSpi.getStudentById(studentId, jwtUser);
+
+    if (paidUntil.isBefore(date)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "paidUntil must not be before the payment date");
+    }
+
+    Transaction transaction =
+        Transaction.builder()
+            .ownerId(jwtUser.id())
+            .type(TransactionType.INCOME)
+            .amount(amount)
+            .date(date)
+            .build();
+
     Transaction savedTransaction = transactionRepository.saveAndFlush(transaction);
+
+    StudentPayment studentPayment =
+        StudentPayment.builder()
+            .studentId(studentId)
+            .paidUntil(paidUntil)
+            .transaction(savedTransaction)
+            .build();
+
+    studentPaymentRepository.saveAndFlush(studentPayment);
+    savedTransaction.setStudentPayment(studentPayment);
 
     return transactionMapper.toResponse(savedTransaction);
   }
@@ -170,6 +219,13 @@ public class TransactionService implements TransactionSpi {
         transactionRepository
             .findByIdAndOwnerId(transactionId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
+
+    StudentPayment studentPayment = transaction.getStudentPayment();
+    if (studentPayment != null) {
+      transaction.setStudentPayment(null);
+      studentPaymentRepository.delete(studentPayment);
+      studentPaymentRepository.flush();
+    }
 
     transactionRepository.delete(transaction);
   }

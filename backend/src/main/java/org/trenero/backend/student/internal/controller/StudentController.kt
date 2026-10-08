@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.student.external.response.StudentResponse
+import org.trenero.backend.student.internal.request.CreateStudentPaymentRequest
 import org.trenero.backend.student.internal.request.CreateStudentRequest
 import org.trenero.backend.student.internal.response.StudentSummaryResponse
 import org.trenero.backend.student.internal.response.VisitWithLessonResponse
@@ -64,6 +65,15 @@ class StudentController(private val studentService: StudentService) {
     @RequestBody @Valid request: CreateStudentRequest,
     @AuthenticationPrincipal jwtUser: JwtUser,
   ): StudentResponse = studentService.createStudent(request, jwtUser)
+
+  @PostMapping("/{studentId}/payments")
+  @PreAuthorize("isAuthenticated()")
+  @ResponseStatus(HttpStatus.CREATED)
+  fun createStudentPayment(
+    @PathVariable studentId: UUID,
+    @RequestBody @Valid request: CreateStudentPaymentRequest,
+    @AuthenticationPrincipal jwtUser: JwtUser,
+  ): TransactionResponse = studentService.createStudentPayment(studentId, request, jwtUser)
 
   @PatchMapping("/{studentId}")
   @PreAuthorize("isAuthenticated()")

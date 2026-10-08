@@ -16,6 +16,8 @@ import org.trenero.backend.transaction.external.response.StudentPaymentDetailsRe
 import org.trenero.backend.transaction.external.response.TransactionResponse;
 import org.trenero.backend.transaction.internal.domain.StudentPayment;
 import org.trenero.backend.transaction.internal.domain.Transaction;
+import org.trenero.backend.transaction.internal.request.CreatePaymentDetailsRequest;
+import org.trenero.backend.transaction.internal.request.CreateStudentPaymentDetailsRequest;
 import org.trenero.backend.transaction.internal.request.CreateTransactionRequest;
 
 @Mapper(componentModel = ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -58,6 +60,21 @@ public interface TransactionMapper {
   @Mapping(target = "ownerId", source = "ownerId")
   @Mapping(target = "studentPayment", source = "request.paymentDetails")
   Transaction toEntity(CreateTransactionRequest request, UUID ownerId);
+
+  /**
+   * Maps the polymorphic payment details of a transaction request. MapStruct cannot derive this
+   * mapping from the sealed {@link CreatePaymentDetailsRequest} on its own.
+   */
+  default StudentPayment toStudentPayment(CreatePaymentDetailsRequest details) {
+    if (details instanceof CreateStudentPaymentDetailsRequest studentDetails) {
+      return StudentPayment.builder()
+          .studentId(studentDetails.getStudentId())
+          .paidUntil(studentDetails.getPaidUntil())
+          .build();
+    }
+
+    return null;
+  }
 
   @AfterMapping
   default void linkStudentPayment(@MappingTarget Transaction transaction) {

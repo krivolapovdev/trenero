@@ -1,5 +1,6 @@
 package org.trenero.backend.transaction.external.spi
 
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
 import org.trenero.backend.common.security.JwtUser
@@ -21,6 +22,14 @@ interface TransactionSpi {
     studentIds: List<UUID>,
     jwtUser: JwtUser,
   ): Map<UUID, List<TransactionResponse>>
+
+  fun createStudentPayment(
+    studentId: UUID,
+    amount: BigDecimal,
+    date: LocalDate,
+    paidUntil: LocalDate,
+    jwtUser: JwtUser,
+  ): TransactionResponse
 
   fun deleteTransactionById(
     transactionId: UUID,

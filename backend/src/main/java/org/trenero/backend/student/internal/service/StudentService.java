@@ -29,6 +29,7 @@ import org.trenero.backend.student.external.spi.StudentSpi;
 import org.trenero.backend.student.internal.domain.Student;
 import org.trenero.backend.student.internal.mapper.StudentMapper;
 import org.trenero.backend.student.internal.repository.StudentRepository;
+import org.trenero.backend.student.internal.request.CreateStudentPaymentRequest;
 import org.trenero.backend.student.internal.request.CreateStudentRequest;
 import org.trenero.backend.student.internal.response.StudentSummaryResponse;
 import org.trenero.backend.student.internal.response.VisitWithLessonResponse;
@@ -225,6 +226,18 @@ public class StudentService implements StudentSpi {
     }
 
     return studentMapper.toResponse(savedStudent);
+  }
+
+  @Transactional
+  public @NonNull TransactionResponse createStudentPayment(
+      @NonNull UUID studentId,
+      @NonNull CreateStudentPaymentRequest request,
+      @NonNull JwtUser jwtUser) {
+    log.info(
+        "Creating payment: studentId={}; request={}; user={}", studentId, request, jwtUser.id());
+
+    return transactionSpi.createStudentPayment(
+        studentId, request.getAmount(), request.getDate(), request.getPaidUntil(), jwtUser);
   }
 
   @Transactional
