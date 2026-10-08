@@ -28,6 +28,12 @@ public interface TransactionMapper {
 
   StudentPaymentDetailsResponse toStudentPaymentDetailsResponse(StudentPayment studentPayment);
 
+  /**
+   * Maps a transaction and resolves the student name of its payment details from {@code
+   * studentsByIds}. The name is not stored next to the payment, so clients that render the title of
+   * a transaction (the list of recent transactions on the finance page, for example) only get it
+   * from this lookup.
+   */
   default TransactionResponse toResponse(
       Transaction transaction, Map<UUID, StudentResponse> studentsByIds) {
     if (transaction == null) {
@@ -36,24 +42,25 @@ public interface TransactionMapper {
 
     TransactionResponse response = toResponse(transaction);
 
-    if (response.getPaymentDetails() instanceof StudentPaymentDetailsResponse studentDetails
-        && studentsByIds != null) {
-      StudentPaymentDetailsResponse enrichedDetails =
-          new StudentPaymentDetailsResponse(
-              studentDetails.getStudentId(),
-              studentDetails.getPaidUntil(),
-              studentDetails.getStudentName());
-
-      return new TransactionResponse(
-          response.getId(),
-          response.getAmount(),
-          response.getDate(),
-          response.getType(),
-          response.getCreatedAt(),
-          enrichedDetails);
+    if (!(response.getPaymentDetails() instanceof StudentPaymentDetailsResponse studentDetails)) {
+      return response;
     }
 
-    return response;
+    UUID studentId = studentDetails.getStudentId();
+    StudentResponse student =
+        (studentsByIds == null || studentId == null) ? null : studentsByIds.get(studentId);
+    String studentName = student != null ? student.getFullName() : studentDetails.getStudentName();
+
+    StudentPaymentDetailsResponse enrichedDetails =
+        new StudentPaymentDetailsResponse(studentId, studentDetails.getPaidUntil(), studentName);
+
+    return new TransactionResponse(
+        response.getId(),
+        response.getAmount(),
+        response.getDate(),
+        response.getType(),
+        response.getCreatedAt(),
+        enrichedDetails);
   }
 
   @Mapping(target = "id", ignore = true)

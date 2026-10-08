@@ -47,6 +47,14 @@ void main() {
     expect(info.backgroundColor, TransactionTileInfo.incomeColor);
   });
 
+  // The finance page has no single student to override the title with, so the
+  // name of the payment details provides the title there.
+  test('student payments keep the student name without an override title', () {
+    final info = TransactionTileInfo.fromTransaction(_studentPayment());
+
+    expect(info.title, 'Ivan Petrov');
+  });
+
   test('expense transactions use the up arrow and the expense color', () {
     final info = TransactionTileInfo.fromTransaction(
       _studentPayment(type: TransactionType.expense),
