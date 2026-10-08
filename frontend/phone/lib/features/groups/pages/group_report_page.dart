@@ -112,7 +112,9 @@ class _GroupReportPageState extends ConsumerState<GroupReportPage> {
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
+
               const SizedBox(height: 12),
+
               ElevatedButton(
                 onPressed: () =>
                     ref.read(groupReportProvider(_period).notifier).refresh(),

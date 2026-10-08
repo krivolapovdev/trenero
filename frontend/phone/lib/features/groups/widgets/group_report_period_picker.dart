@@ -38,7 +38,9 @@ class GroupReportPeriodPicker extends ConsumerWidget {
           labelBuilder: (value) => '$value',
           onSelected: onYearChanged,
         ),
+
         const SizedBox(width: 12),
+
         _PeriodButton<int>(
           value: month,
           values: months,
@@ -51,7 +53,6 @@ class GroupReportPeriodPicker extends ConsumerWidget {
   }
 }
 
-/// A popup menu button that shows the selected value in its label.
 class _PeriodButton<T> extends StatelessWidget {
   final T value;
   final List<T> values;
@@ -76,7 +77,8 @@ class _PeriodButton<T> extends StatelessWidget {
       tooltip: '',
       initialValue: value,
       onSelected: onSelected,
-      color: colorScheme.surface,
+      color: Colors.white,
+      elevation: 0,
       itemBuilder: (menuContext) => [
         for (final item in values)
           PopupMenuItem<T>(
@@ -93,9 +95,8 @@ class _PeriodButton<T> extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
-          border: Border.all(color: colorScheme.outlineVariant),
-          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -105,7 +106,7 @@ class _PeriodButton<T> extends StatelessWidget {
               style: Theme.of(context).textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.w600),
             ),
-            Icon(Icons.arrow_drop_down, color: colorScheme.primary),
+            Icon(Icons.arrow_drop_down),
           ],
         ),
       ),
