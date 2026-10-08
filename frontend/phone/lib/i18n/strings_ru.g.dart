@@ -69,6 +69,8 @@ class _Translations$auth$ru implements Translations$auth$en {
 	@override String get signInWithApple => 'Войти через Apple';
 	@override String get signInWithGoogle => 'Войти через Google';
 	@override String get agreePrivacyPolicy => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности';
+	@override String get login => 'Войти';
+	@override String get reviewerKey => 'Ключ ревьюера';
 }
 
 // Path: home
@@ -114,6 +116,7 @@ class _Translations$students$ru implements Translations$students$en {
 	@override String get phone => 'Телефон';
 	@override String get group => 'Группа';
 	@override String get noStudent => 'Без ученика';
+	@override late final _Translations$students$filter$ru filter = _Translations$students$filter$ru._(_root);
 	@override late final _Translations$students$status$ru status = _Translations$students$status$ru._(_root);
 }
 
@@ -188,6 +191,21 @@ class _Translations$finance$ru implements Translations$finance$en {
 	@override String get deleteTransactionMessage => 'Транзакция будет удалена безвозвратно. Действие нельзя отменить.';
 }
 
+// Path: students.filter
+class _Translations$students$filter$ru implements Translations$students$filter$en {
+	_Translations$students$filter$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Фильтры';
+	@override String get group => 'Группа';
+	@override String get status => 'Статус';
+	@override String get apply => 'Применить';
+	@override String get reset => 'Сбросить фильтры';
+	@override String get empty => 'Ученики не найдены';
+}
+
 // Path: students.status
 class _Translations$students$status$ru implements Translations$students$status$en {
 	_Translations$students$status$ru._(this._root);
@@ -224,6 +242,8 @@ extension on TranslationsRu {
 			'auth.signInWithApple' => 'Войти через Apple',
 			'auth.signInWithGoogle' => 'Войти через Google',
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',
+			'auth.login' => 'Войти',
+			'auth.reviewerKey' => 'Ключ ревьюера',
 			'home.title' => 'Главная',
 			'groups.title' => 'Группы',
 			'groups.emptySubtitle' => 'Групп пока нет',
@@ -242,6 +262,12 @@ extension on TranslationsRu {
 			'students.phone' => 'Телефон',
 			'students.group' => 'Группа',
 			'students.noStudent' => 'Без ученика',
+			'students.filter.title' => 'Фильтры',
+			'students.filter.group' => 'Группа',
+			'students.filter.status' => 'Статус',
+			'students.filter.apply' => 'Применить',
+			'students.filter.reset' => 'Сбросить фильтры',
+			'students.filter.empty' => 'Ученики не найдены',
 			'students.status.inactive' => 'Неактивен',
 			'students.status.present' => 'Присутствовал',
 			'students.status.missing' => 'Отсутствовал',

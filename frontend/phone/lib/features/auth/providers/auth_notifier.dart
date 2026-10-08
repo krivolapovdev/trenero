@@ -57,4 +57,11 @@ class AuthNotifier extends AsyncNotifier<AuthStatus> {
       return AuthStatus.unauthenticated;
     });
   }
+
+  /// Opens the session without a sign in request.
+  ///
+  /// Used after the reviewer key was accepted by the backend.
+  void markAuthenticated() {
+    state = const AsyncData(AuthStatus.authenticated);
+  }
 }

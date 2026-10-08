@@ -111,7 +111,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
           setState(() => _group = updated);
         },
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: kRadialFabContentPadding,
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             spacing: 16,

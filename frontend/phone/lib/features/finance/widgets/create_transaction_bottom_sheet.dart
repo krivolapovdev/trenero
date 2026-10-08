@@ -16,7 +16,10 @@ class CreateTransactionBottomSheet extends ConsumerStatefulWidget {
   /// Student the payment is created for, pre-selected when the sheet opens.
   final String? initialStudentId;
 
-  const new({super.key, this.initialStudentId});
+  /// Hides the type selector and always creates an income transaction.
+  final bool isIncomeOnly;
+
+  const new({super.key, this.initialStudentId, this.isIncomeOnly = false});
 
   @override
   ConsumerState<CreateTransactionBottomSheet> createState() =>
@@ -143,6 +146,7 @@ class _CreateTransactionBottomSheetState
 
     setState(() {
       _isLoading = true;
+      _isCalendarExpanded = false;
       _isStudentExpanded = false;
     });
 
@@ -363,41 +367,42 @@ class _CreateTransactionBottomSheetState
                     mainAxisSize: MainAxisSize.min,
                     spacing: 22,
                     children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: SegmentedButton<TransactionType>(
-                          showSelectedIcon: false,
-                          segments: const [
-                            ButtonSegment<TransactionType>(
-                              value: TransactionType.expense,
-                              label: Text('Расход'),
-                              icon: Icon(
-                                FluentIcons.arrow_down_24_regular,
-                                color: Colors.redAccent,
+                      if (!widget.isIncomeOnly)
+                        SizedBox(
+                          width: double.infinity,
+                          child: SegmentedButton<TransactionType>(
+                            showSelectedIcon: false,
+                            segments: const [
+                              ButtonSegment<TransactionType>(
+                                value: TransactionType.expense,
+                                label: Text('Расход'),
+                                icon: Icon(
+                                  FluentIcons.arrow_down_24_regular,
+                                  color: Colors.redAccent,
+                                ),
                               ),
-                            ),
-                            ButtonSegment<TransactionType>(
-                              value: TransactionType.income,
-                              label: Text('Доход'),
-                              icon: Icon(
-                                FluentIcons.arrow_up_24_regular,
-                                color: Colors.green,
+                              ButtonSegment<TransactionType>(
+                                value: TransactionType.income,
+                                label: Text('Доход'),
+                                icon: Icon(
+                                  FluentIcons.arrow_up_24_regular,
+                                  color: Colors.green,
+                                ),
                               ),
-                            ),
-                          ],
-                          selected: {_selectedType},
-                          onSelectionChanged:
-                              (Set<TransactionType> newSelection) {
-                                setState(() {
-                                  _selectedType = newSelection.first;
+                            ],
+                            selected: {_selectedType},
+                            onSelectionChanged:
+                                (Set<TransactionType> newSelection) {
+                                  setState(() {
+                                    _selectedType = newSelection.first;
 
-                                  if (!_isIncome) {
-                                    _isStudentExpanded = false;
-                                  }
-                                });
-                              },
+                                    if (!_isIncome) {
+                                      _isStudentExpanded = false;
+                                    }
+                                  });
+                                },
+                          ),
                         ),
-                      ),
 
                       TextField(
                         controller: _amountController,
@@ -436,6 +441,7 @@ class _CreateTransactionBottomSheetState
                                 prefixIcon: const Icon(
                                   FluentIcons.calendar_32_regular,
                                 ),
+                                enabled: !_isLoading,
                                 suffixIcon: Icon(
                                   _isCalendarExpanded
                                       ? FluentIcons.chevron_up_24_regular
@@ -444,7 +450,12 @@ class _CreateTransactionBottomSheetState
                               ),
                               child: Text(
                                 _formatDate(_selectedDate),
-                                style: const TextStyle(fontSize: 16),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: _isLoading
+                                      ? Theme.of(context).disabledColor
+                                      : null,
+                                ),
                               ),
                             ),
                           ),

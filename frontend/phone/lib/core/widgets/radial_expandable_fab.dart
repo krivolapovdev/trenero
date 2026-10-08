@@ -2,6 +2,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+/// Padding for scrollable page content so the floating actions never cover it.
+const EdgeInsets kRadialFabContentPadding = EdgeInsets.fromLTRB(
+  16,
+  16,
+  16,
+  128,
+);
+
 class RadialExpandableFab extends StatefulWidget {
   const new({
     super.key,

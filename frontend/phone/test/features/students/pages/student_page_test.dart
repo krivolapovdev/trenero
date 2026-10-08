@@ -130,6 +130,9 @@ void main() {
     expect(find.byType(CreateTransactionBottomSheet), findsOneWidget);
     expect(find.text('Ivan Petrov'), findsWidgets);
     expect(_paidUntilField, findsOneWidget);
+    // Payments are always income, so the type selector is not offered.
+    expect(find.text('Доход'), findsNothing);
+    expect(find.text('Расход'), findsNothing);
   });
 
   testWidgets('the floating button creates a payment for the student', (

@@ -25,6 +25,7 @@ import 'package:phone/generated/models/visit_with_lesson_response.dart';
 import 'package:phone/generated/student_controller/student_controller_client.dart';
 import 'package:phone/generated/transaction_controller/transaction_controller_client.dart';
 import 'package:phone/i18n/strings.g.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 StudentSummaryResponse _student({
   required String id,
@@ -457,5 +458,83 @@ void main() {
 
     expect(studentClient.paymentBodies, hasLength(1));
     expect(find.byType(CreateTransactionBottomSheet), findsNothing);
+  });
+
+  testWidgets('the type selector is hidden for income only sheets', (
+    tester,
+  ) async {
+    final studentClient = _FakeStudentClient();
+    final transactionClient = _FakeTransactionClient();
+
+    await _openSheet(
+      tester,
+      studentClient: studentClient,
+      transactionClient: transactionClient,
+      sheet: const CreateTransactionBottomSheet(
+        initialStudentId: 'student-1',
+        isIncomeOnly: true,
+      ),
+    );
+
+    expect(find.text('Доход'), findsNothing);
+    expect(find.text('Расход'), findsNothing);
+    expect(find.text('${t.finance.paidUntil}*'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).first, '1500');
+    await tester.pump();
+
+    await _save(tester);
+
+    expect(studentClient.paymentStudentIds, ['student-1']);
+    expect(studentClient.paymentBodies.single.amount, 1500);
+    expect(transactionClient.createBodies, isEmpty);
+  });
+
+  testWidgets('the date section is closed and disabled while saving', (
+    tester,
+  ) async {
+    final studentClient = _FakeStudentClient()..paymentGate = Completer<void>();
+    final transactionClient = _FakeTransactionClient();
+
+    await _openSheet(
+      tester,
+      studentClient: studentClient,
+      transactionClient: transactionClient,
+    );
+
+    await tester.enterText(find.byType(TextField).first, '700');
+    await tester.pump();
+    await _pickStudent(tester, 'Ivan Petrov');
+
+    // The calendar opens while the form is idle.
+    await tester.tap(find.text(_formatDate(DateTime.now())));
+    await tester.pumpAndSettle();
+    expect(find.byType(SfDateRangePicker), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Создать'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Создать'));
+    await tester.pump();
+
+    // The calendar is closed while the request is in flight.
+    expect(find.byType(SfDateRangePicker), findsNothing);
+
+    await tester.ensureVisible(find.text(_formatDate(DateTime.now())));
+    await tester.pump();
+    await tester.tap(
+      find.text(_formatDate(DateTime.now())),
+      warnIfMissed: false,
+    );
+    await tester.pump();
+
+    expect(find.byType(SfDateRangePicker), findsNothing);
+
+    studentClient.paymentGate!.complete();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+
+    expect(studentClient.paymentBodies, hasLength(1));
   });
 }

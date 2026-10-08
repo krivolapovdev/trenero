@@ -101,6 +101,12 @@ class Translations$auth$en {
 
 	/// en: 'By signing in, you agree to our Privacy Policy'
 	String get agreePrivacyPolicy => 'By signing in, you agree to our Privacy Policy';
+
+	/// en: 'Login'
+	String get login => 'Login';
+
+	/// en: 'Reviewer key'
+	String get reviewerKey => 'Reviewer key';
 }
 
 // Path: home
@@ -183,6 +189,7 @@ class Translations$students$en {
 	/// en: 'No student'
 	String get noStudent => 'No student';
 
+	late final Translations$students$filter$en filter = Translations$students$filter$en._(_root);
 	late final Translations$students$status$en status = Translations$students$status$en._(_root);
 }
 
@@ -327,6 +334,33 @@ class Translations$finance$en {
 	String get deleteTransactionMessage => 'The transaction will be deleted permanently. This action cannot be undone.';
 }
 
+// Path: students.filter
+class Translations$students$filter$en {
+	Translations$students$filter$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Filters'
+	String get title => 'Filters';
+
+	/// en: 'Group'
+	String get group => 'Group';
+
+	/// en: 'Status'
+	String get status => 'Status';
+
+	/// en: 'Apply'
+	String get apply => 'Apply';
+
+	/// en: 'Reset filters'
+	String get reset => 'Reset filters';
+
+	/// en: 'No students found'
+	String get empty => 'No students found';
+}
+
 // Path: students.status
 class Translations$students$status$en {
 	Translations$students$status$en._(this._root);
@@ -373,6 +407,8 @@ extension on Translations {
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',
+			'auth.login' => 'Login',
+			'auth.reviewerKey' => 'Reviewer key',
 			'home.title' => 'Main',
 			'groups.title' => 'Groups',
 			'groups.emptySubtitle' => 'No Groups yet',
@@ -391,6 +427,12 @@ extension on Translations {
 			'students.phone' => 'Phone',
 			'students.group' => 'Group',
 			'students.noStudent' => 'No student',
+			'students.filter.title' => 'Filters',
+			'students.filter.group' => 'Group',
+			'students.filter.status' => 'Status',
+			'students.filter.apply' => 'Apply',
+			'students.filter.reset' => 'Reset filters',
+			'students.filter.empty' => 'No students found',
 			'students.status.inactive' => 'Inactive',
 			'students.status.present' => 'Present',
 			'students.status.missing' => 'Missing',

@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/shell_page.dart';
+import 'package:phone/features/students/controllers/student_filter_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/widgets/create_student_bottom_sheet.dart';
+import 'package:phone/features/students/widgets/student_filter_button.dart';
 import 'package:phone/features/students/widgets/student_list_view.dart';
 import 'package:phone/features/students/widgets/student_search_delegate.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
@@ -52,13 +54,7 @@ class StudentListPage extends ShellPage {
         );
       },
     ),
-    IconButton(
-      icon: const Badge(
-        smallSize: 10,
-        child: Icon(FluentIcons.filter_28_regular),
-      ),
-      onPressed: () {},
-    ),
+    const StudentFilterButton(),
     IconButton(
       icon: const Icon(FluentIcons.person_add_24_regular),
       onPressed: () => AppBottomSheet.show(
@@ -73,9 +69,11 @@ class StudentListPage extends ShellPage {
   Widget build(BuildContext context) => Consumer(
     builder: (context, ref, child) {
       final studentsState = ref.watch(studentListControllerProvider);
+      final filter = ref.watch(studentFilterControllerProvider);
       final isLoading = studentsState.isLoading;
       final hasError = studentsState.hasError;
       final students = studentsState.value ?? [];
+      final filteredStudents = students.where(filter.matches).toList();
 
       return CustomMaterialIndicator(
         color: Colors.black,
@@ -90,6 +88,7 @@ class StudentListPage extends ShellPage {
           ref,
           studentsState,
           students,
+          filteredStudents,
           isLoading,
           hasError,
         ),
@@ -102,6 +101,7 @@ class StudentListPage extends ShellPage {
     WidgetRef ref,
     AsyncValue studentsState,
     List<StudentSummaryResponse> students,
+    List<StudentSummaryResponse> filteredStudents,
     bool isLoading,
     bool hasError,
   ) {
@@ -122,6 +122,32 @@ class StudentListPage extends ShellPage {
                         .read(studentListControllerProvider.notifier)
                         .getAllStudents(),
                     child: Text(context.t.repeat),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (!isLoading && students.isNotEmpty && filteredStudents.isEmpty) {
+      return LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(context.t.students.filter.empty),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () => ref
+                        .read(studentFilterControllerProvider.notifier)
+                        .clear(),
+                    child: Text(context.t.students.filter.reset),
                   ),
                 ],
               ),
@@ -154,7 +180,9 @@ class StudentListPage extends ShellPage {
       enabled: isLoading,
       ignorePointers: false,
       child: StudentListView(
-        students: isLoading && students.isEmpty ? _dummyStudents : students,
+        students: isLoading && students.isEmpty
+            ? _dummyStudents
+            : filteredStudents,
         isLoading: isLoading,
       ),
     );

@@ -13,7 +13,9 @@
   "auth": {
       "signInWithApple": "Sign in with Apple",
       "signInWithGoogle": "Sign in with Google",
-      "agreePrivacyPolicy": "By signing in, you agree to our Privacy Policy"
+      "agreePrivacyPolicy": "By signing in, you agree to our Privacy Policy",
+      "login": "Login",
+      "reviewerKey": "Reviewer key"
   },
   "home": {
     "title": "Main"
@@ -38,6 +40,14 @@
     "phone": "Phone",
     "group": "Group",
     "noStudent": "No student",
+    "filter": {
+      "title": "Filters",
+      "group": "Group",
+      "status": "Status",
+      "apply": "Apply",
+      "reset": "Reset filters",
+      "empty": "No students found"
+    },
     "status": {
       "inactive": "Inactive",
       "present": "Present",

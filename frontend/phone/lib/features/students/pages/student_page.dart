@@ -47,7 +47,10 @@ class _StudentPageState extends ConsumerState<StudentPage> {
   Future<void> _openCreatePaymentSheet() async {
     await AppBottomSheet.show(
       context: context,
-      child: CreateTransactionBottomSheet(initialStudentId: _student.id),
+      child: CreateTransactionBottomSheet(
+        initialStudentId: _student.id,
+        isIncomeOnly: true,
+      ),
     );
 
     if (!mounted) return;
@@ -214,7 +217,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
           }
         },
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: kRadialFabContentPadding,
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             spacing: 16,

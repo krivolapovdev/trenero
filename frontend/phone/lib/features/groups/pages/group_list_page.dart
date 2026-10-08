@@ -55,20 +55,6 @@ class GroupListPage extends ShellPage {
     ),
 
     IconButton(
-      icon: const Badge(
-        smallSize: 10,
-        child: Icon(FluentIcons.filter_28_regular),
-      ),
-      onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const GroupListPage(title: 'title'),
-          ),
-        );
-      },
-    ),
-
-    IconButton(
       icon: const Icon(FluentIcons.folder_add_24_regular),
       onPressed: () => AppBottomSheet.show(
         context: context,

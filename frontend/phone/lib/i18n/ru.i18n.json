@@ -13,7 +13,9 @@
   "auth": {
     "signInWithApple": "Войти через Apple",
     "signInWithGoogle": "Войти через Google",
-    "agreePrivacyPolicy": "Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности"
+    "agreePrivacyPolicy": "Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности",
+    "login": "Войти",
+    "reviewerKey": "Ключ ревьюера"
   },
   "home": {
     "title": "Главная"
@@ -38,6 +40,14 @@
     "phone": "Телефон",
     "group": "Группа",
     "noStudent": "Без ученика",
+    "filter": {
+      "title": "Фильтры",
+      "group": "Группа",
+      "status": "Статус",
+      "apply": "Применить",
+      "reset": "Сбросить фильтры",
+      "empty": "Ученики не найдены"
+    },
     "status": {
       "inactive": "Неактивен",
       "present": "Присутствовал",
