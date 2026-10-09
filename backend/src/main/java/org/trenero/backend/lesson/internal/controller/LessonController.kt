@@ -25,18 +25,6 @@ import org.trenero.backend.lesson.internal.service.LessonService
 @RequestMapping("/api/v1/lessons")
 class LessonController(private val lessonService: LessonService) {
 
-  @GetMapping
-  @PreAuthorize("isAuthenticated()")
-  fun getLessons(@AuthenticationPrincipal jwtUser: JwtUser): List<LessonResponse> =
-    lessonService.getAllLessons(jwtUser)
-
-  @GetMapping("/{lessonId}")
-  @PreAuthorize("isAuthenticated()")
-  fun getLesson(
-    @PathVariable lessonId: UUID,
-    @AuthenticationPrincipal jwtUser: JwtUser,
-  ): LessonResponse = lessonService.getLessonById(lessonId, jwtUser)
-
   @GetMapping("/{lessonId}/details")
   @PreAuthorize("isAuthenticated()")
   fun getLessonDetails(

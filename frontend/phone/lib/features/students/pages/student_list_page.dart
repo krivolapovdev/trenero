@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/shell_page.dart';
 import 'package:phone/features/students/controllers/student_filter_controller.dart';
+import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
+import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/features/students/widgets/create_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_filter_button.dart';
 import 'package:phone/features/students/widgets/student_list_view.dart';
@@ -82,6 +84,9 @@ class StudentListPage extends ShellPage {
           await ref
               .read(studentListControllerProvider.notifier)
               .getAllStudents(forceRefresh: true);
+
+          ref.invalidate(studentLessonsProvider);
+          ref.invalidate(studentPaymentsControllerProvider);
         },
         child: _buildBody(
           context,

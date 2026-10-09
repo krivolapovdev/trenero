@@ -3,12 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
+import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
+import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/features/students/pages/student_list_page.dart';
+import 'package:phone/features/students/widgets/student_list_view.dart';
 import 'package:phone/generated/models/group_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/student_status.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
+import 'package:phone/generated/models/transaction_response.dart';
+import 'package:phone/generated/models/visit_with_lesson_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 final _groups = [
@@ -47,6 +52,39 @@ class _FakeGroupListController extends GroupListController {
 class _FakeStudentListController extends StudentListController {
   @override
   Future<List<StudentSummaryResponse>> build() async => _students;
+
+  @override
+  Future<void> getAllStudents({bool forceRefresh = false}) async {
+    state = AsyncData(_students);
+  }
+}
+
+/// Records every build of a student page family, so a test can tell whether
+/// the cached data of the student pages was dropped.
+class _FakeStudentLessonsController extends StudentLessonsController {
+  new(super.studentId, this.builds);
+
+  final List<String> builds;
+
+  @override
+  Future<List<VisitWithLessonResponse>> build() async {
+    builds.add(studentId);
+
+    return const [];
+  }
+}
+
+class _FakeStudentPaymentsController extends StudentPaymentsController {
+  new(super.studentId, this.builds);
+
+  final List<String> builds;
+
+  @override
+  Future<List<TransactionResponse>> build() async {
+    builds.add(studentId);
+
+    return const [];
+  }
 }
 
 Finder _optionTile(String label) => find.descendant(
@@ -89,15 +127,28 @@ Future<void> _openFilterSheet(WidgetTester tester) async {
 
 void main() {
   late ProviderContainer container;
+  late List<String> lessonsBuilds;
+  late List<String> paymentsBuilds;
 
   setUpAll(() => LocaleSettings.setLocaleSync(AppLocale.en));
 
   setUp(() {
+    lessonsBuilds = [];
+    paymentsBuilds = [];
+
     container = ProviderContainer(
       overrides: [
         groupListControllerProvider.overrideWith(_FakeGroupListController.new),
         studentListControllerProvider.overrideWith(
           _FakeStudentListController.new,
+        ),
+        studentLessonsProvider.overrideWith2(
+          (studentId) =>
+              _FakeStudentLessonsController(studentId, lessonsBuilds),
+        ),
+        studentPaymentsControllerProvider.overrideWith2(
+          (studentId) =>
+              _FakeStudentPaymentsController(studentId, paymentsBuilds),
         ),
       ],
     );
@@ -167,5 +218,32 @@ void main() {
 
     expect(find.text('Ivan Petrov'), findsOneWidget);
     expect(find.text('Petr Sidorov'), findsOneWidget);
+  });
+
+  testWidgets('a pull to refresh drops the caches of the student pages', (
+    tester,
+  ) async {
+    // Warm the caches the way opening a student page does.
+    await container.read(studentLessonsProvider('student-1').future);
+    await container.read(studentPaymentsControllerProvider('student-1').future);
+
+    expect(lessonsBuilds, ['student-1']);
+    expect(paymentsBuilds, ['student-1']);
+
+    await _pumpStudentListPage(tester, container);
+
+    await tester.fling(
+      find.byType(StudentListView),
+      const Offset(0.0, 300.0),
+      1000.0,
+    );
+    await tester.pumpAndSettle();
+
+    // The caches are gone, so reading again builds the family once more.
+    await container.read(studentLessonsProvider('student-1').future);
+    await container.read(studentPaymentsControllerProvider('student-1').future);
+
+    expect(lessonsBuilds, ['student-1', 'student-1']);
+    expect(paymentsBuilds, ['student-1', 'student-1']);
   });
 }

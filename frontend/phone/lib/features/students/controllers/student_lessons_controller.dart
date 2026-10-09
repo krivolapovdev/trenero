@@ -20,6 +20,8 @@ class StudentLessonsController
     final from = DateTime(2000, 1, 1);
     final to = DateTime.now();
 
+    Future.delayed(Duration(seconds: 1));
+
     final repository = ref.watch(studentRepositoryProvider);
     return repository.getStudentVisits(
       studentId: studentId,

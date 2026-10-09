@@ -43,14 +43,6 @@ public class LessonService implements LessonSpi {
   @Lazy private final VisitSpi visitSpi;
   @Lazy private final GroupStudentSpi groupStudentSpi;
 
-  @Transactional(readOnly = true)
-  public @NonNull List<LessonResponse> getAllLessons(@NonNull JwtUser jwtUser) {
-    log.info("Getting all lessons: user={}", jwtUser);
-    return lessonRepository.findAllByOwnerId(jwtUser.id()).stream()
-        .map(lessonMapper::toResponse)
-        .toList();
-  }
-
   @Override
   @Transactional(readOnly = true)
   public @NonNull Map<UUID, LessonResponse> getLastGroupLessonsByGroupIds(

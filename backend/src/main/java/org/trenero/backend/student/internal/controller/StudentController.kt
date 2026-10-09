@@ -27,22 +27,10 @@ import org.trenero.backend.transaction.external.response.TransactionResponse
 @RequestMapping("/api/v1/students")
 class StudentController(private val studentService: StudentService) {
 
-  @GetMapping
-  @PreAuthorize("isAuthenticated()")
-  fun getStudents(@AuthenticationPrincipal jwtUser: JwtUser): List<StudentResponse> =
-    studentService.getAllStudents(jwtUser)
-
   @GetMapping("/overview")
   @PreAuthorize("isAuthenticated()")
   fun getStudentsSummary(@AuthenticationPrincipal jwtUser: JwtUser): List<StudentSummaryResponse> =
     studentService.getStudentsSummary(jwtUser)
-
-  @GetMapping("/{studentId}")
-  @PreAuthorize("isAuthenticated()")
-  fun getStudent(
-    @PathVariable studentId: UUID,
-    @AuthenticationPrincipal jwtUser: JwtUser,
-  ): StudentResponse = studentService.getStudentById(studentId, jwtUser)
 
   @GetMapping("/{studentId}/visits")
   @PreAuthorize("isAuthenticated()")

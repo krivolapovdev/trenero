@@ -16,8 +16,4 @@ class OAuth2Controller(private val oAuth2Service: OAuth2Service) {
   @PostMapping("/google")
   fun googleLogin(@RequestBody @Valid request: OAuth2LoginRequest): LoginResponse =
     oAuth2Service.googleLogin(request)
-
-  @PostMapping("/apple")
-  fun appleLogin(@RequestBody @Valid request: OAuth2LoginRequest): LoginResponse =
-    oAuth2Service.appleLogin()
 }

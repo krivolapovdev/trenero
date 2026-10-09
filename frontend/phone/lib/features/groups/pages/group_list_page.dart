@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/empty_state.dart';
 import 'package:phone/core/widgets/shell_page.dart';
+import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
+import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/groups/widgets/create_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_list_view.dart';
 import 'package:phone/features/groups/widgets/group_search_delegate.dart';
@@ -80,6 +82,13 @@ class GroupListPage extends ShellPage {
           await ref
               .read(groupListControllerProvider.notifier)
               .getAllGroups(forceRefresh: true);
+
+          // The group pages cache their lessons and students per group. The
+          // refresh drops every one of those caches, so opening a group after
+          // the refresh requests its data again instead of showing what was
+          // loaded before.
+          ref.invalidate(groupLessonsProvider);
+          ref.invalidate(groupStudentsProvider);
         },
         child: _buildBody(
           context,

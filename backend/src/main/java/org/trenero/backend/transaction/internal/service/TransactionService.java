@@ -66,19 +66,6 @@ public class TransactionService implements TransactionSpi {
     return transactions.map(tx -> transactionMapper.toResponse(tx, studentsByIds));
   }
 
-  @Transactional(readOnly = true)
-  public @NonNull TransactionResponse getTransactionById(
-      @NonNull UUID transactionId, @NonNull JwtUser jwtUser) {
-    log.info("Fetching transactionId={} from database for userId={}", transactionId, jwtUser.id());
-
-    Transaction transaction =
-        transactionRepository
-            .findByIdAndOwnerId(transactionId, jwtUser.id())
-            .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
-
-    return transactionMapper.toResponse(transaction);
-  }
-
   @Override
   @Transactional(readOnly = true)
   public @NonNull List<TransactionResponse> getTransactionsByDateRange(

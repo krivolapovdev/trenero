@@ -2,7 +2,6 @@ package org.trenero.backend.visit.external.spi
 
 import java.util.UUID
 import org.trenero.backend.common.domain.StudentVisit
-import org.trenero.backend.common.request.CreateVisitRequest
 import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.visit.external.response.VisitResponse
 
@@ -23,8 +22,6 @@ interface VisitSpi {
     visits: List<StudentVisit>,
     jwtUser: JwtUser,
   )
-
-  fun createVisit(request: CreateVisitRequest, jwtUser: JwtUser): VisitResponse
 
   fun createVisits(
     lessonId: UUID,

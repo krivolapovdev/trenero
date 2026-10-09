@@ -134,9 +134,9 @@ void main() {
     expect(find.text(t.lessons.present), findsOneWidget);
     expect(find.text(t.lessons.missed), findsOneWidget);
 
-    // A day with an individual lesson offers no second create row, while the
-    // group lesson of the day can still be created.
-    expect(find.text(t.lessons.individualLesson), findsNothing);
+    // The day keeps offering another individual lesson, and the group lesson of
+    // the day can still be created.
+    expect(find.text(t.lessons.individualLesson), findsOneWidget);
     expect(find.text(t.lessons.groupLesson), findsOneWidget);
   });
 
@@ -179,8 +179,29 @@ void main() {
     expect(find.text(t.lessons.present), findsOneWidget);
     expect(find.text(t.lessons.missed), findsOneWidget);
 
-    // A day with stored group lessons offers no second create row.
-    expect(find.text(t.lessons.groupLesson), findsNothing);
+    // The day keeps offering another group lesson.
+    expect(find.text(t.lessons.groupLesson), findsOneWidget);
+  });
+
+  testWidgets('both create rows stay available on a day with lessons', (
+    tester,
+  ) async {
+    await _openSheet(
+      tester,
+      StudentDayLessonsBottomSheet(
+        studentName: _studentName,
+        studentGroup: _group,
+        individualLessons: [_individualLesson()],
+        groupLessons: [_groupLesson()],
+      ),
+    );
+
+    // The stored lessons are listed, and another lesson of each kind can still
+    // be created.
+    expect(find.text(t.lessons.individualLessons), findsOneWidget);
+    expect(find.text(t.lessons.groupLessons), findsOneWidget);
+    expect(find.text(t.lessons.individualLesson), findsOneWidget);
+    expect(find.text(t.lessons.groupLesson), findsOneWidget);
   });
 
   testWidgets('a stored group lesson opens the lesson for editing', (

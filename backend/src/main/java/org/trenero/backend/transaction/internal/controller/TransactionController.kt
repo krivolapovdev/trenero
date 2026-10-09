@@ -33,13 +33,6 @@ class TransactionController(private val transactionService: TransactionService) 
     @AuthenticationPrincipal jwtUser: JwtUser,
   ): Page<TransactionResponse> = transactionService.getPaginatedTransactions(page, size, jwtUser)
 
-  @GetMapping("/{transactionId}")
-  @PreAuthorize("isAuthenticated()")
-  fun getTransactionById(
-    @PathVariable transactionId: UUID,
-    @AuthenticationPrincipal jwtUser: JwtUser,
-  ): TransactionResponse = transactionService.getTransactionById(transactionId, jwtUser)
-
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("isAuthenticated()")

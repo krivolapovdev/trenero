@@ -32,9 +32,4 @@ class OAuth2Service(
 
     return LoginResponse(user, jwtTokens)
   }
-
-  fun appleLogin(): LoginResponse {
-    log.info("Processing Apple OAuth2 login request")
-    throw UnsupportedOperationException("Apple login is not yet implemented")
-  }
 }

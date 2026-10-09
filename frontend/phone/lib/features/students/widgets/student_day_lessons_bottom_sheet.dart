@@ -43,8 +43,8 @@ class StudentDayLesson {
 /// Both the individual lessons and the group lessons of the day are listed the
 /// same way, each with the attendance of the student at the right: a lesson is
 /// stored together with a visit per student, so the row tells whether the
-/// student was present or missed it. A kind of lesson the day has none of
-/// offers creating one instead, the group lessons only when the student has a
+/// student was present or missed it. Below the listed lessons the sheet always
+/// offers creating another one, the group lessons only when the student has a
 /// group.
 ///
 /// Pops with the [StudentDayLessonSelection] the user picked, or `null` when
@@ -73,24 +73,10 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
   void _select(BuildContext context, StudentDayLessonSelection selection) =>
       Navigator.of(context).pop(selection);
 
-  /// `Individual lessons` when the day has some, otherwise the row that
-  /// creates one for the student.
-  List<Widget> _buildIndividualSection(BuildContext context) {
-    if (individualLessons.isEmpty) {
-      return [
-        _buildCreateTile(
-          context,
-          icon: Icons.person_outline,
-          title: context.t.lessons.individualLesson,
-          selection: const StudentDayLessonSelection(
-            StudentDayLessonAction.individual,
-          ),
-        ),
-      ];
-    }
-
-    return [
-      // _buildSectionTitle(context, context.t.lessons.individualLessons),
+  /// The individual lessons of the day, followed by the row that always offers
+  /// creating another individual lesson for the student.
+  List<Widget> _buildIndividualSection(BuildContext context) => [
+    if (individualLessons.isNotEmpty) ...[
       ...individualLessons.map(
         (lesson) => _buildLessonTile(
           context,
@@ -106,42 +92,47 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
           ),
         ),
       ),
-    ];
-  }
+    ],
+    _buildCreateTile(
+      context,
+      icon: Icons.person_outline,
+      title: context.t.lessons.individualLesson,
+      selection: const StudentDayLessonSelection(
+        StudentDayLessonAction.individual,
+      ),
+    ),
+  ];
 
-  /// `Group lessons` when the day has some, otherwise the row that creates one
-  /// for the group of the student.
+  /// The group lessons of the day, followed by the row that always offers
+  /// creating another group lesson. Empty when the student has no group.
   List<Widget> _buildGroupSection(BuildContext context) {
-    if (groupLessons.isEmpty) {
-      if (studentGroup == null) return const [];
-
-      return [
-        _buildCreateTile(
-          context,
-          icon: Icons.group_add_outlined,
-          title: context.t.lessons.groupLesson,
-          selection: const StudentDayLessonSelection(
-            StudentDayLessonAction.group,
-          ),
-        ),
-      ];
-    }
+    final group = studentGroup;
+    if (group == null) return const [];
 
     return [
-      _buildSectionTitle(context, context.t.lessons.groupLessons),
-      ...groupLessons.map(
-        (lesson) => _buildLessonTile(
-          context,
-          lesson: lesson,
-          icon: Icons.groups_outlined,
-          title: studentGroup?.name ?? context.t.lessons.groupLesson,
-          onTap: () => _select(
+      if (groupLessons.isNotEmpty) ...[
+        ...groupLessons.map(
+          (lesson) => _buildLessonTile(
             context,
-            StudentDayLessonSelection(
-              StudentDayLessonAction.group,
-              lesson: lesson.lesson,
+            lesson: lesson,
+            icon: Icons.groups_outlined,
+            title: group.name,
+            onTap: () => _select(
+              context,
+              StudentDayLessonSelection(
+                StudentDayLessonAction.group,
+                lesson: lesson.lesson,
+              ),
             ),
           ),
+        ),
+      ],
+      _buildCreateTile(
+        context,
+        icon: Icons.group_add_outlined,
+        title: context.t.lessons.groupLesson,
+        selection: const StudentDayLessonSelection(
+          StudentDayLessonAction.group,
         ),
       ),
     ];
@@ -151,7 +142,7 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: Text(
       title,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
     ),
   );
 
@@ -212,7 +203,11 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [..._buildGroupSection(context)],
+        children: [
+          ..._buildIndividualSection(context),
+          if (studentGroup != null) SizedBox(height: 10),
+          ..._buildGroupSection(context),
+        ],
       ),
     ),
   );
