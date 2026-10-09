@@ -33,11 +33,16 @@
   },
   "lessons": {
     "title": "Урок",
-    "createLesson": "Добавить урок",
+    "individualLesson": "Индивидуальный урок",
+    "individualLessons": "Индивидуальные уроки",
+    "groupLesson": "Групповой урок",
+    "groupLessons": "Групповые уроки",
     "date": "Дата",
     "selectAll": "Выбрать всех",
     "deselectAll": "Снять выбор",
     "noStudents": "В группе пока нет учеников",
+    "present": "Присутствовал",
+    "missed": "Пропустил",
     "deleteLesson": "Удалить урок?",
     "deleteLessonMessage": "Урок и отметки посещаемости будут удалены безвозвратно. Действие нельзя отменить."
   },
@@ -51,6 +56,7 @@
     "birthdate": "Дата рождения",
     "phone": "Телефон",
     "group": "Группа",
+    "joinedAt": "Дата вступления",
     "noStudent": "Без ученика",
     "filter": {
       "title": "Фильтры",

@@ -2,12 +2,12 @@ package org.trenero.backend.student.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -159,35 +159,14 @@ public class StudentService implements StudentSpi {
       @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
     log.info("Getting visits for studentId={}; user={}", studentId, jwtUser);
 
-    var visitsFuture =
-        CompletableFuture.supplyAsync(
-            () -> visitSpi.getVisitsByStudentId(studentId, jwtUser), executor);
+    var studentVisits = visitSpi.getVisitsByStudentId(studentId, jwtUser);
 
-    var groupStudentFuture =
-        CompletableFuture.supplyAsync(
-            () -> groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst(),
-            executor);
+    // A student is marked for the lessons of every group they belong to and for
+    // the lessons that are stored for them alone, so each lesson the visits
+    // point to is loaded, whether it belongs to a group or not.
+    var lessonIds = studentVisits.stream().map(visit -> visit.getLessonId()).distinct().toList();
 
-    var lessonsFuture =
-        groupStudentFuture.thenComposeAsync(
-            groupOpt ->
-                groupOpt
-                    .map(
-                        gs ->
-                            CompletableFuture.supplyAsync(
-                                () -> lessonSpi.getLessonsByGroupId(gs.getGroupId(), jwtUser),
-                                executor))
-                    .orElse(CompletableFuture.completedFuture(List.of())),
-            executor);
-
-    AsyncUtils.awaitAll(visitsFuture, lessonsFuture);
-
-    var studentVisits = visitsFuture.join();
-    var groupLessons = lessonsFuture.join();
-
-    var lessonsMap =
-        groupLessons.stream()
-            .collect(Collectors.toMap(LessonResponse::getId, Function.identity(), (l1, _) -> l1));
+    var lessonsMap = lessonSpi.getLessonsByIds(lessonIds, jwtUser);
 
     return studentVisits.stream()
         .filter(visit -> lessonsMap.containsKey(visit.getLessonId()))
@@ -220,10 +199,6 @@ public class StudentService implements StudentSpi {
 
     var student = studentMapper.toStudent(request, jwtUser.id());
     var savedStudent = self.saveStudent(student);
-
-    if (request.groupId() != null) {
-      groupStudentSpi.addStudentToGroup(savedStudent.getId(), request.groupId(), jwtUser);
-    }
 
     return studentMapper.toResponse(savedStudent);
   }
@@ -263,7 +238,8 @@ public class StudentService implements StudentSpi {
 
       if (rawGroupId != null && !rawGroupId.toString().isBlank()) {
         var groupId = UUID.fromString(rawGroupId.toString());
-        groupStudentSpi.addStudentToGroup(studentId, groupId, jwtUser);
+        groupStudentSpi.addStudentToGroup(
+            studentId, groupId, parseJoinedAt(updates.get("joinedAt")), jwtUser);
       }
     }
 
@@ -271,6 +247,18 @@ public class StudentService implements StudentSpi {
     var savedStudent = self.saveStudent(updatedStudent);
 
     return studentMapper.toResponse(savedStudent);
+  }
+
+  /**
+   * The day the student joined the group, sent by the group sheet as a plain ISO date. A missing
+   * value lets the group module fall back to the current day.
+   */
+  private static LocalDate parseJoinedAt(Object rawJoinedAt) {
+    if (rawJoinedAt == null || rawJoinedAt.toString().isBlank()) {
+      return null;
+    }
+
+    return LocalDate.parse(rawJoinedAt.toString());
   }
 
   @Override

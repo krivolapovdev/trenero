@@ -110,11 +110,16 @@ class _Translations$lessons$ru implements Translations$lessons$en {
 
 	// Translations
 	@override String get title => 'Урок';
-	@override String get createLesson => 'Добавить урок';
+	@override String get individualLesson => 'Индивидуальный урок';
+	@override String get individualLessons => 'Индивидуальные уроки';
+	@override String get groupLesson => 'Групповой урок';
+	@override String get groupLessons => 'Групповые уроки';
 	@override String get date => 'Дата';
 	@override String get selectAll => 'Выбрать всех';
 	@override String get deselectAll => 'Снять выбор';
 	@override String get noStudents => 'В группе пока нет учеников';
+	@override String get present => 'Присутствовал';
+	@override String get missed => 'Пропустил';
 	@override String get deleteLesson => 'Удалить урок?';
 	@override String get deleteLessonMessage => 'Урок и отметки посещаемости будут удалены безвозвратно. Действие нельзя отменить.';
 }
@@ -135,6 +140,7 @@ class _Translations$students$ru implements Translations$students$en {
 	@override String get birthdate => 'Дата рождения';
 	@override String get phone => 'Телефон';
 	@override String get group => 'Группа';
+	@override String get joinedAt => 'Дата вступления';
 	@override String get noStudent => 'Без ученика';
 	@override late final _Translations$students$filter$ru filter = _Translations$students$filter$ru._(_root);
 	@override late final _Translations$students$status$ru status = _Translations$students$status$ru._(_root);
@@ -282,11 +288,16 @@ extension on TranslationsRu {
 			'groups.defaultPrice' => 'Стандартная цена',
 			'groups.report' => 'Отчет',
 			'lessons.title' => 'Урок',
-			'lessons.createLesson' => 'Добавить урок',
+			'lessons.individualLesson' => 'Индивидуальный урок',
+			'lessons.individualLessons' => 'Индивидуальные уроки',
+			'lessons.groupLesson' => 'Групповой урок',
+			'lessons.groupLessons' => 'Групповые уроки',
 			'lessons.date' => 'Дата',
 			'lessons.selectAll' => 'Выбрать всех',
 			'lessons.deselectAll' => 'Снять выбор',
 			'lessons.noStudents' => 'В группе пока нет учеников',
+			'lessons.present' => 'Присутствовал',
+			'lessons.missed' => 'Пропустил',
 			'lessons.deleteLesson' => 'Удалить урок?',
 			'lessons.deleteLessonMessage' => 'Урок и отметки посещаемости будут удалены безвозвратно. Действие нельзя отменить.',
 			'students.title' => 'Ученики',
@@ -298,6 +309,7 @@ extension on TranslationsRu {
 			'students.birthdate' => 'Дата рождения',
 			'students.phone' => 'Телефон',
 			'students.group' => 'Группа',
+			'students.joinedAt' => 'Дата вступления',
 			'students.noStudent' => 'Без ученика',
 			'students.filter.title' => 'Фильтры',
 			'students.filter.group' => 'Группа',

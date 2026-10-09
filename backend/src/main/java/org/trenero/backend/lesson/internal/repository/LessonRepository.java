@@ -64,6 +64,16 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
       """
           SELECT l
           FROM Lesson AS l
+          WHERE l.ownerId = :ownerId
+            AND l.id IN :lessonIds
+          """)
+  List<Lesson> findAllByIdsAndOwnerId(
+      @Param("lessonIds") List<UUID> lessonIds, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+          SELECT l
+          FROM Lesson AS l
           WHERE l.groupId = :groupId
             AND l.ownerId = :ownerId
             AND l.date BETWEEN :from AND :to

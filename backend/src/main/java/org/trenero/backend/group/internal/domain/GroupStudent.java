@@ -41,6 +41,11 @@ public class GroupStudent {
   @NotNull
   private UUID studentId;
 
+  /** The instant the student joined the group, picked by the user when they assigned the group. */
+  @Column(name = "joined_at", nullable = false, updatable = false)
+  @NotNull
+  private OffsetDateTime joinedAt;
+
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;

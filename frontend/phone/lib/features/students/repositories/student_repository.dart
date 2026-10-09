@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/models/create_student_payment_request.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
@@ -15,6 +16,11 @@ final studentRepositoryProvider = Provider<StudentRepository>((ref) {
 class StudentRepository {
   final StudentControllerClient _service;
   List<StudentSummaryResponse>? _cachedStudents;
+
+  /// `PATCH /api/v1/students/{studentId}` parses `joinedAt` with `LocalDate.parse`
+  /// on the backend, so a plain `yyyy-MM-dd` value is required (an ISO date-time
+  /// would fail, the same way the birthdate does).
+  static final DateFormat _isoDate = DateFormat('yyyy-MM-dd');
 
   new(this._service);
 
@@ -94,6 +100,28 @@ class StudentRepository {
       );
     } on DioException catch (e) {
       throw Exception('Failed to create student payment: ${e.message}');
+    }
+  }
+
+  /// Attaches [studentId] to [groupId], replacing the group the student
+  /// belonged to before. `joinedAt` is the day the student joined the group.
+  Future<void> assignStudentGroup({
+    required String studentId,
+    required String groupId,
+    required DateTime joinedAt,
+  }) async {
+    try {
+      await _service.updateStudent(
+        studentId: studentId,
+        body: <String, dynamic>{
+          'groupId': groupId,
+          'joinedAt': _isoDate.format(joinedAt),
+        },
+      );
+    } on DioException catch (e) {
+      throw Exception(
+        'Failed to assign the student to the group: ${e.message}',
+      );
     }
   }
 

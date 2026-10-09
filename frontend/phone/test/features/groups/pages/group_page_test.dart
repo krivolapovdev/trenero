@@ -8,6 +8,7 @@ import 'package:phone/features/groups/pages/group_report_page.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/features/groups/services/lesson_service.dart';
+import 'package:phone/features/groups/widgets/group_day_lessons_bottom_sheet.dart';
 import 'package:phone/generated/group_controller/group_controller_client.dart';
 import 'package:phone/generated/lesson_controller/lesson_controller_client.dart';
 import 'package:phone/generated/models/create_group_request.dart';
@@ -206,7 +207,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LessonPage), findsOneWidget);
-    expect(find.text(t.lessons.createLesson), findsOneWidget);
+    expect(find.text(t.lessons.groupLesson), findsOneWidget);
   });
 
   testWidgets('the floating button opens the add lesson page', (tester) async {
@@ -220,24 +221,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LessonPage), findsOneWidget);
-    expect(find.text(t.lessons.createLesson), findsOneWidget);
+    expect(find.text(t.lessons.groupLesson), findsOneWidget);
   });
 
-  testWidgets('tapping a day without a lesson creates a lesson on that day', (
-    tester,
-  ) async {
-    final today = DateTime.now();
+  testWidgets(
+    'tapping a day without a lesson opens the create page right away',
+    (tester) async {
+      final today = DateTime.now();
 
-    await tester.pumpWidget(_wrap(_FakeGroupClient()));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(_wrap(_FakeGroupClient()));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('${today.day}'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('${today.day}'));
+      await tester.pumpAndSettle();
 
-    expect(find.byType(LessonPage), findsOneWidget);
-    expect(find.text(t.lessons.createLesson), findsOneWidget);
-    expect(find.text(_formatDate(today)), findsOneWidget);
-  });
+      // An empty day creates a lesson straight away, no day sheet in between.
+      expect(find.byType(GroupDayLessonsBottomSheet), findsNothing);
+      expect(find.byType(LessonPage), findsOneWidget);
+      expect(find.text(t.lessons.groupLesson), findsOneWidget);
+      expect(find.text(_formatDate(today)), findsOneWidget);
+    },
+  );
 
   testWidgets('tapping a day with a lesson opens the stored lesson', (
     tester,
@@ -263,8 +267,12 @@ void main() {
     await tester.tap(find.text('${today.day}'));
     await tester.pumpAndSettle();
 
+    // The day sheet lists the stored lesson of the day.
+    await tester.tap(find.text('${t.lessons.groupLesson} 1'));
+    await tester.pumpAndSettle();
+
     expect(find.byType(LessonPage), findsOneWidget);
-    expect(find.text(t.lessons.title), findsOneWidget);
-    expect(find.text(t.lessons.createLesson), findsNothing);
+    expect(find.text(t.lessons.groupLesson), findsOneWidget);
+    expect(find.text(_formatDate(today)), findsOneWidget);
   });
 }

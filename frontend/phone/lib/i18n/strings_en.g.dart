@@ -169,8 +169,17 @@ class Translations$lessons$en {
 	/// en: 'Lesson'
 	String get title => 'Lesson';
 
-	/// en: 'Add lesson'
-	String get createLesson => 'Add lesson';
+	/// en: 'Individual lesson'
+	String get individualLesson => 'Individual lesson';
+
+	/// en: 'Individual lessons'
+	String get individualLessons => 'Individual lessons';
+
+	/// en: 'Group lesson'
+	String get groupLesson => 'Group lesson';
+
+	/// en: 'Group lessons'
+	String get groupLessons => 'Group lessons';
 
 	/// en: 'Date'
 	String get date => 'Date';
@@ -183,6 +192,12 @@ class Translations$lessons$en {
 
 	/// en: 'This group has no students yet'
 	String get noStudents => 'This group has no students yet';
+
+	/// en: 'Present'
+	String get present => 'Present';
+
+	/// en: 'Missed'
+	String get missed => 'Missed';
 
 	/// en: 'Delete lesson?'
 	String get deleteLesson => 'Delete lesson?';
@@ -225,6 +240,9 @@ class Translations$students$en {
 
 	/// en: 'Group'
 	String get group => 'Group';
+
+	/// en: 'Joined at'
+	String get joinedAt => 'Joined at';
 
 	/// en: 'No student'
 	String get noStudent => 'No student';
@@ -481,11 +499,16 @@ extension on Translations {
 			'groups.defaultPrice' => 'Price by default',
 			'groups.report' => 'Report',
 			'lessons.title' => 'Lesson',
-			'lessons.createLesson' => 'Add lesson',
+			'lessons.individualLesson' => 'Individual lesson',
+			'lessons.individualLessons' => 'Individual lessons',
+			'lessons.groupLesson' => 'Group lesson',
+			'lessons.groupLessons' => 'Group lessons',
 			'lessons.date' => 'Date',
 			'lessons.selectAll' => 'Select all',
 			'lessons.deselectAll' => 'Deselect all',
 			'lessons.noStudents' => 'This group has no students yet',
+			'lessons.present' => 'Present',
+			'lessons.missed' => 'Missed',
 			'lessons.deleteLesson' => 'Delete lesson?',
 			'lessons.deleteLessonMessage' => 'The lesson and its attendance will be deleted permanently. This action cannot be undone.',
 			'students.title' => 'Students',
@@ -497,6 +520,7 @@ extension on Translations {
 			'students.birthdate' => 'Date of birth',
 			'students.phone' => 'Phone',
 			'students.group' => 'Group',
+			'students.joinedAt' => 'Joined at',
 			'students.noStudent' => 'No student',
 			'students.filter.title' => 'Filters',
 			'students.filter.group' => 'Group',

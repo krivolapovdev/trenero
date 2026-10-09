@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phone/generated/models/lesson_response.dart';
+import 'package:phone/generated/models/visit_status.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class LessonsCalendar extends StatefulWidget {
@@ -13,7 +14,23 @@ class LessonsCalendar extends StatefulWidget {
   final void Function(DateTime selectedDay, List<LessonResponse> dayLessons)?
   onDayTapped;
 
-  const new({super.key, required this.lessons, this.locale, this.onDayTapped});
+  /// The statuses of the visits that take place on a day, used to colour a
+  /// student's day by the attendance recorded for it.
+  ///
+  /// When set, a day whose visits were all present is drawn green and a day
+  /// that was entirely missed is drawn red. The days that are neither (an
+  /// unmarked visit, or a mix of present and absent) keep the colour of the
+  /// lesson. The group calendar leaves it null, so its days keep telling the
+  /// kind of lesson only.
+  final List<VisitStatus> Function(DateTime day)? dayVisitStatuses;
+
+  const new({
+    super.key,
+    required this.lessons,
+    this.locale,
+    this.onDayTapped,
+    this.dayVisitStatuses,
+  });
 
   @override
   State<LessonsCalendar> createState() => _LessonsCalendarState();
@@ -24,6 +41,16 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
 
   static const Color _lightGreenAlpha = Color(0x4D4CAF50);
   static const Color _darkForestGreen = Color(0xFF1B5E20);
+
+  /// An individual lesson belongs to one student, so its day is drawn with a
+  /// colour of its own to tell it from a day of a group lesson.
+  static const Color _lightBlueAlpha = Color(0x4D2196F3);
+  static const Color _darkBlue = Color(0xFF0D47A1);
+
+  /// The day of a student is drawn with these when the attendance of every
+  /// lesson of the day is known and the same.
+  static const Color _lightRedAlpha = Color(0x4DF44336);
+  static const Color _darkRed = Color(0xFFB71C1C);
 
   /// Lessons are only ever recorded for the past, so the days after today
   /// cannot be picked.
@@ -62,16 +89,58 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
     _showLessonsBottomSheet(selectedDay, dayLessons);
   }
 
-  /// The green marker of a day with at least one lesson, `null` for the other
-  /// days so that table_calendar falls back to its own style.
+  /// The colours a day of lessons is drawn with.
+  ///
+  /// A student's day is coloured by the attendance recorded for it: green when
+  /// the whole day was attended and red when it was entirely missed. The days
+  /// that are neither (an unmarked visit, or a mix of present and absent) fall
+  /// back to the colour of the lesson, which tells an individual lesson from a
+  /// group one.
+  ({Color background, Color foreground}) _dayColors(
+    DateTime day,
+    List<LessonResponse> dayLessons,
+  ) {
+    final statuses =
+        widget.dayVisitStatuses?.call(day) ?? const <VisitStatus>[];
+    final isAttended =
+        statuses.isNotEmpty &&
+        statuses.every((status) => status == VisitStatus.present);
+    final isMissed =
+        statuses.isNotEmpty &&
+        statuses.every((status) => status == VisitStatus.absent);
+
+    if (isAttended) {
+      return (background: _lightGreenAlpha, foreground: _darkForestGreen);
+    }
+
+    if (isMissed) {
+      return (background: _lightRedAlpha, foreground: _darkRed);
+    }
+
+    final hasIndividualLesson = dayLessons.any(
+      (lesson) => lesson.groupId == null,
+    );
+
+    return hasIndividualLesson
+        ? (background: _lightBlueAlpha, foreground: _darkBlue)
+        : (background: _lightGreenAlpha, foreground: _darkForestGreen);
+  }
+
+  /// The marker of a day with at least one lesson, `null` for the other days so
+  /// that table_calendar falls back to its own style.
   Widget? _buildLessonDay(DateTime day) {
-    if (_lessonsOf(day).isEmpty) return null;
+    final dayLessons = _lessonsOf(day);
+    if (dayLessons.isEmpty) return null;
+
+    final color = _dayColors(day, dayLessons);
+    final backgroundColor = color.background;
+    final foregroundColor = color.foreground;
 
     return Center(
       child: Container(
         margin: const EdgeInsets.all(4.0),
-        decoration: const BoxDecoration(
-          color: _lightGreenAlpha,
+        decoration: BoxDecoration(
+          color: backgroundColor,
           shape: BoxShape.circle,
         ),
         child: Center(
@@ -80,8 +149,8 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
             children: [
               Text(
                 '${day.day}',
-                style: const TextStyle(
-                  color: _darkForestGreen,
+                style: TextStyle(
+                  color: foregroundColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -90,8 +159,8 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
               Container(
                 width: 5,
                 height: 5,
-                decoration: const BoxDecoration(
-                  color: _darkForestGreen,
+                decoration: BoxDecoration(
+                  color: foregroundColor,
                   shape: BoxShape.circle,
                 ),
               ),

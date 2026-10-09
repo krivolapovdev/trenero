@@ -209,11 +209,7 @@ class _LessonPageState extends ConsumerState<LessonPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          lesson == null
-              ? context.t.lessons.createLesson
-              : context.t.lessons.title,
-        ),
+        title: Text(context.t.lessons.groupLesson),
         actions: [
           if (lesson != null)
             PopupMenuButton<String>(
@@ -325,6 +321,7 @@ class _LessonPageState extends ConsumerState<LessonPage> {
                       )
                       ? context.t.lessons.deselectAll
                       : context.t.lessons.selectAll,
+                  style: TextStyle(fontSize: 16),
                 ),
               ),
             ),

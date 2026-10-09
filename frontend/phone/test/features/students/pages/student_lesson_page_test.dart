@@ -243,7 +243,7 @@ void main() {
   ) async {
     await _openPage(tester);
 
-    expect(find.text(t.lessons.createLesson), findsOneWidget);
+    expect(find.text(t.lessons.individualLesson), findsOneWidget);
     expect(find.text('08.10.2026'), findsOneWidget);
     expect(find.text(_studentName), findsOneWidget);
 

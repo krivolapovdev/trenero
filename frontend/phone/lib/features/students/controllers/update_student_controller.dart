@@ -25,7 +25,6 @@ class UpdateStudentController extends AsyncNotifier<void> {
     required DateTime? birthdate,
     required String? phone,
     required String? note,
-    required String? groupId,
   }) async {
     state = const AsyncLoading();
 
@@ -40,10 +39,6 @@ class UpdateStudentController extends AsyncNotifier<void> {
         'birthdate': birthdate == null ? null : _isoDate.format(birthdate),
         'phone': blankToNull(phone),
         'note': blankToNull(note),
-        // `groupId` is handled by `StudentService.updateStudent` (not the
-        // mapper): the student is detached from the previous group and
-        // attached to the new one. A `null` value detaches them entirely.
-        'groupId': groupId,
       };
 
       final service = ref.read(studentServiceProvider);

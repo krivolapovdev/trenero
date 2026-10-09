@@ -58,7 +58,14 @@ public class LessonService implements LessonSpi {
     log.info("Getting last group lessons: groupIds={}; user={}", groupIds, jwtUser);
     return lessonRepository.findLastLessonsByGroupIdsAndOwnerId(groupIds, jwtUser.id()).stream()
         .map(lessonMapper::toResponse)
-        .collect(Collectors.toMap(LessonResponse::getGroupId, Function.identity()));
+        .collect(
+            Collectors.toMap(
+                LessonResponse::getGroupId,
+                Function.identity(),
+                // A group can hold several lessons on its last day, the lesson
+                // created last is the one that counts as the last lesson.
+                (first, second) ->
+                    first.getCreatedAt().isAfter(second.getCreatedAt()) ? first : second));
   }
 
   @Transactional(readOnly = true)
@@ -87,6 +94,21 @@ public class LessonService implements LessonSpi {
     return lessonRepository.findAllByGroupIdAndOwnerId(groupId, jwtUser.id()).stream()
         .map(lessonMapper::toResponse)
         .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public @NonNull Map<UUID, LessonResponse> getLessonsByIds(
+      @NonNull List<UUID> lessonIds, @NonNull JwtUser jwtUser) {
+    log.info("Getting lessons by ids: lessonIds={}; user={}", lessonIds, jwtUser);
+
+    if (lessonIds.isEmpty()) {
+      return Map.of();
+    }
+
+    return lessonRepository.findAllByIdsAndOwnerId(lessonIds, jwtUser.id()).stream()
+        .map(lessonMapper::toResponse)
+        .collect(Collectors.toMap(LessonResponse::getId, Function.identity()));
   }
 
   @Transactional

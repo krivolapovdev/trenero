@@ -2,9 +2,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 class StudentFormSheet extends StatefulWidget {
   final String title;
@@ -14,16 +12,12 @@ class StudentFormSheet extends StatefulWidget {
   final DateTime? initialBirthdate;
   final String? initialPhone;
   final String? initialNote;
-  final String? initialGroupId;
-  final List<GroupSummaryResponse> groups;
-  final bool isGroupsLoading;
   final bool isLoading;
   final Future<void> Function({
     required String fullName,
     required DateTime? birthdate,
     required String? phone,
     required String? note,
-    required String? groupId,
   })
   onSubmit;
 
@@ -37,9 +31,6 @@ class StudentFormSheet extends StatefulWidget {
     this.initialBirthdate,
     this.initialPhone,
     this.initialNote,
-    this.initialGroupId,
-    this.groups = const [],
-    this.isGroupsLoading = false,
     this.isLoading = false,
   });
 
@@ -57,15 +48,11 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
   late final TextEditingController _birthdateController;
 
   DateTime? _birthdate;
-  String? _groupId;
-
-  bool _isGroupExpanded = false;
 
   @override
   void initState() {
     super.initState();
     _birthdate = widget.initialBirthdate;
-    _groupId = widget.initialGroupId;
     _nameController = TextEditingController(text: widget.initialFullName);
     _phoneController = TextEditingController(text: widget.initialPhone);
     _noteController = TextEditingController(text: widget.initialNote);
@@ -116,31 +103,6 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
     });
   }
 
-  String? get _selectedGroupId =>
-      widget.groups.any((group) => group.id == _groupId) ? _groupId : null;
-
-  void _toggleGroup() {
-    FocusScope.of(context).unfocus();
-    setState(() {
-      _isGroupExpanded = !_isGroupExpanded;
-    });
-  }
-
-  void _collapseGroup() {
-    if (!_isGroupExpanded) return;
-
-    setState(() {
-      _isGroupExpanded = false;
-    });
-  }
-
-  void _selectGroup(String? groupId) {
-    setState(() {
-      _groupId = groupId;
-      _isGroupExpanded = false;
-    });
-  }
-
   DateTime _clampDate(DateTime value, DateTime min, DateTime max) {
     if (value.isBefore(min)) return min;
     if (value.isAfter(max)) return max;
@@ -158,114 +120,6 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
       birthdate: _birthdate,
       phone: _phoneController.text,
       note: _noteController.text,
-      groupId: _groupId,
-    );
-  }
-
-  Widget _buildGroupField() {
-    final groups = widget.groups;
-
-    if (groups.isEmpty) {
-      if (!widget.isGroupsLoading) return const SizedBox.shrink();
-
-      return Skeletonizer(
-        ignorePointers: true,
-        child: TextField(
-          enabled: false,
-          decoration: InputDecoration(
-            labelText: context.t.students.group,
-            prefixIcon: const Icon(FluentIcons.people_team_16_regular),
-          ),
-        ),
-      );
-    }
-
-    final selectedGroupId = _selectedGroupId;
-    final selectedGroup = groups
-        .where((group) => group.id == selectedGroupId)
-        .firstOrNull;
-
-    return Column(
-      children: [
-        InkWell(
-          onTap: widget.isLoading ? null : _toggleGroup,
-          child: InputDecorator(
-            decoration: InputDecoration(
-              labelText: context.t.students.group,
-              prefixIcon: const Icon(FluentIcons.people_team_16_regular),
-              suffixIcon: Icon(
-                _isGroupExpanded
-                    ? FluentIcons.chevron_up_24_regular
-                    : FluentIcons.chevron_down_24_regular,
-              ),
-            ),
-            child: Text(
-              selectedGroup?.name ?? context.t.groups.noGroup,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        ClipRect(
-          child: AnimatedSize(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: _isGroupExpanded
-                ? Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Material(
-                      color: Colors.grey.shade50,
-                      clipBehavior: Clip.antiAlias,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxHeight: 240),
-                        child: ListView(
-                          shrinkWrap: true,
-                          padding: EdgeInsets.zero,
-                          children: [
-                            _buildGroupOption(
-                              label: context.t.groups.noGroup,
-                              value: null,
-                            ),
-                            ...groups.map(
-                              (group) => _buildGroupOption(
-                                label: group.name,
-                                value: group.id,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                : const SizedBox(width: double.infinity, height: 0),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGroupOption({required String label, required String? value}) {
-    final isSelected = _selectedGroupId == value;
-
-    return ListTile(
-      dense: true,
-      enabled: !widget.isLoading,
-      title: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 16),
-      ),
-      trailing: isSelected
-          ? const Icon(Icons.check, color: Colors.deepPurple)
-          : null,
-      onTap: () => _selectGroup(value),
     );
   }
 
@@ -310,7 +164,6 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                         controller: _nameController,
                         textCapitalization: TextCapitalization.words,
                         enabled: !isLoading,
-                        onTap: _collapseGroup,
                       ),
 
                       TextField(
@@ -328,10 +181,7 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                         ),
                         controller: _birthdateController,
                         readOnly: true,
-                        onTap: () {
-                          _collapseGroup();
-                          _pickBirthdate();
-                        },
+                        onTap: _pickBirthdate,
                         enabled: !isLoading,
                       ),
 
@@ -349,7 +199,6 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                           ),
                         ],
                         enabled: !isLoading,
-                        onTap: _collapseGroup,
                       ),
 
                       TextField(
@@ -359,10 +208,7 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                         ),
                         controller: _noteController,
                         enabled: !isLoading,
-                        onTap: _collapseGroup,
                       ),
-
-                      _buildGroupField(),
 
                       Padding(
                         padding: EdgeInsetsGeometry.symmetric(

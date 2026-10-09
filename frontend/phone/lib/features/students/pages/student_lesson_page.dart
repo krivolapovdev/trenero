@@ -183,11 +183,7 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          lesson == null
-              ? context.t.lessons.createLesson
-              : context.t.lessons.title,
-        ),
+        title: Text(context.t.lessons.individualLesson),
         actions: [
           if (lesson != null)
             PopupMenuButton<String>(

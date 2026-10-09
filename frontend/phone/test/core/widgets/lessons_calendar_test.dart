@@ -3,27 +3,51 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:phone/core/widgets/lessons_calendar.dart';
 import 'package:phone/generated/models/lesson_response.dart';
+import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-/// The background of the circle that marks a day with a lesson.
-const Color _lessonColor = Color(0x4D4CAF50);
+/// The background of the circle that marks a day with a group lesson.
+const Color _groupLessonColor = Color(0x4D4CAF50);
 
-LessonResponse _lesson(DateTime date) =>
-    LessonResponse(id: 'lesson-1', date: date, createdAt: date);
+/// The background of the circle that marks a day with an individual lesson.
+const Color _individualLessonColor = Color(0x4D2196F3);
+
+/// The background of the circle that marks a day a student attended in full.
+const Color _attendedColor = Color(0x4D4CAF50);
+
+/// The background of the circle that marks a day a student missed in full.
+const Color _missedColor = Color(0x4DF44336);
+
+LessonResponse _groupLesson(DateTime date) => LessonResponse(
+  id: 'group-lesson',
+  date: date,
+  createdAt: date,
+  groupId: 'group-1',
+);
+
+LessonResponse _individualLesson(DateTime date) =>
+    LessonResponse(id: 'individual-lesson', date: date, createdAt: date);
+
+/// The calendar of a student, which colours a day by the attendance recorded
+/// for it. The day of the lesson is the only one the colour is read from.
+Widget _studentCalendar(
+  List<LessonResponse> lessons,
+  List<VisitStatus> statuses,
+) => LessonsCalendar(lessons: lessons, dayVisitStatuses: (_) => statuses);
 
 Widget _wrap(Widget child) => TranslationProvider(
   child: MaterialApp(home: Scaffold(body: child)),
 );
 
-/// The circle drawn around [dayText] when the day has a lesson.
-Finder _lessonMarker(String dayText) => find.ancestor(
+/// The circle drawn around [dayText] when the day has a lesson of [color].
+Finder _lessonMarker(String dayText, Color color) => find.ancestor(
   of: find.text(dayText),
   matching: find.byWidgetPredicate(
     (widget) =>
         widget is Container &&
         widget.decoration is BoxDecoration &&
-        (widget.decoration! as BoxDecoration).color == _lessonColor,
+        (widget.decoration! as BoxDecoration).color == color,
   ),
 );
 
@@ -33,15 +57,55 @@ void main() {
     LocaleSettings.setLocaleSync(AppLocale.en);
   });
 
-  testWidgets('a lesson that takes place today keeps the lesson style', (
+  testWidgets('a group lesson that takes place today keeps the lesson style', (
     tester,
   ) async {
     final today = DateTime.now();
 
-    await tester.pumpWidget(_wrap(LessonsCalendar(lessons: [_lesson(today)])));
+    await tester.pumpWidget(
+      _wrap(LessonsCalendar(lessons: [_groupLesson(today)])),
+    );
     await tester.pumpAndSettle();
 
-    expect(_lessonMarker('${today.day}'), findsOneWidget);
+    expect(_lessonMarker('${today.day}', _groupLessonColor), findsOneWidget);
+    expect(_lessonMarker('${today.day}', _individualLessonColor), findsNothing);
+  });
+
+  testWidgets('an individual lesson marks the day with its own colour', (
+    tester,
+  ) async {
+    final today = DateTime.now();
+
+    await tester.pumpWidget(
+      _wrap(LessonsCalendar(lessons: [_individualLesson(today)])),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      _lessonMarker('${today.day}', _individualLessonColor),
+      findsOneWidget,
+    );
+    expect(_lessonMarker('${today.day}', _groupLessonColor), findsNothing);
+  });
+
+  testWidgets('a day with both lessons is marked as an individual day', (
+    tester,
+  ) async {
+    final today = DateTime.now();
+
+    await tester.pumpWidget(
+      _wrap(
+        LessonsCalendar(
+          lessons: [_groupLesson(today), _individualLesson(today)],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      _lessonMarker('${today.day}', _individualLessonColor),
+      findsOneWidget,
+    );
   });
 
   testWidgets('the other days keep the plain style', (tester) async {
@@ -51,7 +115,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('${today.day}'), findsOneWidget);
-    expect(_lessonMarker('${today.day}'), findsNothing);
+    expect(_lessonMarker('${today.day}', _groupLessonColor), findsNothing);
+    expect(_lessonMarker('${today.day}', _individualLessonColor), findsNothing);
   });
 
   testWidgets('tapping a day reports the lessons of that day', (tester) async {
@@ -62,7 +127,7 @@ void main() {
     await tester.pumpWidget(
       _wrap(
         LessonsCalendar(
-          lessons: [_lesson(today)],
+          lessons: [_groupLesson(today)],
           onDayTapped: (day, lessons) {
             tappedDay = day;
             tappedLessons = lessons;
@@ -77,7 +142,7 @@ void main() {
 
     expect(isSameDay(tappedDay!, today), isTrue);
     expect(tappedLessons, hasLength(1));
-    expect(tappedLessons!.single.id, 'lesson-1');
+    expect(tappedLessons!.single.id, 'group-lesson');
   });
 
   testWidgets('tapping a day without a lesson reports an empty list', (
@@ -144,5 +209,104 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(taps, 0);
+  });
+
+  testWidgets('a day attended in full is drawn green', (tester) async {
+    final today = DateTime.now();
+
+    await tester.pumpWidget(
+      _wrap(
+        _studentCalendar(
+          [_individualLesson(today)],
+          const [VisitStatus.present, VisitStatus.present],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_lessonMarker('${today.day}', _attendedColor), findsOneWidget);
+    expect(_lessonMarker('${today.day}', _individualLessonColor), findsNothing);
+    expect(_lessonMarker('${today.day}', _missedColor), findsNothing);
+  });
+
+  testWidgets('a day missed in full is drawn red', (tester) async {
+    final today = DateTime.now();
+
+    await tester.pumpWidget(
+      _wrap(
+        _studentCalendar(
+          [_individualLesson(today)],
+          const [VisitStatus.absent, VisitStatus.absent],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_lessonMarker('${today.day}', _missedColor), findsOneWidget);
+    expect(_lessonMarker('${today.day}', _individualLessonColor), findsNothing);
+    expect(_lessonMarker('${today.day}', _attendedColor), findsNothing);
+  });
+
+  testWidgets('a day with an unmarked visit keeps the lesson colour', (
+    tester,
+  ) async {
+    final today = DateTime.now();
+
+    await tester.pumpWidget(
+      _wrap(
+        _studentCalendar(
+          [_individualLesson(today)],
+          const [VisitStatus.unmarked],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      _lessonMarker('${today.day}', _individualLessonColor),
+      findsOneWidget,
+    );
+    expect(_lessonMarker('${today.day}', _attendedColor), findsNothing);
+    expect(_lessonMarker('${today.day}', _missedColor), findsNothing);
+  });
+
+  testWidgets('a day that mixes present and absent keeps the lesson colour', (
+    tester,
+  ) async {
+    final today = DateTime.now();
+
+    await tester.pumpWidget(
+      _wrap(
+        _studentCalendar(
+          [_individualLesson(today)],
+          const [VisitStatus.present, VisitStatus.absent],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      _lessonMarker('${today.day}', _individualLessonColor),
+      findsOneWidget,
+    );
+    expect(_lessonMarker('${today.day}', _attendedColor), findsNothing);
+    expect(_lessonMarker('${today.day}', _missedColor), findsNothing);
+  });
+
+  testWidgets('a day without attendance keeps the lesson colour', (
+    tester,
+  ) async {
+    final today = DateTime.now();
+
+    await tester.pumpWidget(
+      _wrap(_studentCalendar([_individualLesson(today)], const [])),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      _lessonMarker('${today.day}', _individualLessonColor),
+      findsOneWidget,
+    );
+    expect(_lessonMarker('${today.day}', _missedColor), findsNothing);
   });
 }

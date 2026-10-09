@@ -279,7 +279,7 @@ void main() {
   ) async {
     await _openPage(tester);
 
-    expect(find.text(t.lessons.createLesson), findsOneWidget);
+    expect(find.text(t.lessons.groupLesson), findsOneWidget);
     expect(find.text('08.10.2026'), findsOneWidget);
     expect(find.text(t.lessons.deselectAll), findsOneWidget);
 
@@ -356,7 +356,7 @@ void main() {
       ),
     );
 
-    expect(find.text(t.lessons.title), findsOneWidget);
+    expect(find.text(t.lessons.groupLesson), findsOneWidget);
     expect(find.text('08.10.2026'), findsOneWidget);
 
     expect(_isChecked(tester, 'Ivan Petrov'), isTrue);

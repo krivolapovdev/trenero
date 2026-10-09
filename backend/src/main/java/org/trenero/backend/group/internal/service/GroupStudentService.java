@@ -1,5 +1,8 @@
 package org.trenero.backend.group.internal.service;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -62,18 +65,40 @@ public class GroupStudentService implements GroupStudentSpi {
   @Transactional
   @Override
   public void addStudentToGroup(
-      @NonNull UUID studentId, @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
+      @NonNull UUID studentId,
+      @NonNull UUID groupId,
+      LocalDate joinedAt,
+      @NonNull JwtUser jwtUser) {
     log.info(
-        "Adding student to group: studentId={}; groupId={}; user={}", studentId, groupId, jwtUser);
+        "Adding student to group: studentId={}; groupId={}; joinedAt={}; user={}",
+        studentId,
+        groupId,
+        joinedAt,
+        jwtUser);
 
     groupService.getGroupById(groupId, jwtUser);
 
     GroupStudent groupStudent =
-        GroupStudent.builder().studentId(studentId).groupId(groupId).ownerId(jwtUser.id()).build();
+        GroupStudent.builder()
+            .studentId(studentId)
+            .groupId(groupId)
+            .ownerId(jwtUser.id())
+            .joinedAt(toJoinedAt(joinedAt))
+            .build();
 
     GroupStudent savedGroupStudent = self.saveGroupStudent(groupStudent);
 
     groupStudentMapper.toResponse(savedGroupStudent);
+  }
+
+  /**
+   * The stored instant of joining a group. The user picks a calendar day, so it is anchored to the
+   * start of that day in UTC; when no day is given the current day is used.
+   */
+  private static OffsetDateTime toJoinedAt(LocalDate joinedAt) {
+    return (joinedAt != null ? joinedAt : LocalDate.now())
+        .atStartOfDay(ZoneOffset.UTC)
+        .toOffsetDateTime();
   }
 
   @Override
@@ -109,6 +134,7 @@ public class GroupStudentService implements GroupStudentSpi {
                         .studentId(studentId)
                         .groupId(groupId)
                         .ownerId(jwtUser.id())
+                        .joinedAt(OffsetDateTime.now(ZoneOffset.UTC))
                         .build())
             .toList();
 

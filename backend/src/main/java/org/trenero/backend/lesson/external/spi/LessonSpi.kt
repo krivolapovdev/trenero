@@ -15,6 +15,8 @@ interface LessonSpi {
 
   fun getLessonById(lessonId: UUID, jwtUser: JwtUser): LessonResponse
 
+  fun getLessonsByIds(lessonIds: List<UUID>, jwtUser: JwtUser): Map<UUID, LessonResponse>
+
   fun getLessonsByGroupId(groupId: UUID, jwtUser: JwtUser): List<LessonResponse>
 
   fun deleteLesson(lessonId: UUID, jwtUser: JwtUser)

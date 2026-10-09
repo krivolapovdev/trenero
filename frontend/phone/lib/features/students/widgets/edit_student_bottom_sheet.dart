@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
-import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/update_student_controller.dart';
 import 'package:phone/features/students/widgets/student_form_sheet.dart';
-import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -26,7 +24,6 @@ class _EditStudentBottomSheetState
     required DateTime? birthdate,
     required String? phone,
     required String? note,
-    required String? groupId,
   }) async {
     final success = await ref
         .read(updateStudentControllerProvider.notifier)
@@ -36,7 +33,6 @@ class _EditStudentBottomSheetState
           birthdate: birthdate,
           phone: phone,
           note: note,
-          groupId: groupId,
         );
 
     if (!mounted) return;
@@ -60,7 +56,6 @@ class _EditStudentBottomSheetState
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(updateStudentControllerProvider).isLoading;
-    final groupsState = ref.watch(groupListControllerProvider);
     final student = widget.student;
 
     return StudentFormSheet(
@@ -68,13 +63,10 @@ class _EditStudentBottomSheetState
       submitLabel: context.t.update,
       submitIcon: Icons.check,
       isLoading: isLoading,
-      groups: groupsState.value ?? const <GroupSummaryResponse>[],
-      isGroupsLoading: groupsState.isLoading,
       initialFullName: student.fullName,
       initialBirthdate: student.birthdate,
       initialPhone: student.phone,
       initialNote: student.note,
-      initialGroupId: student.studentGroup?.id,
       onSubmit: _onUpdate,
     );
   }

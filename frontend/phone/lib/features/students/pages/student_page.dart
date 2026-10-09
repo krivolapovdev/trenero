@@ -12,6 +12,7 @@ import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
 import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
+import 'package:phone/features/students/widgets/student_group_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_lessons_section.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -33,6 +34,27 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     await AppBottomSheet.show(
       context: context,
       child: EditStudentBottomSheet(student: _student),
+    );
+
+    if (!mounted) return;
+
+    final listState = ref.read(studentListControllerProvider);
+    final updated = (listState.value ?? const <StudentSummaryResponse>[])
+        .where((s) => s.id == _student.id)
+        .firstOrNull;
+
+    if (updated != null) setState(() => _student = updated);
+  }
+
+  /// Opens the group sheet of the student, then re-reads the student so the
+  /// card and the lessons show the newly assigned group.
+  Future<void> _openAssignGroupSheet() async {
+    await AppBottomSheet.show(
+      context: context,
+      child: StudentGroupBottomSheet(
+        studentId: _student.id,
+        initialGroupId: _student.studentGroup?.id,
+      ),
     );
 
     if (!mounted) return;
@@ -125,6 +147,16 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 ),
               ),
               PopupMenuItem<String>(
+                onTap: _openAssignGroupSheet,
+                child: const Row(
+                  children: [
+                    Icon(Icons.group, size: 20),
+                    SizedBox(width: 12),
+                    Text('Group'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
                 onTap: () {},
                 child: const Row(
                   children: [
@@ -201,6 +233,14 @@ class _StudentPageState extends ConsumerState<StudentPage> {
             highlightElevation: 0,
             child: const Icon(Icons.calendar_month),
           ),
+          FloatingActionButton(
+            heroTag: 'group-student',
+            onPressed: _openAssignGroupSheet,
+            elevation: 0,
+            focusElevation: 0,
+            highlightElevation: 0,
+            child: const Icon(Icons.group),
+          ),
         ],
       ),
       body: CustomMaterialIndicator(
@@ -269,6 +309,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
               StudentLessonsSection(
                 studentId: _student.id,
                 studentName: _student.fullName,
+                studentGroup: _student.studentGroup,
               ),
 
               RecentTransactions(

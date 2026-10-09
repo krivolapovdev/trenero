@@ -99,8 +99,8 @@ class StudentLessonMutationController extends AsyncNotifier<void> {
         )
       : StudentVisit(
           studentId: studentId,
-          status: VisitStatus.unmarked,
-          type: VisitType.unmarked,
+          status: VisitStatus.absent,
+          type: VisitType.regular,
         );
 
   /// The backend stores lessons per day, so the time part is dropped.

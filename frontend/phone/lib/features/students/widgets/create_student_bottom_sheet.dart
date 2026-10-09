@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
-import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/students/controllers/create_student_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/widgets/student_form_sheet.dart';
-import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class CreateStudentBottomSheet extends ConsumerStatefulWidget {
@@ -23,7 +21,6 @@ class _CreateStudentBottomSheetState
     required DateTime? birthdate,
     required String? phone,
     required String? note,
-    required String? groupId,
   }) async {
     final success = await ref
         .read(createStudentControllerProvider.notifier)
@@ -32,7 +29,6 @@ class _CreateStudentBottomSheetState
           birthdate: birthdate,
           phone: phone,
           note: note,
-          groupId: groupId,
         );
 
     if (!mounted) return;
@@ -54,15 +50,12 @@ class _CreateStudentBottomSheetState
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(createStudentControllerProvider).isLoading;
-    final groupsState = ref.watch(groupListControllerProvider);
 
     return StudentFormSheet(
       title: context.t.students.createStudent,
       submitLabel: context.t.create,
       submitIcon: Icons.add,
       isLoading: isLoading,
-      groups: groupsState.value ?? const <GroupSummaryResponse>[],
-      isGroupsLoading: groupsState.isLoading,
       onSubmit: _onSave,
     );
   }

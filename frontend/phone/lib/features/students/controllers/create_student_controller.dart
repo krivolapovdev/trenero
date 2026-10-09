@@ -18,7 +18,6 @@ class CreateStudentController extends AsyncNotifier<void> {
     required DateTime? birthdate,
     required String? phone,
     required String? note,
-    required String? groupId,
   }) async {
     state = const AsyncLoading();
 
@@ -33,7 +32,6 @@ class CreateStudentController extends AsyncNotifier<void> {
         birthdate: birthdate,
         phone: blankToNull(phone),
         note: blankToNull(note),
-        groupId: groupId,
       );
 
       final service = ref.read(studentServiceProvider);
