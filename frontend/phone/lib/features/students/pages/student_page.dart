@@ -8,6 +8,7 @@ import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.d
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
+import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
 import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
@@ -51,6 +52,29 @@ class _StudentPageState extends ConsumerState<StudentPage> {
         initialStudentId: _student.id,
         initialAmount: _student.studentGroup?.defaultPrice,
         isIncomeOnly: true,
+      ),
+    );
+
+    if (!mounted) return;
+
+    final listState = ref.read(studentListControllerProvider);
+    final updated = (listState.value ?? const <StudentSummaryResponse>[])
+        .where((s) => s.id == _student.id)
+        .firstOrNull;
+
+    if (updated != null) setState(() => _student = updated);
+  }
+
+  /// Opens the lesson page for a new individual lesson of the student, then
+  /// re-reads the student so the attendance badges reflect the new lesson.
+  Future<void> _openCreateLessonPage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => StudentLessonPage(
+          studentId: _student.id,
+          studentName: _student.fullName,
+          date: DateUtils.dateOnly(DateTime.now()),
+        ),
       ),
     );
 
@@ -171,7 +195,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
           ),
           FloatingActionButton(
             heroTag: 'lesson-student',
-            onPressed: () {},
+            onPressed: _openCreateLessonPage,
             elevation: 0,
             focusElevation: 0,
             highlightElevation: 0,
@@ -242,7 +266,10 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 ),
               ),
 
-              StudentLessonsSection(studentId: _student.id),
+              StudentLessonsSection(
+                studentId: _student.id,
+                studentName: _student.fullName,
+              ),
 
               RecentTransactions(
                 asyncTransactions: paymentsAsync,

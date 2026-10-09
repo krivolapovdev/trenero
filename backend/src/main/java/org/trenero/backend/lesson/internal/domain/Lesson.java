@@ -34,8 +34,8 @@ public class Lesson {
   @NotNull
   private UUID ownerId;
 
+  /** The group the lesson belongs to, or {@code null} for an individual lesson of one student. */
   @Column(name = "group_id", updatable = false)
-  @NotNull
   private UUID groupId;
 
   @Column(name = "date", nullable = false)

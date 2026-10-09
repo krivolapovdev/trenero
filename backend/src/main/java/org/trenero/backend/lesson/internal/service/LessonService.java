@@ -96,24 +96,38 @@ public class LessonService implements LessonSpi {
     Lesson lesson = lessonMapper.toLesson(request, jwtUser.id());
     Lesson savedLesson = saveLesson(lesson);
 
+    visitSpi.createVisits(lesson.getId(), buildStudentVisits(request, jwtUser), jwtUser);
+
+    return lessonMapper.toResponse(savedLesson);
+  }
+
+  /**
+   * The visits to store for a new lesson.
+   *
+   * <p>An individual lesson (no {@code groupId}) keeps exactly the students that were sent, so a
+   * lesson can hold a single student. A group lesson has to hold every student of the group, so the
+   * sent ones keep their status and the rest are completed as unmarked.
+   */
+  private List<StudentVisit> buildStudentVisits(CreateLessonRequest request, JwtUser jwtUser) {
     Map<UUID, StudentVisit> requestStudentMap =
         request.students().stream()
             .filter(Objects::nonNull)
-            .collect(Collectors.toMap(StudentVisit::studentId, Function.identity()));
+            .filter(studentVisit -> studentVisit.studentId() != null)
+            .collect(
+                Collectors.toMap(
+                    StudentVisit::studentId, Function.identity(), (first, second) -> second));
 
-    List<StudentVisit> studentVisitList =
-        groupStudentSpi.getStudentsByGroupId(request.groupId(), jwtUser).stream()
-            .map(
-                res ->
-                    requestStudentMap.getOrDefault(
-                        res.getStudentId(),
-                        new StudentVisit(
-                            res.getStudentId(), VisitStatus.UNMARKED, VisitType.UNMARKED)))
-            .toList();
+    if (request.groupId() == null) {
+      return List.copyOf(requestStudentMap.values());
+    }
 
-    visitSpi.createVisits(lesson.getId(), studentVisitList, jwtUser);
-
-    return lessonMapper.toResponse(savedLesson);
+    return groupStudentSpi.getStudentsByGroupId(request.groupId(), jwtUser).stream()
+        .map(
+            res ->
+                requestStudentMap.getOrDefault(
+                    res.getStudentId(),
+                    new StudentVisit(res.getStudentId(), VisitStatus.UNMARKED, VisitType.UNMARKED)))
+        .toList();
   }
 
   @Transactional
