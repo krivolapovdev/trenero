@@ -15,6 +15,7 @@
   "noData": "No data",
   "noTransactions": "No transactions",
   "somethingWentWrong": "Something went wrong!",
+  "invalidDate": "Invalid date",
   "errorLoadingData": "Error loading data: $error",
   "archive": "Archive",
   "auth": {

@@ -142,10 +142,7 @@ class RecentTransactions extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: groupedTransactions.entries.expand((entry) {
-        final dateHeader = TransactionDateFormatter.formatDateHeader(
-          entry.key,
-          context,
-        );
+        final dateHeader = TransactionDateFormatter.formatDateHeader(entry.key);
         final items = entry.value;
 
         return [

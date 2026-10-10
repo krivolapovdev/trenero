@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
+import 'package:phone/core/widgets/date_input_field.dart';
 import 'package:phone/features/finance/controllers/create_transaction_controller.dart';
 import 'package:phone/features/students/controllers/create_student_payment_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
@@ -10,7 +11,6 @@ import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class CreateTransactionBottomSheet extends ConsumerStatefulWidget {
   /// Student the payment is created for, pre-selected when the sheet opens.
@@ -38,14 +38,13 @@ class CreateTransactionBottomSheet extends ConsumerStatefulWidget {
 class _CreateTransactionBottomSheetState
     extends ConsumerState<CreateTransactionBottomSheet> {
   final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _paidUntilController = TextEditingController();
 
   TransactionType _selectedType = TransactionType.income;
   DateTime _selectedDate = DateTime.now();
+  bool _isDateValid = true;
   String? _selectedStudentId;
   DateTime? _paidUntil;
   bool _isLoading = false;
-  bool _isCalendarExpanded = false;
   bool _isStudentExpanded = false;
 
   /// The last amount taken from a group default price. It allows the sheet to
@@ -71,7 +70,6 @@ class _CreateTransactionBottomSheetState
     if (initialStudentId != null) {
       _selectedStudentId = initialStudentId;
       _paidUntil = _defaultPaidUntil;
-      _paidUntilController.text = _formatDate(_paidUntil!);
     }
   }
 
@@ -82,7 +80,6 @@ class _CreateTransactionBottomSheetState
   @override
   void dispose() {
     _amountController.dispose();
-    _paidUntilController.dispose();
     super.dispose();
   }
 
@@ -95,18 +92,36 @@ class _CreateTransactionBottomSheetState
   DateTime get _defaultPaidUntil =>
       DateTime(_selectedDate.year, _selectedDate.month + 1, _selectedDate.day);
 
-  void _toggleCalendar() {
-    FocusScope.of(context).unfocus();
+  /// The latest date a payment can be extended to, three years from today.
+  DateTime get _maxPaidUntil =>
+      DateTime.now().add(const Duration(days: 365 * 3));
+
+  /// Keeps the last valid date while the typed text is invalid or incomplete.
+  void _onDateChanged(DateTime? date) {
     setState(() {
-      _isStudentExpanded = false;
-      _isCalendarExpanded = !_isCalendarExpanded;
+      _isDateValid = date != null;
+      if (date == null) return;
+
+      final paidUntil = _paidUntil;
+      final isValidPaidUntil = paidUntil != null && !paidUntil.isBefore(date);
+
+      _selectedDate = date;
+
+      if (!isValidPaidUntil) {
+        _paidUntil = _isStudentPayment ? _defaultPaidUntil : null;
+      }
+    });
+  }
+
+  void _onPaidUntilChanged(DateTime? date) {
+    setState(() {
+      _paidUntil = date;
     });
   }
 
   void _toggleStudent() {
     FocusScope.of(context).unfocus();
     setState(() {
-      _isCalendarExpanded = false;
       _isStudentExpanded = !_isStudentExpanded;
     });
   }
@@ -130,30 +145,6 @@ class _CreateTransactionBottomSheetState
       _selectedStudentId = studentId;
       _isStudentExpanded = false;
       _paidUntil = paidUntil;
-      _paidUntilController.text = paidUntil == null
-          ? ''
-          : _formatDate(paidUntil);
-    });
-  }
-
-  Future<void> _pickPaidUntil() async {
-    final lastDate = DateTime.now().add(const Duration(days: 365 * 3));
-    final initialDate = _paidUntil ?? _defaultPaidUntil;
-
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate.isBefore(_selectedDate)
-          ? _selectedDate
-          : initialDate,
-      firstDate: _selectedDate,
-      lastDate: lastDate,
-    );
-
-    if (picked == null) return;
-
-    setState(() {
-      _paidUntil = picked;
-      _paidUntilController.text = _formatDate(picked);
     });
   }
 
@@ -171,7 +162,6 @@ class _CreateTransactionBottomSheetState
 
     setState(() {
       _isLoading = true;
-      _isCalendarExpanded = false;
       _isStudentExpanded = false;
     });
 
@@ -223,12 +213,6 @@ class _CreateTransactionBottomSheetState
         });
       }
     }
-  }
-
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    return '$day.$month.${date.year}';
   }
 
   /// Formats [amount] without trailing zeros, the way price fields do.
@@ -390,18 +374,14 @@ class _CreateTransactionBottomSheetState
     );
   }
 
-  Widget _buildPaidUntilField() => TextField(
-    decoration: InputDecoration(
-      labelText: '${context.t.finance.paidUntil}*',
-      prefixIcon: const Icon(FluentIcons.calendar_ltr_16_regular),
-    ),
-    controller: _paidUntilController,
-    readOnly: true,
+  Widget _buildPaidUntilField() => DateInputField(
+    labelText: '${context.t.finance.paidUntil}*',
+    icon: FluentIcons.calendar_ltr_16_regular,
+    initialDate: _paidUntil,
+    firstDate: _selectedDate,
+    lastDate: _maxPaidUntil,
     enabled: !_isLoading,
-    onTap: () {
-      _collapseStudent();
-      _pickPaidUntil();
-    },
+    onDateChanged: _onPaidUntilChanged,
   );
 
   @override
@@ -489,112 +469,16 @@ class _CreateTransactionBottomSheetState
                           hintText: '0.00',
                           prefixIcon: const Icon(FluentIcons.money_24_regular),
                         ),
-                        onTap: () {
-                          _collapseStudent();
-
-                          if (_isCalendarExpanded) {
-                            setState(() {
-                              _isCalendarExpanded = false;
-                            });
-                          }
-                        },
+                        onTap: _collapseStudent,
                       ),
 
-                      Column(
-                        children: [
-                          InkWell(
-                            onTap: _isLoading ? null : _toggleCalendar,
-                            child: InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: '${context.t.finance.date}*',
-                                prefixIcon: const Icon(
-                                  FluentIcons.calendar_32_regular,
-                                ),
-                                enabled: !_isLoading,
-                                suffixIcon: Icon(
-                                  _isCalendarExpanded
-                                      ? FluentIcons.chevron_up_24_regular
-                                      : FluentIcons.chevron_down_24_regular,
-                                ),
-                              ),
-                              child: Text(
-                                _formatDate(_selectedDate),
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: _isLoading
-                                      ? Theme.of(context).disabledColor
-                                      : null,
-                                ),
-                              ),
-                            ),
-                          ),
-                          ClipRect(
-                            child: AnimatedSize(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeInOut,
-                              alignment: Alignment.topCenter,
-                              child: _isCalendarExpanded
-                                  ? Container(
-                                      margin: const EdgeInsets.only(top: 8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                          color: Colors.grey.shade200,
-                                        ),
-                                      ),
-                                      child: SfDateRangePicker(
-                                        view: DateRangePickerView.month,
-                                        monthViewSettings:
-                                            DateRangePickerMonthViewSettings(
-                                              firstDayOfWeek: 1,
-                                            ),
-                                        selectionMode:
-                                            DateRangePickerSelectionMode.single,
-                                        initialSelectedDate: _selectedDate,
-                                        initialDisplayDate: _selectedDate,
-                                        maxDate: DateTime.now(),
-                                        onSelectionChanged:
-                                            (
-                                              DateRangePickerSelectionChangedArgs
-                                              args,
-                                            ) {
-                                              if (args.value is DateTime) {
-                                                final date =
-                                                    args.value as DateTime;
-                                                final paidUntil = _paidUntil;
-                                                final isValidPaidUntil =
-                                                    paidUntil != null &&
-                                                    !paidUntil.isBefore(date);
-
-                                                setState(() {
-                                                  _selectedDate = date;
-                                                  _isCalendarExpanded = false;
-
-                                                  if (!isValidPaidUntil) {
-                                                    _paidUntil =
-                                                        _isStudentPayment
-                                                        ? _defaultPaidUntil
-                                                        : null;
-                                                    _paidUntilController.text =
-                                                        _paidUntil == null
-                                                        ? ''
-                                                        : _formatDate(
-                                                            _paidUntil!,
-                                                          );
-                                                  }
-                                                });
-                                              }
-                                            },
-                                      ),
-                                    )
-                                  : const SizedBox(
-                                      width: double.infinity,
-                                      height: 0,
-                                    ),
-                            ),
-                          ),
-                        ],
+                      DateInputField(
+                        labelText: '${context.t.finance.date}*',
+                        icon: FluentIcons.calendar_32_regular,
+                        initialDate: _selectedDate,
+                        lastDate: DateTime.now(),
+                        enabled: !_isLoading,
+                        onDateChanged: _onDateChanged,
                       ),
 
                       if (_isIncome) _buildStudentField(studentsState),
@@ -609,6 +493,7 @@ class _CreateTransactionBottomSheetState
                             onPressed:
                                 (isAmountEmpty ||
                                     isPaidUntilMissing ||
+                                    !_isDateValid ||
                                     _isLoading)
                                 ? null
                                 : _onSave,

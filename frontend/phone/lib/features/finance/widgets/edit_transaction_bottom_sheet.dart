@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
+import 'package:phone/core/widgets/date_input_field.dart';
 import 'package:phone/features/finance/controllers/update_transaction_controller.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';
 import 'package:phone/i18n/strings.g.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class EditTransactionBottomSheet extends ConsumerStatefulWidget {
   final TransactionResponse transaction;
@@ -24,8 +24,8 @@ class _EditTransactionBottomSheetState
   final TextEditingController _amountController = TextEditingController();
 
   late DateTime _selectedDate;
+  bool _isDateValid = true;
   bool _isLoading = false;
-  bool _isCalendarExpanded = false;
 
   @override
   void initState() {
@@ -49,10 +49,12 @@ class _EditTransactionBottomSheetState
     super.dispose();
   }
 
-  void _toggleCalendar() {
-    FocusScope.of(context).unfocus();
+  void _onDateChanged(DateTime? date) {
     setState(() {
-      _isCalendarExpanded = !_isCalendarExpanded;
+      _isDateValid = date != null;
+      if (date == null) return;
+
+      _selectedDate = date;
     });
   }
 
@@ -89,12 +91,6 @@ class _EditTransactionBottomSheetState
     if (error != null) {
       AppSnackBar.show(context, '$error', SnackBarType.error);
     }
-  }
-
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    return '$day.$month.${date.year}';
   }
 
   @override
@@ -167,85 +163,15 @@ class _EditTransactionBottomSheetState
                           hintText: '0.00',
                           prefixIcon: const Icon(FluentIcons.money_24_regular),
                         ),
-                        onTap: () {
-                          if (_isCalendarExpanded) {
-                            setState(() {
-                              _isCalendarExpanded = false;
-                            });
-                          }
-                        },
                       ),
 
-                      Column(
-                        children: [
-                          InkWell(
-                            onTap: _isLoading ? null : _toggleCalendar,
-                            child: InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: context.t.finance.date,
-                                prefixIcon: const Icon(
-                                  FluentIcons.calendar_32_regular,
-                                ),
-                                suffixIcon: Icon(
-                                  _isCalendarExpanded
-                                      ? FluentIcons.chevron_up_24_regular
-                                      : FluentIcons.chevron_down_24_regular,
-                                ),
-                              ),
-                              child: Text(
-                                _formatDate(_selectedDate),
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ),
-                          ClipRect(
-                            child: AnimatedSize(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeInOut,
-                              alignment: Alignment.topCenter,
-                              child: _isCalendarExpanded
-                                  ? Container(
-                                      margin: const EdgeInsets.only(top: 8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                          color: Colors.grey.shade200,
-                                        ),
-                                      ),
-                                      child: SfDateRangePicker(
-                                        view: DateRangePickerView.month,
-                                        monthViewSettings:
-                                            DateRangePickerMonthViewSettings(
-                                              firstDayOfWeek: 1,
-                                            ),
-                                        selectionMode:
-                                            DateRangePickerSelectionMode.single,
-                                        initialSelectedDate: _selectedDate,
-                                        initialDisplayDate: _selectedDate,
-                                        maxDate: DateTime.now(),
-                                        onSelectionChanged:
-                                            (
-                                              DateRangePickerSelectionChangedArgs
-                                              args,
-                                            ) {
-                                              if (args.value is DateTime) {
-                                                setState(() {
-                                                  _selectedDate =
-                                                      args.value as DateTime;
-                                                  _isCalendarExpanded = false;
-                                                });
-                                              }
-                                            },
-                                      ),
-                                    )
-                                  : const SizedBox(
-                                      width: double.infinity,
-                                      height: 0,
-                                    ),
-                            ),
-                          ),
-                        ],
+                      DateInputField(
+                        labelText: context.t.finance.date,
+                        icon: FluentIcons.calendar_32_regular,
+                        initialDate: _selectedDate,
+                        lastDate: DateTime.now(),
+                        enabled: !_isLoading,
+                        onDateChanged: _onDateChanged,
                       ),
 
                       Padding(
@@ -253,7 +179,8 @@ class _EditTransactionBottomSheetState
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: TextButton.icon(
-                            onPressed: (isAmountEmpty || _isLoading)
+                            onPressed:
+                                (isAmountEmpty || !_isDateValid || _isLoading)
                                 ? null
                                 : _onUpdate,
                             icon: _isLoading

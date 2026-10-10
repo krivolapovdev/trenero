@@ -90,6 +90,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Something went wrong!'
 	String get somethingWentWrong => 'Something went wrong!';
 
+	/// en: 'Invalid date'
+	String get invalidDate => 'Invalid date';
+
 	/// en: 'Error loading data: $error'
 	String errorLoadingData({required Object error}) => 'Error loading data: ${error}';
 
@@ -566,6 +569,7 @@ extension on Translations {
 			'noData' => 'No data',
 			'noTransactions' => 'No transactions',
 			'somethingWentWrong' => 'Something went wrong!',
+			'invalidDate' => 'Invalid date',
 			'errorLoadingData' => ({required Object error}) => 'Error loading data: ${error}',
 			'archive' => 'Archive',
 			'auth.signInWithApple' => 'Sign in with Apple',

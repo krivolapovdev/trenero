@@ -54,6 +54,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get noData => 'Нет данных';
 	@override String get noTransactions => 'Нет операций';
 	@override String get somethingWentWrong => 'Что-то пошло не так!';
+	@override String get invalidDate => 'Некорректная дата';
 	@override String errorLoadingData({required Object error}) => 'Ошибка загрузки данных: ${error}';
 	@override String get archive => 'Архив';
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
@@ -272,8 +273,8 @@ class _Translations$students$status$ru implements Translations$students$status$e
 
 	// Translations
 	@override String get inactive => 'Неактивен';
-	@override String get present => 'Присутствовал';
-	@override String get missing => 'Отсутствовал';
+	@override String get present => 'Посетил';
+	@override String get missing => 'Пропустил';
 	@override String get paid => 'Оплачено';
 	@override String get unpaid => 'Не оплачено';
 	@override String get free => 'Бесплатно';
@@ -303,6 +304,7 @@ extension on TranslationsRu {
 			'noData' => 'Нет данных',
 			'noTransactions' => 'Нет операций',
 			'somethingWentWrong' => 'Что-то пошло не так!',
+			'invalidDate' => 'Некорректная дата',
 			'errorLoadingData' => ({required Object error}) => 'Ошибка загрузки данных: ${error}',
 			'archive' => 'Архив',
 			'auth.signInWithApple' => 'Войти через Apple',
@@ -368,8 +370,8 @@ extension on TranslationsRu {
 			'students.filter.reset' => 'Сбросить фильтры',
 			'students.filter.empty' => 'Ученики не найдены',
 			'students.status.inactive' => 'Неактивен',
-			'students.status.present' => 'Присутствовал',
-			'students.status.missing' => 'Отсутствовал',
+			'students.status.present' => 'Посетил',
+			'students.status.missing' => 'Пропустил',
 			'students.status.paid' => 'Оплачено',
 			'students.status.unpaid' => 'Не оплачено',
 			'students.status.free' => 'Бесплатно',

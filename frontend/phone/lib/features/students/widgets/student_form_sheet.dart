@@ -1,7 +1,7 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+import 'package:phone/core/widgets/date_input_field.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class StudentFormSheet extends StatefulWidget {
@@ -42,13 +42,11 @@ class StudentFormSheet extends StatefulWidget {
 }
 
 class _StudentFormSheetState extends State<StudentFormSheet> {
-  static final DateFormat _displayDate = DateFormat('dd.MM.yyyy');
   static final DateTime _firstDate = DateTime(1900);
 
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _noteController;
-  late final TextEditingController _birthdateController;
 
   DateTime? _birthdate;
   late bool _free;
@@ -61,57 +59,19 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
     _nameController = TextEditingController(text: widget.initialFullName);
     _phoneController = TextEditingController(text: widget.initialPhone);
     _noteController = TextEditingController(text: widget.initialNote);
-    _birthdateController = TextEditingController(text: _formattedBirthdate);
     _nameController.addListener(_onFieldChanged);
   }
 
-  String get _formattedBirthdate =>
-      _birthdate == null ? '' : _displayDate.format(_birthdate!);
-
   void _onFieldChanged() => setState(() {});
+
+  void _onBirthdateChanged(DateTime? date) => setState(() => _birthdate = date);
 
   @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
     _noteController.dispose();
-    _birthdateController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickBirthdate() async {
-    final lastDate = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _clampDate(
-        _birthdate ?? DateTime(2005),
-        _firstDate,
-        lastDate,
-      ),
-      firstDate: _firstDate,
-      lastDate: lastDate,
-      initialDatePickerMode: DatePickerMode.year,
-    );
-
-    if (picked == null) return;
-
-    setState(() {
-      _birthdate = picked;
-      _birthdateController.text = _formattedBirthdate;
-    });
-  }
-
-  void _clearBirthdate() {
-    setState(() {
-      _birthdate = null;
-      _birthdateController.clear();
-    });
-  }
-
-  DateTime _clampDate(DateTime value, DateTime min, DateTime max) {
-    if (value.isBefore(min)) return min;
-    if (value.isAfter(max)) return max;
-    return value;
   }
 
   Future<void> _onSubmit() async {
@@ -172,23 +132,15 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                         enabled: !isLoading,
                       ),
 
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: context.t.students.birthdate,
-                          prefixIcon: const Icon(
-                            FluentIcons.calendar_ltr_16_regular,
-                          ),
-                          suffixIcon: (_birthdate == null || isLoading)
-                              ? null
-                              : IconButton(
-                                  onPressed: _clearBirthdate,
-                                  icon: const Icon(Icons.clear),
-                                ),
-                        ),
-                        controller: _birthdateController,
-                        readOnly: true,
-                        onTap: _pickBirthdate,
+                      DateInputField(
+                        labelText: context.t.students.birthdate,
+                        icon: FluentIcons.calendar_ltr_16_regular,
+                        initialDate: _birthdate,
+                        firstDate: _firstDate,
+                        lastDate: DateTime.now(),
                         enabled: !isLoading,
+                        allowClear: true,
+                        onDateChanged: _onBirthdateChanged,
                       ),
 
                       TextField(

@@ -15,6 +15,7 @@
   "noData": "Нет данных",
   "noTransactions": "Нет операций",
   "somethingWentWrong": "Что-то пошло не так!",
+  "invalidDate": "Некорректная дата",
   "errorLoadingData": "Ошибка загрузки данных: $error",
   "archive": "Архив",
   "auth": {

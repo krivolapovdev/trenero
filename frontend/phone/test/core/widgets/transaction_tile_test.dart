@@ -100,6 +100,37 @@ void main() {
     expect(find.byIcon(Icons.arrow_downward_rounded), findsOneWidget);
   });
 
+  // Regression: the tile used to be wrapped in a horizontal padding inside the
+  // card, so its ink surface was narrower than the card itself.
+  testWidgets('list tiles fill the whole card so their ink spans it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        TransactionListView(
+          transactions: [_studentPayment()],
+          onRefresh: () async {},
+        ),
+      ),
+    );
+
+    final screenWidth =
+        tester.view.physicalSize.width / tester.view.devicePixelRatio;
+    final tile = tester.getRect(find.byType(TransactionTile));
+    final avatar = tester.getRect(
+      find.descendant(
+        of: find.byType(TransactionTile),
+        matching: find.byType(Container),
+      ),
+    );
+
+    // The list keeps 20px side margins, the tile fills the card completely and
+    // only its content keeps the 12px side inset.
+    expect(tile.left, 20);
+    expect(tile.right, screenWidth - 20);
+    expect(avatar.left - tile.left, 12);
+  });
+
   testWidgets('ticket card shows the arrow icon instead of initials', (
     tester,
   ) async {

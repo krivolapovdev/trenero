@@ -31,9 +31,9 @@ class ContactsPage extends StatelessWidget {
                 'Email',
                 style: TextStyle(fontSize: 16, color: Colors.black87),
               ),
-              trailing: const Text(
+              subtitle: const Text(
                 AppConstants.emailContact,
-                style: TextStyle(fontSize: 14, color: Colors.black87),
+                style: TextStyle(fontSize: 14, color: Colors.black54),
               ),
               onTap: () => launchUrl(
                 Uri.parse('mailto:${AppConstants.emailContact}'),
@@ -49,9 +49,9 @@ class ContactsPage extends StatelessWidget {
                 'Telegram',
                 style: TextStyle(fontSize: 16, color: Colors.black87),
               ),
-              trailing: const Text(
+              subtitle: const Text(
                 '@${AppConstants.telegramContact}',
-                style: TextStyle(fontSize: 14, color: Colors.black87),
+                style: TextStyle(fontSize: 14, color: Colors.black54),
               ),
               onTap: () => launchUrl(
                 Uri.parse('https://t.me/${AppConstants.telegramContact}'),

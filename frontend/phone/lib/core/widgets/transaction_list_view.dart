@@ -75,7 +75,6 @@ class _TransactionListViewState extends State<TransactionListView> {
         ...groupedTransactions.entries.expand((entry) {
           final dateHeader = TransactionDateFormatter.formatDateHeader(
             entry.key,
-            context,
           );
           final items = entry.value;
 
@@ -92,6 +91,7 @@ class _TransactionListViewState extends State<TransactionListView> {
               ),
             ),
             Container(
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -99,22 +99,25 @@ class _TransactionListViewState extends State<TransactionListView> {
               child: Column(
                 children: [
                   ...items.map(
-                    (tx) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: TransactionTile(
-                        transaction: tx,
-                        overrideTitle: widget.overrideTitle,
-                        onTap: widget.isLoading
-                            ? null
-                            : () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => TransactionPage(
-                                    transaction: tx,
-                                    overrideTitle: widget.overrideTitle,
-                                  ),
+                    (tx) => TransactionTile(
+                      transaction: tx,
+                      overrideTitle: widget.overrideTitle,
+                      // The card clips the tile, so the ink spans its whole
+                      // width while the content keeps the 12px side inset.
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                      ),
+                      borderRadius: BorderRadius.zero,
+                      onTap: widget.isLoading
+                          ? null
+                          : () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => TransactionPage(
+                                  transaction: tx,
+                                  overrideTitle: widget.overrideTitle,
                                 ),
                               ),
-                      ),
+                            ),
                     ),
                   ),
                 ],

@@ -9,11 +9,21 @@ class TransactionTile extends StatelessWidget {
   final String? overrideTitle;
   final VoidCallback? onTap;
 
+  /// Inset of the tile content. It is applied inside the ink surface, so the
+  /// ripple, the highlight and the tap area still cover the whole tile.
+  final EdgeInsetsGeometry contentPadding;
+
+  /// Corner radius of the ink surface. Use [BorderRadius.zero] when the parent
+  /// clips the tile to the corners of a card.
+  final BorderRadius borderRadius;
+
   const new({
     super.key,
     required this.transaction,
     this.overrideTitle,
     this.onTap,
+    this.contentPadding = EdgeInsets.zero,
+    this.borderRadius = const BorderRadius.all(Radius.circular(12)),
   });
 
   @override
@@ -32,9 +42,9 @@ class TransactionTile extends StatelessWidget {
       type: MaterialType.transparency,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: borderRadius,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: contentPadding.add(const EdgeInsets.symmetric(vertical: 12)),
           child: Row(
             children: [
               Container(
