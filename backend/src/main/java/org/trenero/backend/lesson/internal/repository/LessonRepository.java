@@ -13,16 +13,6 @@ import org.trenero.backend.lesson.internal.domain.Lesson;
 
 @Repository
 public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNull UUID> {
-
-  @Query(
-      """
-          SELECT l
-          FROM Lesson AS l
-          WHERE l.ownerId = :ownerId
-          ORDER BY l.createdAt DESC
-          """)
-  List<Lesson> findAllByOwnerId(@Param("ownerId") UUID ownerId);
-
   @Query(
       """
           SELECT l

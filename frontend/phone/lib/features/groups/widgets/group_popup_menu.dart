@@ -86,16 +86,6 @@ class GroupPopupMenu extends StatelessWidget {
         onTap: () {},
         child: Row(
           children: [
-            const Icon(Icons.inventory, size: 20),
-            const SizedBox(width: 12),
-            Text(context.t.archive),
-          ],
-        ),
-      ),
-      PopupMenuItem<String>(
-        onTap: () {},
-        child: Row(
-          children: [
             Icon(
               Icons.delete,
               size: 20,

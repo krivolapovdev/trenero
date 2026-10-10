@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -254,7 +255,10 @@ void main() {
     await tester.pump();
 
     expect(find.byType(ReviewerLoginBottomSheet), findsOneWidget);
-    expect(find.byType(SnackBar), findsOneWidget);
+    // The sheet would cover a snack bar of the page below it, so the error is
+    // shown above the sheet instead.
+    expect(find.byType(AwesomeSnackbarContent), findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
     expect(_loginButton(tester).onPressed, isNotNull);
 
     // Waits for the snack bar to go away, otherwise its timer outlives the
