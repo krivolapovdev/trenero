@@ -6,11 +6,6 @@ import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.lesson.external.response.LessonResponse
 
 interface LessonSpi {
-  fun getLastGroupLessonsByGroupIds(
-    groupIds: List<UUID>,
-    jwtUser: JwtUser,
-  ): Map<UUID, LessonResponse>
-
   fun getLessonById(lessonId: UUID, jwtUser: JwtUser): LessonResponse
 
   fun getLessonsByIds(lessonIds: List<UUID>, jwtUser: JwtUser): Map<UUID, LessonResponse>

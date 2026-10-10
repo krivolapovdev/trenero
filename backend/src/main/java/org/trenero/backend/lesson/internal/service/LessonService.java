@@ -43,23 +43,6 @@ public class LessonService implements LessonSpi {
   @Lazy private final VisitSpi visitSpi;
   @Lazy private final GroupStudentSpi groupStudentSpi;
 
-  @Override
-  @Transactional(readOnly = true)
-  public @NonNull Map<UUID, LessonResponse> getLastGroupLessonsByGroupIds(
-      @NonNull List<UUID> groupIds, @NonNull JwtUser jwtUser) {
-    log.info("Getting last group lessons: groupIds={}; user={}", groupIds, jwtUser);
-    return lessonRepository.findLastLessonsByGroupIdsAndOwnerId(groupIds, jwtUser.id()).stream()
-        .map(lessonMapper::toResponse)
-        .collect(
-            Collectors.toMap(
-                LessonResponse::getGroupId,
-                Function.identity(),
-                // A group can hold several lessons on its last day, the lesson
-                // created last is the one that counts as the last lesson.
-                (first, second) ->
-                    first.getCreatedAt().isAfter(second.getCreatedAt()) ? first : second));
-  }
-
   @Transactional(readOnly = true)
   public @NonNull LessonResponse getLessonById(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
     log.info("Getting lesson by id: lessonId={}; user={}", lessonId, jwtUser);

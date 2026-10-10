@@ -47,22 +47,6 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
   @Query(
       """
           SELECT l
-          FROM Lesson l
-          WHERE l.ownerId = :ownerId
-            AND l.groupId IN :groupIds
-            AND l.date = (
-                SELECT MAX(subl.date)
-                FROM Lesson subl
-                WHERE subl.groupId = l.groupId
-                  AND subl.ownerId = l.ownerId
-            )
-          """)
-  List<Lesson> findLastLessonsByGroupIdsAndOwnerId(
-      @Param("groupIds") List<UUID> groupIds, @Param("ownerId") UUID ownerId);
-
-  @Query(
-      """
-          SELECT l
           FROM Lesson AS l
           WHERE l.ownerId = :ownerId
             AND l.id IN :lessonIds

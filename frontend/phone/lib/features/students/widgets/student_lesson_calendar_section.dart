@@ -48,7 +48,7 @@ class StudentLessonCalendarSection extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       Padding(
-        padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+        padding: const EdgeInsets.all(8),
         child: Text(
           title,
           textAlign: TextAlign.left,

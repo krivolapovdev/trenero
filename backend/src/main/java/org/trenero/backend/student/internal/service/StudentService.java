@@ -5,6 +5,7 @@ import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFound
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -35,6 +36,7 @@ import org.trenero.backend.student.internal.response.StudentSummaryResponse;
 import org.trenero.backend.student.internal.response.VisitWithLessonResponse;
 import org.trenero.backend.transaction.external.response.TransactionResponse;
 import org.trenero.backend.transaction.external.spi.TransactionSpi;
+import org.trenero.backend.visit.external.response.VisitResponse;
 import org.trenero.backend.visit.external.spi.VisitSpi;
 
 @Service
@@ -103,25 +105,32 @@ public class StudentService implements StudentSpi {
             },
             executor);
 
-    var groupLessonsFuture =
-        groupIdsFuture.thenComposeAsync(
-            groupIds -> {
-              if (groupIds.isEmpty()) {
+    var lessonsFuture =
+        visitsFuture.thenComposeAsync(
+            visits -> {
+              var lessonIds =
+                  visits.values().stream()
+                      .flatMap(List::stream)
+                      .map(VisitResponse::getLessonId)
+                      .distinct()
+                      .toList();
+
+              if (lessonIds.isEmpty()) {
                 return CompletableFuture.completedFuture(Map.<UUID, LessonResponse>of());
               }
               return CompletableFuture.supplyAsync(
-                  () -> lessonSpi.getLastGroupLessonsByGroupIds(groupIds, jwtUser), executor);
+                  () -> lessonSpi.getLessonsByIds(lessonIds, jwtUser), executor);
             },
             executor);
 
     AsyncUtils.awaitAll(
-        visitsFuture, paymentsFuture, groupLinksFuture, groupsFuture, groupLessonsFuture);
+        visitsFuture, paymentsFuture, groupLinksFuture, groupsFuture, lessonsFuture);
 
     var visitsMap = visitsFuture.join();
     var paymentsMap = paymentsFuture.join();
     var studentToGroupLinkMap = groupLinksFuture.join();
     var groupsMap = groupsFuture.join();
-    var groupLessonMap = groupLessonsFuture.join();
+    var lessonsMap = lessonsFuture.join();
 
     return students.stream()
         .map(
@@ -131,11 +140,17 @@ public class StudentService implements StudentSpi {
 
               var studentVisits = visitsMap.getOrDefault(student.getId(), List.of());
               var studentPayments = paymentsMap.getOrDefault(student.getId(), List.of());
-              var lastLesson = (groupId != null) ? groupLessonMap.get(groupId) : null;
+              var studentLessons =
+                  studentVisits.stream()
+                      .map(VisitResponse::getLessonId)
+                      .distinct()
+                      .map(lessonsMap::get)
+                      .filter(Objects::nonNull)
+                      .toList();
 
               var statuses =
                   studentStatusService.getStudentStatuses(
-                      studentVisits, studentPayments, lastLesson);
+                      studentVisits, studentPayments, studentLessons);
 
               var group = (groupId != null) ? groupsMap.get(groupId) : null;
 
@@ -302,47 +317,48 @@ public class StudentService implements StudentSpi {
             () -> transactionSpi.getTransactionsByStudentIds(distinctStudentIds, jwtUser),
             executor);
 
-    var groupLinksFuture =
-        CompletableFuture.supplyAsync(
-            () -> groupStudentSpi.getGroupStudentsByStudentIds(distinctStudentIds, jwtUser),
-            executor);
+    var lessonsFuture =
+        visitsFuture.thenComposeAsync(
+            visits -> {
+              var lessonIds =
+                  visits.values().stream()
+                      .flatMap(List::stream)
+                      .map(VisitResponse::getLessonId)
+                      .distinct()
+                      .toList();
 
-    var groupLessonsFuture =
-        groupLinksFuture.thenComposeAsync(
-            links -> {
-              var groupIds =
-                  links.values().stream().map(GroupStudentResponse::getGroupId).distinct().toList();
-
-              if (groupIds.isEmpty()) {
+              if (lessonIds.isEmpty()) {
                 return CompletableFuture.completedFuture(Map.<UUID, LessonResponse>of());
               }
               return CompletableFuture.supplyAsync(
-                  () -> lessonSpi.getLastGroupLessonsByGroupIds(groupIds, jwtUser), executor);
+                  () -> lessonSpi.getLessonsByIds(lessonIds, jwtUser), executor);
             },
             executor);
 
-    AsyncUtils.awaitAll(visitsFuture, paymentsFuture, groupLinksFuture, groupLessonsFuture);
+    AsyncUtils.awaitAll(visitsFuture, paymentsFuture, lessonsFuture);
 
     var visitsMap = visitsFuture.join();
     var paymentsMap = paymentsFuture.join();
-    var studentToGroupLinkMap = groupLinksFuture.join();
-    var groupLessonMap = groupLessonsFuture.join();
+    var lessonsMap = lessonsFuture.join();
 
     return studentsMap.values().stream()
         .collect(
             Collectors.toMap(
                 StudentResponse::getId,
                 student -> {
-                  var link = studentToGroupLinkMap.get(student.getId());
-                  var groupId = (link != null) ? link.getGroupId() : null;
-
                   var studentVisits = visitsMap.getOrDefault(student.getId(), List.of());
                   var studentPayments = paymentsMap.getOrDefault(student.getId(), List.of());
-                  var lastLesson = (groupId != null) ? groupLessonMap.get(groupId) : null;
+                  var studentLessons =
+                      studentVisits.stream()
+                          .map(VisitResponse::getLessonId)
+                          .distinct()
+                          .map(lessonsMap::get)
+                          .filter(Objects::nonNull)
+                          .toList();
 
                   var statuses =
                       studentStatusService.getStudentStatuses(
-                          studentVisits, studentPayments, lastLesson);
+                          studentVisits, studentPayments, studentLessons);
 
                   return new StudentWithStatusesResponse(student, statuses);
                 },

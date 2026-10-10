@@ -17,7 +17,7 @@ class StudentStatusService {
   fun getStudentStatuses(
     visits: List<VisitResponse>,
     payments: List<TransactionResponse>,
-    lastLesson: LessonResponse? = null,
+    lessons: List<LessonResponse> = emptyList(),
   ): Set<StudentStatus> {
     val hasAnyMarkedVisit = visits.any { it.status != VisitStatus.UNMARKED }
 
@@ -26,6 +26,12 @@ class StudentStatusService {
     }
 
     val statuses = EnumSet.noneOf(StudentStatus::class.java)
+
+    // The visit badge comes from the last lesson the student is marked for, whether that lesson
+    // belongs to a group or to the student alone. Several lessons can share a day, so of the
+    // lessons of the last day the one created last counts as the last lesson.
+    val lastLesson =
+      lessons.maxWithOrNull(compareBy<LessonResponse> { it.date }.thenBy { it.createdAt })
 
     if (lastLesson != null) {
       visits
