@@ -54,7 +54,7 @@ class _TransactionPageState extends ConsumerState<TransactionPage> {
       surfaceTintColor: Theme.of(context).colorScheme.surface,
       actions: [
         TransactionPopupMenu(
-          onUpdate: _openEditTransactionSheet,
+          onEdit: _openEditTransactionSheet,
           onDelete: _openDeleteTransactionSheet,
         ),
       ],

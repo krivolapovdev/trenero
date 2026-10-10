@@ -44,6 +44,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get repeat => 'Повторить';
 	@override String get create => 'Создать';
 	@override String get update => 'Обновить';
+	@override String get edit => 'Редактировать';
 	@override String get delete => 'Удалить';
 	@override String get all => 'Все';
 	@override String get today => 'Сегодня';
@@ -267,6 +268,7 @@ extension on TranslationsRu {
 			'repeat' => 'Повторить',
 			'create' => 'Создать',
 			'update' => 'Обновить',
+			'edit' => 'Редактировать',
 			'delete' => 'Удалить',
 			'all' => 'Все',
 			'today' => 'Сегодня',

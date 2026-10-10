@@ -52,6 +52,7 @@ class FinancePage extends ShellPage {
           ]);
         },
         child: SingleChildScrollView(
+          clipBehavior: Clip.none,
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
           ),

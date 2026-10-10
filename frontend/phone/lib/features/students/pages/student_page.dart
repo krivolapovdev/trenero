@@ -157,7 +157,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 ),
               ),
               PopupMenuItem<String>(
-                onTap: () {},
+                onTap: _openCreateLessonPage,
                 child: const Row(
                   children: [
                     Icon(Icons.calendar_month, size: 20),
