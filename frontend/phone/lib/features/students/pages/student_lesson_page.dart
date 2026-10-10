@@ -198,7 +198,7 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
                       Icon(Icons.delete, size: 20, color: colorScheme.error),
                       const SizedBox(width: 12),
                       Text(
-                        'Delete',
+                        context.t.delete,
                         style: TextStyle(color: colorScheme.error),
                       ),
                     ],

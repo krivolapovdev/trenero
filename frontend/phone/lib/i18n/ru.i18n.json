@@ -12,6 +12,11 @@
   "yesterday": "Вчера",
   "print": "Печать",
   "error": "Ошибка",
+  "noData": "Нет данных",
+  "noTransactions": "Нет операций",
+  "somethingWentWrong": "Что-то пошло не так!",
+  "errorLoadingData": "Ошибка загрузки данных: $error",
+  "archive": "Архив",
   "auth": {
     "signInWithApple": "Войти через Apple",
     "signInWithGoogle": "Войти через Google",
@@ -30,7 +35,8 @@
     "editGroup": "Редактировать группу",
     "noGroup": "Без группы",
     "defaultPrice": "Стандартная цена",
-    "report": "Отчет"
+    "report": "Отчет",
+    "notFound": "Группы не найдены"
   },
   "lessons": {
     "title": "Урок",
@@ -54,7 +60,10 @@
     "free": "Бесплатный",
     "freeLesson": "Урок бесплатный",
     "deleteLesson": "Удалить урок?",
-    "deleteLessonMessage": "Урок и отметки посещаемости будут удалены безвозвратно. Действие нельзя отменить."
+    "deleteLessonMessage": "Урок и отметки посещаемости будут удалены безвозвратно. Действие нельзя отменить.",
+    "errorLoading": "Ошибка загрузки уроков: $error",
+    "emptyDay": "В этот день уроков нет.",
+    "forDate": "Уроки на $date"
   },
   "students": {
     "title": "Ученики",
@@ -69,6 +78,10 @@
     "joinedAt": "Дата вступления",
     "noStudent": "Без ученика",
     "free": "Учится бесплатно",
+    "payment": "Платёж",
+    "paymentTitle": "Платежи: $name",
+    "noPayments": "У студента нет платежей",
+    "errorLoading": "Ошибка загрузки учеников: $error",
     "filter": {
       "title": "Фильтры",
       "group": "Группа",
@@ -117,6 +130,7 @@
   },
   "finance": {
     "title": "Финансы",
+    "createTransaction": "Новая транзакция",
     "income": "Доходы",
     "expenses": "Расходы",
     "lastTransactions": "Последние операции",

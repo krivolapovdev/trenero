@@ -48,7 +48,11 @@ class _EditGroupBottomSheetState extends ConsumerState<EditGroupBottomSheet> {
       final state = ref.read(updateGroupControllerProvider);
       final error = state.error;
       if (error != null) {
-        AppSnackBar.show(context, 'Error: $error', SnackBarType.error);
+        AppSnackBar.show(
+          context,
+          '${context.t.error}: $error',
+          SnackBarType.error,
+        );
       }
     }
   }

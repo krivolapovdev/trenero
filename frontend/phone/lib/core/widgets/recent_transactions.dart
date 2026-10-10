@@ -96,12 +96,12 @@ class RecentTransactions extends StatelessWidget {
             final recentItems = transactions.take(5).toList();
 
             if (recentItems.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24.0),
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24.0),
                 child: Center(
                   child: Text(
-                    'Нет операций',
-                    style: TextStyle(color: Color(0xFF8E8E93)),
+                    context.t.noTransactions,
+                    style: const TextStyle(color: Color(0xFF8E8E93)),
                   ),
                 ),
               );

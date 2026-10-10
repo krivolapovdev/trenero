@@ -4,6 +4,7 @@ import 'package:phone/features/groups/controllers/group_students_controller.dart
 import 'package:phone/features/students/pages/student_page.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
 import 'package:phone/generated/export.dart';
+import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class GroupStudentsSection extends ConsumerWidget {
@@ -54,7 +55,7 @@ class GroupStudentsSection extends ConsumerWidget {
         );
       },
       error: (error, stack) =>
-          Center(child: Text('Error loading students: $error')),
+          Center(child: Text(context.t.students.errorLoading(error: error))),
     );
   }
 

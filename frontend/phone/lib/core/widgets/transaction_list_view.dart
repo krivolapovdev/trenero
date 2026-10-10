@@ -3,6 +3,7 @@ import 'package:phone/core/widgets/transaction_tile.dart';
 import 'package:phone/features/finance/pages/transaction_page.dart';
 import 'package:phone/features/finance/utils/transaction_date_formatter.dart';
 import 'package:phone/generated/models/transaction_response.dart';
+import 'package:phone/i18n/strings.g.dart';
 
 class TransactionListView extends StatefulWidget {
   final List<TransactionResponse> transactions;
@@ -11,7 +12,7 @@ class TransactionListView extends StatefulWidget {
   final bool isLoadingMore;
   final bool isLoading;
   final String? overrideTitle;
-  final String emptyText;
+  final String? emptyText;
 
   const new({
     super.key,
@@ -21,7 +22,7 @@ class TransactionListView extends StatefulWidget {
     this.isLoadingMore = false,
     this.isLoading = false,
     this.overrideTitle,
-    this.emptyText = 'Нет операций',
+    this.emptyText,
   });
 
   @override
@@ -57,7 +58,7 @@ class _TransactionListViewState extends State<TransactionListView> {
     if (widget.transactions.isEmpty) {
       return Center(
         child: Text(
-          widget.emptyText,
+          widget.emptyText ?? context.t.noTransactions,
           style: const TextStyle(color: Color(0xFF8E8E93)),
         ),
       );

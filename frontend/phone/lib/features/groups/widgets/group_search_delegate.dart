@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phone/features/groups/widgets/group_list_view.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
+import 'package:phone/i18n/strings.g.dart';
 
 class GroupSearchDelegate extends SearchDelegate {
   final List<GroupSummaryResponse> groups;
@@ -30,12 +31,12 @@ class GroupSearchDelegate extends SearchDelegate {
   );
 
   @override
-  Widget buildResults(BuildContext context) => _buildSearchResults();
+  Widget buildResults(BuildContext context) => _buildSearchResults(context);
 
   @override
-  Widget buildSuggestions(BuildContext context) => _buildSearchResults();
+  Widget buildSuggestions(BuildContext context) => _buildSearchResults(context);
 
-  Widget _buildSearchResults() {
+  Widget _buildSearchResults(BuildContext context) {
     final filteredGroups = groups.where((group) {
       final groupName = group.name.toLowerCase();
       final searchLower = query.toLowerCase();
@@ -44,7 +45,7 @@ class GroupSearchDelegate extends SearchDelegate {
     }).toList();
 
     if (filteredGroups.isEmpty) {
-      return const Center(child: Text('No groups found'));
+      return Center(child: Text(context.t.groups.notFound));
     }
 
     return GroupListView(groups: filteredGroups);

@@ -44,11 +44,11 @@ class GroupPopupMenu extends StatelessWidget {
           context: context,
           child: EditGroupBottomSheet(group: group),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.edit, size: 20),
-            SizedBox(width: 12),
-            Text('Edit'),
+            const Icon(Icons.edit, size: 20),
+            const SizedBox(width: 12),
+            Text(context.t.edit),
           ],
         ),
       ),
@@ -84,11 +84,11 @@ class GroupPopupMenu extends StatelessWidget {
       ),
       PopupMenuItem<String>(
         onTap: () {},
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.inventory, size: 20),
-            SizedBox(width: 12),
-            Text('Archive'),
+            const Icon(Icons.inventory, size: 20),
+            const SizedBox(width: 12),
+            Text(context.t.archive),
           ],
         ),
       ),
@@ -103,7 +103,7 @@ class GroupPopupMenu extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'Delete',
+              context.t.delete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],

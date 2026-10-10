@@ -13,7 +13,11 @@ class GoogleSignInButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<AsyncValue<AuthStatus>>(authNotifierProvider, (previous, next) {
       if (next.hasError && !next.isLoading) {
-        AppSnackBar.show(context, 'Error: ${next.error}', SnackBarType.error);
+        AppSnackBar.show(
+          context,
+          '${context.t.error}: ${next.error}',
+          SnackBarType.error,
+        );
       }
     });
 

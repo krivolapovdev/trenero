@@ -15,6 +15,7 @@ import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
 import 'package:phone/features/students/widgets/student_lessons_section.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
+import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class StudentPage extends ConsumerStatefulWidget {
@@ -117,51 +118,51 @@ class _StudentPageState extends ConsumerState<StudentPage> {
             itemBuilder: (menuContext) => [
               PopupMenuItem<String>(
                 onTap: _openEditStudentSheet,
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.edit, size: 20),
-                    SizedBox(width: 12),
-                    Text('Edit'),
+                    const Icon(Icons.edit, size: 20),
+                    const SizedBox(width: 12),
+                    Text(context.t.edit),
                   ],
                 ),
               ),
               PopupMenuItem<String>(
                 onTap: _openCreatePaymentSheet,
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.payments, size: 20),
-                    SizedBox(width: 12),
-                    Text('Payment'),
+                    const Icon(Icons.payments, size: 20),
+                    const SizedBox(width: 12),
+                    Text(context.t.students.payment),
                   ],
                 ),
               ),
               PopupMenuItem<String>(
                 onTap: _openAssignGroupPage,
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.group, size: 20),
-                    SizedBox(width: 12),
-                    Text('Group'),
+                    const Icon(Icons.group, size: 20),
+                    const SizedBox(width: 12),
+                    Text(context.t.students.group),
                   ],
                 ),
               ),
               PopupMenuItem<String>(
                 onTap: _openCreateLessonPage,
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.calendar_month, size: 20),
-                    SizedBox(width: 12),
-                    Text('Lesson'),
+                    const Icon(Icons.calendar_month, size: 20),
+                    const SizedBox(width: 12),
+                    Text(context.t.lessons.title),
                   ],
                 ),
               ),
               PopupMenuItem<String>(
                 onTap: () {},
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.inventory, size: 20),
-                    SizedBox(width: 12),
-                    Text('Archive'),
+                    const Icon(Icons.inventory, size: 20),
+                    const SizedBox(width: 12),
+                    Text(context.t.archive),
                   ],
                 ),
               ),
@@ -176,7 +177,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Delete',
+                      context.t.delete,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),

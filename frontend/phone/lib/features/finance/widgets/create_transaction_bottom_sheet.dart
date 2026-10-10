@@ -422,9 +422,9 @@ class _CreateTransactionBottomSheetState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Новая транзакция',
-              style: TextStyle(fontSize: 20, color: Colors.black),
+            Text(
+              context.t.finance.createTransaction,
+              style: const TextStyle(fontSize: 20, color: Colors.black),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -441,19 +441,19 @@ class _CreateTransactionBottomSheetState
                           width: double.infinity,
                           child: SegmentedButton<TransactionType>(
                             showSelectedIcon: false,
-                            segments: const [
+                            segments: [
                               ButtonSegment<TransactionType>(
                                 value: TransactionType.expense,
-                                label: Text('Расход'),
-                                icon: Icon(
+                                label: Text(context.t.finance.typeExpense),
+                                icon: const Icon(
                                   FluentIcons.arrow_down_24_regular,
                                   color: Colors.redAccent,
                                 ),
                               ),
                               ButtonSegment<TransactionType>(
                                 value: TransactionType.income,
-                                label: Text('Доход'),
-                                icon: Icon(
+                                label: Text(context.t.finance.typeIncome),
+                                icon: const Icon(
                                   FluentIcons.arrow_up_24_regular,
                                   color: Colors.green,
                                 ),
@@ -484,10 +484,10 @@ class _CreateTransactionBottomSheetState
                             RegExp(r'^\d*\.?\d{0,2}'),
                           ),
                         ],
-                        decoration: const InputDecoration(
-                          labelText: 'Сумма*',
+                        decoration: InputDecoration(
+                          labelText: '${context.t.finance.amount}*',
                           hintText: '0.00',
-                          prefixIcon: Icon(FluentIcons.money_24_regular),
+                          prefixIcon: const Icon(FluentIcons.money_24_regular),
                         ),
                         onTap: () {
                           _collapseStudent();
@@ -506,7 +506,7 @@ class _CreateTransactionBottomSheetState
                             onTap: _isLoading ? null : _toggleCalendar,
                             child: InputDecorator(
                               decoration: InputDecoration(
-                                labelText: 'Дата*',
+                                labelText: '${context.t.finance.date}*',
                                 prefixIcon: const Icon(
                                   FluentIcons.calendar_32_regular,
                                 ),
@@ -621,9 +621,9 @@ class _CreateTransactionBottomSheetState
                                     ),
                                   )
                                 : const Icon(FluentIcons.add_24_regular),
-                            label: const Text(
-                              'Создать',
-                              style: TextStyle(fontSize: 18),
+                            label: Text(
+                              context.t.create,
+                              style: const TextStyle(fontSize: 18),
                             ),
                           ),
                         ),

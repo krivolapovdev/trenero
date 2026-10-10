@@ -44,7 +44,11 @@ class _EditStudentBottomSheetState
       final state = ref.read(updateStudentControllerProvider);
       final error = state.error;
       if (error != null) {
-        AppSnackBar.show(context, 'Error: $error', SnackBarType.error);
+        AppSnackBar.show(
+          context,
+          '${context.t.error}: $error',
+          SnackBarType.error,
+        );
       }
     }
   }

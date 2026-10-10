@@ -469,7 +469,9 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
     String? locale,
   ) {
     if (visitsAsync.hasError && !visitsAsync.hasValue) {
-      return Center(child: Text('Error loading lessons: ${visitsAsync.error}'));
+      return Center(
+        child: Text(context.t.lessons.errorLoading(error: visitsAsync.error!)),
+      );
     }
 
     return Skeletonizer(

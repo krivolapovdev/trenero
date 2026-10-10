@@ -40,7 +40,11 @@ class _CreateStudentBottomSheetState
       final state = ref.read(createStudentControllerProvider);
       final error = state.error;
       if (error != null) {
-        AppSnackBar.show(context, 'Error: $error', SnackBarType.error);
+        AppSnackBar.show(
+          context,
+          '${context.t.error}: $error',
+          SnackBarType.error,
+        );
       }
     }
   }

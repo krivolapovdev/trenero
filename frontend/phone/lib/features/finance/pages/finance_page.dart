@@ -11,6 +11,7 @@ import 'package:phone/features/finance/pages/transaction_list_page.dart';
 import 'package:phone/features/finance/widgets/chart_skeleton.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
 import 'package:phone/features/finance/widgets/profit_line_chart.dart';
+import 'package:phone/i18n/strings.g.dart';
 
 class FinancePage extends ShellPage {
   const new({
@@ -64,9 +65,9 @@ class FinancePage extends ShellPage {
                 metricsAsync.when(
                   data: (data) {
                     if (data.isEmpty) {
-                      return const SizedBox(
+                      return SizedBox(
                         height: 200,
-                        child: Center(child: Text('Нет данных')),
+                        child: Center(child: Text(context.t.noData)),
                       );
                     }
 
@@ -85,7 +86,7 @@ class FinancePage extends ShellPage {
                   error: (error, stackTrace) => SizedBox(
                     height: 200,
                     child: Center(
-                      child: Text('Ошибка загрузки данных: $error'),
+                      child: Text(context.t.errorLoadingData(error: error)),
                     ),
                   ),
                 ),

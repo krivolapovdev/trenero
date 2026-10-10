@@ -76,7 +76,11 @@ class _GroupReportPageState extends ConsumerState<GroupReportPage> {
           );
     } catch (error) {
       if (!mounted) return;
-      AppSnackBar.show(context, 'Error: $error', SnackBarType.error);
+      AppSnackBar.show(
+        context,
+        '${context.t.error}: $error',
+        SnackBarType.error,
+      );
       print(error);
     } finally {
       if (mounted) setState(() => _isPrinting = false);

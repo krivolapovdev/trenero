@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phone/core/constants/app_lottie.dart';
+import 'package:phone/i18n/strings.g.dart';
 
 class GlobalErrorPage extends StatelessWidget {
   const new({super.key});
@@ -15,7 +16,7 @@ class GlobalErrorPage extends StatelessWidget {
             child: Lottie.asset(AppLottie.error),
           ),
           Text(
-            'Something went wrong!',
+            context.t.somethingWentWrong,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
         ],

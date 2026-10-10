@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/transaction_list_view.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
+import 'package:phone/i18n/strings.g.dart';
 
 class StudentPaymentListPage extends ConsumerWidget {
   final StudentSummaryResponse student;
@@ -16,12 +17,15 @@ class StudentPaymentListPage extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text('Платежи: ${student.fullName}'), elevation: 0),
+      appBar: AppBar(
+        title: Text(context.t.students.paymentTitle(name: student.fullName)),
+        elevation: 0,
+      ),
       body: paymentsAsync.when(
         data: (transactions) => TransactionListView(
           transactions: transactions,
           overrideTitle: student.fullName,
-          emptyText: 'У студента нет платежей',
+          emptyText: context.t.students.noPayments,
           onRefresh: () async {
             ref.invalidate(studentPaymentsControllerProvider(student.id));
           },
@@ -40,7 +44,7 @@ class StudentPaymentListPage extends ConsumerWidget {
                 onPressed: () => ref.invalidate(
                   studentPaymentsControllerProvider(student.id),
                 ),
-                child: const Text('Повторить'),
+                child: Text(context.t.repeat),
               ),
             ],
           ),

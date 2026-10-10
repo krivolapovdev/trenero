@@ -32,7 +32,11 @@ class _CreateGroupBottomSheetState
       final state = ref.read(createGroupControllerProvider);
       final error = state.error;
       if (error != null) {
-        AppSnackBar.show(context, 'Error: $error', SnackBarType.error);
+        AppSnackBar.show(
+          context,
+          '${context.t.error}: $error',
+          SnackBarType.error,
+        );
       }
     }
   }

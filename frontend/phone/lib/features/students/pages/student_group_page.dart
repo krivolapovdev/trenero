@@ -69,7 +69,11 @@ class _StudentGroupPageState extends ConsumerState<StudentGroupPage> {
     } else {
       final error = ref.read(assignStudentGroupControllerProvider).error;
       if (error != null) {
-        AppSnackBar.show(context, 'Error: $error', SnackBarType.error);
+        AppSnackBar.show(
+          context,
+          '${context.t.error}: $error',
+          SnackBarType.error,
+        );
       }
     }
   }

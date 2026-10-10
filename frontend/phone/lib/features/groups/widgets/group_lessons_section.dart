@@ -7,6 +7,7 @@ import 'package:phone/features/groups/controllers/group_lessons_controller.dart'
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/widgets/group_day_lessons_bottom_sheet.dart';
 import 'package:phone/generated/models/lesson_response.dart';
+import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class GroupLessonsSection extends ConsumerWidget {
@@ -82,7 +83,7 @@ class GroupLessonsSection extends ConsumerWidget {
 
     if (lessonsAsync.hasError && !lessonsAsync.hasValue) {
       return Center(
-        child: Text('Error loading lessons: ${lessonsAsync.error}'),
+        child: Text(context.t.lessons.errorLoading(error: lessonsAsync.error!)),
       );
     }
 

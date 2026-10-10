@@ -12,6 +12,11 @@
   "yesterday": "Yesterday",
   "print": "Print",
   "error": "Error",
+  "noData": "No data",
+  "noTransactions": "No transactions",
+  "somethingWentWrong": "Something went wrong!",
+  "errorLoadingData": "Error loading data: $error",
+  "archive": "Archive",
   "auth": {
       "signInWithApple": "Sign in with Apple",
       "signInWithGoogle": "Sign in with Google",
@@ -30,7 +35,8 @@
     "editGroup": "Edit Group",
     "noGroup": "No group",
     "defaultPrice": "Price by default",
-    "report": "Report"
+    "report": "Report",
+    "notFound": "No groups found"
   },
   "lessons": {
     "title": "Lesson",
@@ -54,7 +60,10 @@
     "free": "Free",
     "freeLesson": "The lesson is free",
     "deleteLesson": "Delete lesson?",
-    "deleteLessonMessage": "The lesson and its attendance will be deleted permanently. This action cannot be undone."
+    "deleteLessonMessage": "The lesson and its attendance will be deleted permanently. This action cannot be undone.",
+    "errorLoading": "Error loading lessons: $error",
+    "emptyDay": "No lessons scheduled for this day.",
+    "forDate": "Lessons for $date"
   },
   "students": {
     "title": "Students",
@@ -69,6 +78,10 @@
     "joinedAt": "Joined at",
     "noStudent": "No student",
     "free": "Studies for free",
+    "payment": "Payment",
+    "paymentTitle": "Payments: $name",
+    "noPayments": "The student has no payments yet",
+    "errorLoading": "Error loading students: $error",
     "filter": {
       "title": "Filters",
       "group": "Group",
@@ -117,6 +130,7 @@
   },
   "finance": {
     "title": "Finance",
+    "createTransaction": "New transaction",
     "income": "Income",
     "expenses": "Expenses",
     "lastTransactions": "Last transactions",

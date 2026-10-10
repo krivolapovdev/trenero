@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
+import 'package:phone/i18n/strings.g.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class LessonsCalendar extends StatefulWidget {
@@ -245,23 +246,27 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Lessons for ${selectedDay.day}/${selectedDay.month}/${selectedDay.year}',
+              context.t.lessons.forDate(
+                date:
+                    '${selectedDay.day}/${selectedDay.month}/${selectedDay.year}',
+              ),
               style: Theme.of(context).textTheme.titleMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             if (dayLessons.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: Text('No lessons scheduled for this day.'),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Text(context.t.lessons.emptyDay),
               )
             else
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: dayLessons.length,
-                  itemBuilder: (context, index) =>
-                      ListTile(title: Text('Lesson ${index + 1}')),
+                  itemBuilder: (context, index) => ListTile(
+                    title: Text('${context.t.lessons.title} ${index + 1}'),
+                  ),
                 ),
               ),
           ],

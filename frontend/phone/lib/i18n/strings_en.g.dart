@@ -81,6 +81,21 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Error'
 	String get error => 'Error';
 
+	/// en: 'No data'
+	String get noData => 'No data';
+
+	/// en: 'No transactions'
+	String get noTransactions => 'No transactions';
+
+	/// en: 'Something went wrong!'
+	String get somethingWentWrong => 'Something went wrong!';
+
+	/// en: 'Error loading data: $error'
+	String errorLoadingData({required Object error}) => 'Error loading data: ${error}';
+
+	/// en: 'Archive'
+	String get archive => 'Archive';
+
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
 	late final Translations$home$en home = Translations$home$en._(_root);
 	late final Translations$groups$en groups = Translations$groups$en._(_root);
@@ -159,6 +174,9 @@ class Translations$groups$en {
 
 	/// en: 'Report'
 	String get report => 'Report';
+
+	/// en: 'No groups found'
+	String get notFound => 'No groups found';
 }
 
 // Path: lessons
@@ -234,6 +252,15 @@ class Translations$lessons$en {
 
 	/// en: 'The lesson and its attendance will be deleted permanently. This action cannot be undone.'
 	String get deleteLessonMessage => 'The lesson and its attendance will be deleted permanently. This action cannot be undone.';
+
+	/// en: 'Error loading lessons: $error'
+	String errorLoading({required Object error}) => 'Error loading lessons: ${error}';
+
+	/// en: 'No lessons scheduled for this day.'
+	String get emptyDay => 'No lessons scheduled for this day.';
+
+	/// en: 'Lessons for $date'
+	String forDate({required Object date}) => 'Lessons for ${date}';
 }
 
 // Path: students
@@ -279,6 +306,18 @@ class Translations$students$en {
 
 	/// en: 'Studies for free'
 	String get free => 'Studies for free';
+
+	/// en: 'Payment'
+	String get payment => 'Payment';
+
+	/// en: 'Payments: $name'
+	String paymentTitle({required Object name}) => 'Payments: ${name}';
+
+	/// en: 'The student has no payments yet'
+	String get noPayments => 'The student has no payments yet';
+
+	/// en: 'Error loading students: $error'
+	String errorLoading({required Object error}) => 'Error loading students: ${error}';
 
 	late final Translations$students$filter$en filter = Translations$students$filter$en._(_root);
 	late final Translations$students$status$en status = Translations$students$status$en._(_root);
@@ -390,6 +429,9 @@ class Translations$finance$en {
 
 	/// en: 'Finance'
 	String get title => 'Finance';
+
+	/// en: 'New transaction'
+	String get createTransaction => 'New transaction';
 
 	/// en: 'Income'
 	String get income => 'Income';
@@ -521,6 +563,11 @@ extension on Translations {
 			'yesterday' => 'Yesterday',
 			'print' => 'Print',
 			'error' => 'Error',
+			'noData' => 'No data',
+			'noTransactions' => 'No transactions',
+			'somethingWentWrong' => 'Something went wrong!',
+			'errorLoadingData' => ({required Object error}) => 'Error loading data: ${error}',
+			'archive' => 'Archive',
 			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',
@@ -535,6 +582,7 @@ extension on Translations {
 			'groups.noGroup' => 'No group',
 			'groups.defaultPrice' => 'Price by default',
 			'groups.report' => 'Report',
+			'groups.notFound' => 'No groups found',
 			'lessons.title' => 'Lesson',
 			'lessons.individualLesson' => 'Individual lesson',
 			'lessons.individualLessons' => 'Individual lessons',
@@ -557,6 +605,9 @@ extension on Translations {
 			'lessons.freeLesson' => 'The lesson is free',
 			'lessons.deleteLesson' => 'Delete lesson?',
 			'lessons.deleteLessonMessage' => 'The lesson and its attendance will be deleted permanently. This action cannot be undone.',
+			'lessons.errorLoading' => ({required Object error}) => 'Error loading lessons: ${error}',
+			'lessons.emptyDay' => 'No lessons scheduled for this day.',
+			'lessons.forDate' => ({required Object date}) => 'Lessons for ${date}',
 			'students.title' => 'Students',
 			'students.emptySubtitle' => 'No students yet',
 			'students.createFirstStudent' => 'Create First Student',
@@ -569,6 +620,10 @@ extension on Translations {
 			'students.joinedAt' => 'Joined at',
 			'students.noStudent' => 'No student',
 			'students.free' => 'Studies for free',
+			'students.payment' => 'Payment',
+			'students.paymentTitle' => ({required Object name}) => 'Payments: ${name}',
+			'students.noPayments' => 'The student has no payments yet',
+			'students.errorLoading' => ({required Object error}) => 'Error loading students: ${error}',
 			'students.filter.title' => 'Filters',
 			'students.filter.group' => 'Group',
 			'students.filter.status' => 'Status',
@@ -605,6 +660,7 @@ extension on Translations {
 			'transactions.title' => 'Transactions',
 			'transactions.subtitle' => 'Income and expenses',
 			'finance.title' => 'Finance',
+			'finance.createTransaction' => 'New transaction',
 			'finance.income' => 'Income',
 			'finance.expenses' => 'Expenses',
 			'finance.lastTransactions' => 'Last transactions',
