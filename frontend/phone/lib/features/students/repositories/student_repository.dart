@@ -67,8 +67,8 @@ class StudentRepository {
     try {
       return await _service.getStudentVisits(
         studentId: studentId,
-        from: _isoDate.format(from),
-        to: _isoDate.format(to),
+        from: from,
+        to: to,
       );
     } on DioException catch (e) {
       throw Exception('Failed to fetch student lessons: ${e.message}');
