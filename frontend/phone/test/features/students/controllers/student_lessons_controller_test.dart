@@ -243,4 +243,29 @@ void main() {
       );
     },
   );
+
+  test('a month that is asked for during a load is loaded too', () async {
+    final client = _FakeStudentClient();
+    final container = _container(client);
+    final now = DateTime.now();
+
+    await container.read(studentLessonsProvider(_studentId).future);
+
+    final notifier = container.read(
+      studentLessonsProvider(_studentId).notifier,
+    );
+
+    // A fast run back through the months asks for several of them while the
+    // first window is still on its way.
+    final first = notifier.loadEarlierMonths(DateTime(now.year, now.month - 3));
+    final further = notifier.loadEarlierMonths(
+      DateTime(now.year, now.month - 6),
+    );
+
+    await Future.wait([first, further]);
+
+    // The window that was already running reaches the month asked for last.
+    expect(client.visitsCalls, hasLength(3));
+    expect(client.visitsCalls.last.from, DateTime(now.year, now.month - 8, 1));
+  });
 }

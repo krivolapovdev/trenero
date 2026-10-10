@@ -74,23 +74,33 @@ class GroupLessonsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lessonsAsync = ref.watch(groupLessonsProvider(groupId));
-    final localeAsync = ref.watch(languageProvider);
+    final isLoadingEarlier = ref.watch(
+      groupLessonsLoadingEarlierProvider(groupId),
+    );
+    final focusedDay = ref.watch(groupLessonsMonthProvider(groupId));
+    final locale = ref.watch(languageProvider).value?.languageTag;
 
-    return lessonsAsync.when(
-      data: (lessons) => LessonsCalendar(
-        lessons: lessons,
-        locale: localeAsync.value?.languageTag,
+    if (lessonsAsync.hasError && !lessonsAsync.hasValue) {
+      return Center(
+        child: Text('Error loading lessons: ${lessonsAsync.error}'),
+      );
+    }
+
+    return Skeletonizer(
+      enabled: lessonsAsync.isLoading || isLoadingEarlier,
+      child: LessonsCalendar(
+        lessons: lessonsAsync.value ?? _dummyLessons,
+        locale: locale,
+        focusedDay: focusedDay,
+        onMonthChanged: (month) {
+          ref.read(groupLessonsMonthProvider(groupId).notifier).show(month);
+          ref
+              .read(groupLessonsProvider(groupId).notifier)
+              .loadEarlierMonths(month);
+        },
         onDayTapped: (selectedDay, dayLessons) =>
             _openDayLessons(context, selectedDay, dayLessons),
       ),
-      loading: () => Skeletonizer(
-        child: LessonsCalendar(
-          lessons: lessonsAsync.value ?? _dummyLessons,
-          locale: localeAsync.value?.languageTag,
-        ),
-      ),
-      error: (error, stack) =>
-          Center(child: Text('Error loading lessons: $error')),
     );
   }
 }

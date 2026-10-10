@@ -97,12 +97,18 @@ class StudentLessonsController
   Future<List<VisitWithLessonResponse>> build() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    final windowFrom = StudentLessonsController.firstDayOfMonthBefore(
+      today,
+      monthsPerLoad - 1,
+    );
+
+    // The calendars can show a month that lies before the window (the month
+    // that is shown survives a reload of the lessons), so the window reaches
+    // back to it instead of leaving it empty.
+    final shownMonth = ref.read(studentLessonsMonthProvider(studentId));
     final from =
         _loadedFrom ??
-        StudentLessonsController.firstDayOfMonthBefore(
-          today,
-          monthsPerLoad - 1,
-        );
+        (shownMonth.isBefore(windowFrom) ? shownMonth : windowFrom);
     final to = _loadedTo ?? today;
 
     final visits = await _fetch(from, to);
@@ -120,17 +126,17 @@ class StudentLessonsController
   /// Loads the months before the loaded range until [month] is stored too.
   ///
   /// The calendar steps one month at a time, so a single window is usually
-  /// enough; the loop keeps the promise when [month] lies further back. While a
-  /// window is in flight the lessons that are already stored stay and
+  /// enough; the loop keeps the promise when [month] lies further back. A month
+  /// that is asked for while a window is still in flight is remembered and
+  /// loaded by the window that is running, so a fast run back through the
+  /// months cannot leave one of them empty. While a window is in flight the
+  /// lessons that are already stored stay and
   /// [studentLessonsLoadingEarlierProvider] is set, so the calendar can shimmer
   /// over the month that was opened.
   Future<void> loadEarlierMonths(DateTime month) async {
-    final loadedFrom = _loadedFrom;
-    if (_isLoading ||
-        loadedFrom == null ||
-        !_isBeforeMonth(month, loadedFrom)) {
-      return;
-    }
+    _rememberPendingMonth(month);
+
+    if (_isLoading || !_hasPendingMonth) return;
 
     _isLoading = true;
     ref
@@ -141,7 +147,7 @@ class StudentLessonsController
     var current = state.value ?? const <VisitWithLessonResponse>[];
 
     try {
-      while (_loadedFrom != null && _isBeforeMonth(month, _loadedFrom!)) {
+      while (_hasPendingMonth) {
         // The window ends the day before the loaded range starts, so no lesson
         // is stored twice.
         final from = StudentLessonsController.firstDayOfMonthBefore(
@@ -160,12 +166,31 @@ class StudentLessonsController
       // The lessons that are stored stay shown, the month can be opened again.
       state = AsyncData(current);
     } finally {
+      _pendingMonth = null;
       ref
           .read(studentLessonsLoadingEarlierProvider(studentId).notifier)
           .setLoading(false);
       _isLoading = false;
     }
   }
+
+  /// Remembers [month] as the month that still has to be loaded, keeping the
+  /// earliest one that was asked for.
+  void _rememberPendingMonth(DateTime month) {
+    final pending = _pendingMonth;
+    if (pending == null || _isBeforeMonth(month, pending)) {
+      _pendingMonth = month;
+    }
+  }
+
+  /// Whether a month that was asked for still lies before the loaded range.
+  bool get _hasPendingMonth =>
+      _loadedFrom != null &&
+      _pendingMonth != null &&
+      _isBeforeMonth(_pendingMonth!, _loadedFrom!);
+
+  /// The earliest month that was asked for and is not loaded yet.
+  DateTime? _pendingMonth;
 
   /// Whether [month] falls before [other], comparing the months only.
   static bool _isBeforeMonth(DateTime month, DateTime other) =>
