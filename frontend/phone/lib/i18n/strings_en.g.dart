@@ -250,6 +250,9 @@ class Translations$students$en {
 	/// en: 'No student'
 	String get noStudent => 'No student';
 
+	/// en: 'Studies for free'
+	String get free => 'Studies for free';
+
 	late final Translations$students$filter$en filter = Translations$students$filter$en._(_root);
 	late final Translations$students$status$en status = Translations$students$status$en._(_root);
 }
@@ -465,6 +468,9 @@ class Translations$students$status$en {
 
 	/// en: 'Unpaid'
 	String get unpaid => 'Unpaid';
+
+	/// en: 'Free'
+	String get free => 'Free';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -526,6 +532,7 @@ extension on Translations {
 			'students.group' => 'Group',
 			'students.joinedAt' => 'Joined at',
 			'students.noStudent' => 'No student',
+			'students.free' => 'Studies for free',
 			'students.filter.title' => 'Filters',
 			'students.filter.group' => 'Group',
 			'students.filter.status' => 'Status',
@@ -537,6 +544,7 @@ extension on Translations {
 			'students.status.missing' => 'Missing',
 			'students.status.paid' => 'Paid',
 			'students.status.unpaid' => 'Unpaid',
+			'students.status.free' => 'Free',
 			'settings.title' => 'Settings',
 			'settings.appearance' => 'Appearance',
 			'settings.language' => 'Language',

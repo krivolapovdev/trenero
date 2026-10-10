@@ -150,7 +150,7 @@ public class StudentService implements StudentSpi {
 
               var statuses =
                   studentStatusService.getStudentStatuses(
-                      studentVisits, studentPayments, studentLessons);
+                      studentVisits, studentPayments, studentLessons, student.getFree());
 
               var group = (groupId != null) ? groupsMap.get(groupId) : null;
 
@@ -358,7 +358,7 @@ public class StudentService implements StudentSpi {
 
                   var statuses =
                       studentStatusService.getStudentStatuses(
-                          studentVisits, studentPayments, studentLessons);
+                          studentVisits, studentPayments, studentLessons, student.getFree());
 
                   return new StudentWithStatusesResponse(student, statuses);
                 },

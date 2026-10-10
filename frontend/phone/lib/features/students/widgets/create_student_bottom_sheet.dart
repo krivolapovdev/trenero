@@ -20,6 +20,7 @@ class _CreateStudentBottomSheetState
     required DateTime? birthdate,
     required String? phone,
     required String? note,
+    required bool free,
   }) async {
     final success = await ref
         .read(createStudentControllerProvider.notifier)
@@ -28,6 +29,7 @@ class _CreateStudentBottomSheetState
           birthdate: birthdate,
           phone: phone,
           note: note,
+          free: free,
         );
 
     if (!mounted) return;

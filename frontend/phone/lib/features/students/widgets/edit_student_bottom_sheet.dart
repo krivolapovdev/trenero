@@ -23,6 +23,7 @@ class _EditStudentBottomSheetState
     required DateTime? birthdate,
     required String? phone,
     required String? note,
+    required bool free,
   }) async {
     final success = await ref
         .read(updateStudentControllerProvider.notifier)
@@ -32,6 +33,7 @@ class _EditStudentBottomSheetState
           birthdate: birthdate,
           phone: phone,
           note: note,
+          free: free,
         );
 
     if (!mounted) return;
@@ -61,6 +63,7 @@ class _EditStudentBottomSheetState
       initialBirthdate: student.birthdate,
       initialPhone: student.phone,
       initialNote: student.note,
+      initialFree: student.free,
       onSubmit: _onUpdate,
     );
   }

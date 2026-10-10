@@ -59,6 +59,7 @@
     "group": "Group",
     "joinedAt": "Joined at",
     "noStudent": "No student",
+    "free": "Studies for free",
     "filter": {
       "title": "Filters",
       "group": "Group",
@@ -72,7 +73,8 @@
       "present": "Present",
       "missing": "Missing",
       "paid": "Paid",
-      "unpaid": "Unpaid"
+      "unpaid": "Unpaid",
+      "free": "Free"
     }
   },
   "settings": {

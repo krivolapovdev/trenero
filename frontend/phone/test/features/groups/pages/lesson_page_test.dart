@@ -27,6 +27,7 @@ final GroupStudentSummaryResponse _ivan = GroupStudentSummaryResponse(
   id: 'student-1',
   fullName: 'Ivan Petrov',
   createdAt: DateTime(2025, 1, 1),
+  free: false,
   statuses: const [],
 );
 
@@ -34,6 +35,7 @@ final GroupStudentSummaryResponse _anna = GroupStudentSummaryResponse(
   id: 'student-2',
   fullName: 'Anna Smirnova',
   createdAt: DateTime(2025, 1, 1),
+  free: false,
   statuses: const [],
 );
 

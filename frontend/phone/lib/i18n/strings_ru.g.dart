@@ -143,6 +143,7 @@ class _Translations$students$ru implements Translations$students$en {
 	@override String get group => 'Группа';
 	@override String get joinedAt => 'Дата вступления';
 	@override String get noStudent => 'Без ученика';
+	@override String get free => 'Учится бесплатно';
 	@override late final _Translations$students$filter$ru filter = _Translations$students$filter$ru._(_root);
 	@override late final _Translations$students$status$ru status = _Translations$students$status$ru._(_root);
 }
@@ -252,6 +253,7 @@ class _Translations$students$status$ru implements Translations$students$status$e
 	@override String get missing => 'Отсутствовал';
 	@override String get paid => 'Оплачено';
 	@override String get unpaid => 'Не оплачено';
+	@override String get free => 'Бесплатно';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -313,6 +315,7 @@ extension on TranslationsRu {
 			'students.group' => 'Группа',
 			'students.joinedAt' => 'Дата вступления',
 			'students.noStudent' => 'Без ученика',
+			'students.free' => 'Учится бесплатно',
 			'students.filter.title' => 'Фильтры',
 			'students.filter.group' => 'Группа',
 			'students.filter.status' => 'Статус',
@@ -324,6 +327,7 @@ extension on TranslationsRu {
 			'students.status.missing' => 'Отсутствовал',
 			'students.status.paid' => 'Оплачено',
 			'students.status.unpaid' => 'Не оплачено',
+			'students.status.free' => 'Бесплатно',
 			'settings.title' => 'Настройки',
 			'settings.appearance' => 'Внешний вид',
 			'settings.language' => 'Язык',

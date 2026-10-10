@@ -18,11 +18,12 @@ class StudentStatusService {
     visits: List<VisitResponse>,
     payments: List<TransactionResponse>,
     lessons: List<LessonResponse> = emptyList(),
+    free: Boolean = false,
   ): Set<StudentStatus> {
     val hasAnyMarkedVisit = visits.any { it.status != VisitStatus.UNMARKED }
 
     if (!hasAnyMarkedVisit && payments.isEmpty()) {
-      return setOf(StudentStatus.INACTIVE)
+      return setOf(if (free) StudentStatus.FREE else StudentStatus.INACTIVE)
     }
 
     val statuses = EnumSet.noneOf(StudentStatus::class.java)
@@ -42,6 +43,14 @@ class StudentStatusService {
             if (status == VisitStatus.PRESENT) StudentStatus.PRESENT else StudentStatus.MISSING
           )
         }
+    }
+
+    // A student who studies for free is never charged, so the payment badge is FREE and the
+    // subscription dates of any past payments are irrelevant.
+    if (free) {
+      statuses.add(StudentStatus.FREE)
+
+      return statuses
     }
 
     val referenceDate = lastLesson?.date ?: LocalDate.now()

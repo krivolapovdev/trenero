@@ -11,6 +11,7 @@ extension StudentStatusLabelExtension on StudentStatus {
     StudentStatus.missing => context.t.students.status.missing,
     StudentStatus.paid => context.t.students.status.paid,
     StudentStatus.unpaid => context.t.students.status.unpaid,
+    StudentStatus.free => context.t.students.status.free,
     StudentStatus.$unknown => '',
   };
 }
@@ -59,6 +60,14 @@ extension StudentStatusExtension on List<StudentStatus> {
           label: status.label(context),
           backgroundColor: colorScheme.errorContainer,
           foregroundColor: colorScheme.onErrorContainer,
+        ),
+
+        StudentStatus.free => StudentBadgeData(
+          id: status.name,
+          icon: const Icon(CupertinoIcons.gift),
+          label: status.label(context),
+          backgroundColor: const Color(0xFFFEF9C3),
+          foregroundColor: const Color(0xFF854D0E),
         ),
 
         StudentStatus.$unknown => StudentBadgeData(

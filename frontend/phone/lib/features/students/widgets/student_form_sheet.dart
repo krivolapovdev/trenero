@@ -12,12 +12,14 @@ class StudentFormSheet extends StatefulWidget {
   final DateTime? initialBirthdate;
   final String? initialPhone;
   final String? initialNote;
+  final bool initialFree;
   final bool isLoading;
   final Future<void> Function({
     required String fullName,
     required DateTime? birthdate,
     required String? phone,
     required String? note,
+    required bool free,
   })
   onSubmit;
 
@@ -31,6 +33,7 @@ class StudentFormSheet extends StatefulWidget {
     this.initialBirthdate,
     this.initialPhone,
     this.initialNote,
+    this.initialFree = false,
     this.isLoading = false,
   });
 
@@ -48,11 +51,13 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
   late final TextEditingController _birthdateController;
 
   DateTime? _birthdate;
+  late bool _free;
 
   @override
   void initState() {
     super.initState();
     _birthdate = widget.initialBirthdate;
+    _free = widget.initialFree;
     _nameController = TextEditingController(text: widget.initialFullName);
     _phoneController = TextEditingController(text: widget.initialPhone);
     _noteController = TextEditingController(text: widget.initialNote);
@@ -120,6 +125,7 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
       birthdate: _birthdate,
       phone: _phoneController.text,
       note: _noteController.text,
+      free: _free,
     );
   }
 
@@ -208,6 +214,19 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                         ),
                         controller: _noteController,
                         enabled: !isLoading,
+                      ),
+
+                      CheckboxListTile(
+                        value: _free,
+                        onChanged: isLoading
+                            ? null
+                            : (value) => setState(() => _free = value ?? false),
+                        title: Text(
+                          context.t.students.free,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
                       ),
 
                       Padding(

@@ -12,6 +12,7 @@ StudentSummaryResponse _student({
   id: id,
   fullName: 'Ivan Petrov',
   createdAt: DateTime(2025, 8, 22),
+  free: false,
   statuses: statuses,
   studentGroup: groupId == null
       ? null

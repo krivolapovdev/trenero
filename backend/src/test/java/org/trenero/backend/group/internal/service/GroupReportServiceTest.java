@@ -188,7 +188,7 @@ class GroupReportServiceTest {
   }
 
   private static StudentResponse student(UUID studentId, String fullName) {
-    return new StudentResponse(studentId, fullName, null, null, null, CREATED_AT);
+    return new StudentResponse(studentId, fullName, null, null, null, CREATED_AT, false);
   }
 
   private static LessonResponse lesson(UUID lessonId, LocalDate date) {

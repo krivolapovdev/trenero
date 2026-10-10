@@ -50,7 +50,7 @@ class StudentStatusServiceGetStudentStatusesTest {
             lesson(GROUP_LESSON_ID, GROUP_ID, LocalDate.of(2026, 9, 1), CREATED_AT),
             lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 10, 8), CREATED_AT));
 
-    Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons);
+    Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons, false);
 
     assertThat(statuses).contains(StudentStatus.PRESENT).doesNotContain(StudentStatus.MISSING);
   }
@@ -66,7 +66,7 @@ class StudentStatusServiceGetStudentStatusesTest {
             lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 9, 1), CREATED_AT),
             lesson(GROUP_LESSON_ID, GROUP_ID, LocalDate.of(2026, 10, 8), CREATED_AT));
 
-    Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons);
+    Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons, false);
 
     assertThat(statuses).contains(StudentStatus.MISSING).doesNotContain(StudentStatus.PRESENT);
   }
@@ -83,7 +83,7 @@ class StudentStatusServiceGetStudentStatusesTest {
             lesson(GROUP_LESSON_ID, GROUP_ID, day, CREATED_AT),
             lesson(INDIVIDUAL_LESSON_ID, null, day, CREATED_AT.plusHours(2)));
 
-    Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons);
+    Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons, false);
 
     assertThat(statuses).contains(StudentStatus.PRESENT).doesNotContain(StudentStatus.MISSING);
   }
@@ -95,14 +95,15 @@ class StudentStatusServiceGetStudentStatusesTest {
     List<LessonResponse> lessons =
         List.of(lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 10, 8), CREATED_AT));
 
-    Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons);
+    Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons, false);
 
     assertThat(statuses).contains(StudentStatus.PRESENT);
   }
 
   @Test
   void marksInactiveWhenThereAreNoMarkedVisitsAndNoPayments() {
-    Set<StudentStatus> statuses = service.getStudentStatuses(List.of(), List.of(), List.of());
+    Set<StudentStatus> statuses =
+        service.getStudentStatuses(List.of(), List.of(), List.of(), false);
 
     assertThat(statuses).containsExactly(StudentStatus.INACTIVE);
   }
@@ -116,7 +117,7 @@ class StudentStatusServiceGetStudentStatusesTest {
         List.of(lesson(INDIVIDUAL_LESSON_ID, null, lastLessonDay, CREATED_AT));
 
     Set<StudentStatus> statuses =
-        service.getStudentStatuses(visits, List.of(payment(lastLessonDay)), lessons);
+        service.getStudentStatuses(visits, List.of(payment(lastLessonDay)), lessons, false);
 
     assertThat(statuses).contains(StudentStatus.PAID).doesNotContain(StudentStatus.UNPAID);
   }
@@ -130,9 +131,47 @@ class StudentStatusServiceGetStudentStatusesTest {
         List.of(lesson(INDIVIDUAL_LESSON_ID, null, lastLessonDay, CREATED_AT));
 
     Set<StudentStatus> statuses =
-        service.getStudentStatuses(visits, List.of(payment(lastLessonDay.minusDays(1))), lessons);
+        service.getStudentStatuses(
+            visits, List.of(payment(lastLessonDay.minusDays(1))), lessons, false);
 
     assertThat(statuses).contains(StudentStatus.UNPAID).doesNotContain(StudentStatus.PAID);
+  }
+
+  @Test
+  void marksFreeInsteadOfPaidForAStudentWhoStudiesForFree() {
+    LocalDate lastLessonDay = LocalDate.of(2026, 10, 8);
+    List<VisitResponse> visits =
+        List.of(visit(INDIVIDUAL_LESSON_ID, VisitStatus.PRESENT, VisitType.REGULAR));
+    List<LessonResponse> lessons =
+        List.of(lesson(INDIVIDUAL_LESSON_ID, null, lastLessonDay, CREATED_AT));
+
+    Set<StudentStatus> statuses =
+        service.getStudentStatuses(visits, List.of(payment(lastLessonDay)), lessons, true);
+
+    assertThat(statuses)
+        .contains(StudentStatus.FREE)
+        .doesNotContain(StudentStatus.PAID, StudentStatus.UNPAID);
+  }
+
+  @Test
+  void marksFreeInsteadOfUnpaidForAStudentWhoStudiesForFree() {
+    List<VisitResponse> visits =
+        List.of(visit(INDIVIDUAL_LESSON_ID, VisitStatus.PRESENT, VisitType.REGULAR));
+    List<LessonResponse> lessons =
+        List.of(lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 10, 8), CREATED_AT));
+
+    Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons, true);
+
+    assertThat(statuses)
+        .contains(StudentStatus.FREE)
+        .doesNotContain(StudentStatus.PAID, StudentStatus.UNPAID);
+  }
+
+  @Test
+  void marksFreeInsteadOfInactiveForAStudentWhoStudiesForFreeAndHasNoActivity() {
+    Set<StudentStatus> statuses = service.getStudentStatuses(List.of(), List.of(), List.of(), true);
+
+    assertThat(statuses).containsExactly(StudentStatus.FREE);
   }
 
   private static VisitResponse visit(UUID lessonId, VisitStatus status, VisitType type) {

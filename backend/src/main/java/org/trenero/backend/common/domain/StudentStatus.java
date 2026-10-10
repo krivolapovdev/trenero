@@ -5,5 +5,6 @@ public enum StudentStatus {
   PRESENT,
   MISSING,
   PAID,
-  UNPAID
+  UNPAID,
+  FREE
 }

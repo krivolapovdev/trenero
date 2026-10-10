@@ -14,6 +14,7 @@ Widget _sheet({
     required DateTime? birthdate,
     required String? phone,
     required String? note,
+    required bool free,
   })?
   onSubmit,
 }) => StudentFormSheet(
@@ -27,6 +28,7 @@ Widget _sheet({
         required DateTime? birthdate,
         required String? phone,
         required String? note,
+        required bool free,
       }) async {},
 );
 
@@ -66,6 +68,7 @@ void main() {
     String? submittedName;
     String? submittedPhone;
     String? submittedNote;
+    bool? submittedFree;
 
     await tester.pumpWidget(
       _wrap(
@@ -76,10 +79,12 @@ void main() {
                 required DateTime? birthdate,
                 required String? phone,
                 required String? note,
+                required bool free,
               }) async {
                 submittedName = fullName;
                 submittedPhone = phone;
                 submittedNote = note;
+                submittedFree = free;
               },
         ),
       ),
@@ -96,5 +101,39 @@ void main() {
     expect(submittedName, 'Ivan Petrov');
     expect(submittedPhone, '+7 999 123-45-67');
     expect(submittedNote, 'Note of the student');
+    expect(submittedFree, isFalse);
+  });
+
+  testWidgets('the free checkbox is submitted with the form', (tester) async {
+    bool? submittedFree;
+
+    await tester.pumpWidget(
+      _wrap(
+        _sheet(
+          onSubmit:
+              ({
+                required String fullName,
+                required DateTime? birthdate,
+                required String? phone,
+                required String? note,
+                required bool free,
+              }) async {
+                submittedFree = free;
+              },
+        ),
+      ),
+    );
+
+    expect(find.byType(CheckboxListTile), findsOneWidget);
+    expect(find.text(t.students.free), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).first, 'Ivan Petrov');
+    await tester.tap(find.byType(Checkbox));
+    await tester.pump();
+
+    await tester.tap(find.text(t.create));
+    await tester.pump();
+
+    expect(submittedFree, isTrue);
   });
 }

@@ -23,6 +23,7 @@ final _students = [
     id: 'student-1',
     fullName: 'Ivan Ivanov',
     createdAt: DateTime(2025, 8, 22),
+    free: false,
     statuses: const [StudentStatus.paid],
     studentGroup: GroupResponse(
       id: 'group-a',
@@ -34,6 +35,7 @@ final _students = [
     id: 'student-2',
     fullName: 'Petr Sidorov',
     createdAt: DateTime(2025, 8, 22),
+    free: false,
     statuses: const [StudentStatus.unpaid],
   ),
 ];

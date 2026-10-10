@@ -30,6 +30,7 @@ class StudentListPage extends ShellPage {
       id: 'placeholder-$index',
       fullName: 'Student Name Placeholder',
       createdAt: DateTime.now(),
+      free: false,
       statuses: [],
     ),
   );

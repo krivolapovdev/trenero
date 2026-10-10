@@ -26,6 +26,7 @@ class UpdateStudentController extends AsyncNotifier<void> {
     required DateTime? birthdate,
     required String? phone,
     required String? note,
+    required bool free,
   }) async {
     state = const AsyncLoading();
 
@@ -40,6 +41,7 @@ class UpdateStudentController extends AsyncNotifier<void> {
         'birthdate': birthdate == null ? null : _isoDate.format(birthdate),
         'phone': blankToNull(phone),
         'note': blankToNull(note),
+        'free': free,
       };
 
       final service = ref.read(studentServiceProvider);

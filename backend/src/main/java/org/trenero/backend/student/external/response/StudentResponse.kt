@@ -12,4 +12,5 @@ data class StudentResponse(
   val phone: String? = null,
   val note: String? = null,
   @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val createdAt: OffsetDateTime,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val free: Boolean,
 )

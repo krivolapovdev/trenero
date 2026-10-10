@@ -41,6 +41,10 @@ public interface StudentMapper {
       student.setBirthdate(date != null ? LocalDate.parse(date.toString()) : null);
     }
 
+    if (updates.containsKey("free")) {
+      student.setFree(Boolean.TRUE.equals(updates.get("free")));
+    }
+
     return student;
   }
 }

@@ -82,7 +82,8 @@ class StudentServiceAssignStudentGroupTest {
                 null,
                 null,
                 null,
-                OffsetDateTime.of(2026, 10, 8, 0, 0, 0, 0, ZoneOffset.UTC)));
+                OffsetDateTime.of(2026, 10, 8, 0, 0, 0, 0, ZoneOffset.UTC),
+                false));
   }
 
   /** Only the group link collaborators are used by {@link StudentService#updateStudent}. */

@@ -47,6 +47,10 @@ public class Student {
   @Column(name = "note")
   private String note;
 
+  /** Whether the student studies for free and is therefore never charged for lessons. */
+  @Column(name = "free", nullable = false)
+  private boolean free;
+
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;

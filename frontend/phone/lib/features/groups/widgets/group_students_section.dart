@@ -19,6 +19,7 @@ class GroupStudentsSection extends ConsumerWidget {
           id: 'placeholder-$index',
           fullName: 'Student Name Placeholder',
           createdAt: DateTime.now(),
+          free: false,
           statuses: const [],
         ),
       );
@@ -81,6 +82,7 @@ class GroupStudentsSection extends ConsumerWidget {
             id: student.id,
             fullName: '${index + 1}. ${student.fullName}',
             createdAt: student.createdAt,
+            free: student.free,
             statuses: student.statuses,
           ),
           onTap: isLoading
@@ -93,6 +95,7 @@ class GroupStudentsSection extends ConsumerWidget {
                           id: student.id,
                           fullName: student.fullName,
                           createdAt: student.createdAt,
+                          free: student.free,
                           statuses: student.statuses,
                         ),
                       ),
