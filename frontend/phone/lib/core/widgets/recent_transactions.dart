@@ -55,17 +55,17 @@ class RecentTransactions extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              context.t.finance.lastTransactions,
-              style: const TextStyle(fontSize: 22, color: Colors.black),
-            ),
-            if (onSeeAllPressed != null)
-              Skeletonizer(
-                enabled: asyncTransactions.isLoading,
-                child: FilledButton.icon(
+        Skeletonizer(
+          enabled: asyncTransactions.isLoading,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                context.t.finance.lastTransactions,
+                style: const TextStyle(fontSize: 22, color: Colors.black),
+              ),
+              if (onSeeAllPressed != null)
+                FilledButton.icon(
                   onPressed: onSeeAllPressed,
                   iconAlignment: IconAlignment.end,
                   style: FilledButton.styleFrom(
@@ -88,8 +88,8 @@ class RecentTransactions extends StatelessWidget {
                   label: Text(context.t.all),
                   icon: const Icon(Icons.chevron_right, size: 18),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
         asyncTransactions.when(
           data: (transactions) {
