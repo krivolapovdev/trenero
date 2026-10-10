@@ -43,7 +43,6 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get cancel => 'Отменить';
 	@override String get repeat => 'Повторить';
 	@override String get create => 'Создать';
-	@override String get update => 'Обновить';
 	@override String get edit => 'Редактировать';
 	@override String get delete => 'Удалить';
 	@override String get all => 'Все';
@@ -293,7 +292,6 @@ extension on TranslationsRu {
 			'cancel' => 'Отменить',
 			'repeat' => 'Повторить',
 			'create' => 'Создать',
-			'update' => 'Обновить',
 			'edit' => 'Редактировать',
 			'delete' => 'Удалить',
 			'all' => 'Все',

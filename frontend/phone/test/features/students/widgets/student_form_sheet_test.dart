@@ -32,6 +32,28 @@ Widget _sheet({
       }) async {},
 );
 
+/// The form of a stored student, opened the way the edit sheet opens it.
+Widget _editSheet() => StudentFormSheet(
+  title: t.students.editStudent,
+  submitLabel: t.edit,
+  submitIcon: Icons.check,
+  initialFullName: 'Ivan Petrov',
+  initialBirthdate: DateTime(2010, 5, 20),
+  initialPhone: '+7 999 123-45-67',
+  initialNote: 'Note of the student',
+  onSubmit: ({
+    required String fullName,
+    required DateTime? birthdate,
+    required String? phone,
+    required String? note,
+    required bool free,
+  }) async {},
+);
+
+/// The action of the form.
+TextButton _submit(WidgetTester tester) =>
+    tester.widget<TextButton>(find.byType(TextButton));
+
 void main() {
   setUpAll(() async {
     await initializeDateFormatting();
@@ -135,5 +157,51 @@ void main() {
     await tester.pump();
 
     expect(submittedFree, isTrue);
+  });
+
+  testWidgets('the edit form waits for a field to change', (tester) async {
+    await tester.pumpWidget(_wrap(_editSheet()));
+
+    // Every field carries the stored value, so there is nothing to edit yet.
+    expect(_submit(tester).onPressed, isNull);
+
+    await tester.enterText(find.byType(TextField).first, 'Ivan Petrov Jr.');
+    await tester.pump();
+
+    expect(_submit(tester).onPressed, isNotNull);
+
+    // Typing the stored name back leaves nothing to edit again.
+    await tester.enterText(find.byType(TextField).first, 'Ivan Petrov');
+    await tester.pump();
+
+    expect(_submit(tester).onPressed, isNull);
+  });
+
+  testWidgets('the edit form notices the phone and the note', (tester) async {
+    await tester.pumpWidget(_wrap(_editSheet()));
+
+    await tester.enterText(find.byType(TextField).at(2), '+7 999 000-00-00');
+    await tester.pump();
+
+    expect(_submit(tester).onPressed, isNotNull);
+
+    await tester.enterText(find.byType(TextField).at(2), '+7 999 123-45-67');
+    await tester.pump();
+
+    expect(_submit(tester).onPressed, isNull);
+
+    await tester.enterText(find.byType(TextField).at(3), 'Another note');
+    await tester.pump();
+
+    expect(_submit(tester).onPressed, isNotNull);
+  });
+
+  testWidgets('the edit form notices the free checkbox', (tester) async {
+    await tester.pumpWidget(_wrap(_editSheet()));
+
+    await tester.tap(find.byType(Checkbox));
+    await tester.pump();
+
+    expect(_submit(tester).onPressed, isNotNull);
   });
 }

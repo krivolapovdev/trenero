@@ -110,6 +110,10 @@ Widget _wrapWithApi(
   child: TranslationProvider(child: MaterialApp(home: child)),
 );
 
+/// The action of the edit transaction sheet.
+TextButton _editAction(WidgetTester tester) =>
+    tester.widget<TextButton>(find.widgetWithText(TextButton, t.edit));
+
 void main() {
   setUpAll(() async {
     await initializeDateFormatting();
@@ -209,7 +213,7 @@ void main() {
     expect(find.text(t.finance.paidUntil.toUpperCase()), findsOneWidget);
     expect(find.text('1 SEP, 2025'), findsOneWidget);
   });
-  testWidgets('the app bar menu offers update and delete', (tester) async {
+  testWidgets('the app bar menu offers edit and delete', (tester) async {
     await tester.pumpWidget(
       _wrap(TransactionPage(transaction: _transaction())),
     );
@@ -217,15 +221,40 @@ void main() {
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
 
-    expect(find.text(t.update), findsOneWidget);
+    expect(find.text(t.edit), findsOneWidget);
     expect(find.text(t.delete), findsOneWidget);
 
-    await tester.tap(find.text(t.update));
+    await tester.tap(find.text(t.edit));
     await tester.pumpAndSettle();
 
     expect(find.byType(EditTransactionBottomSheet), findsOneWidget);
     expect(find.text(t.finance.editTransaction), findsOneWidget);
     expect(find.text('3800'), findsOneWidget);
+  });
+
+  testWidgets('the edit sheet waits for the amount to change', (tester) async {
+    await tester.pumpWidget(
+      _wrap(TransactionPage(transaction: _transaction())),
+    );
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(t.edit));
+    await tester.pumpAndSettle();
+
+    // The stored amount is prefilled, so there is nothing to edit yet.
+    expect(_editAction(tester).onPressed, isNull);
+
+    await tester.enterText(find.byType(TextField).first, '4200');
+    await tester.pump();
+
+    expect(_editAction(tester).onPressed, isNotNull);
+
+    // Typing the stored amount back leaves nothing to edit again.
+    await tester.enterText(find.byType(TextField).first, '3800');
+    await tester.pump();
+
+    expect(_editAction(tester).onPressed, isNull);
   });
 
   testWidgets('updating a transaction patches it and refreshes the ticket', (
@@ -240,12 +269,13 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(t.update));
+    await tester.tap(find.text(t.edit));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField), '4200');
+    // The amount is the first field of the sheet, the date follows.
+    await tester.enterText(find.byType(TextField).first, '4200');
     await tester.pump();
-    await tester.tap(find.text(t.update));
+    await tester.tap(find.text(t.edit));
     await tester.pump();
 
     // The transaction list and the metrics are reloaded with a delay.

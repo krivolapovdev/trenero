@@ -60,9 +60,23 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
     _phoneController = TextEditingController(text: widget.initialPhone);
     _noteController = TextEditingController(text: widget.initialNote);
     _nameController.addListener(_onFieldChanged);
+    _phoneController.addListener(_onFieldChanged);
+    _noteController.addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() => setState(() {});
+
+  /// Whether a field differs from the value the form was opened with.
+  ///
+  /// The form of a new student starts empty, so typing the name alone is
+  /// already a change; the form of a stored one keeps its action disabled
+  /// until the user edits something.
+  bool get _hasChanges =>
+      _nameController.text != (widget.initialFullName ?? '') ||
+      _phoneController.text != (widget.initialPhone ?? '') ||
+      _noteController.text != (widget.initialNote ?? '') ||
+      _birthdate != widget.initialBirthdate ||
+      _free != widget.initialFree;
 
   void _onBirthdateChanged(DateTime? date) => setState(() => _birthdate = date);
 
@@ -189,7 +203,8 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: TextButton.icon(
-                            onPressed: (isNameEmpty || isLoading)
+                            onPressed:
+                                (isNameEmpty || !_hasChanges || isLoading)
                                 ? null
                                 : _onSubmit,
                             icon: isLoading

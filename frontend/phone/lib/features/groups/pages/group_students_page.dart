@@ -13,7 +13,9 @@ import 'package:skeletonizer/skeletonizer.dart';
 ///
 /// The page lists every student with a checkbox and makes the picked ones the
 /// students of the group, dropping the students that are left unchecked. A
-/// group may end up without any student, so the update is always available.
+/// group may end up without any student, so clearing every student is allowed
+/// too. The action stays disabled until the pick differs from the students the
+/// group already holds.
 class GroupStudentsPage extends ConsumerStatefulWidget {
   /// The group the picked students are assigned to.
   final GroupSummaryResponse group;
@@ -39,6 +41,16 @@ class _GroupStudentsPageState extends ConsumerState<GroupStudentsPage> {
   /// The students the checkboxes show selected.
   Set<String> _picked(Set<String> groupStudentIds) =>
       _pickedStudentIds ?? groupStudentIds;
+
+  /// Whether the picked students differ from the students the group holds, so
+  /// that the action stays disabled until the user changes something.
+  bool _hasChanges(Set<String> groupStudentIds) {
+    final pickedStudentIds = _pickedStudentIds;
+    if (pickedStudentIds == null) return false;
+
+    return pickedStudentIds.length != groupStudentIds.length ||
+        !pickedStudentIds.containsAll(groupStudentIds);
+  }
 
   /// Picks a student, or drops the pick when the selected student is tapped
   /// again.
@@ -87,6 +99,7 @@ class _GroupStudentsPageState extends ConsumerState<GroupStudentsPage> {
     final isSubmitting = ref
         .watch(assignGroupStudentsControllerProvider)
         .isLoading;
+    final hasChanges = _hasChanges(groupStudentIds);
     final isLoading = studentsState.isLoading || groupStudentsState.isLoading;
     final hasError = studentsState.hasError;
 
@@ -95,7 +108,9 @@ class _GroupStudentsPageState extends ConsumerState<GroupStudentsPage> {
         title: Text(context.t.students.title),
         actions: [
           TextButton.icon(
-            onPressed: isSubmitting ? null : () => _onSubmit(groupStudentIds),
+            onPressed: (isSubmitting || !hasChanges)
+                ? null
+                : () => _onSubmit(groupStudentIds),
             icon: isSubmitting
                 ? const SizedBox(
                     width: 18,
@@ -103,7 +118,7 @@ class _GroupStudentsPageState extends ConsumerState<GroupStudentsPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : null,
-            label: Text(context.t.update, style: const TextStyle(fontSize: 18)),
+            label: Text(context.t.edit, style: const TextStyle(fontSize: 18)),
           ),
           const SizedBox(width: 8),
         ],

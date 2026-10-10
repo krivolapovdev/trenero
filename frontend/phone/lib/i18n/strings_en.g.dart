@@ -57,9 +57,6 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Create'
 	String get create => 'Create';
 
-	/// en: 'Update'
-	String get update => 'Update';
-
 	/// en: 'Edit'
 	String get edit => 'Edit';
 
@@ -558,7 +555,6 @@ extension on Translations {
 			'cancel' => 'Cancel',
 			'repeat' => 'Repeat',
 			'create' => 'Create',
-			'update' => 'Update',
 			'edit' => 'Edit',
 			'delete' => 'Delete',
 			'all' => 'All',

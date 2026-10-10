@@ -45,10 +45,22 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
     _nameController = TextEditingController(text: widget.initialName);
     _priceController = TextEditingController(text: widget.initialPrice);
     _noteController = TextEditingController(text: widget.initialNote);
-    _nameController.addListener(_onNameChanged);
+    _nameController.addListener(_onFieldChanged);
+    _priceController.addListener(_onFieldChanged);
+    _noteController.addListener(_onFieldChanged);
   }
 
-  void _onNameChanged() => setState(() {});
+  void _onFieldChanged() => setState(() {});
+
+  /// Whether a field differs from the value the form was opened with.
+  ///
+  /// The form of a new group starts empty, so typing the name alone is already
+  /// a change; the form of a stored one keeps its action disabled until the
+  /// user edits something.
+  bool get _hasChanges =>
+      _nameController.text != (widget.initialName ?? '') ||
+      _priceController.text != (widget.initialPrice ?? '') ||
+      _noteController.text != (widget.initialNote ?? '');
 
   @override
   void dispose() {
@@ -150,7 +162,8 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: TextButton.icon(
-                            onPressed: (isNameEmpty || isLoading)
+                            onPressed:
+                                (isNameEmpty || !_hasChanges || isLoading)
                                 ? null
                                 : _onSubmit,
                             icon: isLoading

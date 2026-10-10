@@ -318,7 +318,7 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
                     )
                   : Icon(widget.lesson == null ? Icons.add : Icons.check),
               label: Text(
-                widget.lesson == null ? context.t.create : context.t.update,
+                widget.lesson == null ? context.t.create : context.t.edit,
                 style: const TextStyle(fontSize: 18),
               ),
             ),

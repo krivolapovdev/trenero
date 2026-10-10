@@ -24,16 +24,31 @@ class _EditTransactionBottomSheetState
   final TextEditingController _amountController = TextEditingController();
 
   late DateTime _selectedDate;
+
+  /// The amount the sheet was opened with, as the field shows it.
+  late final String _initialAmountText;
+
   bool _isDateValid = true;
   bool _isLoading = false;
+
+  /// Whether a field differs from the transaction the sheet was opened with, so
+  /// that the sheet stays untouched until the user changes something.
+  bool get _hasChanges =>
+      _amountController.text != _initialAmountText ||
+      DateUtils.dateOnly(_selectedDate) !=
+          DateUtils.dateOnly(widget.transaction.date);
 
   @override
   void initState() {
     super.initState();
 
     final amount = widget.transaction.amount;
+    _initialAmountText = amount % 1 == 0
+        ? amount.toInt().toString()
+        : amount.toString();
+
     _amountController
-      ..text = amount % 1 == 0 ? amount.toInt().toString() : amount.toString()
+      ..text = _initialAmountText
       ..addListener(_onAmountChanged);
 
     _selectedDate = widget.transaction.date;
@@ -180,7 +195,10 @@ class _EditTransactionBottomSheetState
                           alignment: Alignment.centerRight,
                           child: TextButton.icon(
                             onPressed:
-                                (isAmountEmpty || !_isDateValid || _isLoading)
+                                (isAmountEmpty ||
+                                    !_isDateValid ||
+                                    !_hasChanges ||
+                                    _isLoading)
                                 ? null
                                 : _onUpdate,
                             icon: _isLoading
@@ -193,7 +211,7 @@ class _EditTransactionBottomSheetState
                                   )
                                 : const Icon(FluentIcons.checkmark_24_regular),
                             label: Text(
-                              context.t.update,
+                              context.t.edit,
                               style: const TextStyle(fontSize: 18),
                             ),
                           ),

@@ -170,6 +170,36 @@ void main() {
     );
   });
 
+  testWidgets('the update waits for the picked groups to change', (
+    tester,
+  ) async {
+    await _pumpPage(tester, container, initialGroupIds: {'group-a'});
+
+    // The groups of the student are preselected, so there is nothing to
+    // update yet.
+    expect(
+      tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      isNull,
+    );
+
+    await tester.tap(find.text('Group B'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      isNotNull,
+    );
+
+    // Picking the same group again leaves nothing to update.
+    await tester.tap(find.text('Group B'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      isNull,
+    );
+  });
+
   testWidgets('submitting assigns every picked group and closes the page', (
     tester,
   ) async {

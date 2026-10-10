@@ -254,10 +254,61 @@ void main() {
     expect(find.byType(GroupStudentsPage), findsNothing);
   });
 
-  testWidgets('an empty group still offers clearing every student', (
-    tester,
-  ) async {
+  testWidgets('the action waits for the students to change', (tester) async {
+    await pumpPage(
+      tester,
+      container(groupStudents: [_groupStudent('student-1', 'Anna Smirnova')]),
+    );
+
+    // The stored students are preselected, so there is nothing to update yet.
+    expect(
+      tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      isNull,
+    );
+
+    await tester.tap(find.text('Ivan Petrov'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      isNotNull,
+    );
+
+    // Picking the same student again leaves nothing to update.
+    await tester.tap(find.text('Ivan Petrov'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      isNull,
+    );
+  });
+
+  testWidgets('an empty group waits for the first student', (tester) async {
     await pumpPage(tester, container());
+
+    expect(
+      tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      isNull,
+    );
+
+    await tester.tap(find.text('Anna Smirnova'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets('clearing every student of the group is allowed', (tester) async {
+    await pumpPage(
+      tester,
+      container(groupStudents: [_groupStudent('student-1', 'Anna Smirnova')]),
+    );
+
+    await tester.tap(find.text('Anna Smirnova'));
+    await tester.pumpAndSettle();
 
     expect(
       tester.widget<TextButton>(find.byType(TextButton)).onPressed,

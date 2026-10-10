@@ -12,8 +12,9 @@ import 'package:skeletonizer/skeletonizer.dart';
 /// The page lists every cached group with a checkbox and attaches the student
 /// to the picked ones, dropping the groups that are left unchecked. The student
 /// is always stored as joined today in the groups that are new to them, so the
-/// page carries no join date field. At least one group is required, so the
-/// update stays disabled until one is picked.
+/// page carries no join date field. At least one group is required, and the
+/// action stays disabled until the pick differs from the groups the student
+/// already belongs to.
 class StudentGroupPage extends ConsumerStatefulWidget {
   /// The student the picked groups are assigned to.
   final String studentId;
@@ -40,6 +41,12 @@ class _StudentGroupPageState extends ConsumerState<StudentGroupPage> {
   ];
 
   late final Set<String> _groupIds = {...widget.initialGroupIds};
+
+  /// Whether the picked groups differ from the groups the student belongs to, so
+  /// that the action stays disabled until the user changes something.
+  bool get _hasChanges =>
+      _groupIds.length != widget.initialGroupIds.length ||
+      !_groupIds.containsAll(widget.initialGroupIds);
 
   /// Picks a group, or drops the pick when the selected group is tapped again.
   void _toggleGroup(String groupId) {
@@ -93,7 +100,9 @@ class _StudentGroupPageState extends ConsumerState<StudentGroupPage> {
         title: Text(context.t.students.group),
         actions: [
           TextButton.icon(
-            onPressed: (_groupIds.isEmpty || isSubmitting) ? null : _onSubmit,
+            onPressed: (_groupIds.isEmpty || !_hasChanges || isSubmitting)
+                ? null
+                : _onSubmit,
             icon: isSubmitting
                 ? const SizedBox(
                     width: 18,
@@ -101,7 +110,7 @@ class _StudentGroupPageState extends ConsumerState<StudentGroupPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : null,
-            label: Text(context.t.update, style: const TextStyle(fontSize: 18)),
+            label: Text(context.t.edit, style: const TextStyle(fontSize: 18)),
           ),
           const SizedBox(width: 8),
         ],
