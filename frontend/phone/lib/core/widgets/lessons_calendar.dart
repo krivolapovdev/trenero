@@ -18,10 +18,9 @@ class LessonsCalendar extends StatefulWidget {
   /// student's day by the attendance recorded for it.
   ///
   /// When set, a day whose visits were all present is drawn green and a day
-  /// that was entirely missed is drawn red. The days that are neither (an
-  /// unmarked visit, or a mix of present and absent) keep the colour of the
-  /// lesson. The group calendar leaves it null, so its days keep telling the
-  /// kind of lesson only.
+  /// that was entirely missed is drawn red. The days that are neither (a mix of
+  /// present and absent) keep the colour of the lesson. The group calendar
+  /// leaves it null, so its days keep telling the kind of lesson only.
   final List<VisitStatus> Function(DateTime day)? dayVisitStatuses;
 
   /// The month the calendar shows.
@@ -153,9 +152,8 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
   ///
   /// A student's day is coloured by the attendance recorded for it: green when
   /// the whole day was attended and red when it was entirely missed. The days
-  /// that are neither (an unmarked visit, or a mix of present and absent) fall
-  /// back to the colour of the lesson, which tells an individual lesson from a
-  /// group one.
+  /// that are neither (a mix of present and absent) fall back to the colour of
+  /// the lesson, which tells an individual lesson from a group one.
   ({Color background, Color foreground}) _dayColors(
     DateTime day,
     List<LessonResponse> dayLessons,

@@ -256,29 +256,6 @@ void main() {
     expect(_lessonMarker('${today.day}', _attendedColor), findsNothing);
   });
 
-  testWidgets('a day with an unmarked visit keeps the lesson colour', (
-    tester,
-  ) async {
-    final today = DateTime.now();
-
-    await tester.pumpWidget(
-      _wrap(
-        _studentCalendar(
-          [_individualLesson(today)],
-          const [VisitStatus.unmarked],
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(
-      _lessonMarker('${today.day}', _individualLessonColor),
-      findsOneWidget,
-    );
-    expect(_lessonMarker('${today.day}', _attendedColor), findsNothing);
-    expect(_lessonMarker('${today.day}', _missedColor), findsNothing);
-  });
-
   testWidgets('a day that mixes present and absent keeps the lesson colour', (
     tester,
   ) async {

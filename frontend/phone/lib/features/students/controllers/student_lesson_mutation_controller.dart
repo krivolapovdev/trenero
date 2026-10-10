@@ -90,7 +90,7 @@ class StudentLessonMutationController extends AsyncNotifier<void> {
   }
 
   /// A student that attended is marked present and regular, a student that did
-  /// not is left unmarked, the same convention the group lesson page uses.
+  /// not is marked absent and regular.
   StudentVisit _buildVisit(String studentId, bool isPresent) => isPresent
       ? StudentVisit(
           studentId: studentId,

@@ -65,8 +65,8 @@ class GroupReportServiceTest {
             IVAN_ID,
             List.of(
                 visit(firstLessonId, IVAN_ID, VisitStatus.PRESENT),
-                // An unmarked visit counts as an absence.
-                visit(secondLessonId, IVAN_ID, VisitStatus.UNMARKED)));
+                // An absent visit counts as an absence.
+                visit(secondLessonId, IVAN_ID, VisitStatus.ABSENT)));
 
     GroupReportResponse report =
         groupReportService.buildReport(

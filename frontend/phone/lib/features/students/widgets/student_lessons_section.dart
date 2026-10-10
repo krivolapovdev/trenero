@@ -199,7 +199,7 @@ class StudentLessonsSection extends ConsumerStatefulWidget {
     return VisitWithLessonResponse(
       visit: VisitResponse(
         id: 'placeholder-visit-$index',
-        status: VisitStatus.unmarked,
+        status: VisitStatus.present,
         type: VisitType.regular,
         lessonId: lesson.id,
         studentId: 'placeholder-student',

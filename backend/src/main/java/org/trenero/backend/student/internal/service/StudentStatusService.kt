@@ -5,7 +5,6 @@ import java.util.EnumSet
 import org.springframework.stereotype.Service
 import org.trenero.backend.common.domain.StudentStatus
 import org.trenero.backend.common.domain.VisitStatus
-import org.trenero.backend.common.domain.VisitType
 import org.trenero.backend.lesson.external.response.LessonResponse
 import org.trenero.backend.transaction.external.response.StudentPaymentDetailsResponse
 import org.trenero.backend.transaction.external.response.TransactionResponse
@@ -38,9 +37,10 @@ class StudentStatusService {
     free: Boolean,
     visitLessons: List<LessonResponse>,
   ): Set<StudentStatus> {
-    val hasAnyMarkedVisit = visits.any { it.status != VisitStatus.UNMARKED }
+    // A student without a mark carries no visit at all, so any visit means they were marked.
+    val hasAnyVisit = visits.isNotEmpty()
 
-    if (!hasAnyMarkedVisit && payments.isEmpty()) {
+    if (!hasAnyVisit && payments.isEmpty()) {
       return setOf(if (free) StudentStatus.FREE else StudentStatus.INACTIVE)
     }
 
@@ -54,7 +54,7 @@ class StudentStatusService {
 
     if (lastVisitLesson != null) {
       visits
-        .firstOrNull { it.type != VisitType.UNMARKED && it.lessonId == lastVisitLesson.id }
+        .firstOrNull { it.lessonId == lastVisitLesson.id }
         ?.status
         ?.let { status ->
           statuses.add(

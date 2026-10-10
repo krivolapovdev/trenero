@@ -3,6 +3,7 @@ package org.trenero.backend.lesson.internal.service;
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -16,10 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.domain.StudentVisit;
-import org.trenero.backend.common.domain.VisitStatus;
-import org.trenero.backend.common.domain.VisitType;
 import org.trenero.backend.common.security.JwtUser;
-import org.trenero.backend.group.external.spi.GroupStudentSpi;
 import org.trenero.backend.lesson.external.response.LessonResponse;
 import org.trenero.backend.lesson.external.spi.LessonSpi;
 import org.trenero.backend.lesson.internal.domain.Lesson;
@@ -41,7 +39,6 @@ public class LessonService implements LessonSpi {
 
   @Lazy private final LessonService self;
   @Lazy private final VisitSpi visitSpi;
-  @Lazy private final GroupStudentSpi groupStudentSpi;
 
   @Transactional(readOnly = true)
   public @NonNull LessonResponse getLessonById(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
@@ -93,7 +90,7 @@ public class LessonService implements LessonSpi {
     Lesson lesson = lessonMapper.toLesson(request, jwtUser.id());
     Lesson savedLesson = saveLesson(lesson);
 
-    visitSpi.createVisits(lesson.getId(), buildStudentVisits(request, jwtUser), jwtUser);
+    visitSpi.createVisits(lesson.getId(), buildStudentVisits(request), jwtUser);
 
     return lessonMapper.toResponse(savedLesson);
   }
@@ -101,37 +98,29 @@ public class LessonService implements LessonSpi {
   /**
    * The visits to store for a new lesson.
    *
-   * <p>An individual lesson (no {@code groupId}) keeps exactly the students that were sent, so a
-   * lesson can hold a single student. A group lesson has to hold every student of the group, so the
-   * sent ones keep their status and the rest are completed as unmarked.
+   * <p>Only the students that were sent are stored: a student that is left unmarked carries no
+   * visit at all, so no row is created for them. The last entry of a student wins, which keeps the
+   * list free of duplicates while preserving the order it was sent in.
    */
-  private List<StudentVisit> buildStudentVisits(CreateLessonRequest request, JwtUser jwtUser) {
+  private List<StudentVisit> buildStudentVisits(CreateLessonRequest request) {
     Map<UUID, StudentVisit> requestStudentMap =
         request.students().stream()
             .filter(Objects::nonNull)
-            .filter(studentVisit -> studentVisit.studentId() != null)
             .collect(
                 Collectors.toMap(
-                    StudentVisit::studentId, Function.identity(), (first, second) -> second));
+                    StudentVisit::studentId,
+                    Function.identity(),
+                    (_, second) -> second,
+                    LinkedHashMap::new));
 
-    if (request.groupId() == null) {
-      return List.copyOf(requestStudentMap.values());
-    }
-
-    return groupStudentSpi.getStudentsByGroupId(request.groupId(), jwtUser).stream()
-        .map(
-            res ->
-                requestStudentMap.getOrDefault(
-                    res.getStudentId(),
-                    new StudentVisit(res.getStudentId(), VisitStatus.UNMARKED, VisitType.UNMARKED)))
-        .toList();
+    return List.copyOf(requestStudentMap.values());
   }
 
   @Transactional
   public LessonResponse updateLesson(UUID lessonId, UpdateLessonRequest request, JwtUser jwtUser) {
     log.info("Updating lesson: lessonId={}; request={}; user={}", lessonId, request, jwtUser);
 
-    if (request.students() != null && !request.students().isEmpty()) {
+    if (request.students() != null) {
       List<StudentVisit> visitUpdateList =
           request.students().stream()
               .filter(Objects::nonNull)

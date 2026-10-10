@@ -211,28 +211,36 @@ Future<void> _openPage(
   await tester.pumpAndSettle();
 }
 
-String _label(String action, int present, int total) =>
-    '$action $present/$total';
+/// The label of the app bar action: `[2/2]`, the students that attended over
+/// the students of the lesson.
+String _label(int present, int total) => '[$present/$total]';
 
-bool _isChecked(WidgetTester tester, String fullName) => tester
-    .widget<CheckboxListTile>(
-      find.ancestor(
-        of: find.text(fullName),
-        matching: find.byType(CheckboxListTile),
-      ),
-    )
-    .value!;
+/// The checkbox of the row of [fullName]. A student that is left unmarked has
+/// no checkbox, so this throws for them.
+Finder _checkboxOf(String fullName) => find.descendant(
+  of: find.ancestor(of: find.text(fullName), matching: find.byType(ListTile)),
+  matching: find.byType(Checkbox),
+);
+
+bool _isChecked(WidgetTester tester, String fullName) =>
+    tester.widget<Checkbox>(_checkboxOf(fullName)).value!;
 
 bool _isEnabled(WidgetTester tester, String fullName) =>
-    tester
-        .widget<CheckboxListTile>(
-          find.ancestor(
-            of: find.text(fullName),
-            matching: find.byType(CheckboxListTile),
-          ),
-        )
-        .onChanged !=
-    null;
+    tester.widget<Checkbox>(_checkboxOf(fullName)).onChanged != null;
+
+/// Taps the checkbox of the row of [fullName], the way a user marks a student
+/// present or absent.
+Future<void> _toggle(WidgetTester tester, String fullName) async {
+  await tester.tap(_checkboxOf(fullName));
+  await tester.pumpAndSettle();
+}
+
+/// Opens the attendance sheet of the row of [fullName] the way a user does,
+/// with a long press.
+Future<void> _openAttendanceSheet(WidgetTester tester, String fullName) async {
+  await tester.longPress(find.text(fullName));
+  await tester.pumpAndSettle();
+}
 
 bool _isActionEnabled(WidgetTester tester, String label) =>
     tester
@@ -262,13 +270,13 @@ Future<void> _save(
   WidgetTester tester, {
   required int present,
   required int total,
-}) => _pressAction(tester, _label(t.create, present, total));
+}) => _pressAction(tester, _label(present, total));
 
 Future<void> _update(
   WidgetTester tester, {
   required int present,
   required int total,
-}) => _pressAction(tester, _label(t.update, present, total));
+}) => _pressAction(tester, _label(present, total));
 
 void main() {
   setUpAll(() async {
@@ -287,28 +295,27 @@ void main() {
 
     expect(_isChecked(tester, 'Ivan Petrov'), isTrue);
     expect(_isChecked(tester, 'Anna Smirnova'), isTrue);
-    expect(find.text(_label(t.create, 2, 2)), findsOneWidget);
+    expect(find.text(_label(2, 2)), findsOneWidget);
   });
 
   testWidgets('picking students updates the action label', (tester) async {
     await _openPage(tester);
 
-    await tester.tap(find.text('Ivan Petrov'));
-    await tester.pumpAndSettle();
+    await _toggle(tester, 'Ivan Petrov');
 
     expect(_isChecked(tester, 'Ivan Petrov'), isFalse);
-    expect(find.text(_label(t.create, 1, 2)), findsOneWidget);
+    expect(find.text(_label(1, 2)), findsOneWidget);
     expect(find.text(t.lessons.selectAll), findsOneWidget);
 
     await tester.tap(find.text(t.lessons.selectAll));
     await tester.pumpAndSettle();
 
-    expect(find.text(_label(t.create, 2, 2)), findsOneWidget);
+    expect(find.text(_label(2, 2)), findsOneWidget);
 
     await tester.tap(find.text(t.lessons.deselectAll));
     await tester.pumpAndSettle();
 
-    expect(find.text(_label(t.create, 0, 2)), findsOneWidget);
+    expect(find.text(_label(0, 2)), findsOneWidget);
     expect(find.text(t.lessons.selectAll), findsOneWidget);
   });
 
@@ -323,8 +330,7 @@ void main() {
       date: DateTime(2026, 10, 8, 19, 24),
     );
 
-    await tester.tap(find.text('Anna Smirnova'));
-    await tester.pumpAndSettle();
+    await _toggle(tester, 'Anna Smirnova');
 
     await _save(tester, present: 1, total: 2);
 
@@ -339,7 +345,7 @@ void main() {
     expect(body.students![0].status, VisitStatus.present);
     expect(body.students![0].type, VisitType.regular);
     expect(body.students![1].studentId, 'student-2');
-    expect(body.students![1].status, VisitStatus.unmarked);
+    expect(body.students![1].status, VisitStatus.absent);
 
     expect(find.byType(LessonPage), findsNothing);
   });
@@ -353,7 +359,7 @@ void main() {
       lessonClient: _FakeLessonClient(
         visits: [
           _visit(studentId: 'student-1', status: VisitStatus.present),
-          _visit(studentId: 'student-2', status: VisitStatus.unmarked),
+          _visit(studentId: 'student-2', status: VisitStatus.absent),
         ],
       ),
     );
@@ -366,7 +372,7 @@ void main() {
     expect(_isEnabled(tester, 'Ivan Petrov'), isTrue);
 
     // Nothing changed yet, so there is nothing to update.
-    expect(_isActionEnabled(tester, _label(t.update, 1, 2)), isFalse);
+    expect(_isActionEnabled(tester, _label(1, 2)), isFalse);
   });
 
   testWidgets('the update button waits for the attendance to change', (
@@ -376,39 +382,42 @@ void main() {
       tester,
       lesson: _lesson,
       lessonClient: _FakeLessonClient(
-        visits: [_visit(studentId: 'student-1', status: VisitStatus.present)],
+        visits: [
+          _visit(studentId: 'student-1', status: VisitStatus.present),
+          _visit(studentId: 'student-2', status: VisitStatus.absent),
+        ],
       ),
     );
 
-    expect(_isActionEnabled(tester, _label(t.update, 1, 2)), isFalse);
+    expect(_isActionEnabled(tester, _label(1, 2)), isFalse);
 
-    await tester.tap(find.text('Anna Smirnova'));
-    await tester.pumpAndSettle();
+    await _toggle(tester, 'Anna Smirnova');
 
-    expect(_isActionEnabled(tester, _label(t.update, 2, 2)), isTrue);
+    expect(_isActionEnabled(tester, _label(2, 2)), isTrue);
 
     // Picking the same students again leaves nothing to update.
-    await tester.tap(find.text('Anna Smirnova'));
-    await tester.pumpAndSettle();
+    await _toggle(tester, 'Anna Smirnova');
 
-    expect(_isActionEnabled(tester, _label(t.update, 1, 2)), isFalse);
+    expect(_isActionEnabled(tester, _label(1, 2)), isFalse);
   });
 
   testWidgets('editing a stored lesson updates it', (tester) async {
     final lessonClient = _FakeLessonClient(
-      visits: [_visit(studentId: 'student-1', status: VisitStatus.present)],
+      visits: [
+        _visit(studentId: 'student-1', status: VisitStatus.present),
+        _visit(studentId: 'student-2', status: VisitStatus.absent),
+      ],
     );
 
     await _openPage(tester, lesson: _lesson, lessonClient: lessonClient);
 
     expect(_isEnabled(tester, 'Ivan Petrov'), isTrue);
     expect(_isChecked(tester, 'Ivan Petrov'), isTrue);
-    expect(_isActionEnabled(tester, _label(t.update, 1, 2)), isFalse);
+    expect(_isActionEnabled(tester, _label(1, 2)), isFalse);
 
-    await tester.tap(find.text('Anna Smirnova'));
-    await tester.pumpAndSettle();
+    await _toggle(tester, 'Anna Smirnova');
 
-    expect(find.text(_label(t.update, 2, 2)), findsOneWidget);
+    expect(find.text(_label(2, 2)), findsOneWidget);
 
     await _update(tester, present: 2, total: 2);
 
@@ -456,9 +465,120 @@ void main() {
     expect(find.text(t.lessons.noStudents), findsOneWidget);
 
     final saveButton = tester.widget<TextButton>(
-      find.widgetWithText(TextButton, _label(t.create, 0, 0)),
+      find.widgetWithText(TextButton, _label(0, 0)),
     );
 
     expect(saveButton.onPressed, isNull);
+  });
+
+  testWidgets('a student without a visit is folded into the not marked list', (
+    tester,
+  ) async {
+    await _openPage(
+      tester,
+      lesson: _lesson,
+      lessonClient: _FakeLessonClient(
+        visits: [_visit(studentId: 'student-1', status: VisitStatus.present)],
+      ),
+    );
+
+    // Anna has no visit for the lesson, so she is not in the main list.
+    expect(_checkboxOf('Ivan Petrov'), findsOneWidget);
+    expect(_checkboxOf('Anna Smirnova'), findsNothing);
+    expect(find.text(t.lessons.notMarked), findsOneWidget);
+
+    // She waits under the accordion, without a checkbox.
+    await tester.tap(find.text(t.lessons.notMarked));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Anna Smirnova'), findsOneWidget);
+    expect(_checkboxOf('Anna Smirnova'), findsNothing);
+  });
+
+  testWidgets('a folded student can be marked through the sheet', (
+    tester,
+  ) async {
+    await _openPage(
+      tester,
+      lesson: _lesson,
+      lessonClient: _FakeLessonClient(
+        visits: [_visit(studentId: 'student-1', status: VisitStatus.present)],
+      ),
+    );
+
+    await tester.tap(find.text(t.lessons.notMarked));
+    await tester.pumpAndSettle();
+
+    await _openAttendanceSheet(tester, 'Anna Smirnova');
+
+    // She is unmarked, so the type is not offered yet.
+    expect(find.text(t.lessons.regular), findsNothing);
+
+    // Picking a status closes the sheet and marks her straight away.
+    await tester.tap(find.text(t.lessons.present));
+    await tester.pumpAndSettle();
+
+    expect(_isChecked(tester, 'Anna Smirnova'), isTrue);
+    expect(_isActionEnabled(tester, _label(2, 2)), isTrue);
+  });
+
+  testWidgets('a marked student can pick a type from the sheet', (
+    tester,
+  ) async {
+    await _openPage(
+      tester,
+      lesson: _lesson,
+      lessonClient: _FakeLessonClient(
+        visits: [_visit(studentId: 'student-1', status: VisitStatus.present)],
+      ),
+    );
+
+    await _openAttendanceSheet(tester, 'Ivan Petrov');
+
+    // A marked student picks a type next to the status.
+    expect(find.text(t.lessons.regular), findsOneWidget);
+    expect(find.text(t.lessons.free), findsOneWidget);
+
+    // Picking a type closes the sheet and applies it straight away.
+    await tester.tap(find.text(t.lessons.free));
+    await tester.pumpAndSettle();
+
+    expect(find.text(t.lessons.freeLesson), findsOneWidget);
+  });
+
+  testWidgets('a free student has no type to pick and stores a free lesson', (
+    tester,
+  ) async {
+    final freeAnna = GroupStudentSummaryResponse(
+      id: 'student-2',
+      fullName: 'Anna Smirnova',
+      createdAt: DateTime(2025, 1, 1),
+      free: true,
+      statuses: const [],
+    );
+    final lessonClient = _FakeLessonClient();
+
+    await _openPage(
+      tester,
+      students: [_ivan, freeAnna],
+      lessonClient: lessonClient,
+    );
+
+    await _openAttendanceSheet(tester, 'Anna Smirnova');
+
+    // The type of a free student is pinned, so it is not offered.
+    expect(find.text(t.lessons.regular), findsNothing);
+
+    // Picking another status closes the sheet, still storing a free lesson.
+    await tester.tap(find.text(t.lessons.absent));
+    await tester.pumpAndSettle();
+
+    await _save(tester, present: 1, total: 2);
+
+    final body = lessonClient.createBodies.single;
+
+    expect(body.students![1].studentId, 'student-2');
+    expect(body.students![1].status, VisitStatus.absent);
+    expect(body.students![1].type, VisitType.free);
   });
 }

@@ -179,7 +179,7 @@ void main() {
         visits: [
           _visit(studentId: 'student-1', status: VisitStatus.present),
           _visit(studentId: 'student-2', status: VisitStatus.present),
-          _visit(studentId: 'student-3', status: VisitStatus.unmarked),
+          _visit(studentId: 'student-3', status: VisitStatus.absent),
         ],
       ),
     );

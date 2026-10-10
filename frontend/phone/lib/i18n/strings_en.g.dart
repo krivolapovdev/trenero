@@ -202,6 +202,33 @@ class Translations$lessons$en {
 	/// en: 'Missed'
 	String get missed => 'Missed';
 
+	/// en: 'Absent'
+	String get absent => 'Absent';
+
+	/// en: 'Excused'
+	String get excused => 'Excused';
+
+	/// en: 'Unmarked'
+	String get unmarked => 'Unmarked';
+
+	/// en: 'Not marked'
+	String get notMarked => 'Not marked';
+
+	/// en: 'Status'
+	String get status => 'Status';
+
+	/// en: 'Type'
+	String get type => 'Type';
+
+	/// en: 'Regular'
+	String get regular => 'Regular';
+
+	/// en: 'Free'
+	String get free => 'Free';
+
+	/// en: 'The lesson is free'
+	String get freeLesson => 'The lesson is free';
+
 	/// en: 'Delete lesson?'
 	String get deleteLesson => 'Delete lesson?';
 
@@ -519,6 +546,15 @@ extension on Translations {
 			'lessons.noStudents' => 'This group has no students yet',
 			'lessons.present' => 'Present',
 			'lessons.missed' => 'Missed',
+			'lessons.absent' => 'Absent',
+			'lessons.excused' => 'Excused',
+			'lessons.unmarked' => 'Unmarked',
+			'lessons.notMarked' => 'Not marked',
+			'lessons.status' => 'Status',
+			'lessons.type' => 'Type',
+			'lessons.regular' => 'Regular',
+			'lessons.free' => 'Free',
+			'lessons.freeLesson' => 'The lesson is free',
 			'lessons.deleteLesson' => 'Delete lesson?',
 			'lessons.deleteLessonMessage' => 'The lesson and its attendance will be deleted permanently. This action cannot be undone.',
 			'students.title' => 'Students',

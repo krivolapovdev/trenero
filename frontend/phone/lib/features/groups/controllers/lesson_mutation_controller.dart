@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/controllers/group_mutation_refresh.dart';
 import 'package:phone/features/groups/controllers/lesson_details_controller.dart';
+import 'package:phone/features/groups/models/lesson_attendance.dart';
 import 'package:phone/features/groups/services/lesson_service.dart';
 import 'package:phone/generated/models/create_lesson_request.dart';
 import 'package:phone/generated/models/group_student_summary_response.dart';
 import 'package:phone/generated/models/student_visit.dart';
 import 'package:phone/generated/models/update_lesson_request.dart';
-import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/generated/models/visit_type.dart';
 
 final lessonMutationControllerProvider =
@@ -29,7 +29,7 @@ class LessonMutationController extends AsyncNotifier<void> {
     required String groupId,
     required DateTime date,
     required List<GroupStudentSummaryResponse> students,
-    required Set<String> presentStudentIds,
+    required Map<String, LessonAttendance> attendance,
   }) => _mutate(
     groupId,
     () => ref
@@ -38,7 +38,7 @@ class LessonMutationController extends AsyncNotifier<void> {
           body: CreateLessonRequest(
             groupId: groupId,
             date: _asDay(date),
-            students: _buildVisits(students, presentStudentIds),
+            students: _buildVisits(students, attendance),
           ),
         ),
   );
@@ -48,7 +48,7 @@ class LessonMutationController extends AsyncNotifier<void> {
     required String groupId,
     required DateTime date,
     required List<GroupStudentSummaryResponse> students,
-    required Set<String> presentStudentIds,
+    required Map<String, LessonAttendance> attendance,
   }) => _mutate(groupId, () async {
     await ref
         .read(lessonServiceProvider)
@@ -56,7 +56,7 @@ class LessonMutationController extends AsyncNotifier<void> {
           lessonId: lessonId,
           body: UpdateLessonRequest(
             date: _asDay(date),
-            students: _buildVisits(students, presentStudentIds),
+            students: _buildVisits(students, attendance),
           ),
         );
 
@@ -89,25 +89,22 @@ class LessonMutationController extends AsyncNotifier<void> {
     return !state.hasError;
   }
 
-  /// Sends a visit for every student of the group: the picked ones are present,
-  /// the rest stay unmarked. The backend replaces the visits of the lesson with
-  /// the sent list, so the complete group has to be included.
+  /// The visits that are stored for the lesson.
+  ///
+  /// Only the students that carry a mark are sent: a student that is left
+  /// unmarked is missing from [attendance] and loses their visit. A student
+  /// who studies for free always stores a free lesson.
   List<StudentVisit> _buildVisits(
     List<GroupStudentSummaryResponse> students,
-    Set<String> presentStudentIds,
+    Map<String, LessonAttendance> attendance,
   ) => students
+      .where((student) => attendance.containsKey(student.id))
       .map(
-        (student) => presentStudentIds.contains(student.id)
-            ? StudentVisit(
-                studentId: student.id,
-                status: VisitStatus.present,
-                type: VisitType.regular,
-              )
-            : StudentVisit(
-                studentId: student.id,
-                status: VisitStatus.unmarked,
-                type: VisitType.unmarked,
-              ),
+        (student) => StudentVisit(
+          studentId: student.id,
+          status: attendance[student.id]!.status,
+          type: student.free ? VisitType.free : attendance[student.id]!.type,
+        ),
       )
       .toList();
 

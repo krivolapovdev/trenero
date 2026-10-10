@@ -1,7 +1,6 @@
 package org.trenero.backend.group.external.spi
 
-import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.group.external.response.GroupStudentResponse
 
@@ -18,7 +17,6 @@ interface GroupStudentSpi {
   fun addStudentToGroup(
     studentId: UUID,
     groupId: UUID,
-    joinedAt: LocalDate?,
     jwtUser: JwtUser,
   )
 

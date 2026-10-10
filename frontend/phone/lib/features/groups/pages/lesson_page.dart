@@ -5,15 +5,18 @@ import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/groups/controllers/lesson_details_controller.dart';
 import 'package:phone/features/groups/controllers/lesson_mutation_controller.dart';
+import 'package:phone/features/groups/models/lesson_attendance.dart';
 import 'package:phone/features/groups/widgets/delete_lesson_bottom_sheet.dart';
+import 'package:phone/features/groups/widgets/lesson_attendance_bottom_sheet.dart';
 import 'package:phone/generated/models/group_student_summary_response.dart';
 import 'package:phone/generated/models/lesson_details_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/generated/models/visit_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
+import 'package:phone/generated/models/visit_type.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Adds a lesson to a group: picks the date and the students that attended.
+/// Adds a lesson to a group: picks the date and marks every student.
 ///
 /// When [lesson] is given the page edits the lesson that is already stored on
 /// [date]: its attendance is pre-filled and the menu offers deleting it.
@@ -38,13 +41,14 @@ class LessonPage extends ConsumerStatefulWidget {
 }
 
 class _LessonPageState extends ConsumerState<LessonPage> {
-  static const Duration _animationDuration = Duration(milliseconds: 250);
+  /// The colour the checkbox of a free lesson is filled with.
+  static const Color _freeCheckColor = Color(0xFFFFC107);
 
   late DateTime _selectedDate;
 
-  /// Set once the user picks a student, from then on it wins over the
-  /// attendance loaded from the server.
-  Set<String>? _pickedStudentIds;
+  /// Set once the user changes a mark, from then on it wins over the marks
+  /// loaded from the server.
+  Map<String, LessonAttendance>? _pickedAttendance;
 
   @override
   void initState() {
@@ -52,28 +56,55 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     _selectedDate = widget.lesson?.date ?? widget.date;
   }
 
-  /// The students that are stored as present for the lesson on the server.
-  Set<String> _storedStudentIds(AsyncValue<LessonDetailsResponse>? state) =>
-      (state?.value?.studentVisits ?? const <VisitResponse>[])
-          .where((visit) => visit.status == VisitStatus.present)
-          .map((visit) => visit.studentId)
-          .toSet();
+  /// The marks that are stored for the lesson on the server, keyed by student.
+  Map<String, LessonAttendance> _storedAttendance(
+    AsyncValue<LessonDetailsResponse>? state,
+  ) {
+    final visits = state?.value?.studentVisits ?? const <VisitResponse>[];
 
-  /// A new lesson starts with everybody present, a stored one with the
-  /// attendance that was recorded for it, until the user picks a student.
-  Set<String> _presentStudentIds(
+    return {
+      for (final visit in visits)
+        visit.studentId: LessonAttendance(
+          status: visit.status,
+          type: visit.type,
+        ),
+    };
+  }
+
+  /// The mark a student starts with while not loaded from the server: present,
+  /// free when the student studies for free.
+  LessonAttendance _defaultAttendance(GroupStudentSummaryResponse student) =>
+      LessonAttendance(
+        status: VisitStatus.present,
+        type: student.free ? VisitType.free : VisitType.regular,
+      );
+
+  /// A new lesson starts with everybody present, a stored one with the marks
+  /// that were recorded for it, until the user changes one.
+  Map<String, LessonAttendance> _attendance(
     List<GroupStudentSummaryResponse> students,
-    Set<String> storedStudentIds,
-  ) =>
-      _pickedStudentIds ??
-      (widget.lesson == null
-          ? students.map((student) => student.id).toSet()
-          : storedStudentIds);
+    Map<String, LessonAttendance> stored,
+  ) {
+    final picked = _pickedAttendance;
+    if (picked != null) return picked;
+
+    if (widget.lesson != null) return stored;
+
+    return {
+      for (final student in students) student.id: _defaultAttendance(student),
+    };
+  }
+
+  /// The type a mark keeps for [student]: a free student always stores free.
+  VisitType _typeFor(
+    GroupStudentSummaryResponse student,
+    LessonAttendance? current,
+  ) => student.free ? VisitType.free : (current?.type ?? VisitType.regular);
 
   /// Whether the lesson that is being edited differs from the stored one.
   bool _hasChanges(
-    Set<String> presentStudentIds,
-    Set<String> storedStudentIds,
+    Map<String, LessonAttendance> attendance,
+    Map<String, LessonAttendance> stored,
   ) {
     final lesson = widget.lesson;
 
@@ -83,9 +114,10 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     final isSameDay =
         DateUtils.dateOnly(_selectedDate) == DateUtils.dateOnly(lesson.date);
 
-    return !isSameDay ||
-        presentStudentIds.length != storedStudentIds.length ||
-        !presentStudentIds.containsAll(storedStudentIds);
+    if (!isSameDay) return true;
+    if (attendance.length != stored.length) return true;
+
+    return attendance.entries.any((entry) => stored[entry.key] != entry.value);
   }
 
   Future<void> _pickDate() async {
@@ -104,29 +136,86 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     setState(() => _selectedDate = picked);
   }
 
-  void _toggleStudent(Set<String> presentStudentIds, String studentId) =>
-      setState(() {
-        final next = {...presentStudentIds};
+  void _toggleStudent(
+    Map<String, LessonAttendance> attendance,
+    GroupStudentSummaryResponse student,
+  ) => setState(() {
+    final next = {...attendance};
+    final current = next[student.id];
 
-        if (!next.remove(studentId)) next.add(studentId);
+    next[student.id] = LessonAttendance(
+      status: current?.status == VisitStatus.present
+          ? VisitStatus.absent
+          : VisitStatus.present,
+      type: _typeFor(student, current),
+    );
 
-        _pickedStudentIds = next;
-      });
+    _pickedAttendance = next;
+  });
 
+  /// Marks the students of the list present or absent together. A student that
+  /// is left unmarked stays unmarked.
   void _toggleAll(
-    Set<String> presentStudentIds,
+    Map<String, LessonAttendance> attendance,
     List<GroupStudentSummaryResponse> students,
   ) => setState(() {
-    final studentIds = students.map((student) => student.id).toSet();
+    final marked = students
+        .where((student) => attendance.containsKey(student.id))
+        .toList();
+    final allPresent =
+        marked.isNotEmpty &&
+        marked.every(
+          (student) => attendance[student.id]?.status == VisitStatus.present,
+        );
 
-    _pickedStudentIds = studentIds.every(presentStudentIds.contains)
-        ? <String>{}
-        : studentIds;
+    final next = {...attendance};
+    for (final student in marked) {
+      next[student.id] = LessonAttendance(
+        status: allPresent ? VisitStatus.absent : VisitStatus.present,
+        type: _typeFor(student, next[student.id]),
+      );
+    }
+
+    _pickedAttendance = next;
   });
+
+  /// Opens the sheet that picks the status and the type of [student]. Leaving
+  /// the student unmarked drops their visit.
+  Future<void> _editStudent(
+    GroupStudentSummaryResponse student,
+    Map<String, LessonAttendance> attendance,
+  ) async {
+    final selection = await AppBottomSheet.show<LessonAttendanceSelection>(
+      context: context,
+      child: LessonAttendanceBottomSheet(
+        studentName: student.fullName,
+        free: student.free,
+        attendance: attendance[student.id],
+      ),
+    );
+
+    if (!mounted || selection == null) return;
+
+    setState(() {
+      final next = {...attendance};
+      final picked = selection.attendance;
+
+      if (picked == null) {
+        next.remove(student.id);
+      } else {
+        next[student.id] = LessonAttendance(
+          status: picked.status,
+          type: _typeFor(student, picked),
+        );
+      }
+
+      _pickedAttendance = next;
+    });
+  }
 
   Future<void> _onSubmit(
     List<GroupStudentSummaryResponse> students,
-    Set<String> presentStudentIds,
+    Map<String, LessonAttendance> attendance,
   ) async {
     FocusScope.of(context).unfocus();
 
@@ -138,14 +227,14 @@ class _LessonPageState extends ConsumerState<LessonPage> {
             groupId: widget.groupId,
             date: _selectedDate,
             students: students,
-            presentStudentIds: presentStudentIds,
+            attendance: attendance,
           )
         : controller.updateLesson(
             lessonId: lesson.id,
             groupId: widget.groupId,
             date: _selectedDate,
             students: students,
-            presentStudentIds: presentStudentIds,
+            attendance: attendance,
           ));
 
     if (!mounted) return;
@@ -202,15 +291,21 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     final isLoading = ref.watch(lessonMutationControllerProvider).isLoading;
 
     final isAttendanceLoading = detailsState?.isLoading ?? false;
-    final storedStudentIds = _storedStudentIds(detailsState);
-    final presentStudentIds = _presentStudentIds(students, storedStudentIds);
-    final hasChanges = _hasChanges(presentStudentIds, storedStudentIds);
+    final storedAttendance = _storedAttendance(detailsState);
+    final attendance = _attendance(students, storedAttendance);
+    final hasChanges = _hasChanges(attendance, storedAttendance);
     final canEdit = !isLoading && !isAttendanceLoading;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(context.t.lessons.groupLesson),
         actions: [
+          _buildSaveAction(
+            students: students,
+            attendance: attendance,
+            hasChanges: hasChanges,
+            isLoading: isLoading,
+          ),
           if (lesson != null)
             PopupMenuButton<String>(
               tooltip: '',
@@ -224,7 +319,7 @@ class _LessonPageState extends ConsumerState<LessonPage> {
                       Icon(Icons.delete, size: 20, color: colorScheme.error),
                       const SizedBox(width: 12),
                       Text(
-                        'Delete',
+                        context.t.delete,
                         style: TextStyle(color: colorScheme.error),
                       ),
                     ],
@@ -252,17 +347,49 @@ class _LessonPageState extends ConsumerState<LessonPage> {
               _buildStudentCard(
                 studentsState: studentsState,
                 students: students,
-                presentStudentIds: presentStudentIds,
+                attendance: attendance,
                 canEdit: canEdit,
-                hasChanges: hasChanges,
                 isAttendanceLoading: isAttendanceLoading,
-                isLoading: isLoading,
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  /// The action of the page, living in the app bar: `[4/12]`, the students that
+  /// attended over the students of the lesson.
+  Widget _buildSaveAction({
+    required List<GroupStudentSummaryResponse> students,
+    required Map<String, LessonAttendance> attendance,
+    required bool hasChanges,
+    required bool isLoading,
+  }) => TextButton.icon(
+    onPressed: (isLoading || !hasChanges || students.isEmpty)
+        ? null
+        : () => _onSubmit(students, attendance),
+    icon: isLoading
+        ? const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        : Icon(Icons.save),
+    label: Text(_actionLabel(attendance, students)),
+  );
+
+  String _actionLabel(
+    Map<String, LessonAttendance> attendance,
+    List<GroupStudentSummaryResponse> students,
+  ) {
+    final presentCount = students
+        .where(
+          (student) => attendance[student.id]?.status == VisitStatus.present,
+        )
+        .length;
+
+    return '[$presentCount/${students.length}]';
   }
 
   Widget _buildDateCard(bool canEdit) => Material(
@@ -294,144 +421,204 @@ class _LessonPageState extends ConsumerState<LessonPage> {
   Widget _buildStudentCard({
     required AsyncValue<List<GroupStudentSummaryResponse>> studentsState,
     required List<GroupStudentSummaryResponse> students,
-    required Set<String> presentStudentIds,
-    required bool canEdit,
-    required bool hasChanges,
-    required bool isAttendanceLoading,
-    required bool isLoading,
-  }) => Material(
-    color: Colors.white,
-    clipBehavior: Clip.antiAlias,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 8, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (students.isNotEmpty)
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: canEdit
-                    ? () => _toggleAll(presentStudentIds, students)
-                    : null,
-                child: Text(
-                  students.every(
-                        (student) => presentStudentIds.contains(student.id),
-                      )
-                      ? context.t.lessons.deselectAll
-                      : context.t.lessons.selectAll,
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
-            ),
-
-          AnimatedSize(
-            duration: _animationDuration,
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: _buildStudentList(
-              studentsState: studentsState,
-              students: students,
-              presentStudentIds: presentStudentIds,
-              canEdit: canEdit,
-              isAttendanceLoading: isAttendanceLoading,
-            ),
-          ),
-
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: (isLoading || !hasChanges || students.isEmpty)
-                  ? null
-                  : () => _onSubmit(students, presentStudentIds),
-              icon: isLoading
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(widget.lesson == null ? Icons.add : Icons.check),
-              label: Text(
-                _actionLabel(presentStudentIds, students),
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-
-  /// `Create 4/12`: the action of the page together with the number of the
-  /// students that attended.
-  String _actionLabel(
-    Set<String> presentStudentIds,
-    List<GroupStudentSummaryResponse> students,
-  ) {
-    final action = widget.lesson == null ? context.t.create : context.t.update;
-
-    return '$action ${presentStudentIds.length}/${students.length}';
-  }
-
-  Widget _buildStudentList({
-    required AsyncValue<List<GroupStudentSummaryResponse>> studentsState,
-    required List<GroupStudentSummaryResponse> students,
-    required Set<String> presentStudentIds,
+    required Map<String, LessonAttendance> attendance,
     required bool canEdit,
     required bool isAttendanceLoading,
   }) {
-    if ((studentsState.isLoading || isAttendanceLoading) && students.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 28),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
+    final markedStudents = students
+        .where((student) => attendance.containsKey(student.id))
+        .toList();
+    final unmarkedStudents = students
+        .where((student) => !attendance.containsKey(student.id))
+        .toList();
+    final isLoading =
+        (studentsState.isLoading || isAttendanceLoading) && students.isEmpty;
 
-    if (students.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Text(
-          context.t.lessons.noStudents,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+    return Material(
+      color: Colors.white,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 28),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (students.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Text(
+                  context.t.lessons.noStudents,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              )
+            else ...[
+              if (markedStudents.isNotEmpty)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: canEdit
+                        ? () => _toggleAll(attendance, students)
+                        : null,
+                    child: Text(
+                      _allPresent(markedStudents, attendance)
+                          ? context.t.lessons.deselectAll
+                          : context.t.lessons.selectAll,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+              ...markedStudents.indexed.map(
+                (entry) => _buildStudentTile(
+                  student: entry.$2,
+                  number: entry.$1 + 1,
+                  attendance: attendance[entry.$2.id],
+                  canEdit: canEdit,
+                  attendanceMap: attendance,
+                ),
+              ),
+              if (unmarkedStudents.isNotEmpty)
+                _buildUnmarkedAccordion(
+                  students: unmarkedStudents,
+                  firstNumber: markedStudents.length + 1,
+                  attendanceMap: attendance,
+                  canEdit: canEdit,
+                ),
+            ],
+          ],
         ),
-      );
-    }
-
-    return Column(
-      children: students
-          .map(
-            (student) => _buildStudentTile(
-              student: student,
-              isPresent: presentStudentIds.contains(student.id),
-              canEdit: canEdit,
-              presentStudentIds: presentStudentIds,
-            ),
-          )
-          .toList(),
+      ),
     );
   }
 
+  /// Whether every student of [students] is marked present.
+  bool _allPresent(
+    List<GroupStudentSummaryResponse> students,
+    Map<String, LessonAttendance> attendance,
+  ) => students.every(
+    (student) => attendance[student.id]?.status == VisitStatus.present,
+  );
+
+  /// The students of a stored lesson that were never marked: they joined the
+  /// group later, so they have no visit for this lesson. They are folded away at
+  /// the bottom, drawn struck through and without a checkbox so they cannot be
+  /// marked by accident. The ellipsis still lets them be marked on purpose.
+  Widget _buildUnmarkedAccordion({
+    required List<GroupStudentSummaryResponse> students,
+    required int firstNumber,
+    required Map<String, LessonAttendance> attendanceMap,
+    required bool canEdit,
+  }) => Theme(
+    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+    child: ExpansionTile(
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: EdgeInsets.zero,
+      title: Text(
+        context.t.lessons.notMarked,
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+      ),
+      children: students.indexed
+          .map(
+            (entry) => _buildStudentTile(
+              student: entry.$2,
+              number: firstNumber + entry.$1,
+              attendance: null,
+              canEdit: canEdit,
+              attendanceMap: attendanceMap,
+              unmarked: true,
+            ),
+          )
+          .toList(),
+    ),
+  );
+
+  /// One student of the lesson.
+  ///
+  /// The whole row is tappable: tapping it marks the student present when they
+  /// were not and absent when they were, a long press opens the sheet that
+  /// picks the status and the type. A student that is unmarked has no checkbox
+  /// and is only marked on purpose, through the sheet.
   Widget _buildStudentTile({
     required GroupStudentSummaryResponse student,
-    required bool isPresent,
+    required int number,
+    required LessonAttendance? attendance,
     required bool canEdit,
-    required Set<String> presentStudentIds,
-  }) => CheckboxListTile(
-    value: isPresent,
-    onChanged: canEdit
-        ? (_) => _toggleStudent(presentStudentIds, student.id)
-        : null,
-    title: Text(
-      student.fullName,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: const TextStyle(fontSize: 16),
-    ),
-    controlAffinity: ListTileControlAffinity.trailing,
-    contentPadding: EdgeInsets.zero,
-    dense: true,
-  );
+    required Map<String, LessonAttendance> attendanceMap,
+    bool unmarked = false,
+  }) {
+    final isFree = attendance?.type == VisitType.free;
+
+    return InkWell(
+      onTap: canEdit && !unmarked
+          ? () => _toggleStudent(attendanceMap, student)
+          : null,
+      onLongPress: canEdit ? () => _editStudent(student, attendanceMap) : null,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        dense: true,
+        leading: SizedBox(
+          width: 24,
+          child: Text(
+            '$number.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        title: Text(
+          student.fullName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 16,
+            decoration: unmarked ? TextDecoration.lineThrough : null,
+            color: unmarked
+                ? Theme.of(context).colorScheme.onSurfaceVariant
+                : null,
+          ),
+        ),
+        subtitle: _buildSubtitle(attendance),
+        trailing: unmarked
+            ? null
+            : Checkbox(
+                value: attendance?.status == VisitStatus.present,
+                activeColor: isFree ? _freeCheckColor : null,
+                onChanged: canEdit
+                    ? (_) => _toggleStudent(attendanceMap, student)
+                    : null,
+              ),
+      ),
+    );
+  }
+
+  /// The modifiers of a student, shown small under the name: an excused lesson
+  /// and a free lesson are not told by the checkbox alone.
+  Widget? _buildSubtitle(LessonAttendance? attendance) {
+    final modifiers = <String>[];
+
+    if (attendance?.status == VisitStatus.excused) {
+      modifiers.add(context.t.lessons.excused);
+    }
+
+    if (attendance?.type == VisitType.free) {
+      modifiers.add(context.t.lessons.freeLesson);
+    }
+
+    if (modifiers.isEmpty) return null;
+
+    return Text(
+      modifiers.join(' · '),
+      style: TextStyle(
+        fontSize: 12,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
 }

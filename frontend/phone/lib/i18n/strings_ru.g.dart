@@ -34,7 +34,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 
 	late final TranslationsRu _root = this; // ignore: unused_field
 
-	@override 
+	@override
 	TranslationsRu $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => TranslationsRu(meta: meta ?? this.$meta);
 
 	// Translations
@@ -121,6 +121,15 @@ class _Translations$lessons$ru implements Translations$lessons$en {
 	@override String get noStudents => 'В группе пока нет учеников';
 	@override String get present => 'Присутствовал';
 	@override String get missed => 'Пропустил';
+	@override String get absent => 'Отсутствовал';
+	@override String get excused => 'Уважительная причина';
+	@override String get unmarked => 'Без отметки';
+	@override String get notMarked => 'Не отмечены';
+	@override String get status => 'Статус';
+	@override String get type => 'Тип';
+	@override String get regular => 'Обычный';
+	@override String get free => 'Бесплатный';
+	@override String get freeLesson => 'Урок бесплатный';
 	@override String get deleteLesson => 'Удалить урок?';
 	@override String get deleteLessonMessage => 'Урок и отметки посещаемости будут удалены безвозвратно. Действие нельзя отменить.';
 }
@@ -302,6 +311,15 @@ extension on TranslationsRu {
 			'lessons.noStudents' => 'В группе пока нет учеников',
 			'lessons.present' => 'Присутствовал',
 			'lessons.missed' => 'Пропустил',
+			'lessons.absent' => 'Отсутствовал',
+			'lessons.excused' => 'Уважительная причина',
+			'lessons.unmarked' => 'Без отметки',
+			'lessons.notMarked' => 'Не отмечены',
+			'lessons.status' => 'Статус',
+			'lessons.type' => 'Тип',
+			'lessons.regular' => 'Обычный',
+			'lessons.free' => 'Бесплатный',
+			'lessons.freeLesson' => 'Урок бесплатный',
 			'lessons.deleteLesson' => 'Удалить урок?',
 			'lessons.deleteLessonMessage' => 'Урок и отметки посещаемости будут удалены безвозвратно. Действие нельзя отменить.',
 			'students.title' => 'Ученики',

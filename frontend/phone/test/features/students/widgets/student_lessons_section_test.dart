@@ -27,12 +27,11 @@ LessonResponse _lesson({required String id, String? groupId, DateTime? date}) =>
 VisitWithLessonResponse _visit({
   required LessonResponse lesson,
   VisitStatus status = VisitStatus.present,
-  VisitType type = VisitType.regular,
 }) => VisitWithLessonResponse(
   visit: VisitResponse(
     id: 'visit-${lesson.id}',
     status: status,
-    type: type,
+    type: VisitType.regular,
     lessonId: lesson.id,
     studentId: 'student-1',
     createdAt: _day,
@@ -66,7 +65,7 @@ void main() {
       final attended = _visit(lesson: _lesson(id: 'individual-attended'));
       final missed = _visit(
         lesson: _lesson(id: 'individual-missed'),
-        status: VisitStatus.unmarked,
+        status: VisitStatus.absent,
       );
 
       final lessons = StudentLessonsSection.individualLessonsOf([
@@ -110,17 +109,6 @@ void main() {
         'group-missed',
       ]);
       expect(groupLessons.map((lesson) => lesson.isPresent), [true, false]);
-    });
-
-    test('an unmarked group lesson counts as missed', () {
-      final unmarked = _visit(
-        lesson: _lesson(id: 'group-unmarked', groupId: 'group-1'),
-        status: VisitStatus.unmarked,
-      );
-
-      final groupLessons = StudentLessonsSection.groupLessonsOf([unmarked]);
-
-      expect(groupLessons.single.isPresent, isFalse);
     });
 
     test('ignores the individual lesson', () {
@@ -225,30 +213,14 @@ void main() {
         isEmpty,
       );
     });
-
-    test('ignores the visits that do not record a lesson', () {
-      final unmarked = _visit(
-        lesson: _lesson(id: 'not-a-lesson'),
-        type: VisitType.unmarked,
-      );
-
-      expect(
-        StudentLessonsSection.dayVisitStatusesOf([unmarked], _day),
-        isEmpty,
-      );
-    });
   });
 
   group('lessonVisitsOf', () {
-    test('keeps only the visits that record a lesson', () {
+    test('keeps the visits of a student', () {
       final lesson = _visit(lesson: _lesson(id: 'lesson'));
-      final notALesson = _visit(
-        lesson: _lesson(id: 'not-a-lesson'),
-        type: VisitType.unmarked,
-      );
 
       expect(
-        StudentLessonsSection.lessonVisitsOf([lesson, notALesson])
+        StudentLessonsSection.lessonVisitsOf([lesson])
             .map((visit) => visit.lesson.id),
         ['lesson'],
       );

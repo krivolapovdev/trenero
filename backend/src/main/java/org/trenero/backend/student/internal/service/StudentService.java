@@ -195,10 +195,7 @@ public class StudentService implements StudentSpi {
 
     var studentVisits = visitSpi.getVisitsByStudentId(studentId, jwtUser);
 
-    // A student is marked for the lessons of every group they belong to and for
-    // the lessons that are stored for them alone, so each lesson the visits
-    // point to is loaded, whether it belongs to a group or not.
-    var lessonIds = studentVisits.stream().map(visit -> visit.getLessonId()).distinct().toList();
+    var lessonIds = studentVisits.stream().map(VisitResponse::getLessonId).distinct().toList();
 
     var lessonsMap = lessonSpi.getLessonsByIds(lessonIds, jwtUser);
 
@@ -288,16 +285,13 @@ public class StudentService implements StudentSpi {
             .map(GroupStudentResponse::getGroupId)
             .collect(Collectors.toSet());
 
-    var joinedAt = parseJoinedAt(updates.get("joinedAt"));
-
     currentGroupIds.stream()
         .filter(groupId -> !requestedGroupIds.contains(groupId))
         .forEach(groupId -> groupStudentSpi.removeStudentFromGroup(studentId, groupId, jwtUser));
 
     requestedGroupIds.stream()
         .filter(groupId -> !currentGroupIds.contains(groupId))
-        .forEach(
-            groupId -> groupStudentSpi.addStudentToGroup(studentId, groupId, joinedAt, jwtUser));
+        .forEach(groupId -> groupStudentSpi.addStudentToGroup(studentId, groupId, jwtUser));
   }
 
   /**
@@ -332,18 +326,6 @@ public class StudentService implements StudentSpi {
     }
 
     return requestedGroupIds;
-  }
-
-  /**
-   * The day the student joined the group, sent by the group sheet as a plain ISO date. A missing
-   * value lets the group module fall back to the current day.
-   */
-  private static LocalDate parseJoinedAt(Object rawJoinedAt) {
-    if (rawJoinedAt == null || rawJoinedAt.toString().isBlank()) {
-      return null;
-    }
-
-    return LocalDate.parse(rawJoinedAt.toString());
   }
 
   @Override
