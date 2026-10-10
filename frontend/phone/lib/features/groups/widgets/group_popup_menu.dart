@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/features/groups/pages/group_report_page.dart';
@@ -46,7 +47,7 @@ class GroupPopupMenu extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.edit, size: 20),
+            const Icon(CupertinoIcons.text_cursor, size: 20),
             const SizedBox(width: 12),
             Text(context.t.edit),
           ],
@@ -56,7 +57,7 @@ class GroupPopupMenu extends StatelessWidget {
         onTap: () => _openStudentsPage(context),
         child: Row(
           children: [
-            const Icon(Icons.groups, size: 20),
+            const Icon(CupertinoIcons.rectangle_stack_person_crop, size: 20),
             const SizedBox(width: 12),
             Text(context.t.students.title),
           ],
@@ -66,7 +67,7 @@ class GroupPopupMenu extends StatelessWidget {
         onTap: () => _openReportPage(context),
         child: Row(
           children: [
-            const Icon(Icons.print, size: 20),
+            const Icon(CupertinoIcons.printer, size: 20),
             const SizedBox(width: 12),
             Text(context.t.groups.report),
           ],
@@ -76,7 +77,7 @@ class GroupPopupMenu extends StatelessWidget {
         onTap: () => _openCreateLessonPage(context),
         child: Row(
           children: [
-            const Icon(Icons.calendar_month, size: 20),
+            const Icon(CupertinoIcons.calendar, size: 20),
             const SizedBox(width: 12),
             Text(context.t.lessons.title),
           ],
@@ -87,7 +88,7 @@ class GroupPopupMenu extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              Icons.delete,
+              CupertinoIcons.trash,
               size: 20,
               color: Theme.of(context).colorScheme.error,
             ),

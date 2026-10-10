@@ -1,4 +1,6 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
@@ -120,7 +122,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 onTap: _openEditStudentSheet,
                 child: Row(
                   children: [
-                    const Icon(Icons.edit, size: 20),
+                    const Icon(CupertinoIcons.text_cursor, size: 20),
                     const SizedBox(width: 12),
                     Text(context.t.edit),
                   ],
@@ -130,7 +132,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 onTap: _openCreatePaymentSheet,
                 child: Row(
                   children: [
-                    const Icon(Icons.payments, size: 20),
+                    const Icon(FluentIcons.money_24_regular, size: 20),
                     const SizedBox(width: 12),
                     Text(context.t.students.payment),
                   ],
@@ -140,7 +142,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 onTap: _openAssignGroupPage,
                 child: Row(
                   children: [
-                    const Icon(Icons.group, size: 20),
+                    const Icon(CupertinoIcons.person_2_square_stack, size: 20),
                     const SizedBox(width: 12),
                     Text(context.t.students.group),
                   ],
@@ -150,7 +152,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 onTap: _openCreateLessonPage,
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_month, size: 20),
+                    const Icon(CupertinoIcons.calendar, size: 20),
                     const SizedBox(width: 12),
                     Text(context.t.lessons.title),
                   ],
@@ -161,7 +163,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.delete,
+                      CupertinoIcons.trash,
                       size: 20,
                       color: Theme.of(context).colorScheme.error,
                     ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/students/pages/student_page.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
@@ -86,6 +87,9 @@ class GroupStudentsSection extends ConsumerWidget {
             free: student.free,
             statuses: student.statuses,
           ),
+          // The index is part of the displayed name, so the avatar takes the
+          // initials of the actual name instead.
+          overrideInitials: student.fullName.initials,
           onTap: isLoading
               ? () {}
               : () {

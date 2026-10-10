@@ -8,7 +8,20 @@ class StudentCard extends StatelessWidget {
   final StudentSummaryResponse student;
   final VoidCallback onTap;
 
-  const new({super.key, required this.student, required this.onTap});
+  /// The initials drawn in the avatar, when they differ from the ones derived
+  /// from [student]'s name.
+  ///
+  /// The group page prepends the position of every student to its name, so the
+  /// derived initials would pick up the index (`4. Nill Artmsh` -> `4N`) and the
+  /// real name has to be provided here instead (`NA`).
+  final String? overrideInitials;
+
+  const new({
+    super.key,
+    required this.student,
+    required this.onTap,
+    this.overrideInitials,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +54,7 @@ class StudentCard extends StatelessWidget {
                     radius: 18,
                     backgroundColor: student.id.toColor(),
                     child: Text(
-                      student.fullName.initials,
+                      overrideInitials ?? student.fullName.initials,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
