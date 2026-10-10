@@ -122,9 +122,17 @@ class _StudentGroupBottomSheetState
 
     if (success) {
       Navigator.of(context).pop();
-      await ref
-          .read(studentListControllerProvider.notifier)
-          .getAllStudents(forceRefresh: true);
+
+      // The student list carries the new group of the student, and the group
+      // list carries the new count of students of the group they joined.
+      await Future.wait([
+        ref
+            .read(studentListControllerProvider.notifier)
+            .getAllStudents(forceRefresh: true),
+        ref
+            .read(groupListControllerProvider.notifier)
+            .getAllGroups(forceRefresh: true),
+      ]);
     } else {
       final error = ref.read(assignStudentGroupControllerProvider).error;
       if (error != null) {

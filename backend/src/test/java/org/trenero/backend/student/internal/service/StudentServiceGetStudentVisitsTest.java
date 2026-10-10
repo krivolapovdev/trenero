@@ -52,7 +52,8 @@ class StudentServiceGetStudentVisitsTest {
                 GROUP_LESSON_ID, lesson(GROUP_LESSON_ID, GROUP_ID),
                 INDIVIDUAL_LESSON_ID, lesson(INDIVIDUAL_LESSON_ID, null)));
 
-    List<VisitWithLessonResponse> visits = studentService().getStudentVisits(STUDENT_ID, jwtUser);
+    List<VisitWithLessonResponse> visits =
+        studentService().getStudentVisits(STUDENT_ID, null, null, jwtUser);
 
     assertThat(visits).hasSize(2);
     assertThat(visits.stream().map(visit -> visit.getLesson().getId()).toList())
@@ -68,7 +69,8 @@ class StudentServiceGetStudentVisitsTest {
     when(lessonSpi.getLessonsByIds(List.of(INDIVIDUAL_LESSON_ID), jwtUser))
         .thenReturn(Map.of(INDIVIDUAL_LESSON_ID, lesson(INDIVIDUAL_LESSON_ID, null)));
 
-    List<VisitWithLessonResponse> visits = studentService().getStudentVisits(STUDENT_ID, jwtUser);
+    List<VisitWithLessonResponse> visits =
+        studentService().getStudentVisits(STUDENT_ID, null, null, jwtUser);
 
     assertThat(visits).hasSize(1);
     assertThat(visits.getFirst().getLesson().getGroupId()).isNull();
@@ -80,7 +82,45 @@ class StudentServiceGetStudentVisitsTest {
         .thenReturn(List.of(visit(GROUP_LESSON_ID)));
     when(lessonSpi.getLessonsByIds(List.of(GROUP_LESSON_ID), jwtUser)).thenReturn(Map.of());
 
-    assertThat(studentService().getStudentVisits(STUDENT_ID, jwtUser)).isEmpty();
+    assertThat(studentService().getStudentVisits(STUDENT_ID, null, null, jwtUser)).isEmpty();
+  }
+
+  @Test
+  void keepsOnlyTheLessonsWithinTheRequestedRange() {
+    when(visitSpi.getVisitsByStudentId(STUDENT_ID, jwtUser))
+        .thenReturn(List.of(visit(GROUP_LESSON_ID), visit(INDIVIDUAL_LESSON_ID)));
+    when(lessonSpi.getLessonsByIds(List.of(GROUP_LESSON_ID, INDIVIDUAL_LESSON_ID), jwtUser))
+        .thenReturn(
+            Map.of(
+                GROUP_LESSON_ID, lesson(GROUP_LESSON_ID, GROUP_ID, DATE),
+                INDIVIDUAL_LESSON_ID,
+                    lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 6, 1))));
+
+    List<VisitWithLessonResponse> visits =
+        studentService()
+            .getStudentVisits(
+                STUDENT_ID, LocalDate.of(2026, 9, 1), LocalDate.of(2026, 10, 31), jwtUser);
+
+    assertThat(visits.stream().map(response -> response.getLesson().getId()).toList())
+        .containsExactly(GROUP_LESSON_ID);
+  }
+
+  @Test
+  void keepsTheLessonOnTheFirstAndTheLastDayOfTheRange() {
+    when(visitSpi.getVisitsByStudentId(STUDENT_ID, jwtUser))
+        .thenReturn(List.of(visit(GROUP_LESSON_ID), visit(INDIVIDUAL_LESSON_ID)));
+    when(lessonSpi.getLessonsByIds(List.of(GROUP_LESSON_ID, INDIVIDUAL_LESSON_ID), jwtUser))
+        .thenReturn(
+            Map.of(
+                GROUP_LESSON_ID, lesson(GROUP_LESSON_ID, GROUP_ID, LocalDate.of(2026, 9, 1)),
+                INDIVIDUAL_LESSON_ID,
+                    lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 10, 31))));
+
+    assertThat(
+            studentService()
+                .getStudentVisits(
+                    STUDENT_ID, LocalDate.of(2026, 9, 1), LocalDate.of(2026, 10, 31), jwtUser))
+        .hasSize(2);
   }
 
   /** Only the visits and the lessons are used by {@link StudentService#getStudentVisits}. */
@@ -99,6 +139,10 @@ class StudentServiceGetStudentVisitsTest {
   }
 
   private static LessonResponse lesson(UUID lessonId, UUID groupId) {
-    return new LessonResponse(lessonId, DATE, CREATED_AT, groupId);
+    return lesson(lessonId, groupId, DATE);
+  }
+
+  private static LessonResponse lesson(UUID lessonId, UUID groupId, LocalDate date) {
+    return new LessonResponse(lessonId, date, CREATED_AT, groupId);
   }
 }

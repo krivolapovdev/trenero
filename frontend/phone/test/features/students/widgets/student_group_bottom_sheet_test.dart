@@ -44,6 +44,9 @@ final List<StudentSummaryResponse> _students = [
 class _FakeGroupListController extends GroupListController {
   @override
   Future<List<GroupSummaryResponse>> build() async => _groups;
+
+  @override
+  Future<void> getAllGroups({bool forceRefresh = false}) async {}
 }
 
 class _FakeStudentListController extends StudentListController {
@@ -106,6 +109,8 @@ class _FakeStudentClient implements StudentControllerClient {
   @override
   Future<List<VisitWithLessonResponse>> getStudentVisits({
     required String studentId,
+    String? from,
+    String? to,
   }) => throw UnimplementedError();
 }
 

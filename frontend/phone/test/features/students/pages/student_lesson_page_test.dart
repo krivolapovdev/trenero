@@ -111,6 +111,8 @@ class _FakeStudentClient implements StudentControllerClient {
   @override
   Future<List<VisitWithLessonResponse>> getStudentVisits({
     required String studentId,
+    String? from,
+    String? to,
   }) async => const [];
 
   @override

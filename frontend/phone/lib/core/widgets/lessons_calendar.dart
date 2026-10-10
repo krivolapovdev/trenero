@@ -24,12 +24,44 @@ class LessonsCalendar extends StatefulWidget {
   /// kind of lesson only.
   final List<VisitStatus> Function(DateTime day)? dayVisitStatuses;
 
+  /// The month the calendar shows.
+  ///
+  /// When set the owner drives the shown month, which lets a single header step
+  /// several calendars through the months together; when null the calendar
+  /// keeps the month on its own.
+  final DateTime? focusedDay;
+
+  /// Called when the shown month changes, with the first day of the new month.
+  final ValueChanged<DateTime>? onMonthChanged;
+
+  /// Whether the calendar draws the month header of `table_calendar`.
+  ///
+  /// Hidden when the owner draws its own header, for example one shared over
+  /// several calendars.
+  final bool headerVisible;
+
+  /// Whether the calendar draws a white surface around the grid.
+  ///
+  /// Hidden when the calendar is laid out inside the surface of its owner.
+  final bool surfaceVisible;
+
+  /// Whether the month can be changed by swiping the grid sideways.
+  ///
+  /// Turned off when the owner draws its own month header and only that header
+  /// is meant to step the months.
+  final bool swipeEnabled;
+
   const new({
     super.key,
     required this.lessons,
     this.locale,
     this.onDayTapped,
     this.dayVisitStatuses,
+    this.focusedDay,
+    this.onMonthChanged,
+    this.headerVisible = true,
+    this.surfaceVisible = true,
+    this.swipeEnabled = true,
   });
 
   @override
@@ -38,6 +70,10 @@ class LessonsCalendar extends StatefulWidget {
 
 class _LessonsCalendarState extends State<LessonsCalendar> {
   late DateTime _focusedDay;
+
+  /// The month the calendar shows: the one the owner drives when it is set, the
+  /// one the calendar keeps on its own otherwise.
+  DateTime get _shownDay => widget.focusedDay ?? _focusedDay;
 
   static const Color _lightGreenAlpha = Color(0x4D4CAF50);
   static const Color _darkForestGreen = Color(0xFF1B5E20);
@@ -76,6 +112,30 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
 
   List<LessonResponse> _lessonsOf(DateTime day) =>
       widget.lessons.where((lesson) => isSameDay(lesson.date, day)).toList();
+
+  /// The owner drives the shown month when it passed `focusedDay`, so the month
+  /// the calendar is stepped to is only remembered locally when the calendar
+  /// keeps it on its own. Remembering it while the owner drives it would make
+  /// the two fight over the shown page.
+  void _onPageChanged(DateTime focusedDay) {
+    if (widget.focusedDay == null) {
+      setState(() {
+        _focusedDay = focusedDay;
+      });
+    }
+
+    widget.onMonthChanged?.call(focusedDay);
+  }
+
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    if (widget.focusedDay == null) {
+      setState(() {
+        _focusedDay = focusedDay;
+      });
+    }
+
+    _onDayTapped(selectedDay);
+  }
 
   void _onDayTapped(DateTime selectedDay) {
     final dayLessons = _lessonsOf(selectedDay);
@@ -213,33 +273,21 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
   }
 
   @override
-  Widget build(BuildContext context) => Container(
-    clipBehavior: Clip.antiAlias,
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-    ),
-    padding: const EdgeInsets.all(8),
-    child: TableCalendar<LessonResponse>(
+  Widget build(BuildContext context) {
+    final calendar = TableCalendar<LessonResponse>(
       locale: widget.locale,
       firstDay: DateTime(2000, 1, 1),
       lastDay: DateTime.now().add(const Duration(days: 365)),
-      focusedDay: _focusedDay,
+      focusedDay: _shownDay,
       // The days after today are shown greyed out and cannot be tapped.
       enabledDayPredicate: _isEnabledDay,
-      onPageChanged: (focusedDay) {
-        setState(() {
-          _focusedDay = focusedDay;
-        });
-      },
+      headerVisible: widget.headerVisible,
+      availableGestures: widget.swipeEnabled
+          ? AvailableGestures.all
+          : AvailableGestures.none,
+      onPageChanged: _onPageChanged,
       selectedDayPredicate: (day) => false,
-      onDaySelected: (selectedDay, focusedDay) {
-        setState(() {
-          _focusedDay = focusedDay;
-        });
-
-        _onDayTapped(selectedDay);
-      },
+      onDaySelected: _onDaySelected,
       eventLoader: _lessonsOf,
       startingDayOfWeek: StartingDayOfWeek.monday,
       headerStyle: const HeaderStyle(
@@ -269,6 +317,18 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
           fontWeight: FontWeight.bold,
         ),
       ),
-    ),
-  );
+    );
+
+    if (!widget.surfaceVisible) return calendar;
+
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(8),
+      child: calendar,
+    );
+  }
 }

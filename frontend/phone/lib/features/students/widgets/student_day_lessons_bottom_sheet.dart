@@ -62,12 +62,20 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
   /// The group of the student, `null` when the student has no group.
   final GroupResponse? studentGroup;
 
+  /// Whether the sheet lists the individual lessons and offers creating one.
+  ///
+  /// A sheet that was asked for by the calendar of a group leaves it off, so a
+  /// day of the group holds the group lessons alone and nothing of the
+  /// individual lessons of the student shows up next to them.
+  final bool showIndividualSection;
+
   const new({
     super.key,
     required this.studentName,
     this.individualLessons = const [],
     this.groupLessons = const [],
     this.studentGroup,
+    this.showIndividualSection = true,
   });
 
   void _select(BuildContext context, StudentDayLessonSelection selection) =>
@@ -197,18 +205,26 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
       );
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(22, 0, 22, 22),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ..._buildIndividualSection(context),
-          if (studentGroup != null) SizedBox(height: 10),
-          ..._buildGroupSection(context),
-        ],
+  Widget build(BuildContext context) {
+    final individualSection = showIndividualSection
+        ? _buildIndividualSection(context)
+        : const <Widget>[];
+    final groupSection = _buildGroupSection(context);
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(22, 0, 22, 22),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ...individualSection,
+            if (individualSection.isNotEmpty && groupSection.isNotEmpty)
+              const SizedBox(height: 10),
+            ...groupSection,
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

@@ -130,39 +130,74 @@ void main() {
     });
   });
 
-  group('opensCreatePageDirectly', () {
-    test(
-      'a student without a group and a day without lessons opens the page',
-      () {
-        expect(
-          StudentLessonsSection.opensCreatePageDirectly(
-            null,
-            StudentLessonsSection.dayVisitsOf(const [], _day),
-          ),
-          isTrue,
-        );
-      },
-    );
-
-    test('a student with a group keeps the day sheet', () {
+  group('showsIndividualCalendar', () {
+    test('no lesson at all and no group keeps the individual calendar', () {
       expect(
-        StudentLessonsSection.opensCreatePageDirectly(
-          _group,
-          StudentLessonsSection.dayVisitsOf(const [], _day),
-        ),
+        StudentLessonsSection.showsIndividualCalendar(const [], const []),
+        isTrue,
+      );
+    });
+
+    test('no lesson at all but a group leaves the group calendars alone', () {
+      expect(
+        StudentLessonsSection.showsIndividualCalendar(const [], [_group]),
         isFalse,
       );
     });
 
-    test('a day with lessons keeps the day sheet', () {
+    test('individual lessons next to a group keep both calendars', () {
+      final visits = [_visit(lesson: _lesson(id: 'individual'))];
+
+      expect(
+        StudentLessonsSection.showsIndividualCalendar(visits, [_group]),
+        isTrue,
+      );
+    });
+
+    test('individual and group lessons keep both calendars', () {
+      final visits = [
+        _visit(lesson: _lesson(id: 'individual')),
+        _visit(
+          lesson: _lesson(id: 'group', groupId: 'group-1'),
+        ),
+      ];
+
+      expect(
+        StudentLessonsSection.showsIndividualCalendar(visits, [_group]),
+        isTrue,
+      );
+    });
+
+    test('only group lessons drop the individual calendar', () {
+      final visits = [
+        _visit(
+          lesson: _lesson(id: 'group', groupId: 'group-1'),
+        ),
+      ];
+
+      expect(
+        StudentLessonsSection.showsIndividualCalendar(visits, [_group]),
+        isFalse,
+      );
+    });
+  });
+
+  group('opensCreatePageDirectly', () {
+    test('a day without a lesson of the kind opens the create page', () {
+      expect(
+        StudentLessonsSection.opensCreatePageDirectly(
+          StudentLessonsSection.dayVisitsOf(const [], _day),
+        ),
+        isTrue,
+      );
+    });
+
+    test('a day with a lesson of the kind keeps the day sheet', () {
       final dayVisits = StudentLessonsSection.dayVisitsOf([
         _visit(lesson: _lesson(id: 'individual-lesson')),
       ], _day);
 
-      expect(
-        StudentLessonsSection.opensCreatePageDirectly(null, dayVisits),
-        isFalse,
-      );
+      expect(StudentLessonsSection.opensCreatePageDirectly(dayVisits), isFalse);
     });
   });
 
@@ -199,6 +234,100 @@ void main() {
 
       expect(
         StudentLessonsSection.dayVisitStatusesOf([unmarked], _day),
+        isEmpty,
+      );
+    });
+  });
+
+  group('lessonVisitsOf', () {
+    test('keeps only the visits that record a lesson', () {
+      final lesson = _visit(lesson: _lesson(id: 'lesson'));
+      final notALesson = _visit(
+        lesson: _lesson(id: 'not-a-lesson'),
+        type: VisitType.unmarked,
+      );
+
+      expect(
+        StudentLessonsSection.lessonVisitsOf([lesson, notALesson])
+            .map((visit) => visit.lesson.id),
+        ['lesson'],
+      );
+    });
+  });
+
+  group('individualLessons', () {
+    test('keeps the individual lessons of the student', () {
+      final individual = _visit(lesson: _lesson(id: 'individual'));
+      final group = _visit(
+        lesson: _lesson(id: 'group', groupId: 'group-1'),
+      );
+
+      expect(
+        StudentLessonsSection.individualLessons([individual, group])
+            .map((lesson) => lesson.id),
+        ['individual'],
+      );
+    });
+
+    test('has no lesson on a student without individual lessons', () {
+      final group = _visit(
+        lesson: _lesson(id: 'group', groupId: 'group-1'),
+      );
+
+      expect(StudentLessonsSection.individualLessons([group]), isEmpty);
+    });
+  });
+
+  group('groupLessons', () {
+    test('keeps the lessons of the requested group', () {
+      final groupA = _visit(
+        lesson: _lesson(id: 'a', groupId: 'group-a'),
+      );
+      final groupB = _visit(
+        lesson: _lesson(id: 'b', groupId: 'group-b'),
+      );
+      final individual = _visit(lesson: _lesson(id: 'individual'));
+
+      expect(
+        StudentLessonsSection.groupLessons([
+          groupA,
+          groupB,
+          individual,
+        ], 'group-a').map((lesson) => lesson.id),
+        ['a'],
+      );
+    });
+  });
+
+  group('groupIdsOf', () {
+    test('lists every group once, in the order its lessons start', () {
+      final groupA = _visit(
+        lesson: _lesson(id: 'a-1', groupId: 'group-a'),
+      );
+      final groupB = _visit(
+        lesson: _lesson(id: 'b-1', groupId: 'group-b'),
+      );
+      final groupAAgain = _visit(
+        lesson: _lesson(id: 'a-2', groupId: 'group-a'),
+      );
+      final individual = _visit(lesson: _lesson(id: 'individual'));
+
+      expect(
+        StudentLessonsSection.groupIdsOf([
+          groupA,
+          groupB,
+          groupAAgain,
+          individual,
+        ]),
+        ['group-a', 'group-b'],
+      );
+    });
+
+    test('has no group on a student without group lessons', () {
+      expect(
+        StudentLessonsSection.groupIdsOf([
+          _visit(lesson: _lesson(id: 'individual')),
+        ]),
         isEmpty,
       );
     });

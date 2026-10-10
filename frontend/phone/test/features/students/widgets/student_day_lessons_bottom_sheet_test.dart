@@ -252,4 +252,30 @@ void main() {
     expect(find.text(t.lessons.individualLesson), findsOneWidget);
     expect(find.text(t.lessons.groupLesson), findsNothing);
   });
+
+  testWidgets('a day with many lessons scrolls to the create row', (
+    tester,
+  ) async {
+    await _openSheet(
+      tester,
+      StudentDayLessonsBottomSheet(
+        studentName: _studentName,
+        individualLessons: List.generate(
+          20,
+          (index) => _individualLesson(id: 'individual-lesson-$index'),
+        ),
+      ),
+    );
+
+    final createRow = find.text(t.lessons.individualLesson);
+    final before = tester.getTopLeft(createRow).dy;
+
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -300),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.getTopLeft(createRow).dy, lessThan(before));
+  });
 }

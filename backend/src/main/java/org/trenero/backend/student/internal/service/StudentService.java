@@ -154,10 +154,19 @@ public class StudentService implements StudentSpi {
         .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
   }
 
+  /**
+   * The visits of a student, narrowed to the lessons that take place on or after {@code from} and
+   * on or before {@code to} when those bounds are given.
+   *
+   * <p>A {@code null} bound leaves that side of the range open, so the lessons are only narrowed by
+   * the bounds the caller asks for. The client loads a few months at a time, so the bound keeps the
+   * response small instead of shipping every lesson the student ever had.
+   */
   @Transactional(readOnly = true)
   public @NonNull List<VisitWithLessonResponse> getStudentVisits(
-      @NonNull UUID studentId, @NonNull JwtUser jwtUser) {
-    log.info("Getting visits for studentId={}; user={}", studentId, jwtUser);
+      @NonNull UUID studentId, LocalDate from, LocalDate to, @NonNull JwtUser jwtUser) {
+    log.info(
+        "Getting visits for studentId={}; from={}; to={}; user={}", studentId, from, to, jwtUser);
 
     var studentVisits = visitSpi.getVisitsByStudentId(studentId, jwtUser);
 
@@ -171,7 +180,13 @@ public class StudentService implements StudentSpi {
     return studentVisits.stream()
         .filter(visit -> lessonsMap.containsKey(visit.getLessonId()))
         .map(visit -> new VisitWithLessonResponse(visit, lessonsMap.get(visit.getLessonId())))
+        .filter(response -> isWithin(response.getLesson().getDate(), from, to))
         .toList();
+  }
+
+  /** Whether [date] lies within [from] and [to], the open bounds being left out. */
+  private static boolean isWithin(LocalDate date, LocalDate from, LocalDate to) {
+    return (from == null || !date.isBefore(from)) && (to == null || !date.isAfter(to));
   }
 
   @Transactional(readOnly = true)

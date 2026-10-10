@@ -51,6 +51,15 @@ Finder _lessonMarker(String dayText, Color color) => find.ancestor(
   ),
 );
 
+/// The white rounded surface the calendar draws around its grid.
+Finder _surface() => find.byWidgetPredicate(
+  (widget) =>
+      widget is Container &&
+      widget.decoration is BoxDecoration &&
+      (widget.decoration! as BoxDecoration).borderRadius != null &&
+      (widget.decoration! as BoxDecoration).color == Colors.white,
+);
+
 void main() {
   setUpAll(() async {
     await initializeDateFormatting();
@@ -308,5 +317,83 @@ void main() {
       findsOneWidget,
     );
     expect(_lessonMarker('${today.day}', _missedColor), findsNothing);
+  });
+
+  testWidgets('the surface can be hidden by the owner', (tester) async {
+    await tester.pumpWidget(
+      _wrap(LessonsCalendar(lessons: const [], surfaceVisible: false)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_surface(), findsNothing);
+  });
+
+  testWidgets('the header can be hidden by the owner', (tester) async {
+    await tester.pumpWidget(
+      _wrap(LessonsCalendar(lessons: const [], headerVisible: false)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.chevron_left), findsNothing);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+  });
+
+  testWidgets('an owned month shows the month it is given', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        LessonsCalendar(lessons: const [], focusedDay: DateTime(2026, 5, 1)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('May 2026'), findsOneWidget);
+  });
+
+  testWidgets('a swipe reports the new month to the owner', (tester) async {
+    final changes = <DateTime>[];
+
+    await tester.pumpWidget(
+      _wrap(
+        LessonsCalendar(
+          lessons: const [],
+          focusedDay: DateTime(2026, 5, 1),
+          onMonthChanged: changes.add,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.pumpAndSettle();
+
+    expect(changes, hasLength(1));
+    expect(changes.single.month, DateTime.june);
+  });
+
+  testWidgets('a sideways swipe is ignored when it is turned off', (
+    tester,
+  ) async {
+    final changes = <DateTime>[];
+
+    await tester.pumpWidget(
+      _wrap(
+        LessonsCalendar(
+          lessons: const [],
+          focusedDay: DateTime(2026, 5, 1),
+          swipeEnabled: false,
+          onMonthChanged: changes.add,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(
+      find.byType(TableCalendar<LessonResponse>),
+      const Offset(-400, 0),
+    );
+    await tester.pumpAndSettle();
+
+    expect(changes, isEmpty);
+    expect(find.text('May 2026'), findsOneWidget);
   });
 }

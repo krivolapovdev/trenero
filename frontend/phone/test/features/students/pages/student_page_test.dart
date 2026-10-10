@@ -4,11 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
+import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/students/pages/student_page.dart';
 import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/models/create_student_payment_request.dart';
 import 'package:phone/generated/models/create_student_request.dart';
 import 'package:phone/generated/models/group_response.dart';
+import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/student_response.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/models/transaction_response.dart';
@@ -51,6 +53,8 @@ class _FakeStudentClient implements StudentControllerClient {
   @override
   Future<List<VisitWithLessonResponse>> getStudentVisits({
     required String studentId,
+    String? from,
+    String? to,
   }) async => const [];
 
   @override
@@ -96,11 +100,19 @@ class _FakeLanguageNotifier extends LanguageNotifier {
   Future<AppLocale> build() async => AppLocale.en;
 }
 
+/// The section names the calendars of the student through the groups of the
+/// trainer, which are empty for the page under test.
+class _FakeGroupListController extends GroupListController {
+  @override
+  Future<List<GroupSummaryResponse>> build() async => const [];
+}
+
 Widget _wrap(StudentSummaryResponse student, _FakeStudentClient client) =>
     ProviderScope(
       overrides: [
         studentServiceProvider.overrideWithValue(client),
         languageProvider.overrideWith(_FakeLanguageNotifier.new),
+        groupListControllerProvider.overrideWith(_FakeGroupListController.new),
       ],
       child: TranslationProvider(
         child: MaterialApp(home: StudentPage(student: student)),
