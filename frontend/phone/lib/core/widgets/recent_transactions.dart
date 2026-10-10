@@ -47,7 +47,8 @@ class RecentTransactions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    clipBehavior: Clip.antiAlias,
+    padding: const EdgeInsets.only(top: 16),
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
@@ -55,40 +56,43 @@ class RecentTransactions extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Skeletonizer(
-          enabled: asyncTransactions.isLoading,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.t.finance.lastTransactions,
-                style: const TextStyle(fontSize: 18, color: Colors.black),
-              ),
-              if (onSeeAllPressed != null)
-                FilledButton.icon(
-                  onPressed: onSeeAllPressed,
-                  iconAlignment: IconAlignment.end,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFE8DEF8),
-                    foregroundColor: const Color(0xFF1D192B),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
-                  label: Text(context.t.all),
-                  icon: const Icon(Icons.chevron_right, size: 18),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Skeletonizer(
+            enabled: asyncTransactions.isLoading,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  context.t.finance.lastTransactions,
+                  style: const TextStyle(fontSize: 18, color: Colors.black),
                 ),
-            ],
+                if (onSeeAllPressed != null)
+                  FilledButton.icon(
+                    onPressed: onSeeAllPressed,
+                    iconAlignment: IconAlignment.end,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFE8DEF8),
+                      foregroundColor: const Color(0xFF1D192B),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                    label: Text(context.t.all),
+                    icon: const Icon(Icons.chevron_right, size: 18),
+                  ),
+              ],
+            ),
           ),
         ),
         asyncTransactions.when(
@@ -97,7 +101,10 @@ class RecentTransactions extends StatelessWidget {
 
             if (recentItems.isEmpty) {
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24.0,
+                ),
                 child: Center(
                   child: Text(
                     context.t.noTransactions,
@@ -118,7 +125,7 @@ class RecentTransactions extends StatelessWidget {
             ),
           ),
           error: (error, stack) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24.0),
             child: Center(
               child: Text(
                 error.toString(),
@@ -147,7 +154,12 @@ class RecentTransactions extends StatelessWidget {
 
         return [
           Padding(
-            padding: const EdgeInsets.only(top: 20, bottom: 8),
+            padding: const EdgeInsets.only(
+              top: 20,
+              bottom: 8,
+              left: 20,
+              right: 20,
+            ),
             child: Text(
               dateHeader,
               style: const TextStyle(
@@ -161,6 +173,10 @@ class RecentTransactions extends StatelessWidget {
             (tx) => TransactionTile(
               transaction: tx,
               overrideTitle: overrideTitle,
+              // The card clips the tile, so the ink spans its whole width while
+              // the content keeps the 20px side inset.
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              borderRadius: BorderRadius.zero,
               onTap: isTappable
                   ? () => _openTransactionPage(context, tx)
                   : null,
