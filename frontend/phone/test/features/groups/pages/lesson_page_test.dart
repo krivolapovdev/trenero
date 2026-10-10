@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:phone/features/groups/controllers/lesson_mutation_controller.dart';
+import 'package:phone/features/groups/models/lesson_attendance.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/features/groups/services/lesson_service.dart';
+import 'package:phone/features/students/controllers/student_lessons_controller.dart';
+import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/group_controller/group_controller_client.dart';
 import 'package:phone/generated/lesson_controller/lesson_controller_client.dart';
 import 'package:phone/generated/models/create_group_request.dart';
@@ -15,10 +19,13 @@ import 'package:phone/generated/models/group_student_summary_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/lesson_details_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
+import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/models/update_lesson_request.dart';
 import 'package:phone/generated/models/visit_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/generated/models/visit_type.dart';
+import 'package:phone/generated/models/visit_with_lesson_response.dart';
+import 'package:phone/generated/student_controller/student_controller_client.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 final DateTime _lessonDate = DateTime(2026, 10, 8);
@@ -164,6 +171,28 @@ class _FakeLessonClient implements LessonControllerClient {
   @override
   Future<LessonResponse> getLesson({required String lessonId}) =>
       throw UnimplementedError();
+}
+
+/// Counts the visits that are fetched for a student, so a background refresh of
+/// a page can be told from a page that was never opened.
+class _FakeStudentClient implements StudentControllerClient {
+  final Map<String, int> visitCalls = {};
+
+  @override
+  Future<List<VisitWithLessonResponse>> getStudentVisits({
+    required String studentId,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    visitCalls[studentId] = (visitCalls[studentId] ?? 0) + 1;
+    return const [];
+  }
+
+  @override
+  Future<List<StudentSummaryResponse>> getStudentsSummary() async => const [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 Widget _wrap(
@@ -581,4 +610,58 @@ void main() {
     expect(body.students![1].status, VisitStatus.absent);
     expect(body.students![1].type, VisitType.free);
   });
+
+  test(
+    'saving a group lesson refreshes the student pages in the background',
+    () async {
+      final lessonClient = _FakeLessonClient();
+      final studentClient = _FakeStudentClient();
+
+      final container = ProviderContainer(
+        overrides: [
+          groupServiceProvider.overrideWithValue(
+            _FakeGroupClient([_ivan, _anna]),
+          ),
+          lessonServiceProvider.overrideWithValue(lessonClient),
+          studentServiceProvider.overrideWithValue(studentClient),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      // The page of Ivan is loaded, the one of Anna is not.
+      await container.read(studentLessonsProvider('student-1').future);
+      expect(studentClient.visitCalls['student-1'], 1);
+
+      final isSaved = await container
+          .read(lessonMutationControllerProvider.notifier)
+          .createLesson(
+            groupId: 'group-1',
+            date: _lessonDate,
+            students: [_ivan, _anna],
+            attendance: {
+              'student-1': const LessonAttendance(
+                status: VisitStatus.present,
+                type: VisitType.regular,
+              ),
+            },
+          );
+
+      expect(isSaved, isTrue);
+
+      // The refresh runs in the background, so it is given a moment to finish.
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(lessonClient.createBodies, hasLength(1));
+      expect(
+        studentClient.visitCalls['student-1'],
+        greaterThan(1),
+        reason: 'the loaded student page is refreshed',
+      );
+      expect(
+        studentClient.visitCalls['student-2'],
+        isNull,
+        reason: 'a student page that was never opened is not fetched',
+      );
+    },
+  );
 }

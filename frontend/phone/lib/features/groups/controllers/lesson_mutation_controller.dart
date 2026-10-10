@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/controllers/group_mutation_refresh.dart';
+import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/groups/controllers/lesson_details_controller.dart';
 import 'package:phone/features/groups/models/lesson_attendance.dart';
 import 'package:phone/features/groups/services/lesson_service.dart';
@@ -41,6 +42,7 @@ class LessonMutationController extends AsyncNotifier<void> {
             students: _buildVisits(students, attendance),
           ),
         ),
+    studentIds: students.map((student) => student.id),
   );
 
   Future<bool> updateLesson({
@@ -63,7 +65,7 @@ class LessonMutationController extends AsyncNotifier<void> {
     // The attendance shown by the lesson page is loaded from the server and
     // has to be dropped once it changed.
     ref.invalidate(lessonDetailsProvider(lessonId));
-  });
+  }, studentIds: students.map((student) => student.id));
 
   Future<bool> deleteLesson({
     required String lessonId,
@@ -71,9 +73,14 @@ class LessonMutationController extends AsyncNotifier<void> {
   }) => _mutate(
     groupId,
     () => ref.read(lessonServiceProvider).deleteLesson(lessonId: lessonId),
+    studentIds: _groupStudentIds(groupId),
   );
 
-  Future<bool> _mutate(String groupId, Future<void> Function() action) async {
+  Future<bool> _mutate(
+    String groupId,
+    Future<void> Function() action, {
+    Iterable<String> studentIds = const <String>[],
+  }) async {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
@@ -81,13 +88,31 @@ class LessonMutationController extends AsyncNotifier<void> {
 
       await ref.read(groupLessonsProvider(groupId).notifier).refresh();
 
-      // The attendance of the lesson changed the statuses of the students the
-      // student list shows, and the monthly report of the group.
-      refreshAfterGroupLessonsMutation(ref);
+      // The attendance of the lesson changed the statuses the student list
+      // shows, the monthly report of the group and the lessons the pages of the
+      // students of the group draw.
+      refreshAfterGroupLessonsMutation(
+        ref,
+        groupId: groupId,
+        studentIds: studentIds,
+      );
     });
 
     return !state.hasError;
   }
+
+  /// The ids of the students of [groupId], used to refresh their pages after a
+  /// lesson of the group changed.
+  ///
+  /// The group page caches the students of its group, so they are already loaded
+  /// when a lesson is saved; a group whose students are not loaded yet has no
+  /// page to refresh.
+  Iterable<String> _groupStudentIds(String groupId) =>
+      ref
+          .read(groupStudentsProvider(groupId))
+          .value
+          ?.map((student) => student.id) ??
+      const <String>[];
 
   /// The visits that are stored for the lesson.
   ///
