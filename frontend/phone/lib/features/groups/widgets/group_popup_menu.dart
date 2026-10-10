@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/features/groups/pages/group_report_page.dart';
+import 'package:phone/features/groups/pages/group_students_page.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/widgets/edit_group_bottom_sheet.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
@@ -14,6 +15,12 @@ class GroupPopupMenu extends StatelessWidget {
   void _openReportPage(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => GroupReportPage(group: group)),
+    );
+  }
+
+  void _openStudentsPage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => GroupStudentsPage(group: group)),
     );
   }
 
@@ -42,6 +49,16 @@ class GroupPopupMenu extends StatelessWidget {
             Icon(Icons.edit, size: 20),
             SizedBox(width: 12),
             Text('Edit'),
+          ],
+        ),
+      ),
+      PopupMenuItem<String>(
+        onTap: () => _openStudentsPage(context),
+        child: Row(
+          children: [
+            const Icon(Icons.groups, size: 20),
+            const SizedBox(width: 12),
+            Text(context.t.students.title),
           ],
         ),
       ),

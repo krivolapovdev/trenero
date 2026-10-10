@@ -3,9 +3,12 @@ package org.trenero.backend.group.internal.service;
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -221,12 +224,67 @@ public class GroupService implements GroupSpi {
   public @NonNull GroupResponse updateGroup(
       @NonNull UUID groupId, @NonNull Map<String, Object> updates, @NonNull JwtUser jwtUser) {
     log.info("Updating group: groupId={}; updates={}; user={}", groupId, updates, jwtUser);
-    return groupRepository
-        .findByIdAndOwnerId(groupId, jwtUser.id())
-        .map(group -> groupMapper.updateGroup(group, updates))
-        .map(self::saveGroup)
-        .map(groupMapper::toResponse)
-        .orElseThrow(entityNotFoundSupplier(Group.class, groupId, jwtUser));
+
+    var group =
+        groupRepository
+            .findByIdAndOwnerId(groupId, jwtUser.id())
+            .orElseThrow(entityNotFoundSupplier(Group.class, groupId, jwtUser));
+
+    if (updates.containsKey("studentIds")) {
+      reconcileGroupStudents(groupId, updates, jwtUser);
+    }
+
+    var updatedGroup = groupMapper.updateGroup(group, updates);
+    var savedGroup = self.saveGroup(updatedGroup);
+
+    return groupMapper.toResponse(savedGroup);
+  }
+
+  /**
+   * Brings the student links of a group in line with the students the request picked: a student the
+   * request left out is dropped from the group, a picked student the group did not hold yet is
+   * added. An empty pick leaves the group without any student.
+   */
+  private void reconcileGroupStudents(UUID groupId, Map<String, Object> updates, JwtUser jwtUser) {
+    var requestedStudentIds = parseRequestedStudentIds(updates);
+    var currentStudentIds =
+        groupStudentService.getStudentsByGroupId(groupId, jwtUser).stream()
+            .map(GroupStudentResponse::getStudentId)
+            .collect(Collectors.toSet());
+
+    currentStudentIds.stream()
+        .filter(studentId -> !requestedStudentIds.contains(studentId))
+        .forEach(
+            studentId -> groupStudentService.removeStudentFromGroup(studentId, groupId, jwtUser));
+
+    var studentIdsToAdd =
+        requestedStudentIds.stream().filter(id -> !currentStudentIds.contains(id)).toList();
+
+    if (!studentIdsToAdd.isEmpty()) {
+      groupStudentService.addStudentsToGroup(groupId, studentIdsToAdd, jwtUser);
+    }
+  }
+
+  /**
+   * The students the request wants the group to hold, sent by the group students page as {@code
+   * studentIds}. A blank value leaves the group without any student.
+   */
+  private static Set<UUID> parseRequestedStudentIds(Map<String, Object> updates) {
+    var rawStudentIds = updates.get("studentIds");
+    var requestedStudentIds = new LinkedHashSet<UUID>();
+
+    if (rawStudentIds instanceof Collection<?> studentIds) {
+      studentIds.stream()
+          .filter(Objects::nonNull)
+          .map(Object::toString)
+          .filter(rawStudentId -> !rawStudentId.isBlank())
+          .map(UUID::fromString)
+          .forEach(requestedStudentIds::add);
+    } else if (rawStudentIds != null && !rawStudentIds.toString().isBlank()) {
+      requestedStudentIds.add(UUID.fromString(rawStudentIds.toString()));
+    }
+
+    return requestedStudentIds;
   }
 
   @Transactional

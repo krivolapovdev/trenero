@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/controllers/group_report_controller.dart';
+import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 
 /// Reloads the group list in the background after a group was created or
@@ -39,6 +40,29 @@ void refreshAfterGroupLessonsMutation(Ref ref) {
         .catchError((error, _) {
           log(
             'Error refreshing the students after a group lesson change: $error',
+          );
+        }),
+  );
+}
+
+/// Reloads the data a change of the students of a group side effects.
+///
+/// The group page caches the students of its group, the group list counts them
+/// and the student list carries the groups every student belongs to. The group
+/// students are dropped right away, so the group page requests them again; the
+/// two lists are reloaded in the background.
+void refreshAfterGroupStudentsMutation(Ref ref, {required String groupId}) {
+  ref.invalidate(groupStudentsProvider(groupId));
+
+  refreshAfterGroupMutation(ref);
+
+  unawaited(
+    ref
+        .read(studentListControllerProvider.notifier)
+        .getAllStudents(forceRefresh: true)
+        .catchError((error, _) {
+          log(
+            'Error refreshing the students after a group student change: $error',
           );
         }),
   );

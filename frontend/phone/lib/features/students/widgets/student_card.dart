@@ -16,8 +16,8 @@ class StudentCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final hasNote = student.note != null && student.note!.trim().isNotEmpty;
     final hasPhone = student.phone != null && student.phone!.isNotEmpty;
-    final groupName = student.studentGroup?.name;
-    final hasGroup = groupName != null && groupName.trim().isNotEmpty;
+    final groupLabel = _groupLabel(student);
+    final hasGroup = groupLabel.isNotEmpty;
     final badges = student.statuses.toBadges(context);
 
     return Card(
@@ -68,9 +68,7 @@ class StudentCard extends StatelessWidget {
                         if (hasGroup) ...[
                           const SizedBox(height: 2),
                           Text(
-                            student.studentGroup?.defaultPrice != null
-                                ? '$groupName · ${student.studentGroup!.defaultPrice}'
-                                : groupName,
+                            groupLabel,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodyMedium?.copyWith(
@@ -127,4 +125,35 @@ class StudentCard extends StatelessWidget {
       ),
     );
   }
+
+  /// Every group of the student joined into a label, each group carrying its
+  /// default price when it has one.
+  ///
+  /// The summary carries the full list of groups the student belongs to; the
+  /// single group is the fallback for a response that only holds the primary
+  /// one.
+  static String _groupLabel(StudentSummaryResponse student) {
+    final groups = student.studentGroups;
+    final labels = <String>[];
+
+    if (groups != null) {
+      for (final group in groups) {
+        if (group.name.trim().isEmpty) continue;
+        labels.add(_labelOf(group.name, group.defaultPrice));
+      }
+    }
+
+    if (labels.isEmpty) {
+      final group = student.studentGroup;
+
+      if (group != null && group.name.trim().isNotEmpty) {
+        labels.add(_labelOf(group.name, group.defaultPrice));
+      }
+    }
+
+    return labels.join(', ');
+  }
+
+  static String _labelOf(String name, num? defaultPrice) =>
+      defaultPrice != null ? '$name · $defaultPrice' : name;
 }

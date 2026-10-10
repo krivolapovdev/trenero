@@ -3,9 +3,12 @@ package org.trenero.backend.student.internal.service;
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -92,7 +95,11 @@ public class StudentService implements StudentSpi {
     var groupIdsFuture =
         groupLinksFuture.thenApply(
             links ->
-                links.values().stream().map(GroupStudentResponse::getGroupId).distinct().toList());
+                links.values().stream()
+                    .flatMap(List::stream)
+                    .map(GroupStudentResponse::getGroupId)
+                    .distinct()
+                    .toList());
 
     var groupsFuture =
         groupIdsFuture.thenComposeAsync(
@@ -128,15 +135,20 @@ public class StudentService implements StudentSpi {
 
     var visitsMap = visitsFuture.join();
     var paymentsMap = paymentsFuture.join();
-    var studentToGroupLinkMap = groupLinksFuture.join();
+    var studentToGroupLinksMap = groupLinksFuture.join();
     var groupsMap = groupsFuture.join();
     var lessonsMap = lessonsFuture.join();
 
     return students.stream()
         .map(
             student -> {
-              var link = studentToGroupLinkMap.get(student.getId());
-              var groupId = (link != null) ? link.getGroupId() : null;
+              var links = studentToGroupLinksMap.getOrDefault(student.getId(), List.of());
+              var studentGroups =
+                  links.stream()
+                      .map(link -> groupsMap.get(link.getGroupId()))
+                      .filter(Objects::nonNull)
+                      .toList();
+              var group = studentGroups.isEmpty() ? null : studentGroups.getFirst();
 
               var studentVisits = visitsMap.getOrDefault(student.getId(), List.of());
               var studentPayments = paymentsMap.getOrDefault(student.getId(), List.of());
@@ -152,9 +164,7 @@ public class StudentService implements StudentSpi {
                   studentStatusService.getStudentStatuses(
                       studentVisits, studentPayments, studentLessons, student.getFree());
 
-              var group = (groupId != null) ? groupsMap.get(groupId) : null;
-
-              return new StudentSummaryResponse(student, group, statuses);
+              return new StudentSummaryResponse(student, group, statuses, studentGroups);
             })
         .toList();
   }
@@ -255,28 +265,73 @@ public class StudentService implements StudentSpi {
             .findByIdAndOwnerId(studentId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
 
-    if (updates.containsKey("groupId")) {
-      var optionalGroupStudentResponse =
-          groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream().findFirst();
-
-      optionalGroupStudentResponse.ifPresent(
-          groupStudentResponse ->
-              groupStudentSpi.removeStudentFromGroup(
-                  studentId, groupStudentResponse.getGroupId(), jwtUser));
-
-      var rawGroupId = updates.get("groupId");
-
-      if (rawGroupId != null && !rawGroupId.toString().isBlank()) {
-        var groupId = UUID.fromString(rawGroupId.toString());
-        groupStudentSpi.addStudentToGroup(
-            studentId, groupId, parseJoinedAt(updates.get("joinedAt")), jwtUser);
-      }
+    if (updates.containsKey("groupIds") || updates.containsKey("groupId")) {
+      reconcileStudentGroups(studentId, updates, jwtUser);
     }
 
     var updatedStudent = studentMapper.updateStudent(student, updates);
     var savedStudent = self.saveStudent(updatedStudent);
 
     return studentMapper.toResponse(savedStudent);
+  }
+
+  /**
+   * Brings the group links of a student in line with the groups the request picked: a link the
+   * request left out is dropped, a requested group the student did not belong to yet is added. The
+   * student is stored as joined today unless the request carries the day they joined.
+   */
+  private void reconcileStudentGroups(
+      UUID studentId, Map<String, Object> updates, JwtUser jwtUser) {
+    var requestedGroupIds = parseRequestedGroupIds(updates);
+    var currentGroupIds =
+        groupStudentSpi.getGroupsByStudentId(studentId, jwtUser).stream()
+            .map(GroupStudentResponse::getGroupId)
+            .collect(Collectors.toSet());
+
+    var joinedAt = parseJoinedAt(updates.get("joinedAt"));
+
+    currentGroupIds.stream()
+        .filter(groupId -> !requestedGroupIds.contains(groupId))
+        .forEach(groupId -> groupStudentSpi.removeStudentFromGroup(studentId, groupId, jwtUser));
+
+    requestedGroupIds.stream()
+        .filter(groupId -> !currentGroupIds.contains(groupId))
+        .forEach(
+            groupId -> groupStudentSpi.addStudentToGroup(studentId, groupId, joinedAt, jwtUser));
+  }
+
+  /**
+   * The groups the request wants the student to belong to. The student group page sends the picked
+   * groups as {@code groupIds}; a plain {@code groupId} is still accepted for the older
+   * single-group callers. A blank value leaves the student without any group.
+   */
+  private static Set<UUID> parseRequestedGroupIds(Map<String, Object> updates) {
+    var requestedGroupIds = new LinkedHashSet<UUID>();
+
+    if (updates.containsKey("groupIds")) {
+      var rawGroupIds = updates.get("groupIds");
+
+      if (rawGroupIds instanceof Collection<?> groupIds) {
+        groupIds.stream()
+            .filter(Objects::nonNull)
+            .map(Object::toString)
+            .filter(rawGroupId -> !rawGroupId.isBlank())
+            .map(UUID::fromString)
+            .forEach(requestedGroupIds::add);
+      } else if (rawGroupIds != null && !rawGroupIds.toString().isBlank()) {
+        requestedGroupIds.add(UUID.fromString(rawGroupIds.toString()));
+      }
+
+      return requestedGroupIds;
+    }
+
+    var rawGroupId = updates.get("groupId");
+
+    if (rawGroupId != null && !rawGroupId.toString().isBlank()) {
+      requestedGroupIds.add(UUID.fromString(rawGroupId.toString()));
+    }
+
+    return requestedGroupIds;
   }
 
   /**

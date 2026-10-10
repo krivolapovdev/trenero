@@ -99,6 +99,23 @@ class GroupRepository {
     }
   }
 
+  /// Makes the students of [groupId] the picked [studentIds]: the students that
+  /// are not picked are removed from the group, the picked ones that are new
+  /// are added.
+  Future<void> setGroupStudents({
+    required String groupId,
+    required Set<String> studentIds,
+  }) async {
+    try {
+      await _service.updateGroup(
+        groupId: groupId,
+        body: <String, dynamic>{'studentIds': studentIds.toList()},
+      );
+    } on DioException catch (e) {
+      throw Exception('Failed to update the group students: ${e.message}');
+    }
+  }
+
   Future<GroupReportResponse> getGroupReport({
     required String groupId,
     required int year,

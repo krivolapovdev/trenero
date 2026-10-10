@@ -21,16 +21,16 @@ Future<void> refreshAfterStudentMutation(Ref ref) async {
 
 /// Reloads the group data a move of a student between groups changes.
 ///
-/// Both the group the student joined and the group they left count a different
-/// number of students, and both group pages cache the students of their group.
-/// The group list is reloaded in the background because it loads with a delay
-/// the sheet that moved the student should not wait for; the affected group
-/// student caches are dropped right away so their pages request the students
-/// again.
+/// Both the groups the student joined and the groups they left count a
+/// different number of students, and every group page caches the students of
+/// its group. The group list is reloaded in the background because it loads
+/// with a delay the page that moved the student should not wait for; the
+/// affected group student caches are dropped right away so their pages request
+/// the students again.
 void refreshAfterStudentGroupChange(
   Ref ref, {
-  required String groupId,
-  String? previousGroupId,
+  required Set<String> groupIds,
+  Set<String> previousGroupIds = const <String>{},
 }) {
   unawaited(
     ref
@@ -41,9 +41,7 @@ void refreshAfterStudentGroupChange(
         }),
   );
 
-  ref.invalidate(groupStudentsProvider(groupId));
-
-  if (previousGroupId != null && previousGroupId != groupId) {
-    ref.invalidate(groupStudentsProvider(previousGroupId));
+  for (final groupId in {...previousGroupIds, ...groupIds}) {
+    ref.invalidate(groupStudentsProvider(groupId));
   }
 }

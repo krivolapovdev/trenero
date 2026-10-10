@@ -13,7 +13,7 @@ interface GroupStudentSpi {
   fun getGroupStudentsByStudentIds(
     studentIds: List<UUID>,
     jwtUser: JwtUser,
-  ): Map<UUID, GroupStudentResponse>
+  ): Map<UUID, List<GroupStudentResponse>>
 
   fun addStudentToGroup(
     studentId: UUID,

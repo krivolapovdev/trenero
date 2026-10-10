@@ -8,11 +8,11 @@ import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.d
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
+import 'package:phone/features/students/pages/student_group_page.dart';
 import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
 import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
-import 'package:phone/features/students/widgets/student_group_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_lessons_section.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -37,16 +37,30 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     );
   }
 
-  /// Opens the group sheet of the student; the card and the lessons follow the
+  /// Opens the group page of the student; the card and the lessons follow the
   /// reloaded student list.
-  Future<void> _openAssignGroupSheet() async {
-    await AppBottomSheet.show(
-      context: context,
-      child: StudentGroupBottomSheet(
-        studentId: _student.id,
-        initialGroupId: _student.studentGroup?.id,
+  Future<void> _openAssignGroupPage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => StudentGroupPage(
+          studentId: _student.id,
+          initialGroupIds: _studentGroupIds,
+        ),
       ),
     );
+  }
+
+  /// The ids of every group the student belongs to, used to preselect them on
+  /// the group page.
+  Set<String> get _studentGroupIds {
+    final groups = _student.studentGroups;
+
+    if (groups != null && groups.isNotEmpty) {
+      return groups.map((group) => group.id).toSet();
+    }
+
+    final group = _student.studentGroup;
+    return group == null ? const <String>{} : {group.id};
   }
 
   Future<void> _openCreatePaymentSheet() async {
@@ -122,7 +136,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 ),
               ),
               PopupMenuItem<String>(
-                onTap: _openAssignGroupSheet,
+                onTap: _openAssignGroupPage,
                 child: const Row(
                   children: [
                     Icon(Icons.group, size: 20),
@@ -210,7 +224,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
           ),
           FloatingActionButton(
             heroTag: 'group-student',
-            onPressed: _openAssignGroupSheet,
+            onPressed: _openAssignGroupPage,
             elevation: 0,
             focusElevation: 0,
             highlightElevation: 0,

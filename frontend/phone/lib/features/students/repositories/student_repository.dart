@@ -107,24 +107,24 @@ class StudentRepository {
     }
   }
 
-  /// Attaches [studentId] to [groupId], replacing the group the student
-  /// belonged to before. `joinedAt` is the day the student joined the group.
-  Future<void> assignStudentGroup({
+  /// Attaches [studentId] to every group in [groupIds], dropping the groups
+  /// that are not picked. The student is stored as joined today in the groups
+  /// that are new to them.
+  Future<void> assignStudentGroups({
     required String studentId,
-    required String groupId,
-    required DateTime joinedAt,
+    required Set<String> groupIds,
   }) async {
     try {
       await _service.updateStudent(
         studentId: studentId,
         body: <String, dynamic>{
-          'groupId': groupId,
-          'joinedAt': _isoDate.format(joinedAt),
+          'groupIds': groupIds.toList(),
+          'joinedAt': _isoDate.format(DateTime.now()),
         },
       );
     } on DioException catch (e) {
       throw Exception(
-        'Failed to assign the student to the group: ${e.message}',
+        'Failed to assign the student to the groups: ${e.message}',
       );
     }
   }

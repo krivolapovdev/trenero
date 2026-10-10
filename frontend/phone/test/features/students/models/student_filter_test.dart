@@ -7,20 +7,26 @@ import 'package:phone/generated/models/student_summary_response.dart';
 StudentSummaryResponse _student({
   String id = 'student-1',
   String? groupId,
+  List<String> groupIds = const [],
   List<StudentStatus> statuses = const [],
-}) => StudentSummaryResponse(
-  id: id,
-  fullName: 'Ivan Petrov',
+}) {
+  final groups = <String>[?groupId, ...groupIds];
+
+  return StudentSummaryResponse(
+    id: id,
+    fullName: 'Ivan Petrov',
+    createdAt: DateTime(2025, 8, 22),
+    free: false,
+    statuses: statuses,
+    studentGroup: groups.isEmpty ? null : _group(groups.first),
+    studentGroups: groups.map(_group).toList(),
+  );
+}
+
+GroupResponse _group(String groupId) => GroupResponse(
+  id: groupId,
+  name: 'Group $groupId',
   createdAt: DateTime(2025, 8, 22),
-  free: false,
-  statuses: statuses,
-  studentGroup: groupId == null
-      ? null
-      : GroupResponse(
-          id: groupId,
-          name: 'Group $groupId',
-          createdAt: DateTime(2025, 8, 22),
-        ),
 );
 
 void main() {
@@ -47,6 +53,19 @@ void main() {
 
       expect(filter.matches(_student()), isTrue);
       expect(filter.matches(_student(groupId: 'group-1')), isFalse);
+    });
+
+    test('a student in several groups matches any of their groups', () {
+      const filter = StudentFilter(groupIds: {'group-2'});
+
+      expect(
+        filter.matches(_student(groupId: 'group-1', groupIds: ['group-2'])),
+        isTrue,
+      );
+      expect(
+        filter.matches(_student(groupId: 'group-1', groupIds: ['group-3'])),
+        isFalse,
+      );
     });
 
     test('a status filter keeps students having any of the statuses', () {

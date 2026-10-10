@@ -9,38 +9,33 @@ final assignStudentGroupControllerProvider =
       AssignStudentGroupController.new,
     );
 
-/// Moves a student to the group picked in the student group sheet.
+/// Moves a student to the groups picked in the student group page.
 class AssignStudentGroupController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
-  Future<bool> assignGroup({
+  Future<bool> assignGroups({
     required String studentId,
-    required String groupId,
-    required DateTime joinedAt,
-    String? previousGroupId,
+    required Set<String> groupIds,
+    Set<String> previousGroupIds = const <String>{},
   }) async {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
       await ref
           .read(studentRepositoryProvider)
-          .assignStudentGroup(
-            studentId: studentId,
-            groupId: groupId,
-            joinedAt: joinedAt,
-          );
+          .assignStudentGroups(studentId: studentId, groupIds: groupIds);
 
-      // The student card carries the group the student joined now, so the
-      // list is reloaded before the sheet closes.
+      // The student card carries the groups the student joined now, so the
+      // list is reloaded before the page closes.
       await refreshAfterStudentMutation(ref);
 
-      // The group the student joined counts one more student, the group they
-      // left one less; their pages have to request the students again.
+      // Every group the student joined counts one more student, every group
+      // they left one less; their pages have to request the students again.
       refreshAfterStudentGroupChange(
         ref,
-        groupId: groupId,
-        previousGroupId: previousGroupId,
+        groupIds: groupIds,
+        previousGroupIds: previousGroupIds,
       );
     });
 

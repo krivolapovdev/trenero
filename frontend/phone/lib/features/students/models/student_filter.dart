@@ -40,9 +40,15 @@ class StudentFilter {
 
   /// Whether [student] satisfies every selected dimension.
   bool matches(StudentSummaryResponse student) {
+    final studentGroupIds = <String>{
+      if (student.studentGroup != null) student.studentGroup!.id,
+      for (final group in student.studentGroups ?? const []) group.id,
+    };
+
     final matchesGroup =
         groupIds.isEmpty ||
-        groupIds.contains(student.studentGroup?.id ?? noGroupId);
+        studentGroupIds.any(groupIds.contains) ||
+        (studentGroupIds.isEmpty && groupIds.contains(noGroupId));
     final matchesStatus =
         statuses.isEmpty || student.statuses.any(statuses.contains);
 

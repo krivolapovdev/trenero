@@ -3,10 +3,10 @@ package org.trenero.backend.group.internal.service;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -103,12 +103,14 @@ public class GroupStudentService implements GroupStudentSpi {
 
   @Override
   @Transactional(readOnly = true)
-  public @NonNull Map<UUID, GroupStudentResponse> getGroupStudentsByStudentIds(
+  public @NonNull Map<UUID, List<GroupStudentResponse>> getGroupStudentsByStudentIds(
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info("Getting group students by student ids: studentIds={}; user={}", studentIds, jwtUser);
     return groupStudentRepository.findAllByStudentIds(studentIds, jwtUser.id()).stream()
         .map(groupStudentMapper::toResponse)
-        .collect(Collectors.toMap(GroupStudentResponse::getStudentId, Function.identity()));
+        .collect(
+            Collectors.groupingBy(
+                GroupStudentResponse::getStudentId, LinkedHashMap::new, Collectors.toList()));
   }
 
   @Transactional
