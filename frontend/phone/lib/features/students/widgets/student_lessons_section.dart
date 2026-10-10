@@ -211,15 +211,6 @@ class StudentLessonsSection extends ConsumerStatefulWidget {
 }
 
 class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
-  /// The month every calendar of the section shows.
-  late DateTime _focusedDay;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusedDay = DateUtils.dateOnly(DateTime.now());
-  }
-
   /// The first month the section can step back to.
   static final DateTime _firstMonth = DateTime(2000, 1);
 
@@ -234,13 +225,13 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
     return !month.isBefore(_firstMonth) && !month.isAfter(currentMonth);
   }
 
-  /// Whether the header may step a month forward from the shown month.
-  bool get _canGoForward =>
-      _canShow(DateTime(_focusedDay.year, _focusedDay.month + 1));
+  /// Whether the header may step a month forward from [focusedDay].
+  bool _canGoForward(DateTime focusedDay) =>
+      _canShow(DateTime(focusedDay.year, focusedDay.month + 1));
 
-  /// Whether the header may step a month back from the shown month.
-  bool get _canGoBackwards =>
-      _canShow(DateTime(_focusedDay.year, _focusedDay.month - 1));
+  /// Whether the header may step a month back from [focusedDay].
+  bool _canGoBackwards(DateTime focusedDay) =>
+      _canShow(DateTime(focusedDay.year, focusedDay.month - 1));
 
   /// Steps the shown month by [months], the shared header drives every calendar
   /// of the section with it.
@@ -248,12 +239,13 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
   /// Stepping back loads the months before the loaded range from the server
   /// when they are not stored locally yet.
   void _showMonth(int months) {
-    final month = DateTime(_focusedDay.year, _focusedDay.month + months);
+    final focusedDay = ref.read(studentLessonsMonthProvider(widget.studentId));
+    final month = DateTime(focusedDay.year, focusedDay.month + months);
     if (!_canShow(month)) return;
 
-    setState(() {
-      _focusedDay = month;
-    });
+    ref
+        .read(studentLessonsMonthProvider(widget.studentId).notifier)
+        .show(month);
 
     if (months < 0) {
       ref
@@ -311,6 +303,7 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
   Widget _buildSections(
     BuildContext context,
     List<VisitWithLessonResponse> visits,
+    DateTime focusedDay,
     List<GroupSummaryResponse>? groups,
     String? locale,
   ) {
@@ -325,6 +318,7 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
             context,
             title: group.name,
             visits: StudentLessonsSection.groupVisits(visits, group.id),
+            focusedDay: focusedDay,
             locale: locale,
             group: group,
           ),
@@ -336,6 +330,7 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
             context,
             title: context.t.lessons.individualLessons,
             visits: StudentLessonsSection.individualVisits(visits),
+            focusedDay: focusedDay,
             locale: locale,
           ),
       ],
@@ -346,13 +341,14 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
     BuildContext context, {
     required String title,
     required List<VisitWithLessonResponse> visits,
+    required DateTime focusedDay,
     required String? locale,
     GroupResponse? group,
   }) => StudentLessonCalendarSection(
     title: title,
     locale: locale,
     lessons: StudentLessonsSection._toLessons(visits),
-    focusedDay: _focusedDay,
+    focusedDay: focusedDay,
     dayVisitStatuses: (day) =>
         StudentLessonsSection.dayVisitStatusesOf(visits, day),
     onDayTapped: (selectedDay, dayLessons) => group == null
@@ -459,9 +455,42 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
     );
   }
 
+  /// The calendars of the section.
+  ///
+  /// While a load is in flight the calendars shimmer: over the lessons that are
+  /// already stored when only older months are still on their way, over a
+  /// placeholder when nothing is stored yet.
+  Widget _buildBody(
+    BuildContext context,
+    AsyncValue<List<VisitWithLessonResponse>> visitsAsync,
+    bool isLoadingEarlier,
+    DateTime focusedDay,
+    List<GroupSummaryResponse>? groups,
+    String? locale,
+  ) {
+    if (visitsAsync.hasError && !visitsAsync.hasValue) {
+      return Center(child: Text('Error loading lessons: ${visitsAsync.error}'));
+    }
+
+    return Skeletonizer(
+      enabled: visitsAsync.isLoading || isLoadingEarlier,
+      child: _buildSections(
+        context,
+        visitsAsync.value ?? StudentLessonsSection._dummyVisits,
+        focusedDay,
+        groups,
+        locale,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final visitsAsync = ref.watch(studentLessonsProvider(widget.studentId));
+    final isLoadingEarlier = ref.watch(
+      studentLessonsLoadingEarlierProvider(widget.studentId),
+    );
+    final focusedDay = ref.watch(studentLessonsMonthProvider(widget.studentId));
     final groups = ref.watch(groupListControllerProvider).value;
     final locale = ref.watch(languageProvider).value?.languageTag;
 
@@ -476,23 +505,20 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CalendarMonthNavigator(
-            focusedDay: _focusedDay,
+            focusedDay: focusedDay,
             locale: locale,
-            onPreviousMonth: _canGoBackwards ? () => _showMonth(-1) : null,
-            onNextMonth: _canGoForward ? () => _showMonth(1) : null,
+            onPreviousMonth: _canGoBackwards(focusedDay)
+                ? () => _showMonth(-1)
+                : null,
+            onNextMonth: _canGoForward(focusedDay) ? () => _showMonth(1) : null,
           ),
-          visitsAsync.when(
-            data: (visits) => _buildSections(context, visits, groups, locale),
-            loading: () => Skeletonizer(
-              child: _buildSections(
-                context,
-                visitsAsync.value ?? StudentLessonsSection._dummyVisits,
-                groups,
-                locale,
-              ),
-            ),
-            error: (error, stack) =>
-                Center(child: Text('Error loading lessons: $error')),
+          _buildBody(
+            context,
+            visitsAsync,
+            isLoadingEarlier,
+            focusedDay,
+            groups,
+            locale,
           ),
         ],
       ),

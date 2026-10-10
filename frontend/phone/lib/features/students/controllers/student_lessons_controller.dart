@@ -9,6 +9,61 @@ final studentLessonsProvider =
       String
     >(StudentLessonsController.new);
 
+/// The month the calendars of a student show.
+///
+/// It lives next to the lessons so that reloading them (the pull to refresh of
+/// the student page) can open the latest month again.
+final studentLessonsMonthProvider =
+    NotifierProvider.family<StudentLessonsMonthController, DateTime, String>(
+      StudentLessonsMonthController.new,
+    );
+
+class StudentLessonsMonthController extends Notifier<DateTime> {
+  final String studentId;
+
+  new(this.studentId);
+
+  /// The current month, the latest month the calendars may show.
+  static DateTime get latestMonth {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month);
+  }
+
+  @override
+  DateTime build() => latestMonth;
+
+  /// Shows [month] on every calendar of the student.
+  void show(DateTime month) => state = month;
+
+  /// Opens the latest month, the one a reloaded set of lessons reaches back
+  /// from.
+  void showLatest() => state = latestMonth;
+}
+
+/// Whether the lessons of a student are loading months before the loaded range.
+///
+/// The lessons that are already stored stay in [studentLessonsProvider] while
+/// that happens, so the calendars keep their blocks and the section shimmers
+/// over them instead of dropping them.
+final studentLessonsLoadingEarlierProvider =
+    NotifierProvider.family<
+      StudentLessonsLoadingEarlierController,
+      bool,
+      String
+    >(StudentLessonsLoadingEarlierController.new);
+
+class StudentLessonsLoadingEarlierController extends Notifier<bool> {
+  final String studentId;
+
+  new(this.studentId);
+
+  @override
+  bool build() => false;
+
+  /// Marks the older months as loading, or as done.
+  void setLoading(bool isLoading) => state = isLoading;
+}
+
 /// The lessons of a student, loaded a few months at a time.
 ///
 /// The first load reaches back [monthsPerLoad] months from today, the current
@@ -65,11 +120,25 @@ class StudentLessonsController
   /// Loads the months before the loaded range until [month] is stored too.
   ///
   /// The calendar steps one month at a time, so a single window is usually
-  /// enough; the loop keeps the promise when [month] lies further back.
+  /// enough; the loop keeps the promise when [month] lies further back. While a
+  /// window is in flight the lessons that are already stored stay and
+  /// [studentLessonsLoadingEarlierProvider] is set, so the calendar can shimmer
+  /// over the month that was opened.
   Future<void> loadEarlierMonths(DateTime month) async {
-    if (_isLoading) return;
+    final loadedFrom = _loadedFrom;
+    if (_isLoading ||
+        loadedFrom == null ||
+        !_isBeforeMonth(month, loadedFrom)) {
+      return;
+    }
 
     _isLoading = true;
+    ref
+        .read(studentLessonsLoadingEarlierProvider(studentId).notifier)
+        .setLoading(true);
+
+    // The lessons that are already stored, put back when a window fails.
+    var current = state.value ?? const <VisitWithLessonResponse>[];
 
     try {
       while (_loadedFrom != null && _isBeforeMonth(month, _loadedFrom!)) {
@@ -82,12 +151,18 @@ class StudentLessonsController
         final to = _loadedFrom!.subtract(const Duration(days: 1));
 
         final earlier = await _fetch(from, to);
-        final current = state.value ?? const <VisitWithLessonResponse>[];
 
-        state = AsyncData([...earlier, ...current]);
+        current = [...earlier, ...current];
+        state = AsyncData(current);
         _loadedFrom = from;
       }
+    } catch (_) {
+      // The lessons that are stored stay shown, the month can be opened again.
+      state = AsyncData(current);
     } finally {
+      ref
+          .read(studentLessonsLoadingEarlierProvider(studentId).notifier)
+          .setLoading(false);
       _isLoading = false;
     }
   }
@@ -97,7 +172,17 @@ class StudentLessonsController
       month.year < other.year ||
       (month.year == other.year && month.month < other.month);
 
+  /// Drops the loaded months, opens the latest month and reads the last
+  /// [monthsPerLoad] months again.
+  ///
+  /// The state goes through loading with no value, so the calendars shimmer
+  /// instead of keeping the months that are no longer loaded.
   Future<void> refresh() async {
+    _loadedFrom = null;
+    _loadedTo = null;
+
+    ref.read(studentLessonsMonthProvider(studentId).notifier).showLatest();
+
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(build);
   }

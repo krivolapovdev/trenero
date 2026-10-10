@@ -185,4 +185,62 @@ void main() {
 
     expect(client.visitsCalls, hasLength(1));
   });
+
+  test('an earlier month is fetched while the calendars shimmer', () async {
+    final client = _FakeStudentClient();
+    final container = _container(client);
+    final now = DateTime.now();
+
+    await container.read(studentLessonsProvider(_studentId).future);
+
+    final loading = container
+        .read(studentLessonsProvider(_studentId).notifier)
+        .loadEarlierMonths(DateTime(now.year, now.month - 3));
+
+    expect(
+      container.read(studentLessonsLoadingEarlierProvider(_studentId)),
+      isTrue,
+    );
+    // The lessons that were already stored stay, so the calendar keeps its
+    // blocks under the shimmer.
+    expect(container.read(studentLessonsProvider(_studentId)).hasValue, isTrue);
+
+    await loading;
+
+    expect(
+      container.read(studentLessonsLoadingEarlierProvider(_studentId)),
+      isFalse,
+    );
+  });
+
+  test(
+    'a refresh drops the loaded months and opens the latest month',
+    () async {
+      final client = _FakeStudentClient();
+      final container = _container(client);
+      final now = DateTime.now();
+
+      await container.read(studentLessonsProvider(_studentId).future);
+      await container
+          .read(studentLessonsProvider(_studentId).notifier)
+          .loadEarlierMonths(DateTime(now.year, now.month - 3));
+
+      container
+          .read(studentLessonsMonthProvider(_studentId).notifier)
+          .show(DateTime(now.year, now.month - 3));
+
+      await container
+          .read(studentLessonsProvider(_studentId).notifier)
+          .refresh();
+
+      final reload = client.visitsCalls.last;
+      expect(reload.from, DateTime(now.year, now.month - 2, 1));
+      expect(reload.to, DateTime(now.year, now.month, now.day));
+
+      expect(
+        container.read(studentLessonsMonthProvider(_studentId)),
+        DateTime(now.year, now.month),
+      );
+    },
+  );
 }
