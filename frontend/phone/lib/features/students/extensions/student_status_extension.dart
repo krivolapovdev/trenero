@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:phone/features/students/models/student_badge_data.dart';
 import 'package:phone/generated/models/student_status.dart';
@@ -24,7 +23,6 @@ extension StudentStatusExtension on List<StudentStatus> {
       (status) => switch (status) {
         StudentStatus.inactive => StudentBadgeData(
           id: status.name,
-          icon: const Icon(Icons.question_mark_rounded),
           label: status.label(context),
           backgroundColor: const Color(0xFFF1F5F9),
           foregroundColor: const Color(0xFF64748B),
@@ -32,7 +30,6 @@ extension StudentStatusExtension on List<StudentStatus> {
 
         StudentStatus.present => StudentBadgeData(
           id: status.name,
-          icon: const Icon(CupertinoIcons.checkmark),
           label: status.label(context),
           backgroundColor: const Color(0xFFDCFCE7),
           foregroundColor: const Color(0xFF166534),
@@ -40,7 +37,6 @@ extension StudentStatusExtension on List<StudentStatus> {
 
         StudentStatus.missing => StudentBadgeData(
           id: status.name,
-          icon: const Icon(CupertinoIcons.xmark),
           label: status.label(context),
           backgroundColor: const Color(0xFFFFEDD5).withValues(alpha: 0.8),
           foregroundColor: const Color(0xFF9A3412),
@@ -48,7 +44,6 @@ extension StudentStatusExtension on List<StudentStatus> {
 
         StudentStatus.paid => StudentBadgeData(
           id: status.name,
-          icon: const Icon(CupertinoIcons.plus),
           label: status.label(context),
           backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.5),
           foregroundColor: colorScheme.primary,
@@ -56,7 +51,6 @@ extension StudentStatusExtension on List<StudentStatus> {
 
         StudentStatus.unpaid => StudentBadgeData(
           id: status.name,
-          icon: const Icon(CupertinoIcons.minus),
           label: status.label(context),
           backgroundColor: colorScheme.errorContainer,
           foregroundColor: colorScheme.onErrorContainer,
@@ -64,7 +58,6 @@ extension StudentStatusExtension on List<StudentStatus> {
 
         StudentStatus.free => StudentBadgeData(
           id: status.name,
-          icon: const Icon(CupertinoIcons.gift),
           label: status.label(context),
           backgroundColor: const Color(0xFFFEF9C3),
           foregroundColor: const Color(0xFF854D0E),

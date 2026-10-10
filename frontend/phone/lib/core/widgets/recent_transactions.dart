@@ -62,7 +62,7 @@ class RecentTransactions extends StatelessWidget {
             children: [
               Text(
                 context.t.finance.lastTransactions,
-                style: const TextStyle(fontSize: 22, color: Colors.black),
+                style: const TextStyle(fontSize: 18, color: Colors.black),
               ),
               if (onSeeAllPressed != null)
                 FilledButton.icon(

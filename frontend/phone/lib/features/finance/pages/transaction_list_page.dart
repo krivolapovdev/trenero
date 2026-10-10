@@ -1,8 +1,11 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/transaction_list_view.dart';
 import 'package:phone/features/finance/controllers/transaction_list_controller.dart';
+import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -35,6 +38,17 @@ class TransactionListPage extends ConsumerWidget {
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: Theme.of(context).colorScheme.surface,
+        actions: [
+          IconButton(
+            icon: const Icon(FluentIcons.savings_24_regular),
+            tooltip: context.t.finance.createTransaction,
+            onPressed: () => AppBottomSheet.show(
+              context: context,
+              child: const CreateTransactionBottomSheet(),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
         ),

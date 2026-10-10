@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:phone/core/extensions/number_extension.dart';
 import 'package:phone/core/extensions/string_extension.dart';
@@ -66,7 +67,9 @@ class GroupCard extends StatelessWidget {
                         Row(
                           children: [
                             CardBadge(
-                              icon: const Icon(Icons.people_alt_outlined),
+                              icon: const Icon(
+                                CupertinoIcons.rectangle_stack_person_crop,
+                              ),
                               label: '${group.countOfStudents}',
                               backgroundColor: colorScheme.primaryContainer
                                   .withValues(alpha: 0.6),
@@ -77,7 +80,7 @@ class GroupCard extends StatelessWidget {
 
                             if (group.defaultPrice != null)
                               CardBadge(
-                                icon: const Icon(Icons.sell_outlined),
+                                icon: const Icon(CupertinoIcons.tags),
                                 label: group.defaultPrice!.toFormattedAmount(
                                   showSign: false,
                                 ),
