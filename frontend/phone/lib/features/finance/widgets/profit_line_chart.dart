@@ -1,10 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:phone/core/extensions/string_extension.dart';
+import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/generated/models/payment_metric_response.dart';
 
-class ProfitLineChart extends StatelessWidget {
+class ProfitLineChart extends ConsumerWidget {
   final List<PaymentMetricResponse> data;
   final int selectedIndex;
   final ValueChanged<int> onIndexChanged;
@@ -17,8 +19,10 @@ class ProfitLineChart extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (data.isEmpty) return const SizedBox.shrink();
+
+    final locale = ref.watch(languageProvider).value?.languageTag;
 
     const greenColor = Color(0xFF66a57a);
     const redColor = Color(0xFFEB5757);
@@ -158,7 +162,7 @@ class ProfitLineChart extends StatelessWidget {
                   }
 
                   final itemDate = data[index].date;
-                  final rawLabel = DateFormat('MMM', 'ru').format(itemDate);
+                  final rawLabel = DateFormat('MMM', locale).format(itemDate);
                   final label = rawLabel.replaceAll('.', '').capitalized;
 
                   return SideTitleWidget(
