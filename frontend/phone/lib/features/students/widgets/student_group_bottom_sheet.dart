@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/students/controllers/assign_student_group_controller.dart';
-import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -115,6 +114,7 @@ class _StudentGroupBottomSheetState
         .assignGroup(
           studentId: widget.studentId,
           groupId: groupId,
+          previousGroupId: widget.initialGroupId,
           joinedAt: _joinedAt,
         );
 
@@ -122,17 +122,6 @@ class _StudentGroupBottomSheetState
 
     if (success) {
       Navigator.of(context).pop();
-
-      // The student list carries the new group of the student, and the group
-      // list carries the new count of students of the group they joined.
-      await Future.wait([
-        ref
-            .read(studentListControllerProvider.notifier)
-            .getAllStudents(forceRefresh: true),
-        ref
-            .read(groupListControllerProvider.notifier)
-            .getAllGroups(forceRefresh: true),
-      ]);
     } else {
       final error = ref.read(assignStudentGroupControllerProvider).error;
       if (error != null) {

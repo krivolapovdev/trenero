@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/features/groups/controllers/group_mutation_refresh.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/generated/models/create_group_request.dart';
 
@@ -42,6 +43,10 @@ class CreateGroupController extends AsyncNotifier<void> {
 
       final service = ref.read(groupServiceProvider);
       await service.createGroup(body: request);
+
+      // The group list is reloaded in the background, so the new group shows
+      // up on the list page without a manual refresh.
+      refreshAfterGroupMutation(ref);
     });
 
     return !state.hasError;

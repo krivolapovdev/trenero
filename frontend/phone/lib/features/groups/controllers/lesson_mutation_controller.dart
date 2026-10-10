@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
+import 'package:phone/features/groups/controllers/group_mutation_refresh.dart';
 import 'package:phone/features/groups/controllers/lesson_details_controller.dart';
 import 'package:phone/features/groups/services/lesson_service.dart';
 import 'package:phone/generated/models/create_lesson_request.dart';
@@ -79,6 +80,10 @@ class LessonMutationController extends AsyncNotifier<void> {
       await action();
 
       await ref.read(groupLessonsProvider(groupId).notifier).refresh();
+
+      // The attendance of the lesson changed the statuses of the students the
+      // student list shows, and the monthly report of the group.
+      refreshAfterGroupLessonsMutation(ref);
     });
 
     return !state.hasError;

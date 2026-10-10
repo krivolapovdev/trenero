@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/features/students/controllers/student_mutation_refresh.dart';
 import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/models/create_student_request.dart';
 
@@ -36,6 +37,9 @@ class CreateStudentController extends AsyncNotifier<void> {
 
       final service = ref.read(studentServiceProvider);
       await service.createStudent(body: request);
+
+      // The new student has to appear in the list the cards are drawn from.
+      await refreshAfterStudentMutation(ref);
     });
 
     return !state.hasError;

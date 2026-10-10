@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
-import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/controllers/update_group_controller.dart';
 import 'package:phone/features/groups/widgets/group_form_sheet.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
@@ -45,12 +44,6 @@ class _EditGroupBottomSheetState extends ConsumerState<EditGroupBottomSheet> {
 
     if (success) {
       Navigator.of(context).pop();
-
-      await ref
-          .read(groupListControllerProvider.notifier)
-          .getAllGroups(forceRefresh: true);
-
-      if (!mounted) return;
     } else {
       final state = ref.read(updateGroupControllerProvider);
       final error = state.error;

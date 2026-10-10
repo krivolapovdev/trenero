@@ -35,19 +35,10 @@ class _StudentPageState extends ConsumerState<StudentPage> {
       context: context,
       child: EditStudentBottomSheet(student: _student),
     );
-
-    if (!mounted) return;
-
-    final listState = ref.read(studentListControllerProvider);
-    final updated = (listState.value ?? const <StudentSummaryResponse>[])
-        .where((s) => s.id == _student.id)
-        .firstOrNull;
-
-    if (updated != null) setState(() => _student = updated);
   }
 
-  /// Opens the group sheet of the student, then re-reads the student so the
-  /// card and the lessons show the newly assigned group.
+  /// Opens the group sheet of the student; the card and the lessons follow the
+  /// reloaded student list.
   Future<void> _openAssignGroupSheet() async {
     await AppBottomSheet.show(
       context: context,
@@ -56,15 +47,6 @@ class _StudentPageState extends ConsumerState<StudentPage> {
         initialGroupId: _student.studentGroup?.id,
       ),
     );
-
-    if (!mounted) return;
-
-    final listState = ref.read(studentListControllerProvider);
-    final updated = (listState.value ?? const <StudentSummaryResponse>[])
-        .where((s) => s.id == _student.id)
-        .firstOrNull;
-
-    if (updated != null) setState(() => _student = updated);
   }
 
   Future<void> _openCreatePaymentSheet() async {
@@ -76,19 +58,9 @@ class _StudentPageState extends ConsumerState<StudentPage> {
         isIncomeOnly: true,
       ),
     );
-
-    if (!mounted) return;
-
-    final listState = ref.read(studentListControllerProvider);
-    final updated = (listState.value ?? const <StudentSummaryResponse>[])
-        .where((s) => s.id == _student.id)
-        .firstOrNull;
-
-    if (updated != null) setState(() => _student = updated);
   }
 
-  /// Opens the lesson page for a new individual lesson of the student, then
-  /// re-reads the student so the attendance badges reflect the new lesson.
+  /// Opens the lesson page for a new individual lesson of the student.
   Future<void> _openCreateLessonPage() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -99,15 +71,6 @@ class _StudentPageState extends ConsumerState<StudentPage> {
         ),
       ),
     );
-
-    if (!mounted) return;
-
-    final listState = ref.read(studentListControllerProvider);
-    final updated = (listState.value ?? const <StudentSummaryResponse>[])
-        .where((s) => s.id == _student.id)
-        .firstOrNull;
-
-    if (updated != null) setState(() => _student = updated);
   }
 
   @override
@@ -116,6 +79,18 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     final paymentsAsync = ref.watch(
       studentPaymentsControllerProvider(_student.id),
     );
+
+    // The student list is reloaded in the background after a payment, a lesson
+    // or a group change; keep the card and the lessons in sync with it.
+    ref.listen(studentListControllerProvider, (previous, next) {
+      final updated = (next.value ?? const <StudentSummaryResponse>[])
+          .where((student) => student.id == _student.id)
+          .firstOrNull;
+
+      if (updated != null) {
+        setState(() => _student = updated);
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(

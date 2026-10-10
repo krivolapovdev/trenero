@@ -39,8 +39,12 @@ class StudentController(private val studentService: StudentService) {
   @PreAuthorize("isAuthenticated()")
   fun getStudentVisits(
     @PathVariable studentId: UUID,
-    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) from: LocalDate?,
-    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) to: LocalDate?,
+    @RequestParam(required = false)
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    from: LocalDate?,
+    @RequestParam(required = false)
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    to: LocalDate?,
     @AuthenticationPrincipal jwtUser: JwtUser,
   ): List<VisitWithLessonResponse> = studentService.getStudentVisits(studentId, from, to, jwtUser)
 

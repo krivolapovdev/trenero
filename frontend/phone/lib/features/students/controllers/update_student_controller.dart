@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:phone/features/students/controllers/create_student_controller.dart';
+import 'package:phone/features/students/controllers/student_mutation_refresh.dart';
 import 'package:phone/features/students/services/student_service.dart';
 
 final updateStudentControllerProvider =
@@ -43,6 +44,10 @@ class UpdateStudentController extends AsyncNotifier<void> {
 
       final service = ref.read(studentServiceProvider);
       await service.updateStudent(studentId: studentId, body: body);
+
+      // The card of the student shows the edited fields, so the list has to
+      // be reloaded.
+      await refreshAfterStudentMutation(ref);
     });
 
     return !state.hasError;

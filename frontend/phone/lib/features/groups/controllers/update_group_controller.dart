@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/features/groups/controllers/group_mutation_refresh.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 
 final updateGroupControllerProvider =
@@ -42,6 +43,10 @@ class UpdateGroupController extends AsyncNotifier<void> {
 
       final service = ref.read(groupServiceProvider);
       await service.updateGroup(groupId: groupId, body: body);
+
+      // The group list carries the edited fields; reload it in the background
+      // so the list page and the group page header catch up.
+      refreshAfterGroupMutation(ref);
     });
 
     return !state.hasError;

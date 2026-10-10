@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/students/controllers/create_student_controller.dart';
-import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/widgets/student_form_sheet.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -35,9 +34,6 @@ class _CreateStudentBottomSheetState
 
     if (success) {
       Navigator.of(context).pop();
-      await ref
-          .read(studentListControllerProvider.notifier)
-          .getAllStudents(forceRefresh: true);
     } else {
       final state = ref.read(createStudentControllerProvider);
       final error = state.error;

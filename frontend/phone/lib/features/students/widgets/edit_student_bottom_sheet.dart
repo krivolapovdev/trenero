@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
-import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/update_student_controller.dart';
 import 'package:phone/features/students/widgets/student_form_sheet.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
@@ -38,11 +37,6 @@ class _EditStudentBottomSheetState
     if (!mounted) return;
 
     if (success) {
-      await ref
-          .read(studentListControllerProvider.notifier)
-          .getAllStudents(forceRefresh: true);
-
-      if (!mounted) return;
       Navigator.of(context).pop();
     } else {
       final state = ref.read(updateStudentControllerProvider);

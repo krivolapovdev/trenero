@@ -64,6 +64,18 @@ class _GroupPageState extends ConsumerState<GroupPage> {
     final routeAnimation = ModalRoute.of(context)?.animation;
     final isGroupRefreshing = ref.watch(groupListControllerProvider).isLoading;
 
+    // The group list is reloaded in the background after the group was edited
+    // or a student joined or left it; keep the header in sync with it.
+    ref.listen(groupListControllerProvider, (previous, next) {
+      final updated = (next.value ?? const <GroupSummaryResponse>[])
+          .where((group) => group.id == _group.id)
+          .firstOrNull;
+
+      if (updated != null) {
+        setState(() => _group = updated);
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_group.name),
