@@ -350,7 +350,28 @@ public class StudentService implements StudentSpi {
   @Transactional(readOnly = true)
   public @NonNull Map<UUID, StudentWithStatusesResponse> getStudentsWithStatusesByIds(
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
-    log.info("Getting students with statuses by ids: studentIds={}; user={}", studentIds, jwtUser);
+    return getStudentsWithStatuses(studentIds, null, jwtUser);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public @NonNull Map<UUID, StudentWithStatusesResponse> getStudentsWithStatusesByGroupId(
+      @NonNull List<UUID> studentIds, @NonNull UUID groupId, @NonNull JwtUser jwtUser) {
+    return getStudentsWithStatuses(studentIds, groupId, jwtUser);
+  }
+
+  /**
+   * The students with their badges. When {@code groupId} is given the visit badge is read from the
+   * lessons of that group, so a group page shows whether a student came to the last lesson of the
+   * group instead of the last lesson of any group the student belongs to.
+   */
+  private @NonNull Map<UUID, StudentWithStatusesResponse> getStudentsWithStatuses(
+      @NonNull List<UUID> studentIds, UUID groupId, @NonNull JwtUser jwtUser) {
+    log.info(
+        "Getting students with statuses: studentIds={}; groupId={}; user={}",
+        studentIds,
+        groupId,
+        jwtUser);
 
     if (studentIds.isEmpty()) {
       return Map.of();
@@ -411,9 +432,20 @@ public class StudentService implements StudentSpi {
                           .filter(Objects::nonNull)
                           .toList();
 
+                  var visitLessons =
+                      groupId == null
+                          ? studentLessons
+                          : studentLessons.stream()
+                              .filter(lesson -> groupId.equals(lesson.getGroupId()))
+                              .toList();
+
                   var statuses =
                       studentStatusService.getStudentStatuses(
-                          studentVisits, studentPayments, studentLessons, student.getFree());
+                          studentVisits,
+                          studentPayments,
+                          studentLessons,
+                          student.getFree(),
+                          visitLessons);
 
                   return new StudentWithStatusesResponse(student, statuses);
                 },

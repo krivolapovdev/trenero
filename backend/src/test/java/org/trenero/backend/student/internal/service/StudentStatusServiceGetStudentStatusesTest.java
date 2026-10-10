@@ -174,6 +174,30 @@ class StudentStatusServiceGetStudentStatusesTest {
     assertThat(statuses).containsExactly(StudentStatus.FREE);
   }
 
+  @Test
+  void readsTheVisitBadgeOnlyFromTheGivenLessonsWhileThePaymentBadgeSeesEveryLesson() {
+    LocalDate groupLessonDay = LocalDate.of(2026, 9, 1);
+    LocalDate individualLessonDay = LocalDate.of(2026, 10, 8);
+    List<VisitResponse> visits =
+        List.of(
+            visit(GROUP_LESSON_ID, VisitStatus.ABSENT, VisitType.REGULAR),
+            visit(INDIVIDUAL_LESSON_ID, VisitStatus.PRESENT, VisitType.REGULAR));
+    List<LessonResponse> everyLesson =
+        List.of(
+            lesson(GROUP_LESSON_ID, GROUP_ID, groupLessonDay, CREATED_AT),
+            lesson(INDIVIDUAL_LESSON_ID, null, individualLessonDay, CREATED_AT));
+    List<LessonResponse> groupLessons =
+        List.of(lesson(GROUP_LESSON_ID, GROUP_ID, groupLessonDay, CREATED_AT));
+
+    Set<StudentStatus> statuses =
+        service.getStudentStatuses(
+            visits, List.of(payment(LocalDate.of(2026, 9, 15))), everyLesson, false, groupLessons);
+
+    assertThat(statuses)
+        .contains(StudentStatus.MISSING, StudentStatus.UNPAID)
+        .doesNotContain(StudentStatus.PRESENT, StudentStatus.PAID);
+  }
+
   private static VisitResponse visit(UUID lessonId, VisitStatus status, VisitType type) {
     return new VisitResponse(UUID.randomUUID(), status, type, lessonId, STUDENT_ID, CREATED_AT);
   }

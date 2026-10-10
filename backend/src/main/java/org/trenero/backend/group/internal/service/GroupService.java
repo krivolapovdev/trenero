@@ -107,8 +107,10 @@ public class GroupService implements GroupSpi {
     List<UUID> studentIds =
         studentLinks.stream().map(GroupStudentResponse::getStudentId).distinct().toList();
 
+    // The students are shown on the group page, so their visit badge is read from the lessons of
+    // this group instead of the lessons of every group they belong to.
     Map<UUID, StudentWithStatusesResponse> studentMap =
-        studentSpi.getStudentsWithStatusesByIds(studentIds, jwtUser);
+        studentSpi.getStudentsWithStatusesByGroupId(studentIds, groupId, jwtUser);
 
     return studentIds.stream()
         .map(studentMap::get)

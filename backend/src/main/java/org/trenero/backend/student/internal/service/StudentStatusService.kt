@@ -14,11 +14,29 @@ import org.trenero.backend.visit.external.response.VisitResponse
 @Service
 class StudentStatusService {
 
+  /** The badges of a student, the visit badge read from the last lesson of any kind. */
   fun getStudentStatuses(
     visits: List<VisitResponse>,
     payments: List<TransactionResponse>,
     lessons: List<LessonResponse> = emptyList(),
     free: Boolean = false,
+  ): Set<StudentStatus> = getStudentStatuses(visits, payments, lessons, free, lessons)
+
+  /**
+   * The badges of a student, the visit badge read from [visitLessons] instead of [lessons].
+   *
+   * The student overview reads the visit badge from the last lesson of any kind, whether that
+   * lesson belongs to a group or to the student alone. A group page passes the lessons of that
+   * group, so "present" and "missing" tell whether the student came to the last lesson of the group
+   * instead of the last lesson of any group the student belongs to. The payment badge stays read
+   * from every payment and from the last lesson of any kind.
+   */
+  fun getStudentStatuses(
+    visits: List<VisitResponse>,
+    payments: List<TransactionResponse>,
+    lessons: List<LessonResponse>,
+    free: Boolean,
+    visitLessons: List<LessonResponse>,
   ): Set<StudentStatus> {
     val hasAnyMarkedVisit = visits.any { it.status != VisitStatus.UNMARKED }
 
@@ -28,15 +46,15 @@ class StudentStatusService {
 
     val statuses = EnumSet.noneOf(StudentStatus::class.java)
 
-    // The visit badge comes from the last lesson the student is marked for, whether that lesson
-    // belongs to a group or to the student alone. Several lessons can share a day, so of the
-    // lessons of the last day the one created last counts as the last lesson.
-    val lastLesson =
-      lessons.maxWithOrNull(compareBy<LessonResponse> { it.date }.thenBy { it.createdAt })
+    // The visit badge comes from the last lesson the student is marked for. Several lessons can
+    // share a day, so of the lessons of the last day the one created last counts as the last
+    // lesson.
+    val lastVisitLesson =
+      visitLessons.maxWithOrNull(compareBy<LessonResponse> { it.date }.thenBy { it.createdAt })
 
-    if (lastLesson != null) {
+    if (lastVisitLesson != null) {
       visits
-        .firstOrNull { it.type != VisitType.UNMARKED && it.lessonId == lastLesson.id }
+        .firstOrNull { it.type != VisitType.UNMARKED && it.lessonId == lastVisitLesson.id }
         ?.status
         ?.let { status ->
           statuses.add(
@@ -52,6 +70,9 @@ class StudentStatusService {
 
       return statuses
     }
+
+    val lastLesson =
+      lessons.maxWithOrNull(compareBy<LessonResponse> { it.date }.thenBy { it.createdAt })
 
     val referenceDate = lastLesson?.date ?: LocalDate.now()
 

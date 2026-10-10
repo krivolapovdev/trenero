@@ -19,4 +19,17 @@ interface StudentSpi {
     studentIds: List<UUID>,
     jwtUser: JwtUser,
   ): Map<UUID, StudentWithStatusesResponse>
+
+  /**
+   * The students with their badges, the visit badge read from the lessons of [groupId].
+   *
+   * The client uses this for a group page, so the "present" and "missing" badge tells whether a
+   * student came to the last lesson of that group instead of the last lesson of any group the
+   * student belongs to.
+   */
+  fun getStudentsWithStatusesByGroupId(
+    studentIds: List<UUID>,
+    groupId: UUID,
+    jwtUser: JwtUser,
+  ): Map<UUID, StudentWithStatusesResponse>
 }
