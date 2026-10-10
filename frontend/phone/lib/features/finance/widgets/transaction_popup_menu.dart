@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -21,7 +22,7 @@ class TransactionPopupMenu extends StatelessWidget {
           onTap: onEdit,
           child: Row(
             children: [
-              const Icon(Icons.edit, size: 20),
+              const Icon(CupertinoIcons.text_cursor, size: 20),
               const SizedBox(width: 12),
               Text(context.t.edit),
             ],
@@ -31,7 +32,7 @@ class TransactionPopupMenu extends StatelessWidget {
           onTap: onDelete,
           child: Row(
             children: [
-              Icon(Icons.delete, size: 20, color: colorScheme.error),
+              Icon(CupertinoIcons.trash, size: 20, color: colorScheme.error),
               const SizedBox(width: 12),
               Text(
                 context.t.delete,
