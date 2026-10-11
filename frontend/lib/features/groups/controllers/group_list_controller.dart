@@ -17,8 +17,6 @@ class GroupListController extends AsyncNotifier<List<GroupSummaryResponse>> {
   Future<void> getAllGroups({bool forceRefresh = false}) async {
     state = const AsyncLoading();
 
-    await Future.delayed(const Duration(seconds: 3));
-
     state = await AsyncValue.guard(
       () => ref
           .read(groupRepositoryProvider)
