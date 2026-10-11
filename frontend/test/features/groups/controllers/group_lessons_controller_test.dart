@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:phone/core/controllers/month_window_controller.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/repositories/group_repository.dart';
 import 'package:phone/generated/group_controller/group_controller_client.dart';
@@ -82,14 +83,14 @@ void main() {
   group('firstDayOfMonthBefore', () {
     test('steps whole months back, keeping the first day of the month', () {
       expect(
-        GroupLessonsController.firstDayOfMonthBefore(DateTime(2026, 10, 24), 2),
+        MonthWindowController.firstDayOfMonthBefore(DateTime(2026, 10, 24), 2),
         DateTime(2026, 8, 1),
       );
     });
 
     test('steps over the year boundary', () {
       expect(
-        GroupLessonsController.firstDayOfMonthBefore(DateTime(2026, 1, 15), 3),
+        MonthWindowController.firstDayOfMonthBefore(DateTime(2026, 1, 15), 3),
         DateTime(2025, 10, 1),
       );
     });

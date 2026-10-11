@@ -13,48 +13,18 @@ final studentPaymentsControllerProvider =
 
 class StudentPaymentsController
     extends AsyncNotifier<List<TransactionResponse>> {
-  DateTime get _defaultFrom =>
-      DateTime.now().subtract(const Duration(days: 365));
-
-  DateTime get _defaultTo => DateTime.now();
   final String studentId;
 
   new(this.studentId);
 
   @override
-  FutureOr<List<TransactionResponse>> build() async {
-    final repository = ref.read(studentRepositoryProvider);
+  FutureOr<List<TransactionResponse>> build() =>
+      ref.read(studentRepositoryProvider).getStudentPayments(studentId);
 
-    return repository.getStudentPayments(
-      studentId: studentId,
-      from: _defaultFrom,
-      to: _defaultTo,
-    );
-  }
-
-  Future<void> refresh({DateTime? from, DateTime? to}) async {
+  Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      final repository = ref.read(studentRepositoryProvider);
-      return repository.getStudentPayments(
-        studentId: studentId,
-        from: from ?? _defaultFrom,
-        to: to ?? _defaultTo,
-      );
-    });
-  }
-
-  Future<void> filterByDateRange({
-    required DateTime from,
-    required DateTime to,
-  }) async {
-    state = await AsyncValue.guard(() async {
-      final repository = ref.read(studentRepositoryProvider);
-      return repository.getStudentPayments(
-        studentId: studentId,
-        from: from,
-        to: to,
-      );
-    });
+    state = await AsyncValue.guard(
+      () => ref.read(studentRepositoryProvider).getStudentPayments(studentId),
+    );
   }
 }

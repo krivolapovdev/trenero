@@ -47,27 +47,21 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get edit => 'Редактировать';
 	@override String get delete => 'Удалить';
 	@override String get all => 'Все';
-	@override String get today => 'Сегодня';
-	@override String get yesterday => 'Вчера';
 	@override String get month => 'Месяц';
 	@override String get year => 'Год';
 	@override String get print => 'Печать';
 	@override String get error => 'Ошибка';
 	@override String get noData => 'Нет данных';
 	@override String get noTransactions => 'Нет операций';
-	@override String get somethingWentWrong => 'Что-то пошло не так!';
 	@override String get pleaseUpdateApp => 'Пожалуйста, обновите приложение';
 	@override String get invalidDate => 'Некорректная дата';
 	@override String errorLoadingData({required Object error}) => 'Ошибка загрузки данных: ${error}';
-	@override String get archive => 'Архив';
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
-	@override late final _Translations$home$ru home = _Translations$home$ru._(_root);
 	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
 	@override late final _Translations$lessons$ru lessons = _Translations$lessons$ru._(_root);
 	@override late final _Translations$students$ru students = _Translations$students$ru._(_root);
 	@override late final _Translations$settings$ru settings = _Translations$settings$ru._(_root);
 	@override late final _Translations$reports$ru reports = _Translations$reports$ru._(_root);
-	@override late final _Translations$transactions$ru transactions = _Translations$transactions$ru._(_root);
 	@override late final _Translations$finance$ru finance = _Translations$finance$ru._(_root);
 }
 
@@ -78,21 +72,10 @@ class _Translations$auth$ru implements Translations$auth$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
-	@override String get signInWithApple => 'Войти через Apple';
 	@override String get signInWithGoogle => 'Войти через Google';
 	@override String get agreePrivacyPolicy => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности';
 	@override String get login => 'Войти';
 	@override String get reviewerKey => 'Ключ ревьюера';
-}
-
-// Path: home
-class _Translations$home$ru implements Translations$home$en {
-	_Translations$home$ru._(this._root);
-
-	final TranslationsRu _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Главная';
 }
 
 // Path: groups
@@ -111,6 +94,8 @@ class _Translations$groups$ru implements Translations$groups$en {
 	@override String get defaultPrice => 'Стандартная цена';
 	@override String get report => 'Отчет';
 	@override String get notFound => 'Группы не найдены';
+	@override String get deleteGroup => 'Удалить группу?';
+	@override String get deleteGroupMessage => 'Группа будет удалена безвозвратно. Действие нельзя отменить.';
 }
 
 // Path: lessons
@@ -170,6 +155,8 @@ class _Translations$students$ru implements Translations$students$en {
 	@override String paymentTitle({required Object name}) => 'Платежи: ${name}';
 	@override String get noPayments => 'У студента нет платежей';
 	@override String errorLoading({required Object error}) => 'Ошибка загрузки учеников: ${error}';
+	@override String get deleteStudent => 'Удалить ученика?';
+	@override String get deleteStudentMessage => 'Ученик и его уроки будут удалены безвозвратно. Действие нельзя отменить.';
 	@override late final _Translations$students$filter$ru filter = _Translations$students$filter$ru._(_root);
 	@override late final _Translations$students$status$ru status = _Translations$students$status$ru._(_root);
 }
@@ -204,24 +191,11 @@ class _Translations$reports$ru implements Translations$reports$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
-	@override String get title => 'Отчеты';
-	@override String get subtitle => 'Учет и аналитика';
 	@override String get number => '№';
 	@override String get fullName => 'ФИО';
 	@override String get paid => 'Оплачено';
 	@override String get result => 'Итог';
 	@override String get total => 'Всего';
-}
-
-// Path: transactions
-class _Translations$transactions$ru implements Translations$transactions$en {
-	_Translations$transactions$ru._(this._root);
-
-	final TranslationsRu _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Транзакции';
-	@override String get subtitle => 'Доходы и расходы';
 }
 
 // Path: finance
@@ -300,25 +274,19 @@ extension on TranslationsRu {
 			'edit' => 'Редактировать',
 			'delete' => 'Удалить',
 			'all' => 'Все',
-			'today' => 'Сегодня',
-			'yesterday' => 'Вчера',
 			'month' => 'Месяц',
 			'year' => 'Год',
 			'print' => 'Печать',
 			'error' => 'Ошибка',
 			'noData' => 'Нет данных',
 			'noTransactions' => 'Нет операций',
-			'somethingWentWrong' => 'Что-то пошло не так!',
 			'pleaseUpdateApp' => 'Пожалуйста, обновите приложение',
 			'invalidDate' => 'Некорректная дата',
 			'errorLoadingData' => ({required Object error}) => 'Ошибка загрузки данных: ${error}',
-			'archive' => 'Архив',
-			'auth.signInWithApple' => 'Войти через Apple',
 			'auth.signInWithGoogle' => 'Войти через Google',
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',
 			'auth.login' => 'Войти',
 			'auth.reviewerKey' => 'Ключ ревьюера',
-			'home.title' => 'Главная',
 			'groups.title' => 'Группы',
 			'groups.emptySubtitle' => 'Групп пока нет',
 			'groups.createFirstGroup' => 'Создать первую группу',
@@ -328,6 +296,8 @@ extension on TranslationsRu {
 			'groups.defaultPrice' => 'Стандартная цена',
 			'groups.report' => 'Отчет',
 			'groups.notFound' => 'Группы не найдены',
+			'groups.deleteGroup' => 'Удалить группу?',
+			'groups.deleteGroupMessage' => 'Группа будет удалена безвозвратно. Действие нельзя отменить.',
 			'lessons.title' => 'Урок',
 			'lessons.individualLesson' => 'Индивидуальный урок',
 			'lessons.individualLessons' => 'Индивидуальные уроки',
@@ -369,6 +339,8 @@ extension on TranslationsRu {
 			'students.paymentTitle' => ({required Object name}) => 'Платежи: ${name}',
 			'students.noPayments' => 'У студента нет платежей',
 			'students.errorLoading' => ({required Object error}) => 'Ошибка загрузки учеников: ${error}',
+			'students.deleteStudent' => 'Удалить ученика?',
+			'students.deleteStudentMessage' => 'Ученик и его уроки будут удалены безвозвратно. Действие нельзя отменить.',
 			'students.filter.title' => 'Фильтры',
 			'students.filter.group' => 'Группа',
 			'students.filter.status' => 'Статус',
@@ -395,15 +367,11 @@ extension on TranslationsRu {
 			'settings.version' => 'Версия',
 			'settings.contacts' => 'Контакты',
 			'settings.privacyPolicy' => 'Политика конфиденциальности',
-			'reports.title' => 'Отчеты',
-			'reports.subtitle' => 'Учет и аналитика',
 			'reports.number' => '№',
 			'reports.fullName' => 'ФИО',
 			'reports.paid' => 'Оплачено',
 			'reports.result' => 'Итог',
 			'reports.total' => 'Всего',
-			'transactions.title' => 'Транзакции',
-			'transactions.subtitle' => 'Доходы и расходы',
 			'finance.title' => 'Финансы',
 			'finance.createTransaction' => 'Новая транзакция',
 			'finance.income' => 'Доходы',

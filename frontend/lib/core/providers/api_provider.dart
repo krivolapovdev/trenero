@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/storage/token_storage.dart';
 
 const _timeout = Duration(seconds: kDebugMode ? 5 : 30);
-const _baseUrl = kDebugMode ? 'http://192.168.1.4:8080' : 'https://trenero.org';
+const _baseUrl = kDebugMode ? 'http://192.168.1.4:8080' : 'https://trenerio.ru';
 
 final unauthenticatedDioProvider = Provider<Dio>(
   (ref) => Dio(

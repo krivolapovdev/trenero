@@ -188,13 +188,6 @@ class _FakeLessonClient implements LessonControllerClient {
   Future<void> deleteLesson({required String lessonId}) async {
     deletedLessonIds.add(lessonId);
   }
-
-  @override
-  Future<List<LessonResponse>> getLessons() => throw UnimplementedError();
-
-  @override
-  Future<LessonResponse> getLesson({required String lessonId}) =>
-      throw UnimplementedError();
 }
 
 /// Counts the visits that are fetched for a student, so a background refresh of

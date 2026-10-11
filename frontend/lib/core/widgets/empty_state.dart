@@ -5,7 +5,6 @@ import 'package:phone/core/constants/app_lottie.dart';
 class EmptyState extends StatelessWidget {
   final String buttonText;
   final String subtitle;
-  final IconData buttonIcon;
   final String lottieAsset;
   final double lottieHeight;
   final VoidCallback onButtonPressed;
@@ -16,7 +15,6 @@ class EmptyState extends StatelessWidget {
     required this.subtitle,
     required this.onButtonPressed,
     this.lottieAsset = AppLottie.emptyBox,
-    this.buttonIcon = Icons.add_circle_rounded,
     this.lottieHeight = 220,
   });
 

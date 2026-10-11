@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/features/groups/pages/group_students_page.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
+import 'package:phone/features/groups/widgets/delete_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/edit_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_report_bottom_sheet.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
@@ -33,6 +34,21 @@ class GroupPopupMenu extends StatelessWidget {
             LessonPage(groupId: group.id, date: DateTime.now()),
       ),
     );
+  }
+
+  /// Asks for confirmation and leaves the group page once the group is gone.
+  ///
+  /// The navigator is taken before the confirmation is shown, so the page of the
+  /// group is popped and not the sheet the menu leaves behind.
+  Future<void> _confirmDelete(BuildContext context) async {
+    final navigator = Navigator.of(context);
+
+    final deleted = await AppBottomSheet.show<bool>(
+      context: context,
+      child: DeleteGroupBottomSheet(group: group),
+    );
+
+    if (deleted == true) navigator.pop();
   }
 
   @override
@@ -85,7 +101,7 @@ class GroupPopupMenu extends StatelessWidget {
         ),
       ),
       PopupMenuItem<String>(
-        onTap: () {},
+        onTap: () => _confirmDelete(context),
         child: Row(
           children: [
             Icon(

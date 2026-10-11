@@ -12,15 +12,8 @@ class GroupReportTable extends StatelessWidget {
   static const double _resultWidth = 72;
 
   final GroupReportResponse report;
-  final Color? headerBackgroundColor;
-  final Color? bottomBackgroundColor;
 
-  const new({
-    super.key,
-    required this.report,
-    this.headerBackgroundColor,
-    this.bottomBackgroundColor,
-  });
+  const new({super.key, required this.report});
 
   @override
   Widget build(BuildContext context) {
@@ -79,10 +72,7 @@ class GroupReportTable extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return TableRow(
-      decoration: BoxDecoration(
-        // Set top row background color here
-        color: headerBackgroundColor ?? colorScheme.surfaceContainerHighest,
-      ),
+      decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
       children: [
         _buildHeaderCell(context, context.t.reports.number),
         _buildHeaderCell(
@@ -166,12 +156,20 @@ class GroupReportTable extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return TableRow(
-      decoration: BoxDecoration(
-        // Set bottom row background color here
-        color: bottomBackgroundColor ?? colorScheme.surfaceContainerHighest,
-      ),
+      decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
       children: [
-        _buildCell(const SizedBox.shrink()),
+        _buildCell(
+          Text(
+            context.t.reports.total,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          alignment: Alignment.centerLeft,
+        ),
         _buildCell(const SizedBox.shrink()),
         for (var day = 1; day <= dayCount; day++)
           _buildCell(const SizedBox.shrink()),
@@ -209,10 +207,13 @@ class GroupReportTable extends StatelessWidget {
         height: 22,
         alignment: Alignment.center,
         decoration: BoxDecoration(color: background, shape: BoxShape.circle),
-        child: Icon(
-          mark ? Icons.check_rounded : Icons.close_rounded,
-          size: 14,
-          color: color,
+        child: Text(
+          mark ? '+' : '-',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
         ),
       ),
     );

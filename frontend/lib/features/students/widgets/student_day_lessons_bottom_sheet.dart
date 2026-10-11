@@ -85,6 +85,7 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
   /// creating another individual lesson for the student.
   List<Widget> _buildIndividualSection(BuildContext context) => [
     if (individualLessons.isNotEmpty) ...[
+      _buildSectionTitle(context, context.t.lessons.individualLessons),
       ...individualLessons.map(
         (lesson) => _buildLessonTile(
           context,
@@ -119,6 +120,7 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
 
     return [
       if (groupLessons.isNotEmpty) ...[
+        _buildSectionTitle(context, context.t.lessons.groupLessons),
         ...groupLessons.map(
           (lesson) => _buildLessonTile(
             context,

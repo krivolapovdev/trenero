@@ -1,4 +1,4 @@
-package org.trenero
+package ru.trenerio
 
 import io.flutter.embedding.android.FlutterActivity
 

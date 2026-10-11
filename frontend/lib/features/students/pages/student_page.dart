@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
+import 'package:phone/core/widgets/create_lesson_button.dart';
 import 'package:phone/core/widgets/recent_transactions.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
@@ -12,6 +13,7 @@ import 'package:phone/features/students/controllers/student_payment_list_control
 import 'package:phone/features/students/pages/student_group_page.dart';
 import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
+import 'package:phone/features/students/widgets/delete_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
 import 'package:phone/features/students/widgets/student_groups_section.dart';
@@ -92,6 +94,23 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     );
   }
 
+  /// Asks for confirmation and leaves the page once the student is gone.
+  ///
+  /// The navigator is taken before the confirmation is shown, so the page of the
+  /// student is popped and not the sheet the menu leaves behind.
+  Future<void> _confirmDelete() async {
+    final navigator = Navigator.of(context);
+
+    final deleted = await AppBottomSheet.show<bool>(
+      context: context,
+      child: DeleteStudentBottomSheet(student: _student),
+    );
+
+    if (!mounted || deleted != true) return;
+
+    navigator.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final routeAnimation = ModalRoute.of(context)?.animation;
@@ -115,6 +134,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
       appBar: AppBar(
         title: Text(_student.fullName),
         actions: [
+          CreateLessonButton(onPressed: _openCreateLessonPage),
           PopupMenuButton<String>(
             tooltip: '',
             offset: const Offset(-8, 0),
@@ -151,17 +171,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                 ),
               ),
               PopupMenuItem<String>(
-                onTap: _openCreateLessonPage,
-                child: Row(
-                  children: [
-                    const Icon(CupertinoIcons.calendar, size: 20),
-                    const SizedBox(width: 12),
-                    Text(context.t.lessons.title),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                onTap: () {},
+                onTap: _confirmDelete,
                 child: Row(
                   children: [
                     Icon(

@@ -290,9 +290,11 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
       // The days after today are shown greyed out and cannot be tapped.
       enabledDayPredicate: _isEnabledDay,
       headerVisible: widget.headerVisible,
-      // Only the sideways swipe is offered, so the page the calendar is
-      // scrolled in keeps the vertical drags that start on the grid.
-      availableGestures: AvailableGestures.none,
+      // Only the sideways swipe is offered when it is enabled, so the page the
+      // calendar is scrolled in keeps the vertical drags that start on the grid.
+      availableGestures: widget.swipeEnabled
+          ? AvailableGestures.horizontalSwipe
+          : AvailableGestures.none,
       onPageChanged: _onPageChanged,
       selectedDayPredicate: (day) => false,
       onDaySelected: _onDaySelected,

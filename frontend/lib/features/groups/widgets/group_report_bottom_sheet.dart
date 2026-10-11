@@ -7,6 +7,7 @@ import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/group_report_controller.dart';
 import 'package:phone/features/groups/models/group_report_period.dart';
 import 'package:phone/features/groups/services/group_report_pdf_service.dart';
+import 'package:phone/features/groups/widgets/group_report_table.dart';
 import 'package:phone/generated/models/group_report_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -170,6 +171,7 @@ class _GroupReportBottomSheetState
     final reportState = period == null
         ? null
         : ref.watch(groupReportProvider(period));
+    final report = reportState?.value;
 
     return SafeArea(
       child: Padding(
@@ -195,6 +197,11 @@ class _GroupReportBottomSheetState
               _buildReportError(period!, reportState.error),
             ],
 
+            if (report != null) ...[
+              const SizedBox(height: 22),
+              _buildReportPreview(report),
+            ],
+
             const SizedBox(height: 22),
 
             Align(
@@ -206,6 +213,13 @@ class _GroupReportBottomSheetState
       ),
     );
   }
+
+  /// The report of the typed month, previewing the document the print action
+  /// hands over.
+  Widget _buildReportPreview(GroupReportResponse report) => ConstrainedBox(
+    constraints: const BoxConstraints(maxHeight: 260),
+    child: SingleChildScrollView(child: GroupReportTable(report: report)),
+  );
 
   /// The field the month is typed into, e.g. `12`.
   Widget _buildMonthField() => TextField(

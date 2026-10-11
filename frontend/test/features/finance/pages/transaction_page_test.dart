@@ -57,11 +57,6 @@ class _FakeTransactionClient implements TransactionControllerClient {
   }) => throw UnimplementedError();
 
   @override
-  Future<TransactionResponse> getTransactionById({
-    required String transactionId,
-  }) => throw UnimplementedError();
-
-  @override
   Future<TransactionResponse> updateTransaction({
     required String transactionId,
     required Map<String, dynamic> body,

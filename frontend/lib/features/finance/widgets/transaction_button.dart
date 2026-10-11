@@ -27,13 +27,7 @@ class TransactionButton extends StatelessWidget {
         const SizedBox(width: 8),
         icon,
         const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 16.0),
-            // textAlign: TextAlign.center,
-          ),
-        ),
+        Expanded(child: Text(title, style: const TextStyle(fontSize: 16.0))),
         const Icon(Icons.chevron_right, color: Colors.black54, size: 20.0),
       ],
     ),

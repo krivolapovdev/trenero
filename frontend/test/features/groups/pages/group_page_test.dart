@@ -7,6 +7,7 @@ import 'package:phone/features/groups/pages/group_page.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/features/groups/services/lesson_service.dart';
+import 'package:phone/features/groups/widgets/delete_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_day_lessons_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_report_bottom_sheet.dart';
 import 'package:phone/generated/group_controller/group_controller_client.dart';
@@ -39,6 +40,9 @@ String _formatDate(DateTime date) {
 /// Minimal answers for the group page itself plus the report it can open.
 class _FakeGroupClient implements GroupControllerClient {
   final List<LessonResponse> lessons;
+
+  /// The ids of the groups the page asked to delete.
+  final List<String> deletedGroupIds = [];
 
   new({this.lessons = const []});
 
@@ -88,8 +92,9 @@ class _FakeGroupClient implements GroupControllerClient {
       throw UnimplementedError();
 
   @override
-  Future<void> deleteGroup({required String groupId}) =>
-      throw UnimplementedError();
+  Future<void> deleteGroup({required String groupId}) async {
+    deletedGroupIds.add(groupId);
+  }
 
   @override
   Future<GroupResponse> updateGroup({
@@ -120,13 +125,6 @@ class _FakeLessonClient implements LessonControllerClient {
       groupId: body.groupId,
     );
   }
-
-  @override
-  Future<List<LessonResponse>> getLessons() => throw UnimplementedError();
-
-  @override
-  Future<LessonResponse> getLesson({required String lessonId}) =>
-      throw UnimplementedError();
 
   @override
   Future<LessonDetailsResponse> getLessonDetails({
@@ -259,5 +257,56 @@ void main() {
     expect(find.byType(LessonPage), findsOneWidget);
     expect(find.text(t.lessons.groupLesson), findsOneWidget);
     expect(find.text(_formatDate(today)), findsOneWidget);
+  });
+
+  testWidgets('the menu deletes the group after a confirmation', (
+    tester,
+  ) async {
+    final client = _FakeGroupClient();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          groupServiceProvider.overrideWithValue(client),
+          lessonServiceProvider.overrideWithValue(_FakeLessonClient()),
+          languageProvider.overrideWith(_FakeLanguageNotifier.new),
+        ],
+        child: TranslationProvider(
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => GroupPage(group: _group)),
+                ),
+                child: const Text('open the group'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open the group'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(t.delete));
+    await tester.pumpAndSettle();
+
+    // The group is only deleted once the confirmation is accepted.
+    expect(find.byType(DeleteGroupBottomSheet), findsOneWidget);
+    expect(find.text(t.groups.deleteGroup), findsOneWidget);
+    expect(find.text(t.groups.deleteGroupMessage), findsOneWidget);
+    expect(client.deletedGroupIds, isEmpty);
+
+    await tester.tap(find.text(t.delete));
+    await tester.pumpAndSettle();
+
+    expect(client.deletedGroupIds, ['group-1']);
+
+    // The page of the group is left, so the list it was opened from shows.
+    expect(find.byType(GroupPage), findsNothing);
   });
 }

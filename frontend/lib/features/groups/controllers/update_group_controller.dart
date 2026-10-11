@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/features/groups/controllers/group_form_values.dart';
 import 'package:phone/features/groups/controllers/group_mutation_refresh.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 
@@ -22,23 +23,16 @@ class UpdateGroupController extends AsyncNotifier<void> {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      final trimmedName = name.trim();
-      if (trimmedName.isEmpty) {
-        throw ArgumentError('Group name is required.');
-      }
-
-      double? parsedPrice;
-      if (priceText != null && priceText.trim().isNotEmpty) {
-        parsedPrice = double.tryParse(priceText.trim());
-        if (parsedPrice == null || parsedPrice < 0) {
-          throw ArgumentError('Price must be a valid positive number.');
-        }
-      }
+      final values = validateGroupForm(
+        name: name,
+        priceText: priceText,
+        note: note,
+      );
 
       final body = <String, dynamic>{
-        'name': trimmedName,
-        'defaultPrice': parsedPrice,
-        'note': note?.trim().isEmpty ?? true ? null : note!.trim(),
+        'name': values.name,
+        'defaultPrice': values.defaultPrice,
+        'note': values.note,
       };
 
       final service = ref.read(groupServiceProvider);

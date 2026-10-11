@@ -163,25 +163,6 @@ class StudentListPage extends ShellPage {
       );
     }
 
-    // if (!isLoading && students.isEmpty) {
-    //   return LayoutBuilder(
-    //     builder: (context, constraints) => SingleChildScrollView(
-    //       physics: const AlwaysScrollableScrollPhysics(),
-    //       child: ConstrainedBox(
-    //         constraints: BoxConstraints(minHeight: constraints.maxHeight),
-    //         child: EmptyState(
-    //           buttonText: context.t.students.createFirstStudent,
-    //           subtitle: context.t.students.emptySubtitle,
-    //           onButtonPressed: () => AppBottomSheet.show(
-    //             context: context,
-    //             child: const CreateStudentBottomSheet(),
-    //           ),
-    //         ),
-    //       ),
-    //     ),
-    //   );
-    // }
-
     return Skeletonizer(
       enabled: isLoading,
       ignorePointers: false,

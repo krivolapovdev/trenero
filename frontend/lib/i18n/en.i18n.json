@@ -8,28 +8,20 @@
   "edit": "Edit",
   "delete": "Delete",
   "all": "All",
-  "today": "Today",
-  "yesterday": "Yesterday",
   "month": "Month",
   "year": "Year",
   "print": "Print",
   "error": "Error",
   "noData": "No data",
   "noTransactions": "No transactions",
-  "somethingWentWrong": "Something went wrong!",
   "pleaseUpdateApp": "Please, update the app",
   "invalidDate": "Invalid date",
   "errorLoadingData": "Error loading data: $error",
-  "archive": "Archive",
   "auth": {
-      "signInWithApple": "Sign in with Apple",
       "signInWithGoogle": "Sign in with Google",
       "agreePrivacyPolicy": "By signing in, you agree to our Privacy Policy",
       "login": "Login",
       "reviewerKey": "Reviewer key"
-  },
-  "home": {
-    "title": "Main"
   },
   "groups": {
     "title": "Groups",
@@ -40,7 +32,9 @@
     "noGroup": "No group",
     "defaultPrice": "Price by default",
     "report": "Report",
-    "notFound": "No groups found"
+    "notFound": "No groups found",
+    "deleteGroup": "Delete group?",
+    "deleteGroupMessage": "The group will be deleted permanently. This action cannot be undone."
   },
   "lessons": {
     "title": "Lesson",
@@ -86,6 +80,8 @@
     "paymentTitle": "Payments: $name",
     "noPayments": "The student has no payments yet",
     "errorLoading": "Error loading students: $error",
+    "deleteStudent": "Delete student?",
+    "deleteStudentMessage": "The student and their lessons will be deleted permanently. This action cannot be undone.",
     "filter": {
       "title": "Filters",
       "group": "Group",
@@ -120,17 +116,11 @@
     "privacyPolicy": "Privacy Policy"
   },
   "reports": {
-    "title": "Reports",
-    "subtitle": "Attendance and financial analytics",
     "number": "№",
     "fullName": "Full name",
     "paid": "Paid",
     "result": "Result",
     "total": "Total"
-  },
-  "transactions": {
-    "title": "Transactions",
-    "subtitle": "Income and expenses"
   },
   "finance": {
     "title": "Finance",

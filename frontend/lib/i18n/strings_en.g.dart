@@ -69,12 +69,6 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'All'
 	String get all => 'All';
 
-	/// en: 'Today'
-	String get today => 'Today';
-
-	/// en: 'Yesterday'
-	String get yesterday => 'Yesterday';
-
 	/// en: 'Month'
 	String get month => 'Month';
 
@@ -93,9 +87,6 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'No transactions'
 	String get noTransactions => 'No transactions';
 
-	/// en: 'Something went wrong!'
-	String get somethingWentWrong => 'Something went wrong!';
-
 	/// en: 'Please, update the app'
 	String get pleaseUpdateApp => 'Please, update the app';
 
@@ -105,17 +96,12 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Error loading data: $error'
 	String errorLoadingData({required Object error}) => 'Error loading data: ${error}';
 
-	/// en: 'Archive'
-	String get archive => 'Archive';
-
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
-	late final Translations$home$en home = Translations$home$en._(_root);
 	late final Translations$groups$en groups = Translations$groups$en._(_root);
 	late final Translations$lessons$en lessons = Translations$lessons$en._(_root);
 	late final Translations$students$en students = Translations$students$en._(_root);
 	late final Translations$settings$en settings = Translations$settings$en._(_root);
 	late final Translations$reports$en reports = Translations$reports$en._(_root);
-	late final Translations$transactions$en transactions = Translations$transactions$en._(_root);
 	late final Translations$finance$en finance = Translations$finance$en._(_root);
 }
 
@@ -126,9 +112,6 @@ class Translations$auth$en {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-
-	/// en: 'Sign in with Apple'
-	String get signInWithApple => 'Sign in with Apple';
 
 	/// en: 'Sign in with Google'
 	String get signInWithGoogle => 'Sign in with Google';
@@ -141,18 +124,6 @@ class Translations$auth$en {
 
 	/// en: 'Reviewer key'
 	String get reviewerKey => 'Reviewer key';
-}
-
-// Path: home
-class Translations$home$en {
-	Translations$home$en._(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// en: 'Main'
-	String get title => 'Main';
 }
 
 // Path: groups
@@ -189,6 +160,12 @@ class Translations$groups$en {
 
 	/// en: 'No groups found'
 	String get notFound => 'No groups found';
+
+	/// en: 'Delete group?'
+	String get deleteGroup => 'Delete group?';
+
+	/// en: 'The group will be deleted permanently. This action cannot be undone.'
+	String get deleteGroupMessage => 'The group will be deleted permanently. This action cannot be undone.';
 }
 
 // Path: lessons
@@ -331,6 +308,12 @@ class Translations$students$en {
 	/// en: 'Error loading students: $error'
 	String errorLoading({required Object error}) => 'Error loading students: ${error}';
 
+	/// en: 'Delete student?'
+	String get deleteStudent => 'Delete student?';
+
+	/// en: 'The student and their lessons will be deleted permanently. This action cannot be undone.'
+	String get deleteStudentMessage => 'The student and their lessons will be deleted permanently. This action cannot be undone.';
+
 	late final Translations$students$filter$en filter = Translations$students$filter$en._(_root);
 	late final Translations$students$status$en status = Translations$students$status$en._(_root);
 }
@@ -394,12 +377,6 @@ class Translations$reports$en {
 
 	// Translations
 
-	/// en: 'Reports'
-	String get title => 'Reports';
-
-	/// en: 'Attendance and financial analytics'
-	String get subtitle => 'Attendance and financial analytics';
-
 	/// en: '№'
 	String get number => '№';
 
@@ -414,21 +391,6 @@ class Translations$reports$en {
 
 	/// en: 'Total'
 	String get total => 'Total';
-}
-
-// Path: transactions
-class Translations$transactions$en {
-	Translations$transactions$en._(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// en: 'Transactions'
-	String get title => 'Transactions';
-
-	/// en: 'Income and expenses'
-	String get subtitle => 'Income and expenses';
 }
 
 // Path: finance
@@ -571,25 +533,19 @@ extension on Translations {
 			'edit' => 'Edit',
 			'delete' => 'Delete',
 			'all' => 'All',
-			'today' => 'Today',
-			'yesterday' => 'Yesterday',
 			'month' => 'Month',
 			'year' => 'Year',
 			'print' => 'Print',
 			'error' => 'Error',
 			'noData' => 'No data',
 			'noTransactions' => 'No transactions',
-			'somethingWentWrong' => 'Something went wrong!',
 			'pleaseUpdateApp' => 'Please, update the app',
 			'invalidDate' => 'Invalid date',
 			'errorLoadingData' => ({required Object error}) => 'Error loading data: ${error}',
-			'archive' => 'Archive',
-			'auth.signInWithApple' => 'Sign in with Apple',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',
 			'auth.login' => 'Login',
 			'auth.reviewerKey' => 'Reviewer key',
-			'home.title' => 'Main',
 			'groups.title' => 'Groups',
 			'groups.emptySubtitle' => 'No Groups yet',
 			'groups.createFirstGroup' => 'Create First Group',
@@ -599,6 +555,8 @@ extension on Translations {
 			'groups.defaultPrice' => 'Price by default',
 			'groups.report' => 'Report',
 			'groups.notFound' => 'No groups found',
+			'groups.deleteGroup' => 'Delete group?',
+			'groups.deleteGroupMessage' => 'The group will be deleted permanently. This action cannot be undone.',
 			'lessons.title' => 'Lesson',
 			'lessons.individualLesson' => 'Individual lesson',
 			'lessons.individualLessons' => 'Individual lessons',
@@ -640,6 +598,8 @@ extension on Translations {
 			'students.paymentTitle' => ({required Object name}) => 'Payments: ${name}',
 			'students.noPayments' => 'The student has no payments yet',
 			'students.errorLoading' => ({required Object error}) => 'Error loading students: ${error}',
+			'students.deleteStudent' => 'Delete student?',
+			'students.deleteStudentMessage' => 'The student and their lessons will be deleted permanently. This action cannot be undone.',
 			'students.filter.title' => 'Filters',
 			'students.filter.group' => 'Group',
 			'students.filter.status' => 'Status',
@@ -666,15 +626,11 @@ extension on Translations {
 			'settings.version' => 'Version',
 			'settings.contacts' => 'Contacts',
 			'settings.privacyPolicy' => 'Privacy Policy',
-			'reports.title' => 'Reports',
-			'reports.subtitle' => 'Attendance and financial analytics',
 			'reports.number' => '№',
 			'reports.fullName' => 'Full name',
 			'reports.paid' => 'Paid',
 			'reports.result' => 'Result',
 			'reports.total' => 'Total',
-			'transactions.title' => 'Transactions',
-			'transactions.subtitle' => 'Income and expenses',
 			'finance.title' => 'Finance',
 			'finance.createTransaction' => 'New transaction',
 			'finance.income' => 'Income',

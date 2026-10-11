@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/card_badge.dart';
+import 'package:phone/features/groups/controllers/lesson_details_controller.dart';
 import 'package:phone/generated/models/lesson_details_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
@@ -41,6 +42,10 @@ class GroupDayLessonsBottomSheet extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (groupLessons.isNotEmpty) ...[
+            Text(
+              context.t.lessons.groupLessons,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
             ...groupLessons.indexed.map(
               (entry) => _buildLessonTile(
                 context,
@@ -64,12 +69,15 @@ class GroupDayLessonsBottomSheet extends ConsumerWidget {
   }) => ListTile(
     contentPadding: EdgeInsets.zero,
     title: Text(
-      '${context.t.lessons.title} $number',
+      '${context.t.lessons.groupLesson} $number',
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: const TextStyle(fontSize: 16),
     ),
-    trailing: Icon(Icons.chevron_right, color: Colors.black54),
+    trailing: _buildAttendanceBadge(
+      context,
+      ref.watch(lessonDetailsProvider(lesson.id)),
+    ),
     onTap: () => _select(context, GroupDayLessonSelection(lesson: lesson)),
   );
 

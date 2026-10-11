@@ -1,4 +1,3 @@
-// lib/features/finance/utils/transaction_date_formatter.dart
 import 'package:intl/intl.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/i18n/strings.g.dart';

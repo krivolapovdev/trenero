@@ -34,33 +34,7 @@ class GroupRepository {
     }
   }
 
-  List<GroupSummaryResponse> getCachedGroups() {
-    if (_cachedGroups == null) return const [];
-    return List.unmodifiable(_cachedGroups!);
-  }
-
-  //
-  // Future<GroupSummary> createGroup(CreateGroupRequest request) async {
-  //   try {
-  //     // 1. Отправляем запрос на сервер
-  //     final newGroup = await _service.createGroup(body: request);
-  //
-  //     // 2. Обновляем локальный кэш в памяти
-  //     if (_cachedGroups != null) {
-  //       // Создаем новый иммутабельный список с добавленным элементом
-  //       _cachedGroups = [..._cachedGroups!, newGroup];
-  //     } else {
-  //       _cachedGroups = [newGroup];
-  //     }
-  //
-  //     // 3. Возвращаем созданную группу
-  //     return newGroup;
-  //   } on DioException catch (e) {
-  //     throw Exception('Error creating group: ${e.message}');
-  //   }
-  // }
-
-  /// Удаление группы с автоматической очисткой из кэша
+  /// Deletes the group with [groupId] and drops it from the cache.
   Future<void> deleteGroup(String groupId) async {
     try {
       await _service.deleteGroup(groupId: groupId);

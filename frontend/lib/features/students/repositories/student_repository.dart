@@ -40,11 +40,6 @@ class StudentRepository {
     }
   }
 
-  List<StudentSummaryResponse> getCachedStudents() {
-    if (_cachedStudents == null) return const [];
-    return List.unmodifiable(_cachedStudents!);
-  }
-
   Future<void> deleteStudent(String studentId) async {
     try {
       await _service.deleteStudent(studentId: studentId);
@@ -75,15 +70,11 @@ class StudentRepository {
     }
   }
 
-  Future<List<TransactionResponse>> getStudentPayments({
-    required String studentId,
-    required DateTime from,
-    required DateTime to,
-  }) async {
+  Future<List<TransactionResponse>> getStudentPayments(String studentId) async {
     try {
       return await _service.getStudentPayments(studentId: studentId);
     } on DioException catch (e) {
-      throw Exception('Failed to fetch student lessons: ${e.message}');
+      throw Exception('Failed to fetch the student payments: ${e.message}');
     }
   }
 

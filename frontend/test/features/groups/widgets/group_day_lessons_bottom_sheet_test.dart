@@ -62,13 +62,6 @@ class _FakeLessonClient implements LessonControllerClient {
   @override
   Future<void> deleteLesson({required String lessonId}) =>
       throw UnimplementedError();
-
-  @override
-  Future<List<LessonResponse>> getLessons() => throw UnimplementedError();
-
-  @override
-  Future<LessonResponse> getLesson({required String lessonId}) =>
-      throw UnimplementedError();
 }
 
 /// What the sheet popped, filled in once a tile is tapped.
