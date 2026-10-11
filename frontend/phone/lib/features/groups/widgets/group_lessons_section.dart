@@ -89,18 +89,48 @@ class GroupLessonsSection extends ConsumerWidget {
 
     return Skeletonizer(
       enabled: lessonsAsync.isLoading || isLoadingEarlier,
-      child: LessonsCalendar(
-        lessons: lessonsAsync.value ?? _dummyLessons,
-        locale: locale,
-        focusedDay: focusedDay,
-        onMonthChanged: (month) {
-          ref.read(groupLessonsMonthProvider(groupId).notifier).show(month);
-          ref
-              .read(groupLessonsProvider(groupId).notifier)
-              .loadEarlierMonths(month);
-        },
-        onDayTapped: (selectedDay, dayLessons) =>
-            _openDayLessons(context, selectedDay, dayLessons),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            LessonsCalendar(
+              lessons: lessonsAsync.value ?? _dummyLessons,
+              locale: locale,
+              focusedDay: focusedDay,
+              onMonthChanged: (month) {
+                ref
+                    .read(groupLessonsMonthProvider(groupId).notifier)
+                    .show(month);
+                ref
+                    .read(groupLessonsProvider(groupId).notifier)
+                    .loadEarlierMonths(month);
+              },
+              onDayTapped: (selectedDay, dayLessons) =>
+                  _openDayLessons(context, selectedDay, dayLessons),
+              // The surface of the calendar is drawn by the section, so the
+              // button that creates a lesson sits inside the same card.
+              surfaceVisible: false,
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => _openLessonPage(context, DateTime.now(), null),
+                child: Text(
+                  context.t.create,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

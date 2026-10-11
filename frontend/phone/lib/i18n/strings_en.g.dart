@@ -57,6 +57,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Create'
 	String get create => 'Create';
 
+	/// en: 'Update'
+	String get update => 'Update';
+
 	/// en: 'Edit'
 	String get edit => 'Edit';
 
@@ -92,6 +95,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Something went wrong!'
 	String get somethingWentWrong => 'Something went wrong!';
+
+	/// en: 'Please, update the app'
+	String get pleaseUpdateApp => 'Please, update the app';
 
 	/// en: 'Invalid date'
 	String get invalidDate => 'Invalid date';
@@ -561,6 +567,7 @@ extension on Translations {
 			'cancel' => 'Cancel',
 			'repeat' => 'Repeat',
 			'create' => 'Create',
+			'update' => 'Update',
 			'edit' => 'Edit',
 			'delete' => 'Delete',
 			'all' => 'All',
@@ -573,6 +580,7 @@ extension on Translations {
 			'noData' => 'No data',
 			'noTransactions' => 'No transactions',
 			'somethingWentWrong' => 'Something went wrong!',
+			'pleaseUpdateApp' => 'Please, update the app',
 			'invalidDate' => 'Invalid date',
 			'errorLoadingData' => ({required Object error}) => 'Error loading data: ${error}',
 			'archive' => 'Archive',

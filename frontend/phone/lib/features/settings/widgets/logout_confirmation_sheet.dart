@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/features/auth/providers/auth_notifier.dart';
+import 'package:phone/features/auth/controllers/auth_controller.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class LogoutConfirmationSheet extends ConsumerWidget {
@@ -35,7 +35,7 @@ class LogoutConfirmationSheet extends ConsumerWidget {
               ),
               onPressed: () async {
                 Navigator.of(context).pop();
-                await ref.read(authNotifierProvider.notifier).logout();
+                await ref.read(authControllerProvider.notifier).logout();
               },
               child: Text(
                 context.t.settings.logout,

@@ -182,21 +182,6 @@ void main() {
     expect(find.text(t.print), findsOneWidget);
   });
 
-  testWidgets('the floating button opens the report sheet', (tester) async {
-    await tester.pumpWidget(_wrap(_FakeGroupClient()));
-    await tester.pumpAndSettle();
-
-    // The actions are hidden until the radial button is expanded.
-    await tester.tap(find.byType(AnimatedIcon));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byIcon(Icons.print));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(GroupReportBottomSheet), findsOneWidget);
-    expect(find.text(t.print), findsOneWidget);
-  });
-
   testWidgets('the app bar menu opens the add lesson page', (tester) async {
     await tester.pumpWidget(_wrap(_FakeGroupClient()));
     await tester.pumpAndSettle();
@@ -211,14 +196,13 @@ void main() {
     expect(find.text(t.lessons.groupLesson), findsOneWidget);
   });
 
-  testWidgets('the floating button opens the add lesson page', (tester) async {
+  testWidgets('the create button of the calendar opens the add lesson page', (
+    tester,
+  ) async {
     await tester.pumpWidget(_wrap(_FakeGroupClient()));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(AnimatedIcon));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byIcon(Icons.calendar_month));
+    await tester.tap(find.text(t.create));
     await tester.pumpAndSettle();
 
     expect(find.byType(LessonPage), findsOneWidget);

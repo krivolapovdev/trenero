@@ -1,17 +1,13 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/core/widgets/app_bottom_sheet.dart';
-import 'package:phone/core/widgets/radial_expandable_fab.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
-import 'package:phone/features/groups/pages/lesson_page.dart';
-import 'package:phone/features/groups/widgets/edit_group_bottom_sheet.dart';
+import 'package:phone/features/groups/pages/group_students_page.dart';
 import 'package:phone/features/groups/widgets/group_hero_card.dart';
 import 'package:phone/features/groups/widgets/group_lessons_section.dart';
 import 'package:phone/features/groups/widgets/group_popup_menu.dart';
-import 'package:phone/features/groups/widgets/group_report_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_students_section.dart';
 import 'package:phone/generated/export.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -28,35 +24,13 @@ class GroupPage extends ConsumerStatefulWidget {
 class _GroupPageState extends ConsumerState<GroupPage> {
   late GroupSummaryResponse _group = widget.group;
 
-  Future<void> _openEditGroupSheet() async {
-    await AppBottomSheet.show(
-      context: context,
-      child: EditGroupBottomSheet(group: _group),
-    );
-
-    if (!mounted) return;
-
-    final listState = ref.read(groupListControllerProvider);
-    final updated = (listState.value ?? const <GroupSummaryResponse>[])
-        .where((g) => g.id == _group.id)
-        .firstOrNull;
-
-    if (updated != null) setState(() => _group = updated);
-  }
-
-  Future<void> _openReportSheet() async {
-    await AppBottomSheet.show(
-      context: context,
-      child: GroupReportBottomSheet(group: _group),
-    );
-  }
-
-  Future<void> _openCreateLessonPage() async {
+  /// Opens the page that picks the students of the group.
+  ///
+  /// The page drops the cached students of the group once it saved them, so the
+  /// section follows the new pick on its own.
+  Future<void> _openGroupStudentsPage() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) =>
-            LessonPage(groupId: _group.id, date: DateTime.now()),
-      ),
+      MaterialPageRoute(builder: (context) => GroupStudentsPage(group: _group)),
     );
   }
 
@@ -90,36 +64,6 @@ class _GroupPageState extends ConsumerState<GroupPage> {
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: RadialExpandableFab(
-        distance: 120.0,
-        children: [
-          FloatingActionButton(
-            heroTag: 'edit-group',
-            onPressed: _openEditGroupSheet,
-            elevation: 0,
-            focusElevation: 0,
-            highlightElevation: 0,
-            child: const Icon(Icons.edit),
-          ),
-          FloatingActionButton(
-            heroTag: 'lesson-group',
-            onPressed: _openCreateLessonPage,
-            elevation: 0,
-            focusElevation: 0,
-            highlightElevation: 0,
-            child: const Icon(Icons.calendar_month),
-          ),
-          FloatingActionButton(
-            heroTag: 'report-group',
-            onPressed: _openReportSheet,
-            elevation: 0,
-            focusElevation: 0,
-            highlightElevation: 0,
-            child: const Icon(Icons.print),
-          ),
-        ],
-      ),
       body: CustomMaterialIndicator(
         color: Colors.black,
         clipBehavior: Clip.antiAlias,
@@ -149,8 +93,10 @@ class _GroupPageState extends ConsumerState<GroupPage> {
           setState(() => _group = updated);
         },
         child: SingleChildScrollView(
-          padding: kRadialFabContentPadding,
-          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           child: Column(
             spacing: 16,
             children: [
@@ -168,6 +114,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
                 studentCount: _group.countOfStudents == 0
                     ? null
                     : _group.countOfStudents,
+                onEdit: _openGroupStudentsPage,
               ),
             ],
           ),

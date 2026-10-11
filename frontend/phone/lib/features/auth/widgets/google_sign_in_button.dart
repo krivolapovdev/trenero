@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:phone/core/constants/app_assets.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
-import 'package:phone/features/auth/providers/auth_notifier.dart';
+import 'package:phone/features/auth/controllers/auth_controller.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class GoogleSignInButton extends ConsumerWidget {
@@ -11,7 +11,10 @@ class GoogleSignInButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<AsyncValue<AuthStatus>>(authNotifierProvider, (previous, next) {
+    ref.listen<AsyncValue<AuthStatus>>(authControllerProvider, (
+      previous,
+      next,
+    ) {
       if (next.hasError && !next.isLoading) {
         AppSnackBar.show(
           context,
@@ -21,7 +24,7 @@ class GoogleSignInButton extends ConsumerWidget {
       }
     });
 
-    final authState = ref.watch(authNotifierProvider);
+    final authState = ref.watch(authControllerProvider);
 
     return SizedBox(
       width: double.infinity,
@@ -29,7 +32,8 @@ class GoogleSignInButton extends ConsumerWidget {
       child: TextButton(
         onPressed: authState.isLoading
             ? null
-            : () => ref.read(authNotifierProvider.notifier).signInWithGoogle(),
+            : () =>
+                  ref.read(authControllerProvider.notifier).signInWithGoogle(),
         style: TextButton.styleFrom(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(

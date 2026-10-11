@@ -135,14 +135,17 @@ ProviderContainer _container({
 
 Future<void> _pumpSection(
   WidgetTester tester,
-  ProviderContainer container,
-) async {
+  ProviderContainer container, {
+  VoidCallback? onUpdate,
+}) async {
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
       child: TranslationProvider(
         child: MaterialApp(
-          home: Scaffold(body: GroupStudentsSection(groupId: _groupId)),
+          home: Scaffold(
+            body: GroupStudentsSection(groupId: _groupId, onEdit: onUpdate),
+          ),
         ),
       ),
     ),
@@ -164,6 +167,26 @@ void main() {
   setUpAll(() async {
     await initializeDateFormatting();
     LocaleSettings.setLocaleSync(AppLocale.en);
+  });
+
+  testWidgets('the card titles the students and offers to update them', (
+    tester,
+  ) async {
+    var updated = false;
+
+    await _pumpSection(
+      tester,
+      _container(students: _listedStudents),
+      onUpdate: () => updated = true,
+    );
+
+    expect(find.text(t.students.title), findsOneWidget);
+    expect(find.text('1. Anna Smirnova'), findsOneWidget);
+
+    await tester.tap(find.text(t.update));
+    await tester.pumpAndSettle();
+
+    expect(updated, isTrue);
   });
 
   testWidgets('a student opened from a group keeps the groups of the student', (

@@ -7,11 +7,10 @@ import 'package:phone/features/auth/repository/auth_repository.dart';
 
 enum AuthStatus { authenticated, unauthenticated }
 
-final authNotifierProvider = AsyncNotifierProvider<AuthNotifier, AuthStatus>(
-  AuthNotifier.new,
-);
+final authControllerProvider =
+    AsyncNotifierProvider<AuthController, AuthStatus>(AuthController.new);
 
-class AuthNotifier extends AsyncNotifier<AuthStatus> {
+class AuthController extends AsyncNotifier<AuthStatus> {
   bool _isSigningIn = false;
 
   @override

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/features/auth/providers/auth_notifier.dart';
+import 'package:phone/features/auth/controllers/auth_controller.dart';
 import 'package:phone/features/auth/repository/auth_repository.dart';
 
 final reviewerAuthControllerProvider =
@@ -34,7 +34,7 @@ class ReviewerAuthController extends AsyncNotifier<void> {
       return false;
     }
 
-    ref.read(authNotifierProvider.notifier).markAuthenticated();
+    ref.read(authControllerProvider.notifier).markAuthenticated();
 
     return true;
   }

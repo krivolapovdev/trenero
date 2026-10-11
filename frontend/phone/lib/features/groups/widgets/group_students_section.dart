@@ -13,7 +13,13 @@ class GroupStudentsSection extends ConsumerWidget {
   final String groupId;
   final int? studentCount;
 
-  const new({super.key, required this.groupId, this.studentCount});
+  /// Opens the page that updates the students of the group.
+  ///
+  /// The button that carries it sits at the bottom of the card; when no action
+  /// is given the card only lists the students.
+  final VoidCallback? onEdit;
+
+  const new({super.key, required this.groupId, this.studentCount, this.onEdit});
 
   static List<GroupStudentSummaryResponse> _dummyStudents(int count) =>
       List.generate(
@@ -80,48 +86,65 @@ class GroupStudentsSection extends ConsumerWidget {
     List<StudentSummaryResponse> listedStudents, {
     bool isLoading = false,
   }) => Container(
-    padding: const EdgeInsets.all(16),
+    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
     ),
-    child: ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.zero,
-      itemCount: students.length,
-      separatorBuilder: (context, index) =>
-          const Divider(height: 16, thickness: 1),
-      itemBuilder: (context, index) {
-        final student = students[index];
-        final listedStudent = listedStudents
-            .where((candidate) => candidate.id == student.id)
-            .firstOrNull;
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 8,
+      children: [
+        Text(
+          context.t.students.title,
+          style: const TextStyle(fontSize: 18, color: Colors.black),
+        ),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          itemCount: students.length,
+          separatorBuilder: (context, index) =>
+              const Divider(height: 16, thickness: 1),
+          itemBuilder: (context, index) {
+            final student = students[index];
+            final listedStudent = listedStudents
+                .where((candidate) => candidate.id == student.id)
+                .firstOrNull;
 
-        return StudentCard(
-          student: StudentSummaryResponse(
-            id: student.id,
-            fullName: '${index + 1}. ${student.fullName}',
-            createdAt: student.createdAt,
-            free: student.free,
-            statuses: student.statuses,
+            return StudentCard(
+              student: StudentSummaryResponse(
+                id: student.id,
+                fullName: '${index + 1}. ${student.fullName}',
+                createdAt: student.createdAt,
+                free: student.free,
+                statuses: student.statuses,
+              ),
+              overrideInitials: student.fullName.initials,
+              onTap: isLoading
+                  ? () {}
+                  : () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => StudentPage(
+                            student: listedStudent ?? _summaryOf(student),
+                          ),
+                        ),
+                      );
+                    },
+            );
+          },
+        ),
+        if (onEdit != null)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: onEdit,
+              child: Text(context.t.edit, style: const TextStyle(fontSize: 16)),
+            ),
           ),
-          // The index is part of the displayed name, so the avatar takes the
-          // initials of the actual name instead.
-          overrideInitials: student.fullName.initials,
-          onTap: isLoading
-              ? () {}
-              : () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => StudentPage(
-                        student: listedStudent ?? _summaryOf(student),
-                      ),
-                    ),
-                  );
-                },
-        );
-      },
+      ],
     ),
   );
 
