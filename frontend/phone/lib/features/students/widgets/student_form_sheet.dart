@@ -7,7 +7,6 @@ import 'package:phone/i18n/strings.g.dart';
 class StudentFormSheet extends StatefulWidget {
   final String title;
   final String submitLabel;
-  final IconData submitIcon;
   final String? initialFullName;
   final DateTime? initialBirthdate;
   final String? initialPhone;
@@ -27,7 +26,6 @@ class StudentFormSheet extends StatefulWidget {
     super.key,
     required this.title,
     required this.submitLabel,
-    required this.submitIcon,
     required this.onSubmit,
     this.initialFullName,
     this.initialBirthdate,
@@ -79,6 +77,8 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
       _free != widget.initialFree;
 
   void _onBirthdateChanged(DateTime? date) => setState(() => _birthdate = date);
+
+  void _onFreeChanged(bool? value) => setState(() => _free = value ?? false);
 
   @override
   void dispose() {
@@ -182,17 +182,36 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                         enabled: !isLoading,
                       ),
 
-                      CheckboxListTile(
-                        value: _free,
-                        onChanged: isLoading
-                            ? null
-                            : (value) => setState(() => _free = value ?? false),
-                        title: Text(
-                          context.t.students.free,
-                          style: const TextStyle(fontSize: 16),
+                      // The free field is drawn as the fields above: the
+                      // checkbox takes the box their icons take, the name of
+                      // the field takes the place of their labels and the row
+                      // takes their underline.
+                      InkWell(
+                        onTap: isLoading ? null : () => _onFreeChanged(!_free),
+                        child: InputDecorator(
+                          // A field that holds nothing shows its label where a
+                          // typed value would sit, so the name of the field is
+                          // read in the place of a label.
+                          isEmpty: true,
+                          decoration: InputDecoration(
+                            labelText: context.t.students.free,
+                            enabled: !isLoading,
+                            prefixIcon: Checkbox(
+                              value: _free,
+                              onChanged: isLoading ? null : _onFreeChanged,
+                              // The checkbox is drawn with the density of the
+                              // fields above, so it takes the same box as the
+                              // icons they hold.
+                              visualDensity: Theme.of(context).visualDensity,
+                            ),
+                            // The hint is hidden while the label holds its
+                            // place, but the line it keeps is the line a value
+                            // takes in the fields above, so the underlines of
+                            // the fields fall in line.
+                            hintText: ' ',
+                            maintainHintSize: true,
+                          ),
                         ),
-                        controlAffinity: ListTileControlAffinity.leading,
-                        contentPadding: EdgeInsets.zero,
                       ),
 
                       Padding(
@@ -215,7 +234,7 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : Icon(widget.submitIcon),
+                                : null,
                             label: Text(
                               widget.submitLabel,
                               style: const TextStyle(fontSize: 18),

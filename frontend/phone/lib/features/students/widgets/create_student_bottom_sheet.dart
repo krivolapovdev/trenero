@@ -56,7 +56,6 @@ class _CreateStudentBottomSheetState
     return StudentFormSheet(
       title: context.t.students.createStudent,
       submitLabel: context.t.create,
-      submitIcon: Icons.add,
       isLoading: isLoading,
       onSubmit: _onSave,
     );
