@@ -47,25 +47,6 @@ services:
     networks:
       - trenero-network
 
-  frontend:
-    image: krivolapovdev/frontend:${IMAGE_TAG:-latest}
-    container_name: frontend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.entrypoints=web"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-      - "traefik.http.routers.frontend.middlewares=frontend-compress"
-      - "traefik.http.middlewares.frontend-compress.compress=true"
-      - "traefik.http.routers.frontend.priority=10"
-    healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000" ]
-      interval: 10s
-      timeout: 5s
-      retries: 20
-    networks:
-      - trenero-network
-
   traefik:
     image: traefik:v3.6.7
     container_name: traefik

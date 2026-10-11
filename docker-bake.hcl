@@ -1,7 +1,6 @@
 group "default" {
   targets = [
-    "backend",
-    "frontend",
+    "backend"
   ]
 }
 
@@ -18,18 +17,6 @@ target "backend" {
   tags = [
     "${DOCKERHUB_USERNAME}/backend:${IMAGE_TAG}",
     "${DOCKERHUB_USERNAME}/backend:latest"
-  ]
-  platforms = [
-    "linux/amd64",
-    "linux/arm64"
-  ]
-}
-
-target "frontend" {
-  context = "./frontend"
-  tags = [
-    "${DOCKERHUB_USERNAME}/frontend:${IMAGE_TAG}",
-    "${DOCKERHUB_USERNAME}/frontend:latest"
   ]
   platforms = [
     "linux/amd64",

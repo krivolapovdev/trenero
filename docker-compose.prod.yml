@@ -32,8 +32,5 @@ services:
       JAVA_TOOL_OPTIONS: "-Djava.net.preferIPv4Stack=true"
     restart: unless-stopped
 
-  frontend:
-    restart: unless-stopped
-
   traefik:
     restart: unless-stopped
