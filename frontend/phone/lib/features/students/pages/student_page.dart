@@ -71,8 +71,10 @@ class _StudentPageState extends ConsumerState<StudentPage> {
       context: context,
       child: CreateTransactionBottomSheet(
         initialStudentId: _student.id,
+        initialStudentName: _student.fullName,
         initialAmount: _student.studentGroup?.defaultPrice,
         isIncomeOnly: true,
+        isStudentLocked: true,
       ),
     );
   }

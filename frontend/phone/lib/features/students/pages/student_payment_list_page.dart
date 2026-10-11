@@ -31,8 +31,10 @@ class StudentPaymentListPage extends ConsumerWidget {
               context: context,
               child: CreateTransactionBottomSheet(
                 initialStudentId: student.id,
+                initialStudentName: student.fullName,
                 initialAmount: student.studentGroup?.defaultPrice,
                 isIncomeOnly: true,
+                isStudentLocked: true,
               ),
             ),
           ),

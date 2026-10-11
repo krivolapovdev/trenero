@@ -16,8 +16,17 @@ class CreateTransactionBottomSheet extends ConsumerStatefulWidget {
   /// Student the payment is created for, pre-selected when the sheet opens.
   final String? initialStudentId;
 
+  /// Name of [initialStudentId], shown by the locked student field. It keeps the
+  /// field readable while the student list is still loading.
+  final String? initialStudentName;
+
   /// Hides the type selector and always creates an income transaction.
   final bool isIncomeOnly;
+
+  /// Keeps the payment on [initialStudentId]: the student field is shown
+  /// read-only and cannot be switched to another student. It is set when the
+  /// sheet is opened from the page of a known student.
+  final bool isStudentLocked;
 
   /// Amount prefilled when the sheet opens, usually the group default price of
   /// [initialStudentId].
@@ -26,7 +35,9 @@ class CreateTransactionBottomSheet extends ConsumerStatefulWidget {
   const new({
     super.key,
     this.initialStudentId,
+    this.initialStudentName,
     this.isIncomeOnly = false,
+    this.isStudentLocked = false,
     this.initialAmount,
   });
 
@@ -264,6 +275,10 @@ class _CreateTransactionBottomSheetState
   ) {
     final students = studentsState.value ?? const <StudentSummaryResponse>[];
 
+    if (widget.isStudentLocked) {
+      return _buildLockedStudentField(students);
+    }
+
     if (students.isEmpty) {
       if (!studentsState.isLoading) return const SizedBox.shrink();
 
@@ -352,6 +367,33 @@ class _CreateTransactionBottomSheetState
           ),
         ),
       ],
+    );
+  }
+
+  /// The student field of a sheet opened for a known student.
+  ///
+  /// The name of that student stays visible but the field cannot be tapped, so
+  /// the created payment always belongs to them.
+  Widget _buildLockedStudentField(List<StudentSummaryResponse> students) {
+    final selectedStudents = students.where(
+      (student) => student.id == _selectedStudentId,
+    );
+    final name = selectedStudents.isEmpty
+        ? widget.initialStudentName
+        : selectedStudents.first.fullName;
+
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: context.t.finance.student,
+        prefixIcon: const Icon(FluentIcons.person_16_regular),
+        enabled: false,
+      ),
+      child: Text(
+        name ?? context.t.students.noStudent,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 16, color: Theme.of(context).disabledColor),
+      ),
     );
   }
 

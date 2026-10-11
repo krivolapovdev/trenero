@@ -8,24 +8,55 @@ import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/student_controller/student_controller_client.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// The create sheet loads the students to attribute a payment to; an empty list
-/// keeps the sheet free of network calls.
+/// The create sheet loads the students to attribute a payment to; the fake
+/// client serves [students] so the picker can be exercised.
 class _FakeStudentClient implements StudentControllerClient {
+  new([this.students = const []]);
+
+  final List<StudentSummaryResponse> students;
+
   @override
-  Future<List<StudentSummaryResponse>> getStudentsSummary() async => const [];
+  Future<List<StudentSummaryResponse>> getStudentsSummary() async => students;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _wrap({num? initialAmount}) => ProviderScope(
-  overrides: [studentServiceProvider.overrideWithValue(_FakeStudentClient())],
+/// The student the sheet is opened for.
+final _student = StudentSummaryResponse(
+  id: 'student-1',
+  fullName: 'Anna Smirnova',
+  createdAt: DateTime(2025, 8, 22),
+  free: false,
+  statuses: const [],
+);
+
+/// Another student of the list, reachable only through the picker.
+final _otherStudent = StudentSummaryResponse(
+  id: 'student-2',
+  fullName: 'Boris Petrov',
+  createdAt: DateTime(2025, 8, 22),
+  free: false,
+  statuses: const [],
+);
+
+Widget _wrap({
+  num? initialAmount,
+  List<StudentSummaryResponse> students = const [],
+  String? initialStudentName,
+  bool isStudentLocked = false,
+}) => ProviderScope(
+  overrides: [
+    studentServiceProvider.overrideWithValue(_FakeStudentClient(students)),
+  ],
   child: TranslationProvider(
     child: MaterialApp(
       home: Scaffold(
         body: CreateTransactionBottomSheet(
           initialStudentId: 'student-1',
+          initialStudentName: initialStudentName,
           initialAmount: initialAmount,
+          isStudentLocked: isStudentLocked,
         ),
       ),
     ),
@@ -33,12 +64,25 @@ Widget _wrap({num? initialAmount}) => ProviderScope(
 );
 
 /// Pumps the sheet on a tall surface so every field is reachable by a tap.
-Future<void> _pump(WidgetTester tester, {num? initialAmount}) async {
+Future<void> _pump(
+  WidgetTester tester, {
+  num? initialAmount,
+  List<StudentSummaryResponse> students = const [],
+  String? initialStudentName,
+  bool isStudentLocked = false,
+}) async {
   tester.view.physicalSize = const Size(1200, 2400);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
 
-  await tester.pumpWidget(_wrap(initialAmount: initialAmount));
+  await tester.pumpWidget(
+    _wrap(
+      initialAmount: initialAmount,
+      students: students,
+      initialStudentName: initialStudentName,
+      isStudentLocked: isStudentLocked,
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -151,5 +195,48 @@ void main() {
           .onPressed,
       isNull,
     );
+  });
+
+  testWidgets('the student picker offers the other students by default', (
+    tester,
+  ) async {
+    await _pump(tester, students: [_student, _otherStudent]);
+
+    expect(find.text(_student.fullName), findsOneWidget);
+    expect(find.text(_otherStudent.fullName), findsNothing);
+
+    await tester.tap(find.text(_student.fullName));
+    await tester.pumpAndSettle();
+
+    expect(find.text(_otherStudent.fullName), findsOneWidget);
+  });
+
+  testWidgets('a locked sheet keeps the student of the page', (tester) async {
+    await _pump(
+      tester,
+      students: [_student, _otherStudent],
+      initialStudentName: _student.fullName,
+      isStudentLocked: true,
+    );
+
+    expect(find.text(_student.fullName), findsOneWidget);
+
+    await tester.tap(find.text(_student.fullName));
+    await tester.pumpAndSettle();
+
+    expect(find.text(_otherStudent.fullName), findsNothing);
+    expect(find.text(t.students.noStudent), findsNothing);
+  });
+
+  testWidgets('a locked sheet shows the student before the list is loaded', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      initialStudentName: _student.fullName,
+      isStudentLocked: true,
+    );
+
+    expect(find.text(_student.fullName), findsOneWidget);
   });
 }
