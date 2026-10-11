@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phone/features/groups/models/lesson_attendance.dart';
+import 'package:phone/features/groups/widgets/choice_tile.dart';
+import 'package:phone/features/groups/widgets/section_title.dart';
 import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/generated/models/visit_type.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -84,7 +86,7 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
           ),
 
-          _SectionTitle(title: context.t.lessons.status),
+          SectionTitle(title: context.t.lessons.status),
 
           RadioGroup<_StatusChoice>(
             groupValue: _statusChoice,
@@ -93,19 +95,19 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _ChoiceTile<_StatusChoice>(
+                ChoiceTile<_StatusChoice>(
                   value: _StatusChoice.present,
                   label: context.t.lessons.present,
                 ),
-                _ChoiceTile<_StatusChoice>(
+                ChoiceTile<_StatusChoice>(
                   value: _StatusChoice.absent,
                   label: context.t.lessons.absent,
                 ),
-                _ChoiceTile<_StatusChoice>(
+                ChoiceTile<_StatusChoice>(
                   value: _StatusChoice.excused,
                   label: context.t.lessons.excused,
                 ),
-                _ChoiceTile<_StatusChoice>(
+                ChoiceTile<_StatusChoice>(
                   value: _StatusChoice.unmarked,
                   label: context.t.lessons.unmarked,
                 ),
@@ -114,7 +116,7 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
           ),
 
           if (_showsType) ...[
-            _SectionTitle(title: context.t.lessons.type),
+            SectionTitle(title: context.t.lessons.type),
             RadioGroup<VisitType>(
               groupValue: _effectiveType,
               onChanged: (type) => _pickType(context, type),
@@ -122,11 +124,11 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _ChoiceTile<VisitType>(
+                  ChoiceTile<VisitType>(
                     value: VisitType.regular,
                     label: context.t.lessons.regular,
                   ),
-                  _ChoiceTile<VisitType>(
+                  ChoiceTile<VisitType>(
                     value: VisitType.free,
                     label: context.t.lessons.free,
                   ),
@@ -139,41 +141,5 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
         ],
       ),
     ),
-  );
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-
-  const new({required this.title});
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
-    child: Text(
-      title.toUpperCase(),
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-    ),
-  );
-}
-
-class _ChoiceTile<T> extends StatelessWidget {
-  final T value;
-  final String label;
-
-  const new({super.key, required this.value, required this.label});
-
-  @override
-  Widget build(BuildContext context) => RadioListTile<T>(
-    value: value,
-    title: Text(label, style: const TextStyle(fontSize: 16)),
-    contentPadding: EdgeInsets.zero,
-    dense: true,
-    visualDensity: VisualDensity.compact,
   );
 }

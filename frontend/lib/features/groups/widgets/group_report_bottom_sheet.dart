@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/core/services/pdf_printer.dart';
@@ -7,8 +6,11 @@ import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/group_report_controller.dart';
 import 'package:phone/features/groups/models/group_report_period.dart';
 import 'package:phone/features/groups/services/group_report_pdf_service.dart';
-import 'package:phone/features/groups/widgets/group_report_table.dart';
-import 'package:phone/generated/models/group_report_response.dart';
+import 'package:phone/features/groups/widgets/month_field.dart';
+import 'package:phone/features/groups/widgets/print_button.dart';
+import 'package:phone/features/groups/widgets/report_error.dart';
+import 'package:phone/features/groups/widgets/report_preview.dart';
+import 'package:phone/features/groups/widgets/year_field.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -24,8 +26,6 @@ class GroupReportBottomSheet extends ConsumerStatefulWidget {
 
 class _GroupReportBottomSheetState
     extends ConsumerState<GroupReportBottomSheet> {
-  static const int _monthDigits = 2;
-
   late final DateTime _latest = DateTime.now();
 
   late final TextEditingController _monthController;
@@ -166,25 +166,25 @@ class _GroupReportBottomSheetState
 
             const SizedBox(height: 16),
 
-            _MonthField(controller: _monthController, errorText: _monthError),
+            MonthField(controller: _monthController, errorText: _monthError),
             const SizedBox(height: 16),
-            _YearField(controller: _yearController, errorText: _yearError),
+            YearField(controller: _yearController, errorText: _yearError),
 
             if (reportState != null && reportState.hasError) ...[
               const SizedBox(height: 12),
-              _ReportError(period: period!, error: reportState.error),
+              ReportError(period: period!, error: reportState.error),
             ],
 
             if (report != null) ...[
               const SizedBox(height: 22),
-              _ReportPreview(report: report),
+              ReportPreview(report: report),
             ],
 
             const SizedBox(height: 22),
 
             Align(
               alignment: Alignment.centerRight,
-              child: _PrintButton(
+              child: PrintButton(
                 isPrinting: _isPrinting,
                 enabled: period != null && report != null && !_isPrinting,
                 onPressed: () => _printReport(period!),
@@ -195,117 +195,4 @@ class _GroupReportBottomSheetState
       ),
     );
   }
-}
-
-class _MonthField extends StatelessWidget {
-  final TextEditingController controller;
-  final String? errorText;
-
-  const new({required this.controller, this.errorText});
-
-  @override
-  Widget build(BuildContext context) => TextField(
-    controller: controller,
-    keyboardType: TextInputType.number,
-    inputFormatters: [
-      FilteringTextInputFormatter.digitsOnly,
-      LengthLimitingTextInputFormatter(_GroupReportBottomSheetState._monthDigits),
-    ],
-    decoration: InputDecoration(
-      labelText: context.t.month,
-      hintText: 'MM',
-      errorText: errorText,
-    ),
-  );
-}
-
-class _YearField extends StatelessWidget {
-  static const int _yearDigits = 4;
-
-  final TextEditingController controller;
-  final String? errorText;
-
-  const new({required this.controller, this.errorText});
-
-  @override
-  Widget build(BuildContext context) => TextField(
-    controller: controller,
-    keyboardType: TextInputType.number,
-    inputFormatters: [
-      FilteringTextInputFormatter.digitsOnly,
-      LengthLimitingTextInputFormatter(_yearDigits),
-    ],
-    decoration: InputDecoration(
-      labelText: context.t.year,
-      hintText: 'YYYY',
-      errorText: errorText,
-    ),
-  );
-}
-
-class _ReportPreview extends StatelessWidget {
-  static const double _maxHeight = 260;
-
-  final GroupReportResponse report;
-
-  const new({required this.report});
-
-  @override
-  Widget build(BuildContext context) => ConstrainedBox(
-    constraints: const BoxConstraints(maxHeight: _maxHeight),
-    child: SingleChildScrollView(child: GroupReportTable(report: report)),
-  );
-}
-
-class _PrintButton extends StatelessWidget {
-  final bool isPrinting;
-  final bool enabled;
-  final VoidCallback onPressed;
-
-  const new({
-    required this.isPrinting,
-    required this.enabled,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) => TextButton.icon(
-    onPressed: enabled ? onPressed : null,
-    icon: isPrinting
-        ? const SizedBox(
-            width: 18,
-            height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          )
-        : null,
-    label: Text(context.t.print, style: const TextStyle(fontSize: 18)),
-  );
-}
-
-class _ReportError extends ConsumerWidget {
-  final GroupReportPeriod period;
-  final Object? error;
-
-  const new({required this.period, required this.error});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => Row(
-    children: [
-      Expanded(
-        child: Text(
-          '${context.t.error}: $error',
-          style: TextStyle(
-            fontSize: 13,
-            color: Theme.of(context).colorScheme.error,
-          ),
-        ),
-      ),
-
-      TextButton(
-        onPressed: () =>
-            ref.read(groupReportProvider(period).notifier).refresh(),
-        child: Text(context.t.repeat),
-      ),
-    ],
-  );
 }

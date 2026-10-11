@@ -7,6 +7,7 @@ import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/constants/app_spacing.dart';
 import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/core/providers/language_provider.dart';
+import 'package:phone/features/finance/widgets/month_axis_label.dart';
 import 'package:phone/generated/models/payment_metric_response.dart';
 
 const double _chartHeight = 380;
@@ -17,7 +18,6 @@ const double _dotStrokeWidth = 2;
 const double _zeroThreshold = 0.001;
 const double _paddingRatio = 0.25;
 const double _fallbackPadding = 10;
-const double _labelGap = 12;
 const double _monthLabelReservedSize = 36;
 
 LineChartBarData _buildBarData(List<FlSpot> spots, double zeroStop) =>
@@ -198,7 +198,7 @@ class ProfitLineChart extends ConsumerWidget {
                 showTitles: true,
                 reservedSize: _monthLabelReservedSize,
                 interval: 1,
-                getTitlesWidget: (value, meta) => _MonthAxisLabel(
+                getTitlesWidget: (value, meta) => MonthAxisLabel(
                   meta: meta,
                   label: _monthLabelFor(value, data, locale),
                 ),
@@ -213,24 +213,3 @@ class ProfitLineChart extends ConsumerWidget {
   }
 }
 
-class _MonthAxisLabel extends StatelessWidget {
-  final TitleMeta meta;
-  final String? label;
-
-  const new({required this.meta, this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final label = this.label;
-    if (label == null) return const SizedBox.shrink();
-
-    return SideTitleWidget(
-      meta: meta,
-      space: _labelGap,
-      child: Text(
-        label,
-        style: const TextStyle(fontSize: 14, color: Colors.black54),
-      ),
-    );
-  }
-}

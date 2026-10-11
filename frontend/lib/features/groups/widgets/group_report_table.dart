@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:phone/features/groups/widgets/header_cell.dart';
+import 'package:phone/features/groups/widgets/mark_cell.dart';
+import 'package:phone/features/groups/widgets/report_cell.dart';
 import 'package:phone/generated/models/group_report_response.dart';
 import 'package:phone/generated/models/group_report_student_response.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -15,14 +18,14 @@ TableRow _headerRow(BuildContext context, int dayCount) {
   return TableRow(
     decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
     children: [
-      _HeaderCell(text: context.t.reports.number),
-      _HeaderCell(
+      HeaderCell(text: context.t.reports.number),
+      HeaderCell(
         text: context.t.reports.fullName,
         alignment: Alignment.centerLeft,
       ),
-      for (var day = 1; day <= dayCount; day++) _HeaderCell(text: '$day'),
-      _HeaderCell(text: context.t.reports.paid),
-      _HeaderCell(text: context.t.reports.result),
+      for (var day = 1; day <= dayCount; day++) HeaderCell(text: '$day'),
+      HeaderCell(text: context.t.reports.paid),
+      HeaderCell(text: context.t.reports.result),
     ],
   );
 }
@@ -44,7 +47,7 @@ TableRow _studentRow(
   return TableRow(
     decoration: BoxDecoration(color: rowBackground),
     children: [
-      _ReportCell(
+      ReportCell(
         child: Text(
           '${index + 1}',
           style: theme.textTheme.bodySmall?.copyWith(
@@ -52,7 +55,7 @@ TableRow _studentRow(
           ),
         ),
       ),
-      _ReportCell(
+      ReportCell(
         alignment: Alignment.centerLeft,
         child: Text(
           student.fullName,
@@ -64,11 +67,11 @@ TableRow _studentRow(
         ),
       ),
       for (var day = 1; day <= dayCount; day++)
-        _MarkCell(
+        MarkCell(
           mark: lessonDays.contains(day) ? presentDays.contains(day) : null,
         ),
-      _MarkCell(mark: student.paid),
-      _ReportCell(
+      MarkCell(mark: student.paid),
+      ReportCell(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
@@ -96,7 +99,7 @@ TableRow _totalRow(BuildContext context, GroupReportResponse report) {
   return TableRow(
     decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
     children: [
-      _ReportCell(
+      ReportCell(
         alignment: Alignment.centerLeft,
         child: Text(
           context.t.reports.total,
@@ -108,11 +111,11 @@ TableRow _totalRow(BuildContext context, GroupReportResponse report) {
           ),
         ),
       ),
-      const _ReportCell(child: SizedBox.shrink()),
+      const ReportCell(child: SizedBox.shrink()),
       for (var day = 1; day <= dayCount; day++)
-        const _ReportCell(child: SizedBox.shrink()),
-      const _ReportCell(child: SizedBox.shrink()),
-      _ReportCell(
+        const ReportCell(child: SizedBox.shrink()),
+      const ReportCell(child: SizedBox.shrink()),
+      ReportCell(
         child: Text(
           '${report.totalPresent}/${report.totalLessons}',
           style: theme.textTheme.labelMedium?.copyWith(
@@ -174,85 +177,6 @@ class GroupReportTable extends StatelessWidget {
               ),
             _totalRow(context, report),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ReportCell extends StatelessWidget {
-  final Widget child;
-  final Alignment alignment;
-
-  const new({required this.child, this.alignment = Alignment.center});
-
-  @override
-  Widget build(BuildContext context) => Container(
-    alignment: alignment,
-    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-    child: child,
-  );
-}
-
-class _HeaderCell extends StatelessWidget {
-  final String text;
-  final Alignment alignment;
-
-  const new({required this.text, this.alignment = Alignment.center});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return _ReportCell(
-      alignment: alignment,
-      child: Text(
-        text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.labelSmall?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: theme.colorScheme.onSurfaceVariant,
-          letterSpacing: 0.2,
-        ),
-      ),
-    );
-  }
-}
-
-class _MarkCell extends StatelessWidget {
-  final bool? mark;
-
-  const new({required this.mark});
-
-  @override
-  Widget build(BuildContext context) {
-    final mark = this.mark;
-    if (mark == null) return const _ReportCell(child: SizedBox.shrink());
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final color = mark
-        ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A))
-        : (isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626));
-
-    final background = mark
-        ? (isDark ? const Color(0xFF14532D) : const Color(0xFFDCFCE7))
-        : (isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFFEDD5));
-
-    return _ReportCell(
-      child: Container(
-        width: 22,
-        height: 22,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: background, shape: BoxShape.circle),
-        child: Text(
-          mark ? '+' : '-',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: color,
-          ),
         ),
       ),
     );

@@ -3,15 +3,12 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
-import 'package:phone/core/widgets/recent_transactions.dart';
 import 'package:phone/core/widgets/shell_page.dart';
 import 'package:phone/features/finance/controllers/payment_metrics_controller.dart';
 import 'package:phone/features/finance/controllers/transaction_list_controller.dart';
-import 'package:phone/features/finance/pages/transaction_list_page.dart';
-import 'package:phone/features/finance/widgets/chart_skeleton.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
-import 'package:phone/features/finance/widgets/profit_line_chart.dart';
-import 'package:phone/i18n/strings.g.dart';
+import 'package:phone/features/finance/widgets/finance_metrics_chart.dart';
+import 'package:phone/features/finance/widgets/finance_recent_transactions.dart';
 
 class FinancePage extends ShellPage {
   const new({
@@ -53,72 +50,10 @@ class FinancePage extends ShellPage {
           padding: EdgeInsets.all(16.0),
           child: Column(
             spacing: 16,
-            children: [_FinanceMetricsChart(), _FinanceRecentTransactions()],
+            children: [FinanceMetricsChart(), FinanceRecentTransactions()],
           ),
         ),
       ),
     ),
-  );
-}
-
-class _FinanceMetricsChart extends ConsumerWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final metricsAsync = ref.watch(paymentMetricsControllerProvider);
-    final selectedIndex = ref.watch(selectedMetricIndexProvider);
-
-    return metricsAsync.when(
-      data: (data) {
-        if (data.isEmpty) {
-          return _MetricsMessage(message: context.t.noData);
-        }
-
-        return ProfitLineChart(
-          data: data,
-          selectedIndex: selectedIndex.clamp(0, data.length - 1),
-          onIndexChanged: (index) {
-            ref.read(selectedMetricIndexProvider.notifier).state = index;
-          },
-        );
-      },
-      loading: () => const ChartSkeleton(),
-      error: (error, stackTrace) =>
-          _MetricsMessage(message: context.t.errorLoadingData(error: error)),
-    );
-  }
-}
-
-class _FinanceRecentTransactions extends ConsumerWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsState = ref.watch(transactionsControllerProvider);
-    final transactionsAsync = transactionsState.whenData(
-      (state) => state.transactions,
-    );
-
-    return RecentTransactions(
-      asyncTransactions: transactionsAsync,
-      onSeeAllPressed: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const TransactionListPage()),
-      ),
-    );
-  }
-}
-
-class _MetricsMessage extends StatelessWidget {
-  static const double _height = 200;
-
-  final String message;
-
-  const new({required this.message});
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    height: _height,
-    child: Center(child: Text(message)),
   );
 }

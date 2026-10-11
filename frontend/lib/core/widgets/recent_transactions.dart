@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/core/constants/app_colors.dart';
 import 'package:phone/core/constants/app_spacing.dart';
-import 'package:phone/core/widgets/transaction_tile.dart';
-import 'package:phone/features/finance/pages/transaction_page.dart';
-import 'package:phone/features/finance/utils/transaction_date_formatter.dart';
+import 'package:phone/core/widgets/empty_transactions.dart';
+import 'package:phone/core/widgets/grouped_transactions.dart';
+import 'package:phone/core/widgets/recent_transactions_header.dart';
+import 'package:phone/core/widgets/transactions_error.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';
-import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class RecentTransactions extends StatelessWidget {
@@ -60,7 +59,7 @@ class RecentTransactions extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _RecentTransactionsHeader(
+        RecentTransactionsHeader(
           isLoading: asyncTransactions.isLoading,
           onSeeAllPressed: onSeeAllPressed,
         ),
@@ -68,183 +67,24 @@ class RecentTransactions extends StatelessWidget {
           data: (transactions) {
             final recentItems = transactions.take(_maxRecentItems).toList();
 
-            if (recentItems.isEmpty) return const _EmptyTransactions();
+            if (recentItems.isEmpty) return const EmptyTransactions();
 
-            return _GroupedTransactions(
+            return GroupedTransactions(
               transactions: recentItems,
               overrideTitle: overrideTitle,
             );
           },
           loading: () => Skeletonizer(
             ignorePointers: false,
-            child: _GroupedTransactions(
+            child: GroupedTransactions(
               transactions: asyncTransactions.value ?? _dummyTransactions,
               overrideTitle: overrideTitle,
               isTappable: false,
             ),
           ),
-          error: (error, stack) => _TransactionsError(error: error),
+          error: (error, stack) => TransactionsError(error: error),
         ),
       ],
-    ),
-  );
-}
-
-class _RecentTransactionsHeader extends StatelessWidget {
-  final bool isLoading;
-  final VoidCallback? onSeeAllPressed;
-
-  const new({required this.isLoading, this.onSeeAllPressed});
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-    child: Skeletonizer(
-      enabled: isLoading,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            context.t.finance.lastTransactions,
-            style: const TextStyle(fontSize: 18, color: Colors.black),
-          ),
-          if (onSeeAllPressed != null)
-            TextButton(
-              onPressed: onSeeAllPressed,
-              child: Text(
-                context.t.all,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
-}
-
-class _GroupedTransactions extends StatelessWidget {
-  final List<TransactionResponse> transactions;
-  final String? overrideTitle;
-  final bool isTappable;
-
-  const new({
-    required this.transactions,
-    this.overrideTitle,
-    this.isTappable = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final groupedTransactions = TransactionDateFormatter.groupTransactionsByDate(
-      transactions,
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final entry in groupedTransactions.entries)
-          _TransactionDateGroup(
-            dateHeader: TransactionDateFormatter.formatDateHeader(entry.key),
-            transactions: entry.value,
-            overrideTitle: overrideTitle,
-            isTappable: isTappable,
-          ),
-      ],
-    );
-  }
-}
-
-class _TransactionDateGroup extends StatelessWidget {
-  final String dateHeader;
-  final List<TransactionResponse> transactions;
-  final String? overrideTitle;
-  final bool isTappable;
-
-  const new({
-    required this.dateHeader,
-    required this.transactions,
-    this.overrideTitle,
-    this.isTappable = true,
-  });
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Padding(
-        padding: const EdgeInsets.only(
-          top: AppSpacing.xl,
-          bottom: AppSpacing.sm,
-          left: AppSpacing.xl,
-          right: AppSpacing.xl,
-        ),
-        child: Text(
-          dateHeader,
-          style: const TextStyle(
-            fontSize: 16,
-            color: AppColors.mutedText,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ),
-      for (final transaction in transactions)
-        TransactionTile(
-          key: ValueKey(transaction.id),
-          transaction: transaction,
-          overrideTitle: overrideTitle,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-          ),
-          borderRadius: BorderRadius.zero,
-          onTap: isTappable
-              ? () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => TransactionPage(
-                      transaction: transaction,
-                      overrideTitle: overrideTitle,
-                    ),
-                  ),
-                )
-              : null,
-        ),
-    ],
-  );
-}
-
-class _EmptyTransactions extends StatelessWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(
-      horizontal: AppSpacing.xl,
-      vertical: AppSpacing.xxl,
-    ),
-    child: Center(
-      child: Text(
-        context.t.noTransactions,
-        style: const TextStyle(color: AppColors.mutedText),
-      ),
-    ),
-  );
-}
-
-class _TransactionsError extends StatelessWidget {
-  final Object error;
-
-  const new({required this.error});
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(
-      horizontal: AppSpacing.xl,
-      vertical: AppSpacing.xxl,
-    ),
-    child: Center(
-      child: Text(
-        error.toString(),
-        style: TextStyle(color: Theme.of(context).colorScheme.error),
-      ),
     ),
   );
 }
