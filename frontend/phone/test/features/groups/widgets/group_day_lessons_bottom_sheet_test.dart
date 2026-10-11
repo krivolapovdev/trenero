@@ -46,6 +46,7 @@ class _FakeLessonClient implements LessonControllerClient {
     createdAt: _day,
     groupId: 'group-1',
     studentVisits: visits,
+    students: const [],
   );
 
   @override

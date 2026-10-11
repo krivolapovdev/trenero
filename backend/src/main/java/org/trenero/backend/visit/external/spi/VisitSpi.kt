@@ -15,6 +15,11 @@ interface VisitSpi {
 
   fun getVisitsByLessonId(lessonId: UUID, jwtUser: JwtUser): List<VisitResponse>
 
+  fun getVisitsByLessonIds(
+    lessonIds: List<UUID>,
+    jwtUser: JwtUser,
+  ): List<VisitResponse>
+
   fun removeVisitsByLessonId(lessonId: UUID, jwtUser: JwtUser)
 
   fun updateVisitsByLessonId(

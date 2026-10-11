@@ -11,6 +11,7 @@ import 'package:phone/features/groups/widgets/lesson_attendance_bottom_sheet.dar
 import 'package:phone/generated/models/group_student_summary_response.dart';
 import 'package:phone/generated/models/lesson_details_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
+import 'package:phone/generated/models/student_response.dart';
 import 'package:phone/generated/models/visit_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/generated/models/visit_type.dart';
@@ -77,6 +78,43 @@ class _LessonPageState extends ConsumerState<LessonPage> {
       LessonAttendance(
         status: VisitStatus.present,
         type: student.free ? VisitType.free : VisitType.regular,
+      );
+
+  /// The students of the lesson: the students of the group followed by the
+  /// students that carry a visit in it without being part of the group.
+  ///
+  /// A student that left the group is not listed by it any more, but their visit
+  /// stays in the lesson, so they are added back at the bottom from the students
+  /// the lesson details carry. Their row keeps the mark of the lesson, so saving
+  /// the lesson leaves their visit alone instead of dropping it.
+  List<GroupStudentSummaryResponse> _lessonStudents(
+    List<GroupStudentSummaryResponse> groupStudents,
+    List<StudentResponse> visitStudents,
+  ) {
+    final groupStudentIds = groupStudents.map((student) => student.id).toSet();
+
+    return [
+      ...groupStudents,
+      ...visitStudents
+          .where((student) => !groupStudentIds.contains(student.id))
+          .map(_toGroupStudent),
+    ];
+  }
+
+  /// The row of a student the group does not hold any more.
+  ///
+  /// The badges of the group are not known for them, and the lesson page draws
+  /// no badge of a student anyway.
+  GroupStudentSummaryResponse _toGroupStudent(StudentResponse student) =>
+      GroupStudentSummaryResponse(
+        id: student.id,
+        fullName: student.fullName,
+        birthdate: student.birthdate,
+        phone: student.phone,
+        note: student.note,
+        createdAt: student.createdAt,
+        free: student.free,
+        statuses: const [],
       );
 
   /// A new lesson starts with everybody present, a stored one with the marks
@@ -283,13 +321,15 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     final lesson = widget.lesson;
 
     final studentsState = ref.watch(groupStudentsProvider(widget.groupId));
-    final students =
-        studentsState.value ?? const <GroupStudentSummaryResponse>[];
     final detailsState = lesson == null
         ? null
         : ref.watch(lessonDetailsProvider(lesson.id));
     final isLoading = ref.watch(lessonMutationControllerProvider).isLoading;
 
+    final students = _lessonStudents(
+      studentsState.value ?? const <GroupStudentSummaryResponse>[],
+      detailsState?.value?.students ?? const <StudentResponse>[],
+    );
     final isAttendanceLoading = detailsState?.isLoading ?? false;
     final storedAttendance = _storedAttendance(detailsState);
     final attendance = _attendance(students, storedAttendance);

@@ -154,27 +154,39 @@ public class GroupService implements GroupSpi {
     LocalDate from = LocalDate.of(year, month, 1);
     LocalDate to = from.withDayOfMonth(from.lengthOfMonth());
 
-    List<UUID> studentIds =
-        groupStudentService.getStudentsByGroupId(groupId, jwtUser).stream()
-            .map(GroupStudentResponse::getStudentId)
-            .distinct()
-            .toList();
+    List<LessonResponse> lessons =
+        lessonSpi.getLessonsByGroupIdAndDateRange(groupId, from, to, jwtUser);
+    List<UUID> lessonIds = lessons.stream().map(LessonResponse::getId).distinct().toList();
+
+    // The rows of the report are driven by the visits of the reported lessons, because leaving a
+    // group deletes the student link: a student that came to a lesson of the month has to keep
+    // showing up after they left the group. The students still linked to the group are added as
+    // well, so they are listed with an empty result when the month holds no visit for them.
+    List<VisitResponse> lessonVisits =
+        lessonIds.isEmpty() ? List.of() : visitSpi.getVisitsByLessonIds(lessonIds, jwtUser);
+
+    Set<UUID> studentIds = new LinkedHashSet<>();
+    groupStudentService.getStudentsByGroupId(groupId, jwtUser).stream()
+        .map(GroupStudentResponse::getStudentId)
+        .forEach(studentIds::add);
+    lessonVisits.stream().map(VisitResponse::getStudentId).forEach(studentIds::add);
 
     if (studentIds.isEmpty()) {
       return groupReportService.buildReport(
-          group, year, month, List.of(), List.of(), Map.of(), Map.of(), LocalDate.now());
+          group, year, month, List.of(), lessons, Map.of(), Map.of(), LocalDate.now());
     }
 
-    Map<UUID, StudentResponse> studentsMap = studentSpi.getStudentsByIds(studentIds, jwtUser);
-    List<StudentResponse> students =
-        studentIds.stream().map(studentsMap::get).filter(Objects::nonNull).toList();
+    List<UUID> distinctStudentIds = List.copyOf(studentIds);
 
-    List<LessonResponse> lessons =
-        lessonSpi.getLessonsByGroupIdAndDateRange(groupId, from, to, jwtUser);
+    Map<UUID, StudentResponse> studentsMap =
+        studentSpi.getStudentsByIds(distinctStudentIds, jwtUser);
+    List<StudentResponse> students =
+        distinctStudentIds.stream().map(studentsMap::get).filter(Objects::nonNull).toList();
+
     Map<UUID, List<VisitResponse>> visitsByStudentId =
-        visitSpi.getVisitsByStudentIds(studentIds, jwtUser);
+        lessonVisits.stream().collect(Collectors.groupingBy(VisitResponse::getStudentId));
     Map<UUID, List<TransactionResponse>> paymentsByStudentId =
-        transactionSpi.getTransactionsByStudentIds(studentIds, jwtUser);
+        transactionSpi.getTransactionsByStudentIds(distinctStudentIds, jwtUser);
 
     return groupReportService.buildReport(
         group,

@@ -26,6 +26,8 @@ import org.trenero.backend.lesson.internal.repository.LessonRepository;
 import org.trenero.backend.lesson.internal.request.CreateLessonRequest;
 import org.trenero.backend.lesson.internal.request.UpdateLessonRequest;
 import org.trenero.backend.lesson.internal.response.LessonDetailsResponse;
+import org.trenero.backend.student.external.response.StudentResponse;
+import org.trenero.backend.student.external.spi.StudentSpi;
 import org.trenero.backend.visit.external.response.VisitResponse;
 import org.trenero.backend.visit.external.spi.VisitSpi;
 
@@ -39,6 +41,7 @@ public class LessonService implements LessonSpi {
 
   @Lazy private final LessonService self;
   @Lazy private final VisitSpi visitSpi;
+  @Lazy private final StudentSpi studentSpi;
 
   @Transactional(readOnly = true)
   public @NonNull LessonResponse getLessonById(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
@@ -56,7 +59,18 @@ public class LessonService implements LessonSpi {
     LessonResponse lesson = self.getLessonById(lessonId, jwtUser);
     List<VisitResponse> visits = visitSpi.getVisitsByLessonId(lessonId, jwtUser);
 
-    return new LessonDetailsResponse(lesson, visits);
+    // The students of the visits are not necessarily the students of the group of the lesson: a
+    // student that left the group keeps their visit, so the students are loaded on their own to
+    // keep them visible in the lesson.
+    List<UUID> studentIds = visits.stream().map(VisitResponse::getStudentId).distinct().toList();
+
+    Map<UUID, StudentResponse> studentsMap =
+        studentIds.isEmpty() ? Map.of() : studentSpi.getStudentsByIds(studentIds, jwtUser);
+
+    List<StudentResponse> students =
+        studentIds.stream().map(studentsMap::get).filter(Objects::nonNull).toList();
+
+    return new LessonDetailsResponse(lesson, visits, students);
   }
 
   @Transactional(readOnly = true)

@@ -62,4 +62,15 @@ public interface VisitRepository extends JpaRepository<@NonNull Visit, @NonNull 
           """)
   List<Visit> findAllByStudentIdsAndOwnerId(
       @Param("studentIds") List<UUID> studentIds, @Param("ownerId") UUID ownerId);
+
+  @Query(
+      """
+          SELECT v
+          FROM Visit AS v
+          WHERE v.ownerId = :ownerId
+            AND v.lessonId IN :lessonIds
+          ORDER BY v.createdAt DESC
+          """)
+  List<Visit> findAllByLessonIdsAndOwnerId(
+      @Param("lessonIds") List<UUID> lessonIds, @Param("ownerId") UUID ownerId);
 }

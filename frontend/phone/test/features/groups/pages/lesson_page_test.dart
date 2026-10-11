@@ -19,6 +19,7 @@ import 'package:phone/generated/models/group_student_summary_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/lesson_details_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
+import 'package:phone/generated/models/student_response.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/models/update_lesson_request.dart';
 import 'package:phone/generated/models/visit_response.dart';
@@ -45,6 +46,24 @@ final GroupStudentSummaryResponse _anna = GroupStudentSummaryResponse(
   free: false,
   statuses: const [],
 );
+
+/// A student that left the group: the group does not list them any more, but
+/// the lesson they came to still holds their visit.
+final StudentResponse _heroLeft = StudentResponse(
+  id: 'student-3',
+  fullName: 'Hero Left',
+  createdAt: DateTime(2025, 1, 1),
+  free: false,
+);
+
+/// The student behind [groupStudent], the way the lesson details carry them.
+StudentResponse _student(GroupStudentSummaryResponse groupStudent) =>
+    StudentResponse(
+      id: groupStudent.id,
+      fullName: groupStudent.fullName,
+      createdAt: groupStudent.createdAt,
+      free: groupStudent.free,
+    );
 
 final LessonResponse _lesson = LessonResponse(
   id: 'lesson-1',
@@ -112,12 +131,16 @@ class _FakeGroupClient implements GroupControllerClient {
 /// Records the lessons that are created, updated and deleted.
 class _FakeLessonClient implements LessonControllerClient {
   final List<VisitResponse> visits;
+
+  /// The students the visits belong to, the way the backend carries them.
+  final List<StudentResponse> students;
+
   final List<CreateLessonRequest> createBodies = [];
   final List<UpdateLessonRequest> updateBodies = [];
   final List<String> updatedLessonIds = [];
   final List<String> deletedLessonIds = [];
 
-  new({this.visits = const []});
+  new({this.visits = const [], this.students = const []});
 
   @override
   Future<LessonResponse> createLesson({
@@ -142,6 +165,7 @@ class _FakeLessonClient implements LessonControllerClient {
     createdAt: DateTime(2026, 10, 8),
     groupId: 'group-1',
     studentVisits: visits,
+    students: students,
   );
 
   @override
@@ -428,6 +452,43 @@ void main() {
     await _toggle(tester, 'Anna Smirnova');
 
     expect(_isActionEnabled(tester, _label(1, 2)), isFalse);
+  });
+
+  testWidgets('a student who left the group keeps the row of the lesson', (
+    tester,
+  ) async {
+    final lessonClient = _FakeLessonClient(
+      visits: [
+        _visit(studentId: 'student-1', status: VisitStatus.present),
+        _visit(studentId: 'student-3', status: VisitStatus.present),
+      ],
+      students: [_student(_ivan), _heroLeft],
+    );
+
+    await _openPage(
+      tester,
+      students: [_ivan, _anna],
+      lesson: _lesson,
+      lessonClient: lessonClient,
+    );
+
+    // Hero is not a student of the group any more, so he is added back from the
+    // lesson with the mark that was recorded for him.
+    expect(find.text('Hero Left'), findsOneWidget);
+    expect(_isChecked(tester, 'Hero Left'), isTrue);
+    expect(find.text(_label(2, 3)), findsOneWidget);
+
+    await _toggle(tester, 'Ivan Petrov');
+
+    // Saving the lesson keeps the visit of the student who left.
+    await _update(tester, present: 1, total: 3);
+
+    expect(
+      lessonClient.updateBodies.single.students!.map(
+        (student) => student.studentId,
+      ),
+      ['student-1', 'student-3'],
+    );
   });
 
   testWidgets('editing a stored lesson updates it', (tester) async {

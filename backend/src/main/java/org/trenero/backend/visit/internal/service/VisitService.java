@@ -38,6 +38,16 @@ public class VisitService implements VisitSpi {
 
   @Override
   @Transactional(readOnly = true)
+  public @NonNull List<VisitResponse> getVisitsByLessonIds(
+      @NonNull List<UUID> lessonIds, @NonNull JwtUser jwtUser) {
+    log.info("Getting visits by lesson ids: lessonIds={}; user={}", lessonIds, jwtUser);
+    return visitRepository.findAllByLessonIdsAndOwnerId(lessonIds, jwtUser.id()).stream()
+        .map(visitMapper::toResponse)
+        .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public @NonNull Map<UUID, List<VisitResponse>> getVisitsByStudentIds(
       @NonNull List<UUID> studentIds, @NonNull JwtUser jwtUser) {
     log.info("Getting visits by student ids: studentIds={}; user={}", studentIds, jwtUser);

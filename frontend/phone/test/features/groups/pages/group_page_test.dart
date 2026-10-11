@@ -137,6 +137,7 @@ class _FakeLessonClient implements LessonControllerClient {
     createdAt: DateTime(2026, 10, 8),
     groupId: 'group-1',
     studentVisits: const [],
+    students: const [],
   );
 
   @override
