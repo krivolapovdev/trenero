@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/extensions/string_extension.dart';
-import 'package:phone/core/widgets/card_badge.dart';
 import 'package:phone/features/students/extensions/student_status_extension.dart';
-import 'package:phone/features/students/models/student_badge_data.dart';
+import 'package:phone/features/students/widgets/student_badges.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 
 class StudentCard extends StatelessWidget {
@@ -96,7 +95,7 @@ class StudentCard extends StatelessWidget {
 
                         const SizedBox(height: 8),
 
-                        _StudentBadges(badges: badges),
+                        StudentBadges(badges: badges),
                       ],
                     ),
                   ),
@@ -146,26 +145,3 @@ class StudentCard extends StatelessWidget {
       defaultPrice != null ? '$name · $defaultPrice' : name;
 }
 
-class _StudentBadges extends StatelessWidget {
-  static const double _spacing = 8.0;
-
-  final List<StudentBadgeData> badges;
-
-  const new({required this.badges});
-
-  @override
-  Widget build(BuildContext context) => Wrap(
-    spacing: _spacing,
-    runSpacing: _spacing,
-    children: [
-      for (final badge in badges)
-        CardBadge(
-          key: ValueKey(badge.id),
-          icon: badge.icon,
-          label: badge.label,
-          backgroundColor: badge.backgroundColor,
-          foregroundColor: badge.foregroundColor,
-        ),
-    ],
-  );
-}

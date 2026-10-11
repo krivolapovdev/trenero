@@ -1,6 +1,4 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/constants/app_radius.dart';
@@ -10,15 +8,15 @@ import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.d
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
+import 'package:phone/features/students/pages/student_app_menu.dart';
 import 'package:phone/features/students/pages/student_group_page.dart';
+import 'package:phone/features/students/pages/student_hero_card.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
 import 'package:phone/features/students/widgets/delete_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
-import 'package:phone/features/students/widgets/student_card.dart';
 import 'package:phone/features/students/widgets/student_groups_section.dart';
 import 'package:phone/features/students/widgets/student_lessons_section.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
-import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class StudentPage extends ConsumerStatefulWidget {
@@ -146,7 +144,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
       appBar: AppBar(
         title: Text(_student.fullName),
         actions: [
-          _StudentAppMenu(
+          StudentAppMenu(
             onEdit: _openEditStudentSheet,
             onCreatePayment: _openCreatePaymentSheet,
             onAssignGroup: _openAssignGroupPage,
@@ -175,7 +173,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
               Skeletonizer(
                 enabled: _isRefreshing,
                 ignorePointers: false,
-                child: _StudentHeroCard(
+                child: StudentHeroCard(
                   student: _student,
                   routeAnimation: routeAnimation,
                 ),
@@ -212,92 +210,3 @@ class _StudentPageState extends ConsumerState<StudentPage> {
   }
 }
 
-class _StudentHeroCard extends StatelessWidget {
-  final StudentSummaryResponse student;
-  final Animation<double>? routeAnimation;
-
-  const new({required this.student, this.routeAnimation});
-
-  @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-    animation: routeAnimation ?? const AlwaysStoppedAnimation(0),
-    builder: (context, child) => HeroMode(
-      enabled: routeAnimation?.status != AnimationStatus.reverse,
-      child: child!,
-    ),
-    child: Hero(
-      tag: 'student-card-${student.id}',
-      child: Material(
-        type: MaterialType.transparency,
-        child: StudentCard(student: student, onTap: () {}),
-      ),
-    ),
-  );
-}
-
-class _StudentAppMenu extends StatelessWidget {
-  final VoidCallback onEdit;
-  final VoidCallback onCreatePayment;
-  final VoidCallback onAssignGroup;
-  final VoidCallback onDelete;
-
-  const new({
-    required this.onEdit,
-    required this.onCreatePayment,
-    required this.onAssignGroup,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final errorColor = Theme.of(context).colorScheme.error;
-
-    return PopupMenuButton<String>(
-      tooltip: '',
-      offset: const Offset(-8, 0),
-      color: Theme.of(context).colorScheme.surface,
-      itemBuilder: (menuContext) => [
-        PopupMenuItem<String>(
-          onTap: onEdit,
-          child: Row(
-            children: [
-              const Icon(CupertinoIcons.text_cursor, size: 20),
-              const SizedBox(width: 12),
-              Text(context.t.edit),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          onTap: onCreatePayment,
-          child: Row(
-            children: [
-              const Icon(FluentIcons.money_24_regular, size: 20),
-              const SizedBox(width: 12),
-              Text(context.t.students.payment),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          onTap: onAssignGroup,
-          child: Row(
-            children: [
-              const Icon(CupertinoIcons.person_2_square_stack, size: 20),
-              const SizedBox(width: 12),
-              Text(context.t.students.group),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          onTap: onDelete,
-          child: Row(
-            children: [
-              Icon(CupertinoIcons.trash, size: 20, color: errorColor),
-              const SizedBox(width: 12),
-              Text(context.t.delete, style: TextStyle(color: errorColor)),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}

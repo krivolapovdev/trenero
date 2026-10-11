@@ -8,16 +8,12 @@ import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/widgets/student_day_lessons_bottom_sheet.dart';
-import 'package:phone/features/students/widgets/student_lesson_calendar_section.dart';
+import 'package:phone/features/students/widgets/student_lessons_body.dart';
 import 'package:phone/generated/models/group_response.dart';
-import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
-import 'package:phone/generated/models/visit_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/generated/models/visit_type.dart';
 import 'package:phone/generated/models/visit_with_lesson_response.dart';
-import 'package:phone/i18n/strings.g.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 class StudentLessonsSection extends ConsumerStatefulWidget {
   final String studentId;
@@ -37,20 +33,18 @@ class StudentLessonsSection extends ConsumerStatefulWidget {
   ConsumerState<StudentLessonsSection> createState() =>
       _StudentLessonsSectionState();
 
-  static bool _isLessonVisit(VisitWithLessonResponse visit) =>
+  static bool isLessonVisit(VisitWithLessonResponse visit) =>
       visit.visit.type == VisitType.regular ||
       visit.visit.type == VisitType.free;
 
-  static List<LessonResponse> _toLessons(
+  static List<LessonResponse> toLessons(
     List<VisitWithLessonResponse> visits,
   ) => visits.map((visit) => visit.lesson).toList();
 
-  @visibleForTesting
   static List<VisitWithLessonResponse> lessonVisitsOf(
     List<VisitWithLessonResponse> visits,
-  ) => visits.where(_isLessonVisit).toList();
+  ) => visits.where(isLessonVisit).toList();
 
-  @visibleForTesting
   static List<VisitWithLessonResponse> individualVisits(
     List<VisitWithLessonResponse> visits,
   ) =>
@@ -58,7 +52,6 @@ class StudentLessonsSection extends ConsumerStatefulWidget {
           .where((visit) => visit.lesson.groupId == null)
           .toList();
 
-  @visibleForTesting
   static List<VisitWithLessonResponse> groupVisits(
     List<VisitWithLessonResponse> visits,
     String groupId,
@@ -67,18 +60,15 @@ class StudentLessonsSection extends ConsumerStatefulWidget {
           .where((visit) => visit.lesson.groupId == groupId)
           .toList();
 
-  @visibleForTesting
   static List<LessonResponse> individualLessons(
     List<VisitWithLessonResponse> visits,
-  ) => _toLessons(individualVisits(visits));
+  ) => toLessons(individualVisits(visits));
 
-  @visibleForTesting
   static List<LessonResponse> groupLessons(
     List<VisitWithLessonResponse> visits,
     String groupId,
-  ) => _toLessons(groupVisits(visits, groupId));
+  ) => toLessons(groupVisits(visits, groupId));
 
-  @visibleForTesting
   static List<String> groupIdsOf(List<VisitWithLessonResponse> visits) {
     final groupIds = <String>[];
 
@@ -92,7 +82,6 @@ class StudentLessonsSection extends ConsumerStatefulWidget {
     return groupIds;
   }
 
-  @visibleForTesting
   static List<VisitWithLessonResponse> dayVisitsOf(
     List<VisitWithLessonResponse> visits,
     DateTime day,
@@ -100,21 +89,18 @@ class StudentLessonsSection extends ConsumerStatefulWidget {
       .where((visit) => DateUtils.isSameDay(visit.lesson.date, day))
       .toList();
 
-  @visibleForTesting
   static List<VisitStatus> dayVisitStatusesOf(
     List<VisitWithLessonResponse> visits,
     DateTime day,
   ) => dayVisitsOf(
     visits,
     day,
-  ).where(_isLessonVisit).map((visit) => visit.visit.status).toList();
+  ).where(isLessonVisit).map((visit) => visit.visit.status).toList();
 
-  @visibleForTesting
   static List<StudentDayLesson> individualLessonsOf(
     List<VisitWithLessonResponse> dayVisits,
   ) => _studentDayLessons(dayVisits, (lesson) => lesson.groupId == null);
 
-  @visibleForTesting
   static List<StudentDayLesson> groupLessonsOf(
     List<VisitWithLessonResponse> dayVisits,
   ) => _studentDayLessons(dayVisits, (lesson) => lesson.groupId != null);
@@ -132,40 +118,14 @@ class StudentLessonsSection extends ConsumerStatefulWidget {
       )
       .toList();
 
-  @visibleForTesting
   static bool showsIndividualCalendar(
     List<VisitWithLessonResponse> visits,
     List<GroupResponse> groups,
   ) => individualVisits(visits).isNotEmpty || groups.isEmpty;
 
-  @visibleForTesting
   static bool opensCreatePageDirectly(
     List<VisitWithLessonResponse> dayVisits,
   ) => dayVisits.isEmpty;
-
-  static final List<VisitWithLessonResponse> _dummyVisits = List.generate(6, (
-    index,
-  ) {
-    final date = DateTime.now().add(Duration(days: index * 3));
-    final lesson = LessonResponse(
-      id: 'placeholder-$index',
-      date: date,
-      createdAt: date,
-      groupId: index.isOdd ? 'placeholder-group' : null,
-    );
-
-    return VisitWithLessonResponse(
-      visit: VisitResponse(
-        id: 'placeholder-visit-$index',
-        status: VisitStatus.present,
-        type: VisitType.regular,
-        lessonId: lesson.id,
-        studentId: 'placeholder-student',
-        createdAt: date,
-      ),
-      lesson: lesson,
-    );
-  });
 }
 
 class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
@@ -316,7 +276,7 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
                 : null,
             onNextMonth: _canGoForward(focusedDay) ? () => _showMonth(1) : null,
           ),
-          _StudentLessonsBody(
+          StudentLessonsBody(
             visitsAsync: visitsAsync,
             isLoadingEarlier: isLoadingEarlier,
             focusedDay: focusedDay,
@@ -332,188 +292,4 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
       ),
     );
   }
-}
-
-class _StudentLessonsBody extends StatelessWidget {
-  final AsyncValue<List<VisitWithLessonResponse>> visitsAsync;
-  final bool isLoadingEarlier;
-  final DateTime focusedDay;
-  final List<GroupSummaryResponse>? groups;
-  final GroupResponse? studentGroup;
-  final String? locale;
-  final void Function(GroupResponse group, DateTime day, List<VisitWithLessonResponse> visits)
-  onGroupDayTapped;
-  final void Function(DateTime day, List<VisitWithLessonResponse> visits)
-  onIndividualDayTapped;
-  final ValueChanged<GroupResponse> onCreateGroupLesson;
-  final VoidCallback onCreateIndividualLesson;
-
-  const new({
-    required this.visitsAsync,
-    required this.isLoadingEarlier,
-    required this.focusedDay,
-    required this.onGroupDayTapped,
-    required this.onIndividualDayTapped,
-    required this.onCreateGroupLesson,
-    required this.onCreateIndividualLesson,
-    this.groups,
-    this.studentGroup,
-    this.locale,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final visits = visitsAsync.value;
-
-    if (visitsAsync.hasError && visits == null) {
-      return Center(
-        child: Text(context.t.lessons.errorLoading(error: visitsAsync.error!)),
-      );
-    }
-
-    return Skeletonizer(
-      enabled: visitsAsync.isLoading || isLoadingEarlier,
-      child: _LessonsCalendarColumn(
-        visits: visits ?? StudentLessonsSection._dummyVisits,
-        groups: groups,
-        studentGroup: studentGroup,
-        focusedDay: focusedDay,
-        locale: locale,
-        onGroupDayTapped: onGroupDayTapped,
-        onIndividualDayTapped: onIndividualDayTapped,
-        onCreateGroupLesson: onCreateGroupLesson,
-        onCreateIndividualLesson: onCreateIndividualLesson,
-      ),
-    );
-  }
-}
-
-class _LessonsCalendarColumn extends StatelessWidget {
-  final List<VisitWithLessonResponse> visits;
-  final List<GroupSummaryResponse>? groups;
-  final GroupResponse? studentGroup;
-  final DateTime focusedDay;
-  final String? locale;
-  final void Function(GroupResponse group, DateTime day, List<VisitWithLessonResponse> visits)
-  onGroupDayTapped;
-  final void Function(DateTime day, List<VisitWithLessonResponse> visits)
-  onIndividualDayTapped;
-  final ValueChanged<GroupResponse> onCreateGroupLesson;
-  final VoidCallback onCreateIndividualLesson;
-
-  const new({
-    required this.visits,
-    required this.focusedDay,
-    required this.onGroupDayTapped,
-    required this.onIndividualDayTapped,
-    required this.onCreateGroupLesson,
-    required this.onCreateIndividualLesson,
-    this.groups,
-    this.studentGroup,
-    this.locale,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final studentGroups = _studentGroups(visits, groups, studentGroup);
-    final individualVisits = StudentLessonsSection.individualVisits(visits);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 8,
-      children: [
-        for (final group in studentGroups)
-          _GroupLessonCalendar(
-            key: ValueKey(group.id),
-            group: group,
-            visits: StudentLessonsSection.groupVisits(visits, group.id),
-            focusedDay: focusedDay,
-            locale: locale,
-            onDayTapped: onGroupDayTapped,
-            onCreate: () => onCreateGroupLesson(group),
-          ),
-        if (StudentLessonsSection.showsIndividualCalendar(visits, studentGroups))
-          StudentLessonCalendarSection(
-            title: context.t.lessons.individualLessons,
-            locale: locale,
-            lessons: StudentLessonsSection._toLessons(individualVisits),
-            focusedDay: focusedDay,
-            dayVisitStatuses: (day) =>
-                StudentLessonsSection.dayVisitStatusesOf(individualVisits, day),
-            onCreate: onCreateIndividualLesson,
-            onDayTapped: (day, _) => onIndividualDayTapped(day, individualVisits),
-          ),
-      ],
-    );
-  }
-}
-
-class _GroupLessonCalendar extends StatelessWidget {
-  final GroupResponse group;
-  final List<VisitWithLessonResponse> visits;
-  final DateTime focusedDay;
-  final String? locale;
-  final void Function(GroupResponse group, DateTime day, List<VisitWithLessonResponse> visits)
-  onDayTapped;
-  final VoidCallback onCreate;
-
-  const new({
-    super.key,
-    required this.group,
-    required this.visits,
-    required this.focusedDay,
-    required this.onDayTapped,
-    required this.onCreate,
-    this.locale,
-  });
-
-  @override
-  Widget build(BuildContext context) => StudentLessonCalendarSection(
-    title: group.name,
-    locale: locale,
-    lessons: StudentLessonsSection.groupLessons(visits, group.id),
-    focusedDay: focusedDay,
-    dayVisitStatuses: (day) =>
-        StudentLessonsSection.dayVisitStatusesOf(visits, day),
-    onCreate: onCreate,
-    onDayTapped: (day, _) => onDayTapped(group, day, visits),
-  );
-}
-
-List<GroupResponse> _studentGroups(
-  List<VisitWithLessonResponse> visits,
-  List<GroupSummaryResponse>? groups,
-  GroupResponse? studentGroup,
-) {
-  final orderedGroups = <GroupResponse>[];
-  final seenGroupIds = <String>{};
-
-  if (studentGroup != null) {
-    orderedGroups.add(studentGroup);
-    seenGroupIds.add(studentGroup.id);
-  }
-
-  for (final groupId in StudentLessonsSection.groupIdsOf(visits)) {
-    if (seenGroupIds.add(groupId)) {
-      orderedGroups.add(_groupOf(groupId, groups));
-    }
-  }
-
-  return orderedGroups;
-}
-
-GroupResponse _groupOf(String groupId, List<GroupSummaryResponse>? groups) {
-  for (final group in groups ?? const <GroupSummaryResponse>[]) {
-    if (group.id == groupId) {
-      return GroupResponse(
-        id: group.id,
-        name: group.name,
-        createdAt: group.createdAt,
-        defaultPrice: group.defaultPrice,
-        note: group.note,
-      );
-    }
-  }
-
-  return GroupResponse(id: groupId, name: groupId, createdAt: DateTime.now());
 }

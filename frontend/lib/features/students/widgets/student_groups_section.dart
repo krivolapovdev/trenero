@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
-import 'package:phone/features/groups/pages/group_page.dart';
-import 'package:phone/features/groups/widgets/group_card.dart';
+import 'package:phone/features/students/widgets/student_groups_card.dart';
 import 'package:phone/generated/models/group_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
-import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class StudentGroupsSection extends ConsumerWidget {
@@ -41,7 +39,7 @@ class StudentGroupsSection extends ConsumerWidget {
     return Skeletonizer(
       enabled: groupsState.isLoading,
       ignorePointers: false,
-      child: _StudentGroupsCard(
+      child: StudentGroupsCard(
         groups: groups,
         listedGroups: listedGroups,
         onEdit: onEdit,
@@ -50,88 +48,3 @@ class StudentGroupsSection extends ConsumerWidget {
   }
 }
 
-class _StudentGroupsCard extends StatelessWidget {
-  final List<GroupResponse> groups;
-  final List<GroupSummaryResponse> listedGroups;
-  final VoidCallback? onEdit;
-
-  const new({
-    required this.groups,
-    required this.listedGroups,
-    this.onEdit,
-  });
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              context.t.groups.title,
-              style: const TextStyle(fontSize: 18, color: Colors.black),
-            ),
-            if (onEdit != null)
-              TextButton(
-                onPressed: onEdit,
-                child: Text(
-                  context.t.edit,
-                  style: const TextStyle(fontSize: 16),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          itemCount: groups.length,
-          separatorBuilder: (context, index) =>
-              const Divider(height: 16, thickness: 1),
-          itemBuilder: (context, index) {
-            final group = _summaryOf(groups[index], listedGroups);
-
-            return GroupCard(
-              key: ValueKey(group.id),
-              group: group,
-              noteVisible: false,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => GroupPage(group: group),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ],
-    ),
-  );
-
-  static GroupSummaryResponse _summaryOf(
-    GroupResponse group,
-    List<GroupSummaryResponse> listedGroups,
-  ) {
-    for (final listed in listedGroups) {
-      if (listed.id == group.id) return listed;
-    }
-
-    return GroupSummaryResponse(
-      id: group.id,
-      name: group.name,
-      createdAt: group.createdAt,
-      defaultPrice: group.defaultPrice,
-      note: group.note,
-    );
-  }
-}

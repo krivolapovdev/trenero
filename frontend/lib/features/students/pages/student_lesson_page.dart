@@ -5,6 +5,9 @@ import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/lesson_details_controller.dart';
 import 'package:phone/features/students/controllers/student_lesson_mutation_controller.dart';
+import 'package:phone/features/students/pages/individual_lesson_menu.dart';
+import 'package:phone/features/students/pages/student_lesson_attendance_card.dart';
+import 'package:phone/features/students/pages/student_lesson_date_card.dart';
 import 'package:phone/features/students/widgets/delete_student_lesson_bottom_sheet.dart';
 import 'package:phone/generated/models/lesson_details_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
@@ -167,7 +170,7 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
       appBar: AppBar(
         title: Text(context.t.lessons.individualLesson),
         actions: [
-          if (lesson != null) _IndividualLessonMenu(onDelete: _onDelete),
+          if (lesson != null) IndividualLessonMenu(onDelete: _onDelete),
           const SizedBox(width: 8),
         ],
         backgroundColor: colorScheme.surface,
@@ -184,12 +187,12 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
             mainAxisSize: MainAxisSize.min,
             spacing: 16,
             children: [
-              _StudentLessonDateCard(
+              StudentLessonDateCard(
                 formattedDate: _formatDate(_selectedDate),
                 canEdit: canEdit,
                 onTap: _pickDate,
               ),
-              _StudentAttendanceCard(
+              StudentLessonAttendanceCard(
                 studentName: widget.studentName,
                 isPresent: isPresent,
                 canEdit: canEdit,
@@ -206,157 +209,4 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
       ),
     );
   }
-}
-
-class _IndividualLessonMenu extends StatelessWidget {
-  final VoidCallback onDelete;
-
-  const new({required this.onDelete});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return PopupMenuButton<String>(
-      tooltip: '',
-      offset: const Offset(-8, 0),
-      color: colorScheme.surface,
-      itemBuilder: (menuContext) => [
-        PopupMenuItem<String>(
-          onTap: onDelete,
-          child: Row(
-            children: [
-              Icon(Icons.delete, size: 20, color: colorScheme.error),
-              const SizedBox(width: 12),
-              Text(
-                context.t.delete,
-                style: TextStyle(color: colorScheme.error),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StudentLessonDateCard extends StatelessWidget {
-  final String formattedDate;
-  final bool canEdit;
-  final VoidCallback onTap;
-
-  const new({
-    required this.formattedDate,
-    required this.canEdit,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.white,
-    clipBehavior: Clip.antiAlias,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    child: InkWell(
-      onTap: canEdit ? onTap : null,
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: context.t.lessons.date,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          disabledBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-        ),
-        child: Text(
-          formattedDate,
-          style: TextStyle(
-            fontSize: 16,
-            color: canEdit ? null : Theme.of(context).disabledColor,
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-class _StudentAttendanceCard extends StatelessWidget {
-  static const Duration _animationDuration = Duration(milliseconds: 250);
-
-  final String studentName;
-  final bool isPresent;
-  final bool canEdit;
-  final bool hasChanges;
-  final bool isAttendanceLoading;
-  final bool isLoading;
-  final bool isUpdate;
-  final VoidCallback onToggle;
-  final VoidCallback onSubmit;
-
-  const new({
-    required this.studentName,
-    required this.isPresent,
-    required this.canEdit,
-    required this.hasChanges,
-    required this.isAttendanceLoading,
-    required this.isLoading,
-    required this.isUpdate,
-    required this.onToggle,
-    required this.onSubmit,
-  });
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.white,
-    clipBehavior: Clip.antiAlias,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 8, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          AnimatedSize(
-            duration: _animationDuration,
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: isAttendanceLoading
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 28),
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                : CheckboxListTile(
-                    value: isPresent,
-                    onChanged: canEdit ? (_) => onToggle() : null,
-                    title: Text(
-                      studentName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    controlAffinity: ListTileControlAffinity.trailing,
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                  ),
-          ),
-
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: (isLoading || !hasChanges) ? null : onSubmit,
-              icon: isLoading
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(isUpdate ? Icons.check : Icons.add),
-              label: Text(
-                isUpdate ? context.t.edit : context.t.create,
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
 }

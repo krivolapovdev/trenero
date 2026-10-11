@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:phone/core/constants/app_colors.dart';
-import 'package:phone/core/widgets/card_badge.dart';
+import 'package:phone/features/students/widgets/day_section_title.dart';
+import 'package:phone/features/students/widgets/student_day_create_tile.dart';
+import 'package:phone/features/students/widgets/student_day_lesson_tile.dart';
 import 'package:phone/generated/models/group_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
@@ -64,9 +65,9 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (hasIndividualLessons) ...[
-              _SectionTitle(title: context.t.lessons.individualLessons),
+              DaySectionTitle(title: context.t.lessons.individualLessons),
               for (final lesson in individualLessons)
-                _StudentDayLessonTile(
+                StudentDayLessonTile(
                   key: ValueKey(lesson.lesson.id),
                   lesson: lesson,
                   icon: Icons.person_outline,
@@ -81,7 +82,7 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
             ],
 
             if (hasIndividualSection)
-              _StudentDayCreateTile(
+              StudentDayCreateTile(
                 icon: Icons.person_outline,
                 title: context.t.lessons.individualLesson,
                 onTap: () => Navigator.of(context).pop(
@@ -95,9 +96,9 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
               const SizedBox(height: 10),
 
             if (hasGroupLessons) ...[
-              _SectionTitle(title: context.t.lessons.groupLessons),
+              DaySectionTitle(title: context.t.lessons.groupLessons),
               for (final lesson in groupLessons)
-                _StudentDayLessonTile(
+                StudentDayLessonTile(
                   key: ValueKey(lesson.lesson.id),
                   lesson: lesson,
                   icon: Icons.groups_outlined,
@@ -112,7 +113,7 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
             ],
 
             if (hasGroupSection)
-              _StudentDayCreateTile(
+              StudentDayCreateTile(
                 icon: Icons.group_add_outlined,
                 title: context.t.lessons.groupLesson,
                 onTap: () => Navigator.of(context).pop(
@@ -126,84 +127,3 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-
-  const new({required this.title});
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    child: Text(
-      title,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-    ),
-  );
-}
-
-class _StudentDayLessonTile extends StatelessWidget {
-  final StudentDayLesson lesson;
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const new({
-    super.key,
-    required this.lesson,
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) => ListTile(
-    contentPadding: EdgeInsets.zero,
-    leading: Icon(icon),
-    title: Text(
-      title,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: const TextStyle(fontSize: 16),
-    ),
-    trailing: _DayAttendanceBadge(isPresent: lesson.isPresent),
-    onTap: onTap,
-  );
-}
-
-class _StudentDayCreateTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const new({required this.icon, required this.title, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) => ListTile(
-    contentPadding: EdgeInsets.zero,
-    leading: Icon(icon),
-    title: Text(
-      title,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: const TextStyle(fontSize: 16),
-    ),
-    trailing: const Icon(Icons.chevron_right),
-    onTap: onTap,
-  );
-}
-
-class _DayAttendanceBadge extends StatelessWidget {
-  final bool isPresent;
-
-  const new({required this.isPresent});
-
-  @override
-  Widget build(BuildContext context) => CardBadge(
-    icon: Icon(isPresent ? Icons.check : Icons.close),
-    label: isPresent ? context.t.lessons.present : context.t.lessons.missed,
-    backgroundColor: isPresent
-        ? AppColors.successSurface
-        : AppColors.warningSurface,
-    foregroundColor: isPresent ? AppColors.successOn : AppColors.warningOn,
-  );
-}

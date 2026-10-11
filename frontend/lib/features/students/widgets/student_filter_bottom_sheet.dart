@@ -4,6 +4,7 @@ import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/students/controllers/student_filter_controller.dart';
 import 'package:phone/features/students/extensions/student_status_extension.dart';
 import 'package:phone/features/students/models/student_filter.dart';
+import 'package:phone/features/students/widgets/filter_checkbox_tile.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/student_status.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -69,7 +70,7 @@ class _StudentFilterBottomSheetState
                       const _FilterLoading()
                     else ...[
                       if (groups.isNotEmpty)
-                        _FilterCheckboxTile(
+                        FilterCheckboxTile(
                           label: context.t.groups.noGroup,
                           isSelected: _draft.groupIds.contains(
                             StudentFilter.noGroupId,
@@ -78,7 +79,7 @@ class _StudentFilterBottomSheetState
                         ),
 
                       for (final group in groups)
-                        _FilterCheckboxTile(
+                        FilterCheckboxTile(
                           key: ValueKey(group.id),
                           label: group.name,
                           isSelected: _draft.groupIds.contains(group.id),
@@ -91,7 +92,7 @@ class _StudentFilterBottomSheetState
                     _FilterSectionTitle(title: context.t.students.filter.status),
 
                     for (final status in StudentStatus.$valuesDefined)
-                      _FilterCheckboxTile(
+                      FilterCheckboxTile(
                         key: ValueKey(status.name),
                         label: status.label(context),
                         isSelected: _draft.statuses.contains(status),
@@ -145,34 +146,6 @@ class _FilterSectionTitle extends StatelessWidget {
   );
 }
 
-class _FilterCheckboxTile extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onToggle;
-
-  const new({
-    super.key,
-    required this.label,
-    required this.isSelected,
-    required this.onToggle,
-  });
-
-  @override
-  Widget build(BuildContext context) => CheckboxListTile(
-    value: isSelected,
-    onChanged: (_) => onToggle(),
-    title: Text(
-      label,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: const TextStyle(fontSize: 16),
-    ),
-    controlAffinity: ListTileControlAffinity.leading,
-    contentPadding: EdgeInsets.zero,
-    dense: true,
-  );
-}
-
 class _FilterLoading extends StatelessWidget {
   const new();
 
@@ -182,3 +155,4 @@ class _FilterLoading extends StatelessWidget {
     child: Center(child: CircularProgressIndicator()),
   );
 }
+
