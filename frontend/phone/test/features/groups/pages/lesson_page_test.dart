@@ -264,19 +264,27 @@ Future<void> _openPage(
   await tester.pumpAndSettle();
 }
 
-/// The label of the app bar action: `[2/2]`, the students that attended over
-/// the students of the lesson.
-String _label(int present, int total) => '[$present/$total]';
+/// The row of [fullName].
+Finder _rowOf(String fullName) =>
+    find.ancestor(of: find.text(fullName), matching: find.byType(ListTile));
 
-/// The checkbox of the row of [fullName]. A student that is left unmarked has
-/// no checkbox, so this throws for them.
-Finder _checkboxOf(String fullName) => find.descendant(
-  of: find.ancestor(of: find.text(fullName), matching: find.byType(ListTile)),
-  matching: find.byType(Checkbox),
-);
+/// The checkbox of the row of [fullName], drawn while the lesson is edited. A
+/// student that is left unmarked has no checkbox, so this finds nothing for
+/// them.
+Finder _checkboxOf(String fullName) =>
+    find.descendant(of: _rowOf(fullName), matching: find.byType(Checkbox));
 
+/// The mark the row of [fullName] is read with while the lesson is only shown,
+/// drawn in place of the checkbox.
+Finder _markOf(String fullName) =>
+    find.descendant(of: _rowOf(fullName), matching: find.byType(Icon));
+
+/// Whether the row of [fullName] is marked present: read from the checkbox
+/// while the lesson is edited, from the mark it is drawn with otherwise.
 bool _isChecked(WidgetTester tester, String fullName) =>
-    tester.widget<Checkbox>(_checkboxOf(fullName)).value!;
+    _checkboxOf(fullName).evaluate().isNotEmpty
+    ? tester.widget<Checkbox>(_checkboxOf(fullName)).value!
+    : tester.widget<Icon>(_markOf(fullName)).icon == Icons.check_box;
 
 bool _isEnabled(WidgetTester tester, String fullName) =>
     tester.widget<Checkbox>(_checkboxOf(fullName)).onChanged != null;
@@ -301,6 +309,11 @@ bool _isActionEnabled(WidgetTester tester, String label) =>
         .onPressed !=
     null;
 
+/// Puts the opened lesson into the mode that marks the students, the way a user
+/// picks `Edit` in the menu of the page.
+Future<void> _startEditing(WidgetTester tester) =>
+    _pickMenuItem(tester, t.edit);
+
 /// Picks an entry of the page menu.
 Future<void> _pickMenuItem(WidgetTester tester, String label) async {
   await tester.tap(find.byType(PopupMenuButton<String>));
@@ -319,17 +332,11 @@ Future<void> _pressAction(WidgetTester tester, String label) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> _save(
-  WidgetTester tester, {
-  required int present,
-  required int total,
-}) => _pressAction(tester, _label(present, total));
+/// Creates the new lesson through the app bar action.
+Future<void> _save(WidgetTester tester) => _pressAction(tester, t.create);
 
-Future<void> _update(
-  WidgetTester tester, {
-  required int present,
-  required int total,
-}) => _pressAction(tester, _label(present, total));
+/// Updates the stored lesson through the app bar action.
+Future<void> _update(WidgetTester tester) => _pressAction(tester, t.update);
 
 void main() {
   setUpAll(() async {
@@ -348,27 +355,32 @@ void main() {
 
     expect(_isChecked(tester, 'Ivan Petrov'), isTrue);
     expect(_isChecked(tester, 'Anna Smirnova'), isTrue);
-    expect(find.text(_label(2, 2)), findsOneWidget);
+    expect(find.text(t.create), findsOneWidget);
   });
 
-  testWidgets('picking students updates the action label', (tester) async {
+  testWidgets('picking students keeps the create action available', (
+    tester,
+  ) async {
     await _openPage(tester);
 
     await _toggle(tester, 'Ivan Petrov');
 
     expect(_isChecked(tester, 'Ivan Petrov'), isFalse);
-    expect(find.text(_label(1, 2)), findsOneWidget);
+    expect(_isActionEnabled(tester, t.create), isTrue);
     expect(find.text(t.lessons.selectAll), findsOneWidget);
 
     await tester.tap(find.text(t.lessons.selectAll));
     await tester.pumpAndSettle();
 
-    expect(find.text(_label(2, 2)), findsOneWidget);
+    expect(_isChecked(tester, 'Ivan Petrov'), isTrue);
+    expect(_isChecked(tester, 'Anna Smirnova'), isTrue);
+    expect(find.text(t.lessons.deselectAll), findsOneWidget);
 
     await tester.tap(find.text(t.lessons.deselectAll));
     await tester.pumpAndSettle();
 
-    expect(find.text(_label(0, 2)), findsOneWidget);
+    expect(_isChecked(tester, 'Ivan Petrov'), isFalse);
+    expect(_isChecked(tester, 'Anna Smirnova'), isFalse);
     expect(find.text(t.lessons.selectAll), findsOneWidget);
   });
 
@@ -385,7 +397,7 @@ void main() {
 
     await _toggle(tester, 'Anna Smirnova');
 
-    await _save(tester, present: 1, total: 2);
+    await _save(tester);
 
     expect(lessonClient.createBodies, hasLength(1));
 
@@ -403,7 +415,7 @@ void main() {
     expect(find.byType(LessonPage), findsNothing);
   });
 
-  testWidgets('a stored lesson opens for editing with its attendance', (
+  testWidgets('a stored lesson opens read-only with its attendance', (
     tester,
   ) async {
     await _openPage(
@@ -422,10 +434,51 @@ void main() {
 
     expect(_isChecked(tester, 'Ivan Petrov'), isTrue);
     expect(_isChecked(tester, 'Anna Smirnova'), isFalse);
+
+    // The marks are read, not tapped: the page draws them without a checkbox.
+    expect(_checkboxOf('Ivan Petrov'), findsNothing);
+    expect(_markOf('Ivan Petrov'), findsOneWidget);
+
+    // A mark keeps the colours of the form, it is not greyed out.
+    final colorScheme = Theme.of(tester.element(find.text('Ivan Petrov')))
+        .colorScheme;
+
+    expect(
+      tester.widget<Icon>(_markOf('Ivan Petrov')).color,
+      colorScheme.primary,
+    );
+    expect(
+      tester.widget<Icon>(_markOf('Anna Smirnova')).color,
+      colorScheme.onSurfaceVariant,
+    );
+
+    // The date is read as well, so it keeps the colour of the form.
+    final dateText = tester.widget<Text>(find.text('08.10.2026'));
+    expect(dateText.style?.color, isNull);
+
+    expect(find.text(t.update), findsNothing);
+  });
+
+  testWidgets('picking Edit turns a stored lesson into the form', (
+    tester,
+  ) async {
+    await _openPage(
+      tester,
+      lesson: _lesson,
+      lessonClient: _FakeLessonClient(
+        visits: [
+          _visit(studentId: 'student-1', status: VisitStatus.present),
+          _visit(studentId: 'student-2', status: VisitStatus.absent),
+        ],
+      ),
+    );
+
+    await _startEditing(tester);
+
     expect(_isEnabled(tester, 'Ivan Petrov'), isTrue);
 
     // Nothing changed yet, so there is nothing to update.
-    expect(_isActionEnabled(tester, _label(1, 2)), isFalse);
+    expect(_isActionEnabled(tester, t.update), isFalse);
   });
 
   testWidgets('the update button waits for the attendance to change', (
@@ -442,16 +495,18 @@ void main() {
       ),
     );
 
-    expect(_isActionEnabled(tester, _label(1, 2)), isFalse);
+    await _startEditing(tester);
+
+    expect(_isActionEnabled(tester, t.update), isFalse);
 
     await _toggle(tester, 'Anna Smirnova');
 
-    expect(_isActionEnabled(tester, _label(2, 2)), isTrue);
+    expect(_isActionEnabled(tester, t.update), isTrue);
 
     // Picking the same students again leaves nothing to update.
     await _toggle(tester, 'Anna Smirnova');
 
-    expect(_isActionEnabled(tester, _label(1, 2)), isFalse);
+    expect(_isActionEnabled(tester, t.update), isFalse);
   });
 
   testWidgets('a student who left the group keeps the row of the lesson', (
@@ -476,12 +531,15 @@ void main() {
     // lesson with the mark that was recorded for him.
     expect(find.text('Hero Left'), findsOneWidget);
     expect(_isChecked(tester, 'Hero Left'), isTrue);
-    expect(find.text(_label(2, 3)), findsOneWidget);
+
+    await _startEditing(tester);
+
+    expect(find.text(t.update), findsOneWidget);
 
     await _toggle(tester, 'Ivan Petrov');
 
     // Saving the lesson keeps the visit of the student who left.
-    await _update(tester, present: 1, total: 3);
+    await _update(tester);
 
     expect(
       lessonClient.updateBodies.single.students!.map(
@@ -501,15 +559,17 @@ void main() {
 
     await _openPage(tester, lesson: _lesson, lessonClient: lessonClient);
 
+    await _startEditing(tester);
+
     expect(_isEnabled(tester, 'Ivan Petrov'), isTrue);
     expect(_isChecked(tester, 'Ivan Petrov'), isTrue);
-    expect(_isActionEnabled(tester, _label(1, 2)), isFalse);
+    expect(_isActionEnabled(tester, t.update), isFalse);
 
     await _toggle(tester, 'Anna Smirnova');
 
-    expect(find.text(_label(2, 2)), findsOneWidget);
+    expect(find.text(t.update), findsOneWidget);
 
-    await _update(tester, present: 2, total: 2);
+    await _update(tester);
 
     expect(lessonClient.updatedLessonIds, ['lesson-1']);
     expect(lessonClient.updateBodies.single.date, _lessonDate);
@@ -518,14 +578,25 @@ void main() {
     expect(find.byType(LessonPage), findsNothing);
   });
 
-  testWidgets('the menu only offers deleting a stored lesson', (tester) async {
+  testWidgets('the menu of a stored lesson offers editing and deleting', (
+    tester,
+  ) async {
     await _openPage(tester, lesson: _lesson);
 
     await tester.tap(find.byType(PopupMenuButton<String>));
     await tester.pumpAndSettle();
 
-    expect(find.text('Delete'), findsOneWidget);
-    expect(find.text('Edit'), findsNothing);
+    expect(find.text(t.edit), findsOneWidget);
+    expect(find.text(t.delete), findsOneWidget);
+  });
+
+  testWidgets('the form of a stored lesson offers no menu', (tester) async {
+    await _openPage(tester, lesson: _lesson);
+
+    await _startEditing(tester);
+
+    // Deleting a lesson is done from the page that shows it.
+    expect(find.byType(PopupMenuButton<String>), findsNothing);
   });
 
   testWidgets('deleting a stored lesson asks for confirmation', (tester) async {
@@ -533,7 +604,7 @@ void main() {
 
     await _openPage(tester, lesson: _lesson, lessonClient: lessonClient);
 
-    await _pickMenuItem(tester, 'Delete');
+    await _pickMenuItem(tester, t.delete);
 
     expect(find.text(t.lessons.deleteLesson), findsOneWidget);
 
@@ -555,7 +626,7 @@ void main() {
     expect(find.text(t.lessons.noStudents), findsOneWidget);
 
     final saveButton = tester.widget<TextButton>(
-      find.widgetWithText(TextButton, _label(0, 0)),
+      find.widgetWithText(TextButton, t.create),
     );
 
     expect(saveButton.onPressed, isNull);
@@ -573,16 +644,17 @@ void main() {
     );
 
     // Anna has no visit for the lesson, so she is not in the main list.
-    expect(_checkboxOf('Ivan Petrov'), findsOneWidget);
+    expect(_markOf('Ivan Petrov'), findsOneWidget);
     expect(_checkboxOf('Anna Smirnova'), findsNothing);
     expect(find.text(t.lessons.notMarked), findsOneWidget);
 
-    // She waits under the accordion, without a checkbox.
+    // She waits under the accordion, without a mark of her own.
     await tester.tap(find.text(t.lessons.notMarked));
     await tester.pumpAndSettle();
 
     expect(find.text('Anna Smirnova'), findsOneWidget);
     expect(_checkboxOf('Anna Smirnova'), findsNothing);
+    expect(_markOf('Anna Smirnova'), findsNothing);
   });
 
   testWidgets('a folded student can be marked through the sheet', (
@@ -595,6 +667,8 @@ void main() {
         visits: [_visit(studentId: 'student-1', status: VisitStatus.present)],
       ),
     );
+
+    await _startEditing(tester);
 
     await tester.tap(find.text(t.lessons.notMarked));
     await tester.pumpAndSettle();
@@ -609,7 +683,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(_isChecked(tester, 'Anna Smirnova'), isTrue);
-    expect(_isActionEnabled(tester, _label(2, 2)), isTrue);
+    expect(_isActionEnabled(tester, t.update), isTrue);
   });
 
   testWidgets('a marked student can pick a type from the sheet', (
@@ -622,6 +696,8 @@ void main() {
         visits: [_visit(studentId: 'student-1', status: VisitStatus.present)],
       ),
     );
+
+    await _startEditing(tester);
 
     await _openAttendanceSheet(tester, 'Ivan Petrov');
 
@@ -663,7 +739,7 @@ void main() {
     await tester.tap(find.text(t.lessons.absent));
     await tester.pumpAndSettle();
 
-    await _save(tester, present: 1, total: 2);
+    await _save(tester);
 
     final body = lessonClient.createBodies.single;
 

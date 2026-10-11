@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
@@ -19,8 +20,10 @@ import 'package:phone/i18n/strings.g.dart';
 
 /// Adds a lesson to a group: picks the date and marks every student.
 ///
-/// When [lesson] is given the page edits the lesson that is already stored on
-/// [date]: its attendance is pre-filled and the menu offers deleting it.
+/// When [lesson] is given the page only shows the lesson that is already stored
+/// on [date] first: its attendance is read-only and the menu of the page offers
+/// editing and deleting it. Picking `Edit` turns the page into the form that
+/// marks the students.
 class LessonPage extends ConsumerStatefulWidget {
   final String groupId;
 
@@ -50,6 +53,13 @@ class _LessonPageState extends ConsumerState<LessonPage> {
   /// Set once the user changes a mark, from then on it wins over the marks
   /// loaded from the server.
   Map<String, LessonAttendance>? _pickedAttendance;
+
+  /// Whether the page marks the students.
+  ///
+  /// A stored lesson is only shown when it is opened, the marks wake up once
+  /// the user picks `Edit` in the menu of the page. A lesson that does not
+  /// exist yet has nothing to show, so it starts editable straight away.
+  late bool _isEditing = widget.lesson == null;
 
   @override
   void initState() {
@@ -334,39 +344,21 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     final storedAttendance = _storedAttendance(detailsState);
     final attendance = _attendance(students, storedAttendance);
     final hasChanges = _hasChanges(attendance, storedAttendance);
-    final canEdit = !isLoading && !isAttendanceLoading;
+    final canEdit = _isEditing && !isLoading && !isAttendanceLoading;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(context.t.lessons.groupLesson),
         actions: [
-          _buildSaveAction(
-            students: students,
-            attendance: attendance,
-            hasChanges: hasChanges,
-            isLoading: isLoading,
-          ),
-          if (lesson != null)
-            PopupMenuButton<String>(
-              tooltip: '',
-              offset: const Offset(-8, 0),
-              color: colorScheme.surface,
-              itemBuilder: (menuContext) => [
-                PopupMenuItem<String>(
-                  onTap: _onDelete,
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, size: 20, color: colorScheme.error),
-                      const SizedBox(width: 12),
-                      Text(
-                        context.t.delete,
-                        style: TextStyle(color: colorScheme.error),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+          // A stored lesson only shows its data until the user picks `Edit`.
+          if (lesson == null || _isEditing)
+            _buildSaveAction(
+              students: students,
+              attendance: attendance,
+              hasChanges: hasChanges,
+              isLoading: isLoading,
             ),
+          if (lesson != null && !_isEditing) _buildLessonMenu(),
           const SizedBox(width: 8),
         ],
         backgroundColor: colorScheme.surface,
@@ -398,8 +390,8 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     );
   }
 
-  /// The action of the page, living in the app bar: `[4/12]`, the students that
-  /// attended over the students of the lesson.
+  /// The action of the page, living in the app bar: creating a new lesson or
+  /// updating the stored one.
   Widget _buildSaveAction({
     required List<GroupStudentSummaryResponse> students,
     required Map<String, LessonAttendance> attendance,
@@ -415,21 +407,49 @@ class _LessonPageState extends ConsumerState<LessonPage> {
             height: 18,
             child: CircularProgressIndicator(strokeWidth: 2),
           )
-        : Icon(Icons.save),
-    label: Text(_actionLabel(attendance, students)),
+        : null,
+    label: Text(
+      widget.lesson == null ? context.t.create : context.t.update,
+      style: const TextStyle(fontSize: 18),
+    ),
   );
 
-  String _actionLabel(
-    Map<String, LessonAttendance> attendance,
-    List<GroupStudentSummaryResponse> students,
-  ) {
-    final presentCount = students
-        .where(
-          (student) => attendance[student.id]?.status == VisitStatus.present,
-        )
-        .length;
+  /// The actions of a stored lesson that is only shown, living in the app bar:
+  /// `Edit` to turn the page into the form and `Delete`.
+  ///
+  /// The form offers no menu, deleting a lesson is done from the page that
+  /// shows it.
+  Widget _buildLessonMenu() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final errorColor = colorScheme.error;
 
-    return '[$presentCount/${students.length}]';
+    return PopupMenuButton<String>(
+      tooltip: '',
+      offset: const Offset(-8, 0),
+      color: colorScheme.surface,
+      itemBuilder: (menuContext) => [
+        PopupMenuItem<String>(
+          onTap: () => setState(() => _isEditing = true),
+          child: Row(
+            children: [
+              const Icon(CupertinoIcons.text_cursor, size: 20),
+              const SizedBox(width: 12),
+              Text(context.t.edit),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          onTap: _onDelete,
+          child: Row(
+            children: [
+              Icon(CupertinoIcons.trash, size: 20, color: errorColor),
+              const SizedBox(width: 12),
+              Text(context.t.delete, style: TextStyle(color: errorColor)),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildDateCard(bool canEdit) => Material(
@@ -449,10 +469,9 @@ class _LessonPageState extends ConsumerState<LessonPage> {
         ),
         child: Text(
           _formatDate(_selectedDate),
-          style: TextStyle(
-            fontSize: 16,
-            color: canEdit ? null : Theme.of(context).disabledColor,
-          ),
+          // The date of a lesson that is only shown is read, not picked, yet it
+          // keeps the colour of the form instead of greying out.
+          style: const TextStyle(fontSize: 16),
         ),
       ),
     ),
@@ -499,7 +518,8 @@ class _LessonPageState extends ConsumerState<LessonPage> {
                 ),
               )
             else ...[
-              if (markedStudents.isNotEmpty)
+              // The whole list is marked together only while editing.
+              if (canEdit && markedStudents.isNotEmpty)
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -580,10 +600,12 @@ class _LessonPageState extends ConsumerState<LessonPage> {
 
   /// One student of the lesson.
   ///
-  /// The whole row is tappable: tapping it marks the student present when they
-  /// were not and absent when they were, a long press opens the sheet that
-  /// picks the status and the type. A student that is unmarked has no checkbox
-  /// and is only marked on purpose, through the sheet.
+  /// While the lesson is edited the whole row is tappable: tapping it marks the
+  /// student present when they were not and absent when they were, a long press
+  /// opens the sheet that picks the status and the type. A lesson that is only
+  /// shown draws the mark without a checkbox, so the row keeps reading instead
+  /// of looking like a disabled control. A student that is unmarked has no mark
+  /// at all and is only marked on purpose, through the sheet.
   Widget _buildStudentTile({
     required GroupStudentSummaryResponse student,
     required int number,
@@ -593,6 +615,7 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     bool unmarked = false,
   }) {
     final isFree = attendance?.type == VisitType.free;
+    final isPresent = attendance?.status == VisitStatus.present;
 
     return InkWell(
       onTap: canEdit && !unmarked
@@ -627,13 +650,49 @@ class _LessonPageState extends ConsumerState<LessonPage> {
         subtitle: _buildSubtitle(attendance),
         trailing: unmarked
             ? null
-            : Checkbox(
-                value: attendance?.status == VisitStatus.present,
+            : canEdit
+            ? Checkbox(
+                value: isPresent,
                 activeColor: isFree ? _freeCheckColor : null,
-                onChanged: canEdit
-                    ? (_) => _toggleStudent(attendanceMap, student)
-                    : null,
+                onChanged: (_) => _toggleStudent(attendanceMap, student),
+              )
+            : _buildAttendanceMark(
+                isPresent: isPresent,
+                isFree: isFree,
+                status: attendance?.status,
               ),
+      ),
+    );
+  }
+
+  /// The mark of a lesson that is only shown.
+  ///
+  /// Drawn as an icon the size a checkbox takes: the mark of a stored lesson is
+  /// data, and a disabled checkbox would grey it out until it is hard to read.
+  Widget _buildAttendanceMark({
+    required bool isPresent,
+    required bool isFree,
+    required VisitStatus? status,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final String label = switch (status) {
+      VisitStatus.present => context.t.lessons.present,
+      VisitStatus.excused => context.t.lessons.excused,
+      _ => context.t.lessons.absent,
+    };
+
+    return Semantics(
+      label: label,
+      child: SizedBox.square(
+        dimension: 48,
+        child: Icon(
+          isPresent ? Icons.check_box : Icons.check_box_outline_blank,
+          size: 24,
+          color: isPresent
+              ? (isFree ? _freeCheckColor : colorScheme.primary)
+              : colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }

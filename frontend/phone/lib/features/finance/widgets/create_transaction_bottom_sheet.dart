@@ -505,7 +505,7 @@ class _CreateTransactionBottomSheetState
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Icon(FluentIcons.add_24_regular),
+                                : null,
                             label: Text(
                               context.t.create,
                               style: const TextStyle(fontSize: 18),

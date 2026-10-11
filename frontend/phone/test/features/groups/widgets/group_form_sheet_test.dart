@@ -10,7 +10,6 @@ Widget _wrap(Widget child) => TranslationProvider(
 Widget _createSheet() => GroupFormSheet(
   title: t.groups.createGroup,
   submitLabel: t.create,
-  submitIcon: Icons.add,
   onSubmit: ({
     required String name,
     required String priceText,
@@ -21,8 +20,7 @@ Widget _createSheet() => GroupFormSheet(
 /// The form of a stored group, opened the way the edit sheet opens it.
 Widget _editSheet() => GroupFormSheet(
   title: t.groups.editGroup,
-  submitLabel: t.edit,
-  submitIcon: Icons.check,
+  submitLabel: t.update,
   initialName: 'Group A',
   initialPrice: '1500',
   initialNote: 'Note of the group',

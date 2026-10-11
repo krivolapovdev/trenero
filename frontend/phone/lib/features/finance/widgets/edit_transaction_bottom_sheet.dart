@@ -211,7 +211,7 @@ class _EditTransactionBottomSheetState
                                   )
                                 : null,
                             label: Text(
-                              context.t.edit,
+                              context.t.update,
                               style: const TextStyle(fontSize: 18),
                             ),
                           ),

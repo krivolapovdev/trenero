@@ -147,7 +147,7 @@ void main() {
     expect(find.text(t.lessons.groupLesson), findsOneWidget);
   });
 
-  testWidgets('a stored lesson opens the lesson for editing', (tester) async {
+  testWidgets('a stored lesson is opened from the day sheet', (tester) async {
     await _openSheet(
       tester,
       GroupDayLessonsBottomSheet(groupLessons: [_lesson(id: 'lesson-2')]),

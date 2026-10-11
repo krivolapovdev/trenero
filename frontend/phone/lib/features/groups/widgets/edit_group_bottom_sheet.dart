@@ -64,8 +64,7 @@ class _EditGroupBottomSheetState extends ConsumerState<EditGroupBottomSheet> {
 
     return GroupFormSheet(
       title: context.t.groups.editGroup,
-      submitLabel: context.t.edit,
-      submitIcon: Icons.check,
+      submitLabel: context.t.update,
       isLoading: isLoading,
       initialName: group.name,
       initialPrice: _formatPrice(group.defaultPrice),

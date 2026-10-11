@@ -48,7 +48,6 @@ class _CreateGroupBottomSheetState
     return GroupFormSheet(
       title: context.t.groups.createGroup,
       submitLabel: context.t.create,
-      submitIcon: Icons.add,
       isLoading: isLoading,
       onSubmit: _onSave,
     );

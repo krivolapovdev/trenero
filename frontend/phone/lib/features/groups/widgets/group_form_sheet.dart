@@ -6,7 +6,6 @@ import 'package:phone/i18n/strings.g.dart';
 class GroupFormSheet extends StatefulWidget {
   final String title;
   final String submitLabel;
-  final IconData submitIcon;
   final String? initialName;
   final String? initialPrice;
   final String? initialNote;
@@ -22,7 +21,6 @@ class GroupFormSheet extends StatefulWidget {
     super.key,
     required this.title,
     required this.submitLabel,
-    required this.submitIcon,
     required this.onSubmit,
     this.initialName,
     this.initialPrice,
@@ -174,7 +172,7 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : Icon(widget.submitIcon),
+                                : null,
                             label: Text(
                               widget.submitLabel,
                               style: const TextStyle(fontSize: 18),
