@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
+import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/pages/student_page.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
 import 'package:phone/generated/export.dart';
@@ -30,6 +31,14 @@ class GroupStudentsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final studentsAsync = ref.watch(groupStudentsProvider(groupId));
 
+    // The response of the group carries no group of the student, while the
+    // student list carries every group they belong to. The cards open the
+    // student page with the student of the list, so that the page knows the
+    // groups of the student no matter which page opened it.
+    final listedStudents =
+        ref.watch(studentListControllerProvider).value ??
+        const <StudentSummaryResponse>[];
+
     return studentsAsync.when(
       skipLoadingOnRefresh: false,
 
@@ -38,7 +47,7 @@ class GroupStudentsSection extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        return _buildSection(context, students);
+        return _buildSection(context, students, listedStudents);
       },
       loading: () {
         final previousData = studentsAsync.value;
@@ -52,7 +61,12 @@ class GroupStudentsSection extends ConsumerWidget {
 
         return Skeletonizer(
           ignorePointers: false,
-          child: _buildSection(context, displayStudents, isLoading: true),
+          child: _buildSection(
+            context,
+            displayStudents,
+            listedStudents,
+            isLoading: true,
+          ),
         );
       },
       error: (error, stack) =>
@@ -62,7 +76,8 @@ class GroupStudentsSection extends ConsumerWidget {
 
   Widget _buildSection(
     BuildContext context,
-    List<GroupStudentSummaryResponse> students, {
+    List<GroupStudentSummaryResponse> students,
+    List<StudentSummaryResponse> listedStudents, {
     bool isLoading = false,
   }) => Container(
     padding: const EdgeInsets.all(16),
@@ -79,6 +94,10 @@ class GroupStudentsSection extends ConsumerWidget {
           const Divider(height: 16, thickness: 1),
       itemBuilder: (context, index) {
         final student = students[index];
+        final listedStudent = listedStudents
+            .where((candidate) => candidate.id == student.id)
+            .firstOrNull;
+
         return StudentCard(
           student: StudentSummaryResponse(
             id: student.id,
@@ -96,13 +115,7 @@ class GroupStudentsSection extends ConsumerWidget {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => StudentPage(
-                        student: StudentSummaryResponse(
-                          id: student.id,
-                          fullName: student.fullName,
-                          createdAt: student.createdAt,
-                          free: student.free,
-                          statuses: student.statuses,
-                        ),
+                        student: listedStudent ?? _summaryOf(student),
                       ),
                     ),
                   );
@@ -110,5 +123,20 @@ class GroupStudentsSection extends ConsumerWidget {
         );
       },
     ),
+  );
+
+  /// The response of the group students section widened to a student summary,
+  /// the fallback for a student the list does not hold yet.
+  static StudentSummaryResponse _summaryOf(
+    GroupStudentSummaryResponse student,
+  ) => StudentSummaryResponse(
+    id: student.id,
+    fullName: student.fullName,
+    createdAt: student.createdAt,
+    free: student.free,
+    statuses: student.statuses,
+    birthdate: student.birthdate,
+    phone: student.phone,
+    note: student.note,
   );
 }

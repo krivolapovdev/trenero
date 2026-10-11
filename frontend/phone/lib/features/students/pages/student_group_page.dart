@@ -12,9 +12,9 @@ import 'package:skeletonizer/skeletonizer.dart';
 /// The page lists every cached group with a checkbox and attaches the student
 /// to the picked ones, dropping the groups that are left unchecked. The student
 /// is always stored as joined today in the groups that are new to them, so the
-/// page carries no join date field. At least one group is required, and the
-/// action stays disabled until the pick differs from the groups the student
-/// already belongs to.
+/// page carries no join date field. Unchecking every group drops the student
+/// from all of them, and the action stays disabled until the pick differs from
+/// the groups the student already belongs to.
 class StudentGroupPage extends ConsumerStatefulWidget {
   /// The student the picked groups are assigned to.
   final String studentId;
@@ -58,8 +58,8 @@ class _StudentGroupPageState extends ConsumerState<StudentGroupPage> {
   }
 
   Future<void> _onSubmit() async {
+    // An empty pick is a valid change: it drops the student from every group.
     final groupIds = _groupIds.toSet();
-    if (groupIds.isEmpty) return;
 
     final success = await ref
         .read(assignStudentGroupControllerProvider.notifier)
@@ -100,9 +100,7 @@ class _StudentGroupPageState extends ConsumerState<StudentGroupPage> {
         title: Text(context.t.students.group),
         actions: [
           TextButton.icon(
-            onPressed: (_groupIds.isEmpty || !_hasChanges || isSubmitting)
-                ? null
-                : _onSubmit,
+            onPressed: (!_hasChanges || isSubmitting) ? null : _onSubmit,
             icon: isSubmitting
                 ? const SizedBox(
                     width: 18,

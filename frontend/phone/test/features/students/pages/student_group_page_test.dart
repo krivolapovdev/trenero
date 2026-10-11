@@ -216,4 +216,36 @@ void main() {
     expect(assignController.previousGroupIds, {'group-a'});
     expect(find.byType(StudentGroupPage), findsNothing);
   });
+
+  testWidgets('unpicking every group stays enabled and removes the student', (
+    tester,
+  ) async {
+    await _pumpPage(tester, container, initialGroupIds: {'group-a', 'group-b'});
+
+    // The groups of the student are preselected, so there is nothing to
+    // update yet.
+    expect(
+      tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      isNull,
+    );
+
+    await tester.tap(find.text('Group A'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Group B'));
+    await tester.pumpAndSettle();
+
+    expect(_tile(tester, 'Group A').value, isFalse);
+    expect(_tile(tester, 'Group B').value, isFalse);
+    expect(
+      tester.widget<TextButton>(find.byType(TextButton)).onPressed,
+      isNotNull,
+    );
+
+    await tester.tap(find.byType(TextButton));
+    await tester.pumpAndSettle();
+
+    expect(assignController.assignedGroupIds, isEmpty);
+    expect(assignController.previousGroupIds, {'group-a', 'group-b'});
+    expect(find.byType(StudentGroupPage), findsNothing);
+  });
 }
