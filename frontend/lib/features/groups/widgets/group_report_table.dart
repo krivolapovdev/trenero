@@ -3,21 +3,136 @@ import 'package:phone/generated/models/group_report_response.dart';
 import 'package:phone/generated/models/group_report_student_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-class GroupReportTable extends StatelessWidget {
-  static const double _numberWidth = 38;
-  static const double _nameWidth = 170;
-  static const double _dayWidth = 36;
-  static const double _paidWidth = 52;
-  static const double _resultWidth = 72;
+const double _numberWidth = 38;
+const double _nameWidth = 170;
+const double _dayWidth = 36;
+const double _paidWidth = 52;
+const double _resultWidth = 72;
 
+TableRow _headerRow(BuildContext context, int dayCount) {
+  final colorScheme = Theme.of(context).colorScheme;
+
+  return TableRow(
+    decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
+    children: [
+      _HeaderCell(text: context.t.reports.number),
+      _HeaderCell(
+        text: context.t.reports.fullName,
+        alignment: Alignment.centerLeft,
+      ),
+      for (var day = 1; day <= dayCount; day++) _HeaderCell(text: '$day'),
+      _HeaderCell(text: context.t.reports.paid),
+      _HeaderCell(text: context.t.reports.result),
+    ],
+  );
+}
+
+TableRow _studentRow(
+  BuildContext context,
+  GroupReportStudentResponse student,
+  int index,
+  int dayCount,
+  Set<int> lessonDays,
+) {
+  final theme = Theme.of(context);
+  final presentDays = student.presentDays.toSet();
+
+  final rowBackground = index.isEven
+      ? theme.colorScheme.surface
+      : theme.colorScheme.surfaceContainerLowest;
+
+  return TableRow(
+    decoration: BoxDecoration(color: rowBackground),
+    children: [
+      _ReportCell(
+        child: Text(
+          '${index + 1}',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+      _ReportCell(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          student.fullName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      for (var day = 1; day <= dayCount; day++)
+        _MarkCell(
+          mark: lessonDays.contains(day) ? presentDays.contains(day) : null,
+        ),
+      _MarkCell(mark: student.paid),
+      _ReportCell(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            '${student.presentCount}/${student.lessonCount}',
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+TableRow _totalRow(BuildContext context, GroupReportResponse report) {
+  final theme = Theme.of(context);
+  final colorScheme = theme.colorScheme;
+  final dayCount = report.dayCount;
+
+  return TableRow(
+    decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
+    children: [
+      _ReportCell(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          context.t.reports.total,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+      const _ReportCell(child: SizedBox.shrink()),
+      for (var day = 1; day <= dayCount; day++)
+        const _ReportCell(child: SizedBox.shrink()),
+      const _ReportCell(child: SizedBox.shrink()),
+      _ReportCell(
+        child: Text(
+          '${report.totalPresent}/${report.totalLessons}',
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: theme.colorScheme.primary,
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+class GroupReportTable extends StatelessWidget {
   final GroupReportResponse report;
 
   const new({super.key, required this.report});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final dayCount = report.dayCount;
     final lessonDays = report.lessonDays.toSet();
 
@@ -48,147 +163,74 @@ class GroupReportTable extends StatelessWidget {
             dayCount + 3: const FixedColumnWidth(_resultWidth),
           },
           children: [
-            _buildHeaderRow(context, dayCount),
+            _headerRow(context, dayCount),
             for (var index = 0; index < report.students.length; index++)
-              _buildStudentRow(
+              _studentRow(
                 context,
                 report.students[index],
                 index,
                 dayCount,
                 lessonDays,
               ),
-            _buildTotalRow(context, dayCount),
+            _totalRow(context, report),
           ],
         ),
       ),
     );
   }
+}
 
-  TableRow _buildHeaderRow(BuildContext context, int dayCount) {
+class _ReportCell extends StatelessWidget {
+  final Widget child;
+  final Alignment alignment;
+
+  const new({required this.child, this.alignment = Alignment.center});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    alignment: alignment,
+    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+    child: child,
+  );
+}
+
+class _HeaderCell extends StatelessWidget {
+  final String text;
+  final Alignment alignment;
+
+  const new({required this.text, this.alignment = Alignment.center});
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
-    return TableRow(
-      decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
-      children: [
-        _buildHeaderCell(context, context.t.reports.number),
-        _buildHeaderCell(
-          context,
-          context.t.reports.fullName,
-          alignment: Alignment.centerLeft,
+    return _ReportCell(
+      alignment: alignment,
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: theme.colorScheme.onSurfaceVariant,
+          letterSpacing: 0.2,
         ),
-        for (var day = 1; day <= dayCount; day++)
-          _buildHeaderCell(context, '$day'),
-        _buildHeaderCell(context, context.t.reports.paid),
-        _buildHeaderCell(context, context.t.reports.result),
-      ],
+      ),
     );
   }
+}
 
-  TableRow _buildStudentRow(
-    BuildContext context,
-    GroupReportStudentResponse student,
-    int index,
-    int dayCount,
-    Set<int> lessonDays,
-  ) {
-    final theme = Theme.of(context);
-    final presentDays = student.presentDays.toSet();
-    final isEven = index.isEven;
+class _MarkCell extends StatelessWidget {
+  final bool? mark;
 
-    final rowBackground = isEven
-        ? theme.colorScheme.surface
-        : theme.colorScheme.surfaceContainerLowest;
+  const new({required this.mark});
 
-    return TableRow(
-      decoration: BoxDecoration(color: rowBackground),
-      children: [
-        _buildCell(
-          Text(
-            '${index + 1}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        _buildCell(
-          Text(
-            student.fullName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          alignment: Alignment.centerLeft,
-        ),
-        for (var day = 1; day <= dayCount; day++)
-          _buildMarkCell(
-            context,
-            lessonDays.contains(day) ? presentDays.contains(day) : null,
-          ),
-        _buildMarkCell(context, student.paid),
-        _buildCell(
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              '${student.presentCount}/${student.lessonCount}',
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  @override
+  Widget build(BuildContext context) {
+    final mark = this.mark;
+    if (mark == null) return const _ReportCell(child: SizedBox.shrink());
 
-  TableRow _buildTotalRow(BuildContext context, int dayCount) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return TableRow(
-      decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
-      children: [
-        _buildCell(
-          Text(
-            context.t.reports.total,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          alignment: Alignment.centerLeft,
-        ),
-        _buildCell(const SizedBox.shrink()),
-        for (var day = 1; day <= dayCount; day++)
-          _buildCell(const SizedBox.shrink()),
-        _buildCell(const SizedBox.shrink()),
-        _buildCell(
-          Text(
-            '${report.totalPresent}/${report.totalLessons}',
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMarkCell(BuildContext context, bool? mark) {
-    if (mark == null) return _buildCell(const SizedBox.shrink());
-
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final color = mark
         ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A))
@@ -198,8 +240,8 @@ class GroupReportTable extends StatelessWidget {
         ? (isDark ? const Color(0xFF14532D) : const Color(0xFFDCFCE7))
         : (isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFFEDD5));
 
-    return _buildCell(
-      Container(
+    return _ReportCell(
+      child: Container(
         width: 22,
         height: 22,
         alignment: Alignment.center,
@@ -215,32 +257,4 @@ class GroupReportTable extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildHeaderCell(
-    BuildContext context,
-    String text, {
-    Alignment alignment = Alignment.center,
-  }) {
-    final theme = Theme.of(context);
-    return _buildCell(
-      Text(
-        text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.labelSmall?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: theme.colorScheme.onSurfaceVariant,
-          letterSpacing: 0.2,
-        ),
-      ),
-      alignment: alignment,
-    );
-  }
-
-  Widget _buildCell(Widget child, {Alignment alignment = Alignment.center}) =>
-      Container(
-        alignment: alignment,
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-        child: child,
-      );
 }

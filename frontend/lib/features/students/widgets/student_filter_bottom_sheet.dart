@@ -63,16 +63,13 @@ class _StudentFilterBottomSheetState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildSectionTitle(context.t.students.filter.group),
+                    _FilterSectionTitle(title: context.t.students.filter.group),
 
                     if (groupsState.isLoading && groups.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
+                      const _FilterLoading()
                     else ...[
                       if (groups.isNotEmpty)
-                        _buildCheckboxTile(
+                        _FilterCheckboxTile(
                           label: context.t.groups.noGroup,
                           isSelected: _draft.groupIds.contains(
                             StudentFilter.noGroupId,
@@ -80,26 +77,26 @@ class _StudentFilterBottomSheetState
                           onToggle: () => _toggleGroup(StudentFilter.noGroupId),
                         ),
 
-                      ...groups.map(
-                        (group) => _buildCheckboxTile(
+                      for (final group in groups)
+                        _FilterCheckboxTile(
+                          key: ValueKey(group.id),
                           label: group.name,
                           isSelected: _draft.groupIds.contains(group.id),
                           onToggle: () => _toggleGroup(group.id),
                         ),
-                      ),
                     ],
 
                     const SizedBox(height: 8),
 
-                    _buildSectionTitle(context.t.students.filter.status),
+                    _FilterSectionTitle(title: context.t.students.filter.status),
 
-                    ...StudentStatus.$valuesDefined.map(
-                      (status) => _buildCheckboxTile(
+                    for (final status in StudentStatus.$valuesDefined)
+                      _FilterCheckboxTile(
+                        key: ValueKey(status.name),
                         label: status.label(context),
                         isSelected: _draft.statuses.contains(status),
                         onToggle: () => _toggleStatus(status),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -131,20 +128,37 @@ class _StudentFilterBottomSheetState
       ),
     );
   }
+}
 
-  Widget _buildSectionTitle(String title) => Padding(
+class _FilterSectionTitle extends StatelessWidget {
+  final String title;
+
+  const new({required this.title});
+
+  @override
+  Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: Text(
       title,
       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
     ),
   );
+}
 
-  Widget _buildCheckboxTile({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onToggle,
-  }) => CheckboxListTile(
+class _FilterCheckboxTile extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onToggle;
+
+  const new({
+    super.key,
+    required this.label,
+    required this.isSelected,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) => CheckboxListTile(
     value: isSelected,
     onChanged: (_) => onToggle(),
     title: Text(
@@ -156,5 +170,15 @@ class _StudentFilterBottomSheetState
     controlAffinity: ListTileControlAffinity.leading,
     contentPadding: EdgeInsets.zero,
     dense: true,
+  );
+}
+
+class _FilterLoading extends StatelessWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.symmetric(vertical: 16),
+    child: Center(child: CircularProgressIndicator()),
   );
 }

@@ -1,4 +1,4 @@
-abstract class AppAssets {
+abstract final class AppAssets {
   static const String _images = 'assets/images';
 
   static const String tinyPeopleCarryingKey =

@@ -46,87 +46,117 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
     this.showIndividualSection = true,
   });
 
-  void _select(BuildContext context, StudentDayLessonSelection selection) =>
-      Navigator.of(context).pop(selection);
-
-  List<Widget> _buildIndividualSection(BuildContext context) => [
-    if (individualLessons.isNotEmpty) ...[
-      _buildSectionTitle(context, context.t.lessons.individualLessons),
-      ...individualLessons.map(
-        (lesson) => _buildLessonTile(
-          context,
-          lesson: lesson,
-          icon: Icons.person_outline,
-          title: studentName,
-          onTap: () => _select(
-            context,
-            StudentDayLessonSelection(
-              StudentDayLessonAction.individual,
-              lesson: lesson.lesson,
-            ),
-          ),
-        ),
-      ),
-    ],
-    _buildCreateTile(
-      context,
-      icon: Icons.person_outline,
-      title: context.t.lessons.individualLesson,
-      selection: const StudentDayLessonSelection(
-        StudentDayLessonAction.individual,
-      ),
-    ),
-  ];
-
-  List<Widget> _buildGroupSection(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     final group = studentGroup;
-    if (group == null) return const [];
 
-    return [
-      if (groupLessons.isNotEmpty) ...[
-        _buildSectionTitle(context, context.t.lessons.groupLessons),
-        ...groupLessons.map(
-          (lesson) => _buildLessonTile(
-            context,
-            lesson: lesson,
-            icon: Icons.groups_outlined,
-            title: group.name,
-            onTap: () => _select(
-              context,
-              StudentDayLessonSelection(
-                StudentDayLessonAction.group,
-                lesson: lesson.lesson,
+    final hasIndividualSection = showIndividualSection;
+    final hasIndividualLessons =
+        hasIndividualSection && individualLessons.isNotEmpty;
+    final hasGroupSection = group != null;
+    final hasGroupLessons = hasGroupSection && groupLessons.isNotEmpty;
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(22, 0, 22, 22),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (hasIndividualLessons) ...[
+              _SectionTitle(title: context.t.lessons.individualLessons),
+              for (final lesson in individualLessons)
+                _StudentDayLessonTile(
+                  key: ValueKey(lesson.lesson.id),
+                  lesson: lesson,
+                  icon: Icons.person_outline,
+                  title: studentName,
+                  onTap: () => Navigator.of(context).pop(
+                    StudentDayLessonSelection(
+                      StudentDayLessonAction.individual,
+                      lesson: lesson.lesson,
+                    ),
+                  ),
+                ),
+            ],
+
+            if (hasIndividualSection)
+              _StudentDayCreateTile(
+                icon: Icons.person_outline,
+                title: context.t.lessons.individualLesson,
+                onTap: () => Navigator.of(context).pop(
+                  const StudentDayLessonSelection(
+                    StudentDayLessonAction.individual,
+                  ),
+                ),
               ),
-            ),
-          ),
-        ),
-      ],
-      _buildCreateTile(
-        context,
-        icon: Icons.group_add_outlined,
-        title: context.t.lessons.groupLesson,
-        selection: const StudentDayLessonSelection(
-          StudentDayLessonAction.group,
+
+            if (hasIndividualSection && hasGroupSection)
+              const SizedBox(height: 10),
+
+            if (hasGroupLessons) ...[
+              _SectionTitle(title: context.t.lessons.groupLessons),
+              for (final lesson in groupLessons)
+                _StudentDayLessonTile(
+                  key: ValueKey(lesson.lesson.id),
+                  lesson: lesson,
+                  icon: Icons.groups_outlined,
+                  title: group.name,
+                  onTap: () => Navigator.of(context).pop(
+                    StudentDayLessonSelection(
+                      StudentDayLessonAction.group,
+                      lesson: lesson.lesson,
+                    ),
+                  ),
+                ),
+            ],
+
+            if (hasGroupSection)
+              _StudentDayCreateTile(
+                icon: Icons.group_add_outlined,
+                title: context.t.lessons.groupLesson,
+                onTap: () => Navigator.of(context).pop(
+                  const StudentDayLessonSelection(StudentDayLessonAction.group),
+                ),
+              ),
+          ],
         ),
       ),
-    ];
+    );
   }
+}
 
-  Widget _buildSectionTitle(BuildContext context, String title) => Padding(
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const new({required this.title});
+
+  @override
+  Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: Text(
       title,
       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
     ),
   );
+}
 
-  Widget _buildLessonTile(
-    BuildContext context, {
-    required StudentDayLesson lesson,
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) => ListTile(
+class _StudentDayLessonTile extends StatelessWidget {
+  final StudentDayLesson lesson;
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const new({
+    super.key,
+    required this.lesson,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => ListTile(
     contentPadding: EdgeInsets.zero,
     leading: Icon(icon),
     title: Text(
@@ -135,16 +165,20 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       style: const TextStyle(fontSize: 16),
     ),
-    trailing: _buildAttendanceBadge(context, lesson.isPresent),
+    trailing: _DayAttendanceBadge(isPresent: lesson.isPresent),
     onTap: onTap,
   );
+}
 
-  Widget _buildCreateTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required StudentDayLessonSelection selection,
-  }) => ListTile(
+class _StudentDayCreateTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const new({required this.icon, required this.title, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => ListTile(
     contentPadding: EdgeInsets.zero,
     leading: Icon(icon),
     title: Text(
@@ -154,40 +188,22 @@ class StudentDayLessonsBottomSheet extends StatelessWidget {
       style: const TextStyle(fontSize: 16),
     ),
     trailing: const Icon(Icons.chevron_right),
-    onTap: () => _select(context, selection),
+    onTap: onTap,
   );
+}
 
-  Widget _buildAttendanceBadge(BuildContext context, bool isPresent) =>
-      CardBadge(
-        icon: Icon(isPresent ? Icons.check : Icons.close),
-        label: isPresent ? context.t.lessons.present : context.t.lessons.missed,
-        backgroundColor: isPresent
-            ? AppColors.successSurface
-            : AppColors.warningSurface,
-        foregroundColor: isPresent ? AppColors.successOn : AppColors.warningOn,
-      );
+class _DayAttendanceBadge extends StatelessWidget {
+  final bool isPresent;
+
+  const new({required this.isPresent});
 
   @override
-  Widget build(BuildContext context) {
-    final individualSection = showIndividualSection
-        ? _buildIndividualSection(context)
-        : const <Widget>[];
-    final groupSection = _buildGroupSection(context);
-
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(22, 0, 22, 22),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ...individualSection,
-            if (individualSection.isNotEmpty && groupSection.isNotEmpty)
-              const SizedBox(height: 10),
-            ...groupSection,
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => CardBadge(
+    icon: Icon(isPresent ? Icons.check : Icons.close),
+    label: isPresent ? context.t.lessons.present : context.t.lessons.missed,
+    backgroundColor: isPresent
+        ? AppColors.successSurface
+        : AppColors.warningSurface,
+    foregroundColor: isPresent ? AppColors.successOn : AppColors.warningOn,
+  );
 }

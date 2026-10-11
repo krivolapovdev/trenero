@@ -9,8 +9,7 @@ class LanguageSelectionSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final languageAsync = ref.watch(languageProvider);
-    final currentLocale = languageAsync.value;
+    final currentLocale = ref.watch(languageProvider).value;
 
     return SafeArea(
       child: Padding(
@@ -26,32 +25,51 @@ class LanguageSelectionSheet extends ConsumerWidget {
 
             const SizedBox(height: 12),
 
-            _buildLanguageTile(context, ref, currentLocale, AppLocale.ru),
-            _buildLanguageTile(context, ref, currentLocale, AppLocale.en),
+            _LanguageTile(
+              locale: AppLocale.ru,
+              selected: currentLocale == AppLocale.ru,
+              onTap: () => _select(context, ref, AppLocale.ru),
+            ),
+            _LanguageTile(
+              locale: AppLocale.en,
+              selected: currentLocale == AppLocale.en,
+              onTap: () => _select(context, ref, AppLocale.en),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLanguageTile(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocale? currentLocale,
-    AppLocale targetLocale,
-  ) {
-    final isSelected = currentLocale == targetLocale;
-
-    return ListTile(
-      leading: Text(targetLocale.flag, style: const TextStyle(fontSize: 24)),
-      title: Text(targetLocale.label, style: const TextStyle(fontSize: 16)),
-      trailing: isSelected
-          ? const Icon(Icons.check, color: Colors.deepPurple)
-          : null,
-      onTap: () {
-        ref.read(languageProvider.notifier).setLanguage(targetLocale);
-        Navigator.pop(context);
-      },
-    );
+  void _select(BuildContext context, WidgetRef ref, AppLocale locale) {
+    ref.read(languageProvider.notifier).setLanguage(locale);
+    Navigator.pop(context);
   }
+}
+
+class _LanguageTile extends StatelessWidget {
+  static const double _flagFontSize = 24;
+
+  final AppLocale locale;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const new({
+    required this.locale,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    leading: Text(
+      locale.flag,
+      style: const TextStyle(fontSize: _flagFontSize),
+    ),
+    title: Text(locale.label, style: const TextStyle(fontSize: 16)),
+    trailing: selected
+        ? const Icon(Icons.check, color: Colors.deepPurple)
+        : null,
+    onTap: onTap,
+  );
 }

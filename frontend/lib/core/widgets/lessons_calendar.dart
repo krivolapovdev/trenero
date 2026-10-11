@@ -1,8 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:table_calendar/table_calendar.dart';
+
+const Color _lightGreenAlpha = Color(0x4D4CAF50);
+const Color _darkForestGreen = Color(0xFF1B5E20);
+
+const Color _lightBlueAlpha = Color(0x4D2196F3);
+const Color _darkBlue = Color(0xFF0D47A1);
+
+const Color _lightRedAlpha = Color(0x4DF44336);
+const Color _darkRed = Color(0xFFB71C1C);
+
+({Color background, Color foreground}) _dayColors(
+  List<VisitStatus>? statuses,
+  List<LessonResponse> dayLessons,
+) {
+  final hasStatuses = statuses != null && statuses.isNotEmpty;
+  final isAttended =
+      hasStatuses && statuses.every((status) => status == VisitStatus.present);
+  final isMissed =
+      hasStatuses && statuses.every((status) => status == VisitStatus.absent);
+
+  if (isAttended) {
+    return (background: _lightGreenAlpha, foreground: _darkForestGreen);
+  }
+
+  if (isMissed) {
+    return (background: _lightRedAlpha, foreground: _darkRed);
+  }
+
+  final hasIndividualLesson = dayLessons.any((lesson) => lesson.groupId == null);
+
+  return hasIndividualLesson
+      ? (background: _lightBlueAlpha, foreground: _darkBlue)
+      : (background: _lightGreenAlpha, foreground: _darkForestGreen);
+}
 
 class LessonsCalendar extends StatefulWidget {
   final List<LessonResponse> lessons;
@@ -44,15 +79,6 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
   late DateTime _focusedDay;
 
   DateTime get _shownDay => widget.focusedDay ?? _focusedDay;
-
-  static const Color _lightGreenAlpha = Color(0x4D4CAF50);
-  static const Color _darkForestGreen = Color(0xFF1B5E20);
-
-  static const Color _lightBlueAlpha = Color(0x4D2196F3);
-  static const Color _darkBlue = Color(0xFF0D47A1);
-
-  static const Color _lightRedAlpha = Color(0x4DF44336);
-  static const Color _darkRed = Color(0xFFB71C1C);
 
   DateTime get _today => DateUtils.dateOnly(DateTime.now());
 
@@ -107,126 +133,31 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
     _showLessonsBottomSheet(selectedDay, dayLessons);
   }
 
-  ({Color background, Color foreground}) _dayColors(
-    DateTime day,
-    List<LessonResponse> dayLessons,
-  ) {
-    final statuses =
-        widget.dayVisitStatuses?.call(day) ?? const <VisitStatus>[];
-    final isAttended =
-        statuses.isNotEmpty &&
-        statuses.every((status) => status == VisitStatus.present);
-    final isMissed =
-        statuses.isNotEmpty &&
-        statuses.every((status) => status == VisitStatus.absent);
-
-    if (isAttended) {
-      return (background: _lightGreenAlpha, foreground: _darkForestGreen);
-    }
-
-    if (isMissed) {
-      return (background: _lightRedAlpha, foreground: _darkRed);
-    }
-
-    final hasIndividualLesson = dayLessons.any(
-      (lesson) => lesson.groupId == null,
-    );
-
-    return hasIndividualLesson
-        ? (background: _lightBlueAlpha, foreground: _darkBlue)
-        : (background: _lightGreenAlpha, foreground: _darkForestGreen);
-  }
-
-  Widget? _buildLessonDay(DateTime day) {
-    final dayLessons = _lessonsOf(day);
-    if (dayLessons.isEmpty) return null;
-
-    final color = _dayColors(day, dayLessons);
-    final backgroundColor = color.background;
-    final foregroundColor = color.foreground;
-
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.all(4.0),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '${day.day}',
-                style: TextStyle(
-                  color: foregroundColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Container(
-                width: 5,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: foregroundColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showLessonsBottomSheet(
     DateTime selectedDay,
     List<LessonResponse> dayLessons,
   ) {
     showModalBottomSheet<void>(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.t.lessons.forDate(
-                date:
-                    '${selectedDay.day}/${selectedDay.month}/${selectedDay.year}',
-              ),
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            if (dayLessons.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Text(context.t.lessons.emptyDay),
-              )
-            else
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: dayLessons.length,
-                  itemBuilder: (context, index) => ListTile(
-                    title: Text('${context.t.lessons.title} ${index + 1}'),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.topRounded),
+      builder: (context) =>
+          _DayLessonsSheet(selectedDay: selectedDay, dayLessons: dayLessons),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget? marker(DateTime day) {
+      final dayLessons = _lessonsOf(day);
+      if (dayLessons.isEmpty) return null;
+
+      return _LessonDayMarker(
+        day: day,
+        lessons: dayLessons,
+        visitStatuses: widget.dayVisitStatuses?.call(day),
+      );
+    }
+
     final calendar = TableCalendar<LessonResponse>(
       locale: widget.locale,
       firstDay: DateTime(2000),
@@ -247,8 +178,8 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
         titleCentered: true,
       ),
       calendarBuilders: CalendarBuilders<LessonResponse>(
-        todayBuilder: (context, day, focusedDay) => _buildLessonDay(day),
-        defaultBuilder: (context, day, focusedDay) => _buildLessonDay(day),
+        todayBuilder: (context, day, focusedDay) => marker(day),
+        defaultBuilder: (context, day, focusedDay) => marker(day),
         singleMarkerBuilder: (context, day, event) => const SizedBox.shrink(),
         markerBuilder: (context, day, events) => const SizedBox.shrink(),
       ),
@@ -281,4 +212,101 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
       child: calendar,
     );
   }
+}
+
+class _LessonDayMarker extends StatelessWidget {
+  static const double _margin = 4.0;
+  static const double _dotSize = 5.0;
+  static const double _dotGap = 2;
+
+  final DateTime day;
+  final List<LessonResponse> lessons;
+  final List<VisitStatus>? visitStatuses;
+
+  const new({
+    required this.day,
+    required this.lessons,
+    this.visitStatuses,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _dayColors(visitStatuses, lessons);
+
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(_margin),
+        decoration: BoxDecoration(
+          color: colors.background,
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '${day.day}',
+                style: TextStyle(
+                  color: colors.foreground,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: _dotGap),
+              Container(
+                width: _dotSize,
+                height: _dotSize,
+                decoration: BoxDecoration(
+                  color: colors.foreground,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DayLessonsSheet extends StatelessWidget {
+  final DateTime selectedDay;
+  final List<LessonResponse> dayLessons;
+
+  const new({required this.selectedDay, required this.dayLessons});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.t.lessons.forDate(
+            date:
+                '${selectedDay.day}/${selectedDay.month}/${selectedDay.year}',
+          ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        if (dayLessons.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Text(context.t.lessons.emptyDay),
+          )
+        else
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: dayLessons.length,
+              itemBuilder: (context, index) => ListTile(
+                title: Text('${context.t.lessons.title} ${index + 1}'),
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
 }

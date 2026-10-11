@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/constants/app_colors.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/constants/app_spacing.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -91,7 +92,7 @@ class _DeleteConfirmationSheetState extends State<DeleteConfirmationSheet> {
 
 class _SheetAction extends StatelessWidget {
   static const double _height = 50;
-  static const double _cornerRadius = 12;
+  static const double _cornerRadius = AppRadius.md;
 
   final String label;
   final VoidCallback onPressed;

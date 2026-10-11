@@ -3,6 +3,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
+import 'package:phone/core/widgets/retry_view.dart';
 import 'package:phone/core/widgets/shell_page.dart';
 import 'package:phone/features/students/controllers/student_filter_controller.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
@@ -16,6 +17,17 @@ import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+final List<StudentSummaryResponse> _dummyStudents = List.generate(
+  10,
+  (index) => StudentSummaryResponse(
+    id: 'placeholder-$index',
+    fullName: 'Student Name Placeholder',
+    createdAt: DateTime.now(),
+    free: false,
+    statuses: const [],
+  ),
+);
+
 class StudentListPage extends ShellPage {
   const new({
     super.key,
@@ -24,39 +36,9 @@ class StudentListPage extends ShellPage {
     super.selectedIcon = Icons.groups_2,
   });
 
-  static final List<StudentSummaryResponse> _dummyStudents = List.generate(
-    10,
-    (index) => StudentSummaryResponse(
-      id: 'placeholder-$index',
-      fullName: 'Student Name Placeholder',
-      createdAt: DateTime.now(),
-      free: false,
-      statuses: [],
-    ),
-  );
-
   @override
   List<Widget> actions(BuildContext context) => [
-    Consumer(
-      builder: (context, ref, child) {
-        final studentsState = ref.watch(studentListControllerProvider);
-
-        return IconButton(
-          icon: const Icon(FluentIcons.search_24_regular),
-          onPressed: () {
-            final currentStudents = studentsState.value ?? [];
-
-            showSearch(
-              context: context,
-              delegate: StudentSearchDelegate(
-                currentStudents,
-                '${MaterialLocalizations.of(context).searchFieldLabel}...',
-              ),
-            );
-          },
-        );
-      },
-    ),
+    const _StudentSearchButton(),
     const StudentFilterButton(),
     IconButton(
       icon: const Icon(FluentIcons.person_add_24_regular),
@@ -70,98 +52,66 @@ class StudentListPage extends ShellPage {
 
   @override
   Widget build(BuildContext context) => Consumer(
-    builder: (context, ref, child) {
-      final studentsState = ref.watch(studentListControllerProvider);
-      final filter = ref.watch(studentFilterControllerProvider);
-      final isLoading = studentsState.isLoading;
-      final hasError = studentsState.hasError;
-      final students = studentsState.value ?? [];
-      final filteredStudents = students.where(filter.matches).toList();
+    builder: (context, ref, child) => CustomMaterialIndicator(
+      color: Colors.black,
+      clipBehavior: Clip.antiAlias,
+      onRefresh: () async {
+        await ref
+            .read(studentListControllerProvider.notifier)
+            .getAllStudents(forceRefresh: true);
 
-      return CustomMaterialIndicator(
-        color: Colors.black,
-        clipBehavior: Clip.antiAlias,
-        onRefresh: () async {
-          await ref
-              .read(studentListControllerProvider.notifier)
-              .getAllStudents(forceRefresh: true);
-
-          ref
-            ..invalidate(studentLessonsProvider)
-            ..invalidate(studentPaymentsControllerProvider);
-        },
-        child: _buildBody(
-          context,
-          ref,
-          studentsState,
-          students,
-          filteredStudents,
-          isLoading,
-          hasError,
-        ),
-      );
-    },
+        ref
+          ..invalidate(studentLessonsProvider)
+          ..invalidate(studentPaymentsControllerProvider);
+      },
+      child: const _StudentListBody(),
+    ),
   );
+}
 
-  Widget _buildBody(
-    BuildContext context,
-    WidgetRef ref,
-    AsyncValue studentsState,
-    List<StudentSummaryResponse> students,
-    List<StudentSummaryResponse> filteredStudents,
-    bool isLoading,
-    bool hasError,
-  ) {
-    if (hasError && students.isEmpty) {
-      return LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('${studentsState.error}'),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: () => ref
-                        .read(studentListControllerProvider.notifier)
-                        .getAllStudents(),
-                    child: Text(context.t.repeat),
-                  ),
-                ],
-              ),
-            ),
+class _StudentSearchButton extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentStudents = ref.watch(
+      studentListControllerProvider.select(
+        (state) => state.value ?? const <StudentSummaryResponse>[],
+      ),
+    );
+
+    return IconButton(
+      icon: const Icon(FluentIcons.search_24_regular),
+      onPressed: () {
+        showSearch(
+          context: context,
+          delegate: StudentSearchDelegate(
+            currentStudents,
+            '${MaterialLocalizations.of(context).searchFieldLabel}...',
           ),
-        ),
-      );
+        );
+      },
+    );
+  }
+}
+
+class _StudentListBody extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final studentsState = ref.watch(studentListControllerProvider);
+    final filteredStudents = ref.watch(filteredStudentsProvider);
+
+    final isLoading = studentsState.isLoading;
+    final students = studentsState.value ?? const <StudentSummaryResponse>[];
+
+    if (studentsState.hasError && students.isEmpty) {
+      return _StudentListRetry(error: studentsState.error);
     }
 
     if (!isLoading && students.isNotEmpty && filteredStudents.isEmpty) {
-      return LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(context.t.students.filter.empty),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: () => ref
-                        .read(studentFilterControllerProvider.notifier)
-                        .clear(),
-                    child: Text(context.t.students.filter.reset),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
+      return const _StudentFilterEmpty();
     }
 
     return Skeletonizer(
@@ -175,4 +125,30 @@ class StudentListPage extends ShellPage {
       ),
     );
   }
+}
+
+class _StudentListRetry extends ConsumerWidget {
+  final Object? error;
+
+  const new({required this.error});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => RetryView(
+    message: '$error',
+    scrollable: true,
+    onRetry: () =>
+        ref.read(studentListControllerProvider.notifier).getAllStudents(),
+  );
+}
+
+class _StudentFilterEmpty extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => RetryView(
+    message: context.t.students.filter.empty,
+    actionLabel: context.t.students.filter.reset,
+    scrollable: true,
+    onRetry: () => ref.read(studentFilterControllerProvider.notifier).clear(),
+  );
 }

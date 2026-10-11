@@ -42,3 +42,8 @@ final class AuthenticationException extends AppException {
 final class UnknownException extends AppException {
   const new({super.cause}) : super('Something went wrong. Please try again.');
 }
+
+/// Raised when user supplied data fails a domain validation rule.
+final class ValidationException extends AppException {
+  const new(super.message, {super.cause});
+}

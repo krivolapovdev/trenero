@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/widgets/status_badges.dart';
 
 class EntityCard extends StatelessWidget {
@@ -18,24 +19,24 @@ class EntityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     elevation: 0,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgAll),
     clipBehavior: Clip.antiAlias,
     color: Colors.white,
     child: InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
 
             if (subtitle != null && subtitle!.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(subtitle!, style: TextStyle(fontSize: 14)),
+              Text(subtitle!, style: const TextStyle(fontSize: 14)),
             ],
 
             if (badges != null && badges!.isNotEmpty) ...[

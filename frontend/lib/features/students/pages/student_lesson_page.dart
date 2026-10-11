@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
@@ -33,8 +34,6 @@ class StudentLessonPage extends ConsumerStatefulWidget {
 }
 
 class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
-  static const Duration _animationDuration = Duration(milliseconds: 250);
-
   late DateTime _selectedDate;
 
   bool? _pickedIsPresent;
@@ -168,33 +167,13 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
       appBar: AppBar(
         title: Text(context.t.lessons.individualLesson),
         actions: [
-          if (lesson != null)
-            PopupMenuButton<String>(
-              tooltip: '',
-              offset: const Offset(-8, 0),
-              color: colorScheme.surface,
-              itemBuilder: (menuContext) => [
-                PopupMenuItem<String>(
-                  onTap: _onDelete,
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, size: 20, color: colorScheme.error),
-                      const SizedBox(width: 12),
-                      Text(
-                        context.t.delete,
-                        style: TextStyle(color: colorScheme.error),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          if (lesson != null) _IndividualLessonMenu(onDelete: _onDelete),
           const SizedBox(width: 8),
         ],
         backgroundColor: colorScheme.surface,
         surfaceTintColor: colorScheme.surface,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+          borderRadius: AppRadius.bottomRounded,
         ),
       ),
       body: SingleChildScrollView(
@@ -205,13 +184,21 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
             mainAxisSize: MainAxisSize.min,
             spacing: 16,
             children: [
-              _buildDateCard(canEdit),
-              _buildAttendanceCard(
+              _StudentLessonDateCard(
+                formattedDate: _formatDate(_selectedDate),
+                canEdit: canEdit,
+                onTap: _pickDate,
+              ),
+              _StudentAttendanceCard(
+                studentName: widget.studentName,
                 isPresent: isPresent,
                 canEdit: canEdit,
                 hasChanges: hasChanges,
                 isAttendanceLoading: isAttendanceLoading,
                 isLoading: isLoading,
+                isUpdate: lesson != null,
+                onToggle: () => _togglePresent(isPresent),
+                onSubmit: () => _onSubmit(isPresent),
               ),
             ],
           ),
@@ -219,13 +206,58 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
       ),
     );
   }
+}
 
-  Widget _buildDateCard(bool canEdit) => Material(
+class _IndividualLessonMenu extends StatelessWidget {
+  final VoidCallback onDelete;
+
+  const new({required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return PopupMenuButton<String>(
+      tooltip: '',
+      offset: const Offset(-8, 0),
+      color: colorScheme.surface,
+      itemBuilder: (menuContext) => [
+        PopupMenuItem<String>(
+          onTap: onDelete,
+          child: Row(
+            children: [
+              Icon(Icons.delete, size: 20, color: colorScheme.error),
+              const SizedBox(width: 12),
+              Text(
+                context.t.delete,
+                style: TextStyle(color: colorScheme.error),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StudentLessonDateCard extends StatelessWidget {
+  final String formattedDate;
+  final bool canEdit;
+  final VoidCallback onTap;
+
+  const new({
+    required this.formattedDate,
+    required this.canEdit,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => Material(
     color: Colors.white,
     clipBehavior: Clip.antiAlias,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     child: InkWell(
-      onTap: canEdit ? _pickDate : null,
+      onTap: canEdit ? onTap : null,
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: context.t.lessons.date,
@@ -236,7 +268,7 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
           contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
         ),
         child: Text(
-          _formatDate(_selectedDate),
+          formattedDate,
           style: TextStyle(
             fontSize: 16,
             color: canEdit ? null : Theme.of(context).disabledColor,
@@ -245,14 +277,35 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
       ),
     ),
   );
+}
 
-  Widget _buildAttendanceCard({
-    required bool isPresent,
-    required bool canEdit,
-    required bool hasChanges,
-    required bool isAttendanceLoading,
-    required bool isLoading,
-  }) => Material(
+class _StudentAttendanceCard extends StatelessWidget {
+  static const Duration _animationDuration = Duration(milliseconds: 250);
+
+  final String studentName;
+  final bool isPresent;
+  final bool canEdit;
+  final bool hasChanges;
+  final bool isAttendanceLoading;
+  final bool isLoading;
+  final bool isUpdate;
+  final VoidCallback onToggle;
+  final VoidCallback onSubmit;
+
+  const new({
+    required this.studentName,
+    required this.isPresent,
+    required this.canEdit,
+    required this.hasChanges,
+    required this.isAttendanceLoading,
+    required this.isLoading,
+    required this.isUpdate,
+    required this.onToggle,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) => Material(
     color: Colors.white,
     clipBehavior: Clip.antiAlias,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -272,11 +325,9 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
                   )
                 : CheckboxListTile(
                     value: isPresent,
-                    onChanged: canEdit
-                        ? (_) => _togglePresent(isPresent)
-                        : null,
+                    onChanged: canEdit ? (_) => onToggle() : null,
                     title: Text(
-                      widget.studentName,
+                      studentName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 16),
@@ -290,18 +341,16 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(
-              onPressed: (isLoading || !hasChanges)
-                  ? null
-                  : () => _onSubmit(isPresent),
+              onPressed: (isLoading || !hasChanges) ? null : onSubmit,
               icon: isLoading
                   ? const SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Icon(widget.lesson == null ? Icons.add : Icons.check),
+                  : Icon(isUpdate ? Icons.check : Icons.add),
               label: Text(
-                widget.lesson == null ? context.t.create : context.t.edit,
+                isUpdate ? context.t.edit : context.t.create,
                 style: const TextStyle(fontSize: 18),
               ),
             ),

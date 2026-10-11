@@ -171,16 +171,21 @@ class _DateInputFieldState extends State<DateInputField> {
       hintText: DateInputField.hint,
       prefixIcon: widget.icon == null ? null : Icon(widget.icon),
       errorText: _errorText,
-      suffixIcon: _buildSuffixIcon(),
+      suffixIcon: widget.allowClear && widget.enabled && _controller.text.isNotEmpty
+          ? _ClearButton(onClear: _clear)
+          : null,
     ),
   );
+}
 
-  Widget? _buildSuffixIcon() {
-    if (!widget.allowClear || !widget.enabled) return null;
-    if (_controller.text.isEmpty) return null;
+class _ClearButton extends StatelessWidget {
+  final VoidCallback onClear;
 
-    return IconButton(onPressed: _clear, icon: const Icon(Icons.clear));
-  }
+  const new({required this.onClear});
+
+  @override
+  Widget build(BuildContext context) =>
+      IconButton(onPressed: onClear, icon: const Icon(Icons.clear));
 }
 
 class DateInputFormatter extends TextInputFormatter {

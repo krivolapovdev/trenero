@@ -13,4 +13,13 @@ abstract final class AppColors {
   static const Color neutralOn = Color(0xFF64748B);
   static const Color freeSurface = Color(0xFFFEF9C3);
   static const Color freeOn = Color(0xFF854D0E);
+  static const Color badgeSurface = Color(0xFFE8DEF8);
+  static const Color badgeOn = Color(0xFF0E081B);
+
+  static const Color chartProfit = Color(0xFF66A57A);
+  static const Color chartLoss = Color(0xFFEB5757);
+  static const Color chartProfitText = Color(0xFF2D6A4F);
+  static const Color chartLossText = Color(0xFF9E2A2B);
+  static const Color chartProfitTooltip = Color(0xFFEDF4EF);
+  static const Color chartLossTooltip = Color(0xFFFDEBEB);
 }

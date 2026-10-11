@@ -79,7 +79,7 @@ Widget _wrap(_FakeGroupClient client) => ProviderScope(
     languageProvider.overrideWith(_FakeLanguageNotifier.new),
   ],
   child: TranslationProvider(
-    child: MaterialApp(
+    child: const MaterialApp(
       home: Scaffold(body: GroupLessonsSection(groupId: 'group-1')),
     ),
   ),

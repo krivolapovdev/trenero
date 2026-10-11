@@ -3,15 +3,14 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
-import 'package:phone/core/widgets/create_lesson_button.dart';
 import 'package:phone/core/widgets/recent_transactions.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/features/students/pages/student_group_page.dart';
-import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
 import 'package:phone/features/students/widgets/delete_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
@@ -77,18 +76,6 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     );
   }
 
-  Future<void> _openCreateLessonPage() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => StudentLessonPage(
-          studentId: _student.id,
-          studentName: _student.fullName,
-          date: DateUtils.dateOnly(DateTime.now()),
-        ),
-      ),
-    );
-  }
-
   Future<void> _confirmDelete() async {
     final navigator = Navigator.of(context);
 
@@ -100,6 +87,42 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     if (!mounted || deleted != true) return;
 
     navigator.pop();
+  }
+
+  Future<void> _refresh() async {
+    setState(() => _isRefreshing = true);
+
+    try {
+      await Future.wait([
+        ref.read(studentLessonsProvider(_student.id).notifier).refresh(),
+        ref
+            .read(studentPaymentsControllerProvider(_student.id).notifier)
+            .refresh(),
+        ref
+            .read(studentListControllerProvider.notifier)
+            .getAllStudents(forceRefresh: true),
+      ]);
+
+      if (!mounted) return;
+
+      final listState = ref.read(studentListControllerProvider);
+      if (listState.hasError) return;
+
+      final updated = (listState.value ?? const [])
+          .where((student) => student.id == _student.id)
+          .firstOrNull;
+
+      if (updated == null) {
+        Navigator.of(context).pop();
+        return;
+      }
+
+      setState(() => _student = updated);
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+      }
+    }
   }
 
   @override
@@ -123,108 +146,24 @@ class _StudentPageState extends ConsumerState<StudentPage> {
       appBar: AppBar(
         title: Text(_student.fullName),
         actions: [
-          PopupMenuButton<String>(
-            tooltip: '',
-            offset: const Offset(-8, 0),
-            color: Theme.of(context).colorScheme.surface,
-            itemBuilder: (menuContext) => [
-              PopupMenuItem<String>(
-                onTap: _openEditStudentSheet,
-                child: Row(
-                  children: [
-                    const Icon(CupertinoIcons.text_cursor, size: 20),
-                    const SizedBox(width: 12),
-                    Text(context.t.edit),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                onTap: _openCreatePaymentSheet,
-                child: Row(
-                  children: [
-                    const Icon(FluentIcons.money_24_regular, size: 20),
-                    const SizedBox(width: 12),
-                    Text(context.t.students.payment),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                onTap: _openAssignGroupPage,
-                child: Row(
-                  children: [
-                    const Icon(CupertinoIcons.person_2_square_stack, size: 20),
-                    const SizedBox(width: 12),
-                    Text(context.t.students.group),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                onTap: _confirmDelete,
-                child: Row(
-                  children: [
-                    Icon(
-                      CupertinoIcons.trash,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      context.t.delete,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          _StudentAppMenu(
+            onEdit: _openEditStudentSheet,
+            onCreatePayment: _openCreatePaymentSheet,
+            onAssignGroup: _openAssignGroupPage,
+            onDelete: _confirmDelete,
           ),
           const SizedBox(width: 8),
         ],
         backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+          borderRadius: AppRadius.bottomRounded,
         ),
       ),
       body: CustomMaterialIndicator(
         color: Colors.black,
         clipBehavior: Clip.antiAlias,
-        onRefresh: () async {
-          setState(() => _isRefreshing = true);
-
-          try {
-            await Future.wait([
-              ref.read(studentLessonsProvider(_student.id).notifier).refresh(),
-              ref
-                  .read(studentPaymentsControllerProvider(_student.id).notifier)
-                  .refresh(),
-              ref
-                  .read(studentListControllerProvider.notifier)
-                  .getAllStudents(forceRefresh: true),
-            ]);
-
-            if (!context.mounted) return;
-
-            final listState = ref.read(studentListControllerProvider);
-            if (listState.hasError) return;
-
-            final updated = (listState.value ?? const [])
-                .where((s) => s.id == _student.id)
-                .firstOrNull;
-
-            if (updated == null) {
-              Navigator.of(context).pop();
-              return;
-            }
-
-            setState(() => _student = updated);
-          } finally {
-            if (mounted) {
-              setState(() => _isRefreshing = false);
-            }
-          }
-        },
+        onRefresh: _refresh,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           physics: const BouncingScrollPhysics(
@@ -236,19 +175,9 @@ class _StudentPageState extends ConsumerState<StudentPage> {
               Skeletonizer(
                 enabled: _isRefreshing,
                 ignorePointers: false,
-                child: AnimatedBuilder(
-                  animation: routeAnimation ?? const AlwaysStoppedAnimation(0),
-                  builder: (context, child) => HeroMode(
-                    enabled: routeAnimation?.status != AnimationStatus.reverse,
-                    child: child!,
-                  ),
-                  child: Hero(
-                    tag: 'student-card-${_student.id}',
-                    child: Material(
-                      type: MaterialType.transparency,
-                      child: StudentCard(student: _student, onTap: () {}),
-                    ),
-                  ),
+                child: _StudentHeroCard(
+                  student: _student,
+                  routeAnimation: routeAnimation,
                 ),
               ),
 
@@ -279,6 +208,96 @@ class _StudentPageState extends ConsumerState<StudentPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _StudentHeroCard extends StatelessWidget {
+  final StudentSummaryResponse student;
+  final Animation<double>? routeAnimation;
+
+  const new({required this.student, this.routeAnimation});
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: routeAnimation ?? const AlwaysStoppedAnimation(0),
+    builder: (context, child) => HeroMode(
+      enabled: routeAnimation?.status != AnimationStatus.reverse,
+      child: child!,
+    ),
+    child: Hero(
+      tag: 'student-card-${student.id}',
+      child: Material(
+        type: MaterialType.transparency,
+        child: StudentCard(student: student, onTap: () {}),
+      ),
+    ),
+  );
+}
+
+class _StudentAppMenu extends StatelessWidget {
+  final VoidCallback onEdit;
+  final VoidCallback onCreatePayment;
+  final VoidCallback onAssignGroup;
+  final VoidCallback onDelete;
+
+  const new({
+    required this.onEdit,
+    required this.onCreatePayment,
+    required this.onAssignGroup,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final errorColor = Theme.of(context).colorScheme.error;
+
+    return PopupMenuButton<String>(
+      tooltip: '',
+      offset: const Offset(-8, 0),
+      color: Theme.of(context).colorScheme.surface,
+      itemBuilder: (menuContext) => [
+        PopupMenuItem<String>(
+          onTap: onEdit,
+          child: Row(
+            children: [
+              const Icon(CupertinoIcons.text_cursor, size: 20),
+              const SizedBox(width: 12),
+              Text(context.t.edit),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          onTap: onCreatePayment,
+          child: Row(
+            children: [
+              const Icon(FluentIcons.money_24_regular, size: 20),
+              const SizedBox(width: 12),
+              Text(context.t.students.payment),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          onTap: onAssignGroup,
+          child: Row(
+            children: [
+              const Icon(CupertinoIcons.person_2_square_stack, size: 20),
+              const SizedBox(width: 12),
+              Text(context.t.students.group),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          onTap: onDelete,
+          child: Row(
+            children: [
+              Icon(CupertinoIcons.trash, size: 20, color: errorColor),
+              const SizedBox(width: 12),
+              Text(context.t.delete, style: TextStyle(color: errorColor)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

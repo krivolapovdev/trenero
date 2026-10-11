@@ -96,7 +96,7 @@ Future<void> _pumpStudentListPage(
   WidgetTester tester,
   ProviderContainer container,
 ) async {
-  final page = StudentListPage(title: 'Students');
+  final page = const StudentListPage(title: 'Students');
 
   await tester.pumpWidget(
     UncontrolledProviderScope(

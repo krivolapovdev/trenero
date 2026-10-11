@@ -46,7 +46,7 @@ class GroupCard extends StatelessWidget {
                     backgroundColor: group.id.toColor(),
                     child: Text(
                       group.name.initials,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,

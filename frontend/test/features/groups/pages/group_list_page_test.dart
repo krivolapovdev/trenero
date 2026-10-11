@@ -60,7 +60,7 @@ Future<void> _pumpGroupListPage(
   WidgetTester tester,
   ProviderContainer container,
 ) async {
-  final page = GroupListPage(title: 'Groups');
+  final page = const GroupListPage(title: 'Groups');
 
   await tester.pumpWidget(
     UncontrolledProviderScope(

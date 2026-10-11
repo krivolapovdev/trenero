@@ -49,7 +49,7 @@ void main() {
     });
 
     test('the noGroup sentinel keeps students without a group', () {
-      final filter = StudentFilter(groupIds: {StudentFilter.noGroupId});
+      final filter = const StudentFilter(groupIds: {StudentFilter.noGroupId});
 
       expect(filter.matches(_student()), isTrue);
       expect(filter.matches(_student(groupId: 'group-1')), isFalse);

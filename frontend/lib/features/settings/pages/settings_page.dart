@@ -14,6 +14,8 @@ import 'package:phone/features/settings/widgets/settings_section_title.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+final Future<PackageInfo> _packageInfo = PackageInfo.fromPlatform();
+
 class SettingsPage extends ShellPage {
   const new({
     super.key,
@@ -32,58 +34,26 @@ class SettingsPage extends ShellPage {
       padding: const EdgeInsets.all(16.0),
       children: [
         SettingsSectionTitle(title: context.t.settings.appearance),
-        SettingsGroupCard(
-          children: [
-            Consumer(
-              builder: (context, ref, child) => ListTile(
-                leading: const Icon(Icons.outlined_flag, color: Colors.black87),
-                title: Text(
-                  context.t.settings.language,
-                  style: const TextStyle(fontSize: 16, color: Colors.black87),
-                ),
-                trailing: Text(
-                  ref
-                      .watch(languageProvider)
-                      .when(
-                        data: (locale) => locale.languageTag,
-                        loading: () => '...',
-                        error: (_, _) => '',
-                      ),
-                  style: const TextStyle(fontSize: 16, color: Colors.black54),
-                ),
-                onTap: () => AppBottomSheet.show(
-                  context: context,
-                  child: const LanguageSelectionSheet(),
-                ),
-              ),
-            ),
-          ],
-        ),
+        const SettingsGroupCard(children: [_SettingsLanguageTile()]),
         const SizedBox(height: 24),
 
         SettingsSectionTitle(title: context.t.settings.account),
         SettingsGroupCard(
           children: [
-            ListTile(
+            _SettingsNavTile(
               leading: Icon(Icons.logout, color: logoutColor),
-              title: Text(
-                context.t.settings.logout,
-                style: TextStyle(fontSize: 16, color: logoutColor),
-              ),
-              trailing: Icon(Icons.chevron_right, color: Colors.black54),
+              title: context.t.settings.logout,
+              color: logoutColor,
               onTap: () => AppBottomSheet.show(
                 context: context,
                 child: const LogoutConfirmationSheet(),
               ),
             ),
 
-            ListTile(
+            _SettingsNavTile(
               leading: Icon(Icons.delete_outline, color: deleteColor),
-              title: Text(
-                context.t.settings.deleteAccount,
-                style: TextStyle(fontSize: 16, color: deleteColor),
-              ),
-              trailing: Icon(Icons.chevron_right, color: Colors.black54),
+              title: context.t.settings.deleteAccount,
+              color: deleteColor,
               onTap: () => AppBottomSheet.show(
                 context: context,
                 child: const DeleteAccountBottomSheet(),
@@ -96,45 +66,25 @@ class SettingsPage extends ShellPage {
         SettingsSectionTitle(title: context.t.settings.other),
         SettingsGroupCard(
           children: [
-            ListTile(
-              leading: const Icon(Icons.code, color: Colors.black87),
-              title: Text(
-                context.t.settings.version,
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
-              ),
-              trailing: FutureBuilder<PackageInfo>(
-                future: PackageInfo.fromPlatform(),
-                builder: (context, snapshot) => Text(
-                  snapshot.hasData ? snapshot.data!.version : '...',
-                  style: const TextStyle(fontSize: 16, color: Colors.black54),
-                ),
-              ),
-            ),
-            ListTile(
+            const _AppVersionTile(),
+            _SettingsNavTile(
               leading: const Icon(
                 Icons.account_circle_outlined,
                 color: Colors.black87,
               ),
-              title: Text(
-                context.t.settings.contacts,
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
-              ),
-              trailing: const Icon(Icons.chevron_right, color: Colors.black54),
+              title: context.t.settings.contacts,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ContactsPage()),
               ),
             ),
-            ListTile(
+            _SettingsNavTile(
               leading: const Icon(
                 Icons.local_police_outlined,
                 color: Colors.black87,
               ),
-              title: Text(
-                context.t.settings.privacyPolicy,
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
-              ),
               trailing: const Icon(Icons.link, color: Colors.black54),
+              title: context.t.settings.privacyPolicy,
               onTap: () => launchUrl(
                 Uri.parse(AppConstants.privacyPolicyUrl),
                 mode: LaunchMode.externalApplication,
@@ -145,4 +95,78 @@ class SettingsPage extends ShellPage {
       ],
     );
   }
+}
+
+class _SettingsLanguageTile extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final languageTag = ref.watch(
+      languageProvider.select((state) => state.value?.languageTag ?? '...'),
+    );
+
+    return ListTile(
+      leading: const Icon(Icons.outlined_flag, color: Colors.black87),
+      title: Text(
+        context.t.settings.language,
+        style: const TextStyle(fontSize: 16, color: Colors.black87),
+      ),
+      trailing: Text(
+        languageTag,
+        style: const TextStyle(fontSize: 16, color: Colors.black54),
+      ),
+      onTap: () => AppBottomSheet.show(
+        context: context,
+        child: const LanguageSelectionSheet(),
+      ),
+    );
+  }
+}
+
+class _AppVersionTile extends StatelessWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    leading: const Icon(Icons.code, color: Colors.black87),
+    title: Text(
+      context.t.settings.version,
+      style: const TextStyle(fontSize: 16, color: Colors.black87),
+    ),
+    trailing: FutureBuilder<PackageInfo>(
+      future: _packageInfo,
+      builder: (context, snapshot) => Text(
+        snapshot.hasData ? snapshot.data!.version : '...',
+        style: const TextStyle(fontSize: 16, color: Colors.black54),
+      ),
+    ),
+  );
+}
+
+class _SettingsNavTile extends StatelessWidget {
+  final Widget leading;
+  final String title;
+  final VoidCallback onTap;
+  final Color? color;
+  final Widget trailing;
+
+  const new({
+    required this.leading,
+    required this.title,
+    required this.onTap,
+    this.color,
+    this.trailing = const Icon(Icons.chevron_right, color: Colors.black54),
+  });
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    leading: leading,
+    title: Text(
+      title,
+      style: TextStyle(fontSize: 16, color: color ?? Colors.black87),
+    ),
+    trailing: trailing,
+    onTap: onTap,
+  );
 }

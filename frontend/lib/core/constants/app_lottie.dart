@@ -1,4 +1,4 @@
-abstract class AppLottie {
+abstract final class AppLottie {
   static const String _lottie = 'assets/lottie';
 
   static const String profilePasswordUnlock =

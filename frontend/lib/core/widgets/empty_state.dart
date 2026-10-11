@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phone/core/constants/app_lottie.dart';
+import 'package:phone/core/constants/app_spacing.dart';
 
 class EmptyState extends StatelessWidget {
+  static const double defaultLottieHeight = 220;
+
   final String buttonText;
   final String subtitle;
   final String lottieAsset;
@@ -15,7 +18,7 @@ class EmptyState extends StatelessWidget {
     required this.subtitle,
     required this.onButtonPressed,
     this.lottieAsset = AppLottie.emptyBox,
-    this.lottieHeight = 220,
+    this.lottieHeight = defaultLottieHeight,
   });
 
   @override
@@ -31,10 +34,10 @@ class EmptyState extends StatelessWidget {
         FilledButton.icon(
           icon: const Icon(Icons.add_circle_rounded),
           onPressed: onButtonPressed,
-          label: Text(buttonText, style: TextStyle(fontSize: 14)),
+          label: Text(buttonText, style: const TextStyle(fontSize: 14)),
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
 
         Text(subtitle),
       ],

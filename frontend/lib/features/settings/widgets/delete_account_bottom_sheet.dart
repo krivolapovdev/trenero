@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/constants/app_colors.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/constants/app_spacing.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/settings/controllers/delete_account_controller.dart';
@@ -106,8 +107,8 @@ class _DeleteAccountBottomSheetState
                 foregroundColor: Colors.red,
                 disabledForegroundColor: Colors.black38,
                 elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: AppRadius.mdAll,
                 ),
               ),
               onPressed: _canDelete ? _onDelete : null,
@@ -144,8 +145,8 @@ class _DeleteAccountBottomSheetState
             child: TextButton(
               style: TextButton.styleFrom(
                 foregroundColor: Colors.black87,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: AppRadius.mdAll,
                 ),
               ),
               onPressed: () => Navigator.pop(context),

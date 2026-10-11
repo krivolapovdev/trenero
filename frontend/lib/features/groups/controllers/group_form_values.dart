@@ -1,3 +1,5 @@
+import 'package:phone/core/errors/app_exception.dart';
+
 class GroupFormValues {
   final String name;
   final double? defaultPrice;
@@ -17,14 +19,14 @@ GroupFormValues validateGroupForm({
 }) {
   final trimmedName = name.trim();
   if (trimmedName.isEmpty) {
-    throw ArgumentError('Group name is required.');
+    throw const ValidationException('Group name is required.');
   }
 
   double? parsedPrice;
   if (priceText != null && priceText.trim().isNotEmpty) {
     parsedPrice = double.tryParse(priceText.trim());
     if (parsedPrice == null || parsedPrice < 0) {
-      throw ArgumentError('Price must be a valid positive number.');
+      throw const ValidationException('Price must be a valid positive number.');
     }
   }
 

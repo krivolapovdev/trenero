@@ -6,7 +6,7 @@ import 'package:phone/i18n/strings.g.dart';
 
 enum SnackBarType { success, error, warning, help }
 
-class AppSnackBar {
+abstract final class AppSnackBar {
   static const Duration _overlayDuration = Duration(seconds: 4);
 
   static OverlayEntry? _overlayEntry;

@@ -1,11 +1,13 @@
 import 'package:intl/intl.dart';
 
 extension NumberExtension on num {
+  static const String _currencyLocale = 'ru_RU';
+
   String toFormattedAmount({bool showSign = true}) {
     final absAmount = abs();
 
     final formatter = NumberFormat.currency(
-      locale: 'ru_RU',
+      locale: _currencyLocale,
       symbol: '',
       decimalDigits: absAmount % 1 == 0 ? 0 : 2,
     );

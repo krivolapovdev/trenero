@@ -200,124 +200,22 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
     }
   }
 
-  List<GroupResponse> _groups(
-    List<VisitWithLessonResponse> visits,
-    List<GroupSummaryResponse>? groups,
-  ) {
-    final orderedGroups = <GroupResponse>[];
-    final seenGroupIds = <String>{};
-    final studentGroup = widget.studentGroup;
-
-    if (studentGroup != null) {
-      orderedGroups.add(studentGroup);
-      seenGroupIds.add(studentGroup.id);
-    }
-
-    for (final groupId in StudentLessonsSection.groupIdsOf(visits)) {
-      if (seenGroupIds.add(groupId)) {
-        orderedGroups.add(_groupOf(groupId, groups));
-      }
-    }
-
-    return orderedGroups;
+  Future<void> _createGroupLesson(GroupResponse group) async {
+    await _openGroupLessonPage(group.id, DateTime.now(), null);
   }
 
-  GroupResponse _groupOf(String groupId, List<GroupSummaryResponse>? groups) {
-    for (final group in groups ?? const <GroupSummaryResponse>[]) {
-      if (group.id == groupId) {
-        return GroupResponse(
-          id: group.id,
-          name: group.name,
-          createdAt: group.createdAt,
-          defaultPrice: group.defaultPrice,
-          note: group.note,
-        );
-      }
-    }
-
-    return GroupResponse(id: groupId, name: groupId, createdAt: DateTime.now());
-  }
-
-  Widget _buildSections(
-    BuildContext context,
-    List<VisitWithLessonResponse> visits,
-    DateTime focusedDay,
-    List<GroupSummaryResponse>? groups,
-    String? locale,
-  ) {
-    final studentGroups = _groups(visits, groups);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 8,
-      children: [
-        for (final group in studentGroups)
-          _buildCalendarSection(
-            context,
-            title: group.name,
-            visits: StudentLessonsSection.groupVisits(visits, group.id),
-            focusedDay: focusedDay,
-            locale: locale,
-            group: group,
-            onCreate: () => _createGroupLesson(context, group),
-          ),
-        if (StudentLessonsSection.showsIndividualCalendar(
-          visits,
-          studentGroups,
-        ))
-          _buildCalendarSection(
-            context,
-            title: context.t.lessons.individualLessons,
-            visits: StudentLessonsSection.individualVisits(visits),
-            focusedDay: focusedDay,
-            locale: locale,
-            onCreate: () => _createIndividualLesson(context),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildCalendarSection(
-    BuildContext context, {
-    required String title,
-    required List<VisitWithLessonResponse> visits,
-    required DateTime focusedDay,
-    required String? locale,
-    GroupResponse? group,
-    VoidCallback? onCreate,
-  }) => StudentLessonCalendarSection(
-    title: title,
-    locale: locale,
-    lessons: StudentLessonsSection._toLessons(visits),
-    focusedDay: focusedDay,
-    dayVisitStatuses: (day) =>
-        StudentLessonsSection.dayVisitStatusesOf(visits, day),
-    onCreate: onCreate,
-    onDayTapped: (selectedDay, dayLessons) => group == null
-        ? _openIndividualDay(context, selectedDay, visits)
-        : _openGroupDay(context, selectedDay, group, visits),
-  );
-
-  Future<void> _createGroupLesson(
-    BuildContext context,
-    GroupResponse group,
-  ) async {
-    await _openGroupLessonPage(context, group.id, DateTime.now(), null);
-  }
-
-  Future<void> _createIndividualLesson(BuildContext context) async {
-    await _openIndividualLessonPage(context, DateTime.now(), null);
+  Future<void> _createIndividualLesson() async {
+    await _openIndividualLessonPage(DateTime.now(), null);
   }
 
   Future<void> _openIndividualDay(
-    BuildContext context,
     DateTime selectedDay,
     List<VisitWithLessonResponse> visits,
   ) async {
     final dayVisits = StudentLessonsSection.dayVisitsOf(visits, selectedDay);
 
     if (StudentLessonsSection.opensCreatePageDirectly(dayVisits)) {
-      await _openIndividualLessonPage(context, selectedDay, null);
+      await _openIndividualLessonPage(selectedDay, null);
       return;
     }
 
@@ -331,19 +229,18 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
 
     if (selection == null || !context.mounted) return;
 
-    await _openIndividualLessonPage(context, selectedDay, selection.lesson);
+    await _openIndividualLessonPage(selectedDay, selection.lesson);
   }
 
   Future<void> _openGroupDay(
-    BuildContext context,
-    DateTime selectedDay,
     GroupResponse group,
+    DateTime selectedDay,
     List<VisitWithLessonResponse> visits,
   ) async {
     final dayVisits = StudentLessonsSection.dayVisitsOf(visits, selectedDay);
 
     if (StudentLessonsSection.opensCreatePageDirectly(dayVisits)) {
-      await _openGroupLessonPage(context, group.id, selectedDay, null);
+      await _openGroupLessonPage(group.id, selectedDay, null);
       return;
     }
 
@@ -359,16 +256,10 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
 
     if (selection == null || !context.mounted) return;
 
-    await _openGroupLessonPage(
-      context,
-      group.id,
-      selectedDay,
-      selection.lesson,
-    );
+    await _openGroupLessonPage(group.id, selectedDay, selection.lesson);
   }
 
   Future<void> _openIndividualLessonPage(
-    BuildContext context,
     DateTime selectedDay,
     LessonResponse? lesson,
   ) async {
@@ -385,7 +276,6 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
   }
 
   Future<void> _openGroupLessonPage(
-    BuildContext context,
     String groupId,
     DateTime selectedDay,
     LessonResponse? lesson,
@@ -394,32 +284,6 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
       MaterialPageRoute(
         builder: (context) =>
             LessonPage(groupId: groupId, date: selectedDay, lesson: lesson),
-      ),
-    );
-  }
-
-  Widget _buildBody(
-    BuildContext context,
-    AsyncValue<List<VisitWithLessonResponse>> visitsAsync,
-    bool isLoadingEarlier,
-    DateTime focusedDay,
-    List<GroupSummaryResponse>? groups,
-    String? locale,
-  ) {
-    if (visitsAsync.hasError && !visitsAsync.hasValue) {
-      return Center(
-        child: Text(context.t.lessons.errorLoading(error: visitsAsync.error!)),
-      );
-    }
-
-    return Skeletonizer(
-      enabled: visitsAsync.isLoading || isLoadingEarlier,
-      child: _buildSections(
-        context,
-        visitsAsync.value ?? StudentLessonsSection._dummyVisits,
-        focusedDay,
-        groups,
-        locale,
       ),
     );
   }
@@ -452,16 +316,204 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
                 : null,
             onNextMonth: _canGoForward(focusedDay) ? () => _showMonth(1) : null,
           ),
-          _buildBody(
-            context,
-            visitsAsync,
-            isLoadingEarlier,
-            focusedDay,
-            groups,
-            locale,
+          _StudentLessonsBody(
+            visitsAsync: visitsAsync,
+            isLoadingEarlier: isLoadingEarlier,
+            focusedDay: focusedDay,
+            groups: groups,
+            studentGroup: widget.studentGroup,
+            locale: locale,
+            onGroupDayTapped: _openGroupDay,
+            onIndividualDayTapped: _openIndividualDay,
+            onCreateGroupLesson: _createGroupLesson,
+            onCreateIndividualLesson: _createIndividualLesson,
           ),
         ],
       ),
     );
   }
+}
+
+class _StudentLessonsBody extends StatelessWidget {
+  final AsyncValue<List<VisitWithLessonResponse>> visitsAsync;
+  final bool isLoadingEarlier;
+  final DateTime focusedDay;
+  final List<GroupSummaryResponse>? groups;
+  final GroupResponse? studentGroup;
+  final String? locale;
+  final void Function(GroupResponse group, DateTime day, List<VisitWithLessonResponse> visits)
+  onGroupDayTapped;
+  final void Function(DateTime day, List<VisitWithLessonResponse> visits)
+  onIndividualDayTapped;
+  final ValueChanged<GroupResponse> onCreateGroupLesson;
+  final VoidCallback onCreateIndividualLesson;
+
+  const new({
+    required this.visitsAsync,
+    required this.isLoadingEarlier,
+    required this.focusedDay,
+    required this.onGroupDayTapped,
+    required this.onIndividualDayTapped,
+    required this.onCreateGroupLesson,
+    required this.onCreateIndividualLesson,
+    this.groups,
+    this.studentGroup,
+    this.locale,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final visits = visitsAsync.value;
+
+    if (visitsAsync.hasError && visits == null) {
+      return Center(
+        child: Text(context.t.lessons.errorLoading(error: visitsAsync.error!)),
+      );
+    }
+
+    return Skeletonizer(
+      enabled: visitsAsync.isLoading || isLoadingEarlier,
+      child: _LessonsCalendarColumn(
+        visits: visits ?? StudentLessonsSection._dummyVisits,
+        groups: groups,
+        studentGroup: studentGroup,
+        focusedDay: focusedDay,
+        locale: locale,
+        onGroupDayTapped: onGroupDayTapped,
+        onIndividualDayTapped: onIndividualDayTapped,
+        onCreateGroupLesson: onCreateGroupLesson,
+        onCreateIndividualLesson: onCreateIndividualLesson,
+      ),
+    );
+  }
+}
+
+class _LessonsCalendarColumn extends StatelessWidget {
+  final List<VisitWithLessonResponse> visits;
+  final List<GroupSummaryResponse>? groups;
+  final GroupResponse? studentGroup;
+  final DateTime focusedDay;
+  final String? locale;
+  final void Function(GroupResponse group, DateTime day, List<VisitWithLessonResponse> visits)
+  onGroupDayTapped;
+  final void Function(DateTime day, List<VisitWithLessonResponse> visits)
+  onIndividualDayTapped;
+  final ValueChanged<GroupResponse> onCreateGroupLesson;
+  final VoidCallback onCreateIndividualLesson;
+
+  const new({
+    required this.visits,
+    required this.focusedDay,
+    required this.onGroupDayTapped,
+    required this.onIndividualDayTapped,
+    required this.onCreateGroupLesson,
+    required this.onCreateIndividualLesson,
+    this.groups,
+    this.studentGroup,
+    this.locale,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final studentGroups = _studentGroups(visits, groups, studentGroup);
+    final individualVisits = StudentLessonsSection.individualVisits(visits);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 8,
+      children: [
+        for (final group in studentGroups)
+          _GroupLessonCalendar(
+            key: ValueKey(group.id),
+            group: group,
+            visits: StudentLessonsSection.groupVisits(visits, group.id),
+            focusedDay: focusedDay,
+            locale: locale,
+            onDayTapped: onGroupDayTapped,
+            onCreate: () => onCreateGroupLesson(group),
+          ),
+        if (StudentLessonsSection.showsIndividualCalendar(visits, studentGroups))
+          StudentLessonCalendarSection(
+            title: context.t.lessons.individualLessons,
+            locale: locale,
+            lessons: StudentLessonsSection._toLessons(individualVisits),
+            focusedDay: focusedDay,
+            dayVisitStatuses: (day) =>
+                StudentLessonsSection.dayVisitStatusesOf(individualVisits, day),
+            onCreate: onCreateIndividualLesson,
+            onDayTapped: (day, _) => onIndividualDayTapped(day, individualVisits),
+          ),
+      ],
+    );
+  }
+}
+
+class _GroupLessonCalendar extends StatelessWidget {
+  final GroupResponse group;
+  final List<VisitWithLessonResponse> visits;
+  final DateTime focusedDay;
+  final String? locale;
+  final void Function(GroupResponse group, DateTime day, List<VisitWithLessonResponse> visits)
+  onDayTapped;
+  final VoidCallback onCreate;
+
+  const new({
+    super.key,
+    required this.group,
+    required this.visits,
+    required this.focusedDay,
+    required this.onDayTapped,
+    required this.onCreate,
+    this.locale,
+  });
+
+  @override
+  Widget build(BuildContext context) => StudentLessonCalendarSection(
+    title: group.name,
+    locale: locale,
+    lessons: StudentLessonsSection.groupLessons(visits, group.id),
+    focusedDay: focusedDay,
+    dayVisitStatuses: (day) =>
+        StudentLessonsSection.dayVisitStatusesOf(visits, day),
+    onCreate: onCreate,
+    onDayTapped: (day, _) => onDayTapped(group, day, visits),
+  );
+}
+
+List<GroupResponse> _studentGroups(
+  List<VisitWithLessonResponse> visits,
+  List<GroupSummaryResponse>? groups,
+  GroupResponse? studentGroup,
+) {
+  final orderedGroups = <GroupResponse>[];
+  final seenGroupIds = <String>{};
+
+  if (studentGroup != null) {
+    orderedGroups.add(studentGroup);
+    seenGroupIds.add(studentGroup.id);
+  }
+
+  for (final groupId in StudentLessonsSection.groupIdsOf(visits)) {
+    if (seenGroupIds.add(groupId)) {
+      orderedGroups.add(_groupOf(groupId, groups));
+    }
+  }
+
+  return orderedGroups;
+}
+
+GroupResponse _groupOf(String groupId, List<GroupSummaryResponse>? groups) {
+  for (final group in groups ?? const <GroupSummaryResponse>[]) {
+    if (group.id == groupId) {
+      return GroupResponse(
+        id: group.id,
+        name: group.name,
+        createdAt: group.createdAt,
+        defaultPrice: group.defaultPrice,
+        note: group.note,
+      );
+    }
+  }
+
+  return GroupResponse(id: groupId, name: groupId, createdAt: DateTime.now());
 }

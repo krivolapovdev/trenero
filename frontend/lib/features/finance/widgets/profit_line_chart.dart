@@ -2,9 +2,121 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:phone/core/constants/app_colors.dart';
+import 'package:phone/core/constants/app_radius.dart';
+import 'package:phone/core/constants/app_spacing.dart';
 import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/generated/models/payment_metric_response.dart';
+
+const double _chartHeight = 380;
+const double _chartPaddingTop = AppSpacing.xl + 2;
+const double _barWidth = 2.5;
+const double _dotRadius = 5;
+const double _dotStrokeWidth = 2;
+const double _zeroThreshold = 0.001;
+const double _paddingRatio = 0.25;
+const double _fallbackPadding = 10;
+const double _labelGap = 12;
+const double _monthLabelReservedSize = 36;
+
+LineChartBarData _buildBarData(List<FlSpot> spots, double zeroStop) =>
+    LineChartBarData(
+      spots: spots,
+      barWidth: _barWidth,
+      isStrokeCapRound: true,
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: const [
+          AppColors.chartProfit,
+          AppColors.chartProfit,
+          AppColors.chartLoss,
+          AppColors.chartLoss,
+        ],
+        stops: [0, zeroStop, zeroStop, 1],
+      ),
+      dotData: FlDotData(
+        getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+          radius: _dotRadius,
+          color: Colors.white,
+          strokeColor: spot.y < 0
+              ? AppColors.chartLoss
+              : AppColors.chartProfit,
+          strokeWidth: _dotStrokeWidth,
+        ),
+      ),
+      belowBarData: BarAreaData(
+        show: true,
+        applyCutOffY: true,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.chartProfit.withValues(alpha: 0.2),
+            AppColors.chartProfit.withValues(alpha: 0),
+            AppColors.chartProfit.withValues(alpha: 0),
+          ],
+          stops: [0, zeroStop, 1],
+        ),
+      ),
+      aboveBarData: BarAreaData(
+        show: true,
+        applyCutOffY: true,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.chartLoss.withValues(alpha: 0),
+            AppColors.chartLoss.withValues(alpha: 0),
+            AppColors.chartLoss.withValues(alpha: 0.2),
+          ],
+          stops: [0, zeroStop, 1],
+        ),
+      ),
+    );
+
+LineTouchData _buildTouchData() => LineTouchData(
+  handleBuiltInTouches: false,
+  touchTooltipData: LineTouchTooltipData(
+    fitInsideVertically: true,
+    tooltipBorderRadius: AppRadius.lgAll,
+    tooltipBorder: const BorderSide(color: Colors.white),
+    getTooltipColor: (spot) =>
+        spot.y >= 0 ? AppColors.chartProfitTooltip : AppColors.chartLossTooltip,
+    tooltipPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+    getTooltipItems: (touchedSpots) => touchedSpots
+        .map(
+          (spot) => spot.y.abs() < _zeroThreshold
+              ? null
+              : LineTooltipItem(
+                  NumberFormat.compact().format(spot.y).toUpperCase(),
+                  TextStyle(
+                    color: spot.y >= 0
+                        ? AppColors.chartProfitText
+                        : AppColors.chartLossText,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+        )
+        .toList(),
+  ),
+);
+
+String? _monthLabelFor(
+  double value,
+  List<PaymentMetricResponse> data,
+  String? locale,
+) {
+  final index = value.toInt();
+  if (value % 1 != 0 || index < 0 || index >= data.length) return null;
+
+  return DateFormat('MMM', locale)
+      .format(data[index].date)
+      .replaceAll('.', '')
+      .capitalized;
+}
 
 class ProfitLineChart extends ConsumerWidget {
   final List<PaymentMetricResponse> data;
@@ -22,25 +134,18 @@ class ProfitLineChart extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (data.isEmpty) return const SizedBox.shrink();
 
-    final locale = ref.watch(languageProvider).value?.languageTag;
+    final locale = ref.watch(languageProvider.select((s) => s.value?.languageTag));
 
-    const greenColor = Color(0xFF66a57a);
-    const redColor = Color(0xFFEB5757);
+    final spots = [
+      for (final (index, metric) in data.indexed)
+        FlSpot(index.toDouble(), metric.total.toDouble()),
+    ];
 
-    const darkGreenText = Color(0xFF2D6A4F);
-    const darkRedText = Color(0xFF9E2A2B);
-
-    final spots = data.asMap().entries.map((entry) {
-      final index = entry.key;
-      final value = entry.value.total.toDouble();
-      return FlSpot(index.toDouble(), value);
-    }).toList();
-
-    final minY = spots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
-    final maxY = spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+    final minY = spots.map((spot) => spot.y).reduce((a, b) => a < b ? a : b);
+    final maxY = spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b);
 
     final rangeY = (maxY - minY).abs();
-    final paddingY = rangeY == 0 ? 10.0 : rangeY * 0.25;
+    final paddingY = rangeY == 0 ? _fallbackPadding : rangeY * _paddingRatio;
 
     final calculatedMinY = minY < 0 ? minY - paddingY : -paddingY;
     final calculatedMaxY = maxY > 0 ? maxY + paddingY : paddingY;
@@ -48,73 +153,24 @@ class ProfitLineChart extends ConsumerWidget {
     final spotRange = maxY - minY;
     final zeroStop = spotRange == 0 ? 0.5 : (maxY / spotRange).clamp(0.0, 1.0);
 
-    final showingTooltipIndicators = spots
-        .asMap()
-        .entries
-        .map(
-          (entry) => ShowingTooltipIndicators([
-            LineBarSpot(
-              LineChartBarData(
-                spots: spots,
-                barWidth: 2.5,
-                isStrokeCapRound: true,
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: const [greenColor, greenColor, redColor, redColor],
-                  stops: [0.0, zeroStop, zeroStop, 1.0],
-                ),
-                dotData: FlDotData(
-                  getDotPainter: (spot, percent, barData, index) =>
-                      FlDotCirclePainter(
-                        radius: 5,
-                        color: Colors.white,
-                        strokeColor: spot.y < 0 ? redColor : greenColor,
-                        strokeWidth: 2,
-                      ),
-                ),
-                belowBarData: BarAreaData(
-                  show: true,
-                  applyCutOffY: true,
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      greenColor.withValues(alpha: 0.2),
-                      greenColor.withValues(alpha: 0.0),
-                      greenColor.withValues(alpha: 0.0),
-                    ],
-                    stops: [0.0, zeroStop, 1.0],
-                  ),
-                ),
-                aboveBarData: BarAreaData(
-                  show: true,
-                  applyCutOffY: true,
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      redColor.withValues(alpha: 0.0),
-                      redColor.withValues(alpha: 0.0),
-                      redColor.withValues(alpha: 0.2),
-                    ],
-                    stops: [0.0, zeroStop, 1.0],
-                  ),
-                ),
-              ),
-              0,
-              entry.value,
-            ),
-          ]),
-        )
-        .toList();
+    final barData = _buildBarData(spots, zeroStop);
+
+    final tooltipIndicators = [
+      for (final spot in spots)
+        ShowingTooltipIndicators([LineBarSpot(barData, 0, spot)]),
+    ];
 
     return Container(
-      height: 380,
-      padding: const EdgeInsets.fromLTRB(16, 22, 16, 16),
-      decoration: BoxDecoration(
+      height: _chartHeight,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        _chartPaddingTop,
+        AppSpacing.lg,
+        AppSpacing.lg,
+      ),
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.lgAll,
       ),
       child: LineChart(
         LineChartData(
@@ -122,12 +178,12 @@ class ProfitLineChart extends ConsumerWidget {
           maxX: (data.length - 1) + 0.2,
           minY: calculatedMinY,
           maxY: calculatedMaxY,
-          showingTooltipIndicators: showingTooltipIndicators,
+          showingTooltipIndicators: tooltipIndicators,
           gridData: FlGridData(
             drawVerticalLine: false,
             getDrawingHorizontalLine: (value) => FlLine(
               color: Colors.black.withValues(
-                alpha: value.abs() < 0.001 ? 0.1 : 0.04,
+                alpha: value.abs() < _zeroThreshold ? 0.1 : 0.04,
               ),
               strokeWidth: 1,
             ),
@@ -140,110 +196,40 @@ class ProfitLineChart extends ConsumerWidget {
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 36,
+                reservedSize: _monthLabelReservedSize,
                 interval: 1,
-                getTitlesWidget: (value, meta) {
-                  final index = value.toInt();
-                  if (value % 1 != 0 || index < 0 || index >= data.length) {
-                    return const SizedBox.shrink();
-                  }
-
-                  final itemDate = data[index].date;
-                  final rawLabel = DateFormat('MMM', locale).format(itemDate);
-                  final label = rawLabel.replaceAll('.', '').capitalized;
-
-                  return SideTitleWidget(
-                    meta: meta,
-                    space: 12,
-                    child: Text(
-                      label,
-                      style: TextStyle(fontSize: 14, color: Colors.black54),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots,
-              barWidth: 2.5,
-              isStrokeCapRound: true,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: const [greenColor, greenColor, redColor, redColor],
-                stops: [0.0, zeroStop, zeroStop, 1.0],
-              ),
-              dotData: FlDotData(
-                getDotPainter: (spot, percent, barData, index) =>
-                    FlDotCirclePainter(
-                      radius: 5,
-                      color: Colors.white,
-                      strokeColor: spot.y < 0 ? redColor : greenColor,
-                      strokeWidth: 2,
-                    ),
-              ),
-              belowBarData: BarAreaData(
-                show: true,
-                applyCutOffY: true,
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    greenColor.withValues(alpha: 0.2),
-                    greenColor.withValues(alpha: 0.0),
-                    greenColor.withValues(alpha: 0.0),
-                  ],
-                  stops: [0.0, zeroStop, 1.0],
-                ),
-              ),
-              aboveBarData: BarAreaData(
-                show: true,
-                applyCutOffY: true,
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    redColor.withValues(alpha: 0.0),
-                    redColor.withValues(alpha: 0.0),
-                    redColor.withValues(alpha: 0.2),
-                  ],
-                  stops: [0.0, zeroStop, 1.0],
+                getTitlesWidget: (value, meta) => _MonthAxisLabel(
+                  meta: meta,
+                  label: _monthLabelFor(value, data, locale),
                 ),
               ),
             ),
-          ],
-          lineTouchData: LineTouchData(
-            handleBuiltInTouches: false,
-            touchTooltipData: LineTouchTooltipData(
-              fitInsideVertically: true,
-              tooltipBorderRadius: BorderRadius.all(Radius.circular(16)),
-              tooltipBorder: BorderSide(color: Colors.white),
-              getTooltipColor: (spot) =>
-                  spot.y >= 0 ? Color(0xffedf4ef) : Color(0xfffdebeb),
-              tooltipPadding: const EdgeInsets.symmetric(
-                horizontal: 6,
-                vertical: 4,
-              ),
-              getTooltipItems: (List<LineBarSpot> touchedSpots) =>
-                  touchedSpots.map((spot) {
-                    if (spot.y.abs() < 0.001) {
-                      return null;
-                    }
-
-                    return LineTooltipItem(
-                      NumberFormat.compact().format(spot.y).toUpperCase(),
-                      TextStyle(
-                        color: spot.y >= 0 ? darkGreenText : darkRedText,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                      ),
-                    );
-                  }).toList(),
-            ),
           ),
+          lineBarsData: [barData],
+          lineTouchData: _buildTouchData(),
         ),
+      ),
+    );
+  }
+}
+
+class _MonthAxisLabel extends StatelessWidget {
+  final TitleMeta meta;
+  final String? label;
+
+  const new({required this.meta, this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = this.label;
+    if (label == null) return const SizedBox.shrink();
+
+    return SideTitleWidget(
+      meta: meta,
+      space: _labelGap,
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 14, color: Colors.black54),
       ),
     );
   }

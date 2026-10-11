@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/constants/app_colors.dart';
 import 'package:phone/core/constants/app_constants.dart';
 import 'package:phone/features/settings/widgets/settings_group_card.dart';
@@ -17,7 +18,7 @@ class ContactsPage extends StatelessWidget {
         style: const TextStyle(color: Colors.black87),
       ),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        borderRadius: AppRadius.bottomRounded,
       ),
     ),
     body: ListView(

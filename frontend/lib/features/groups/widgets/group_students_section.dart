@@ -45,7 +45,11 @@ class GroupStudentsSection extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        return _buildSection(context, students, listedStudents);
+        return _GroupStudentsCard(
+          students: students,
+          listedStudents: listedStudents,
+          onEdit: onEdit,
+        );
       },
       loading: () {
         final previousData = studentsAsync.value;
@@ -59,10 +63,10 @@ class GroupStudentsSection extends ConsumerWidget {
 
         return Skeletonizer(
           ignorePointers: false,
-          child: _buildSection(
-            context,
-            displayStudents,
-            listedStudents,
+          child: _GroupStudentsCard(
+            students: displayStudents,
+            listedStudents: listedStudents,
+            onEdit: onEdit,
             isLoading: true,
           ),
         );
@@ -71,13 +75,23 @@ class GroupStudentsSection extends ConsumerWidget {
           Center(child: Text(context.t.students.errorLoading(error: error))),
     );
   }
+}
 
-  Widget _buildSection(
-    BuildContext context,
-    List<GroupStudentSummaryResponse> students,
-    List<StudentSummaryResponse> listedStudents, {
-    bool isLoading = false,
-  }) => Container(
+class _GroupStudentsCard extends StatelessWidget {
+  final List<GroupStudentSummaryResponse> students;
+  final List<StudentSummaryResponse> listedStudents;
+  final VoidCallback? onEdit;
+  final bool isLoading;
+
+  const new({
+    required this.students,
+    required this.listedStudents,
+    this.onEdit,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     decoration: BoxDecoration(
       color: Colors.white,
@@ -104,7 +118,7 @@ class GroupStudentsSection extends ConsumerWidget {
               ),
           ],
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -119,6 +133,7 @@ class GroupStudentsSection extends ConsumerWidget {
                 .firstOrNull;
 
             return StudentCard(
+              key: ValueKey(student.id),
               student: StudentSummaryResponse(
                 id: student.id,
                 fullName: '${index + 1}. ${student.fullName}',

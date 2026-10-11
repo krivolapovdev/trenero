@@ -18,9 +18,6 @@ class GroupDayLessonsBottomSheet extends ConsumerWidget {
 
   const new({super.key, this.groupLessons = const []});
 
-  void _select(BuildContext context, GroupDayLessonSelection selection) =>
-      Navigator.of(context).pop(selection);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) => SafeArea(
     child: Padding(
@@ -34,27 +31,28 @@ class GroupDayLessonsBottomSheet extends ConsumerWidget {
               context.t.lessons.groupLessons,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
-            ...groupLessons.indexed.map(
-              (entry) => _buildLessonTile(
-                context,
-                ref,
-                number: entry.$1 + 1,
-                lesson: entry.$2,
+            for (final (index, lesson) in groupLessons.indexed)
+              _GroupLessonTile(
+                key: ValueKey(lesson.id),
+                number: index + 1,
+                lesson: lesson,
               ),
-            ),
           ],
-          _buildCreateTile(context),
+          const _GroupCreateLessonTile(),
         ],
       ),
     ),
   );
+}
 
-  Widget _buildLessonTile(
-    BuildContext context,
-    WidgetRef ref, {
-    required int number,
-    required LessonResponse lesson,
-  }) => ListTile(
+class _GroupLessonTile extends ConsumerWidget {
+  final int number;
+  final LessonResponse lesson;
+
+  const new({super.key, required this.number, required this.lesson});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ListTile(
     contentPadding: EdgeInsets.zero,
     title: Text(
       '${context.t.lessons.groupLesson} $number',
@@ -62,14 +60,19 @@ class GroupDayLessonsBottomSheet extends ConsumerWidget {
       overflow: TextOverflow.ellipsis,
       style: const TextStyle(fontSize: 16),
     ),
-    trailing: _buildAttendanceBadge(
-      context,
-      ref.watch(lessonDetailsProvider(lesson.id)),
+    trailing: _AttendanceBadge(
+      detailsState: ref.watch(lessonDetailsProvider(lesson.id)),
     ),
-    onTap: () => _select(context, GroupDayLessonSelection(lesson: lesson)),
+    onTap: () =>
+        Navigator.of(context).pop(GroupDayLessonSelection(lesson: lesson)),
   );
+}
 
-  Widget _buildCreateTile(BuildContext context) => ListTile(
+class _GroupCreateLessonTile extends StatelessWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context) => ListTile(
     contentPadding: EdgeInsets.zero,
     leading: const Icon(Icons.add),
     title: Text(
@@ -79,13 +82,18 @@ class GroupDayLessonsBottomSheet extends ConsumerWidget {
       style: const TextStyle(fontSize: 16),
     ),
     trailing: const Icon(Icons.chevron_right),
-    onTap: () => _select(context, const GroupDayLessonSelection()),
+    onTap: () =>
+        Navigator.of(context).pop(const GroupDayLessonSelection()),
   );
+}
 
-  Widget _buildAttendanceBadge(
-    BuildContext context,
-    AsyncValue<LessonDetailsResponse> detailsState,
-  ) {
+class _AttendanceBadge extends StatelessWidget {
+  final AsyncValue<LessonDetailsResponse> detailsState;
+
+  const new({required this.detailsState});
+
+  @override
+  Widget build(BuildContext context) {
     final visits = detailsState.value?.studentVisits;
     if (visits == null) return const SizedBox.shrink();
 

@@ -84,7 +84,7 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
           ),
 
-          _buildSectionTitle(context, context.t.lessons.status),
+          _SectionTitle(title: context.t.lessons.status),
 
           RadioGroup<_StatusChoice>(
             groupValue: _statusChoice,
@@ -93,23 +93,19 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildOption(
-                  context,
+                _ChoiceTile<_StatusChoice>(
                   value: _StatusChoice.present,
                   label: context.t.lessons.present,
                 ),
-                _buildOption(
-                  context,
+                _ChoiceTile<_StatusChoice>(
                   value: _StatusChoice.absent,
                   label: context.t.lessons.absent,
                 ),
-                _buildOption(
-                  context,
+                _ChoiceTile<_StatusChoice>(
                   value: _StatusChoice.excused,
                   label: context.t.lessons.excused,
                 ),
-                _buildOption(
-                  context,
+                _ChoiceTile<_StatusChoice>(
                   value: _StatusChoice.unmarked,
                   label: context.t.lessons.unmarked,
                 ),
@@ -118,7 +114,7 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
           ),
 
           if (_showsType) ...[
-            _buildSectionTitle(context, context.t.lessons.type),
+            _SectionTitle(title: context.t.lessons.type),
             RadioGroup<VisitType>(
               groupValue: _effectiveType,
               onChanged: (type) => _pickType(context, type),
@@ -126,13 +122,11 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildOption(
-                    context,
+                  _ChoiceTile<VisitType>(
                     value: VisitType.regular,
                     label: context.t.lessons.regular,
                   ),
-                  _buildOption(
-                    context,
+                  _ChoiceTile<VisitType>(
                     value: VisitType.free,
                     label: context.t.lessons.free,
                   ),
@@ -146,8 +140,15 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
       ),
     ),
   );
+}
 
-  Widget _buildSectionTitle(BuildContext context, String title) => Padding(
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const new({required this.title});
+
+  @override
+  Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
     child: Text(
       title.toUpperCase(),
@@ -159,12 +160,16 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
       ),
     ),
   );
+}
 
-  Widget _buildOption<T>(
-    BuildContext context, {
-    required T value,
-    required String label,
-  }) => RadioListTile<T>(
+class _ChoiceTile<T> extends StatelessWidget {
+  final T value;
+  final String label;
+
+  const new({super.key, required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) => RadioListTile<T>(
     value: value,
     title: Text(label, style: const TextStyle(fontSize: 16)),
     contentPadding: EdgeInsets.zero,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/auth/controllers/auth_controller.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -29,8 +30,8 @@ class LogoutConfirmationSheet extends ConsumerWidget {
                 backgroundColor: Colors.red.shade50,
                 foregroundColor: Colors.red,
                 elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: AppRadius.mdAll,
                 ),
               ),
               onPressed: () async {
@@ -52,8 +53,8 @@ class LogoutConfirmationSheet extends ConsumerWidget {
             child: TextButton(
               style: TextButton.styleFrom(
                 foregroundColor: Colors.black87,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: AppRadius.mdAll,
                 ),
               ),
               onPressed: () => Navigator.pop(context),

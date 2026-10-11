@@ -1,5 +1,6 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
@@ -33,7 +34,9 @@ class _GroupPageState extends ConsumerState<GroupPage> {
   @override
   Widget build(BuildContext context) {
     final routeAnimation = ModalRoute.of(context)?.animation;
-    final isGroupRefreshing = ref.watch(groupListControllerProvider).isLoading;
+    final isGroupRefreshing = ref.watch(
+      groupListControllerProvider.select((state) => state.isLoading),
+    );
 
     ref.listen(groupListControllerProvider, (previous, next) {
       final updated = (next.value ?? const <GroupSummaryResponse>[])
@@ -55,7 +58,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+          borderRadius: AppRadius.bottomRounded,
         ),
       ),
       body: CustomMaterialIndicator(

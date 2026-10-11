@@ -12,5 +12,5 @@ abstract class ShellPage extends StatelessWidget {
     required this.selectedIcon,
   });
 
-  List<Widget>? actions(BuildContext context) => null;
+  List<Widget> actions(BuildContext context) => const <Widget>[];
 }

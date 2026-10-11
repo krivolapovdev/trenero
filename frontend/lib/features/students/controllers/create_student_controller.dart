@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/app_exception.dart';
+import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/features/students/controllers/student_mutation_refresh.dart';
 import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/models/create_student_request.dart';
@@ -26,14 +28,14 @@ class CreateStudentController extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() async {
       final trimmedName = fullName.trim();
       if (trimmedName.isEmpty) {
-        throw ArgumentError('Student name is required.');
+        throw const ValidationException('Student name is required.');
       }
 
       final request = CreateStudentRequest(
         fullName: trimmedName,
         birthdate: birthdate,
-        phone: blankToNull(phone),
-        note: blankToNull(note),
+        phone: phone.trimmedOrNull,
+        note: note.trimmedOrNull,
         free: free,
       );
 
@@ -45,9 +47,4 @@ class CreateStudentController extends AsyncNotifier<void> {
 
     return !state.hasError;
   }
-}
-
-String? blankToNull(String? value) {
-  final trimmed = value?.trim();
-  return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
 }

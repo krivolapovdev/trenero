@@ -32,6 +32,8 @@ class TransactionListView extends StatefulWidget {
 }
 
 class _TransactionListViewState extends State<TransactionListView> {
+  static const double _loadMoreThreshold = 200;
+
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -48,10 +50,12 @@ class _TransactionListViewState extends State<TransactionListView> {
   }
 
   void _onScroll() {
-    if (widget.onFetchNextPage != null &&
-        _scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200) {
-      widget.onFetchNextPage!();
+    final onFetchNextPage = widget.onFetchNextPage;
+    if (onFetchNextPage == null) return;
+
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - _loadMoreThreshold) {
+      onFetchNextPage();
     }
   }
 
@@ -66,10 +70,13 @@ class _TransactionListViewState extends State<TransactionListView> {
       );
     }
 
-    final groupedTransactions =
-        TransactionDateFormatter.groupTransactionsByDate(widget.transactions);
+    final groupedTransactions = TransactionDateFormatter.groupTransactionsByDate(
+      widget.transactions,
+    );
+    final sections = groupedTransactions.entries.toList();
+    final footerCount = widget.isLoadingMore ? 1 : 0;
 
-    return ListView(
+    return ListView.builder(
       controller: _scrollController,
       physics: const BouncingScrollPhysics(
         parent: AlwaysScrollableScrollPhysics(),
@@ -79,67 +86,90 @@ class _TransactionListViewState extends State<TransactionListView> {
         right: AppSpacing.xl,
         bottom: AppSpacing.xl,
       ),
-      children: [
-        ...groupedTransactions.entries.expand((entry) {
-          final dateHeader = TransactionDateFormatter.formatDateHeader(
-            entry.key,
-          );
-          final items = entry.value;
-
-          return [
-            Padding(
-              padding: const EdgeInsets.only(
-                top: AppSpacing.xl,
-                bottom: AppSpacing.sm,
-              ),
-              child: Text(
-                dateHeader,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: AppColors.mutedText,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
-            Container(
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  ...items.map(
-                    (tx) => TransactionTile(
-                      transaction: tx,
-                      overrideTitle: widget.overrideTitle,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                      ),
-                      borderRadius: BorderRadius.zero,
-                      onTap: widget.isLoading
-                          ? null
-                          : () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => TransactionPage(
-                                  transaction: tx,
-                                  overrideTitle: widget.overrideTitle,
-                                ),
-                              ),
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ];
-        }),
-        if (widget.isLoadingMore)
-          const Padding(
+      itemCount: sections.length + footerCount,
+      itemBuilder: (context, index) {
+        if (index >= sections.length) {
+          return const Padding(
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(child: CircularProgressIndicator()),
-          ),
-      ],
+          );
+        }
+
+        final entry = sections[index];
+
+        return _TransactionDateSection(
+          dateHeader: TransactionDateFormatter.formatDateHeader(entry.key),
+          transactions: entry.value,
+          overrideTitle: widget.overrideTitle,
+          isLoading: widget.isLoading,
+        );
+      },
     );
   }
+}
+
+class _TransactionDateSection extends StatelessWidget {
+  final String dateHeader;
+  final List<TransactionResponse> transactions;
+  final String? overrideTitle;
+  final bool isLoading;
+
+  const new({
+    required this.dateHeader,
+    required this.transactions,
+    required this.isLoading,
+    this.overrideTitle,
+  });
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(
+          top: AppSpacing.xl,
+          bottom: AppSpacing.sm,
+        ),
+        child: Text(
+          dateHeader,
+          style: const TextStyle(
+            fontSize: 16,
+            color: AppColors.mutedText,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ),
+      Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            for (final transaction in transactions)
+              TransactionTile(
+                key: ValueKey(transaction.id),
+                transaction: transaction,
+                overrideTitle: overrideTitle,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                ),
+                borderRadius: BorderRadius.zero,
+                onTap: isLoading
+                    ? null
+                    : () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => TransactionPage(
+                            transaction: transaction,
+                            overrideTitle: overrideTitle,
+                          ),
+                        ),
+                      ),
+              ),
+          ],
+        ),
+      ),
+    ],
+  );
 }

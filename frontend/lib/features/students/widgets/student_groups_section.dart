@@ -41,15 +41,28 @@ class StudentGroupsSection extends ConsumerWidget {
     return Skeletonizer(
       enabled: groupsState.isLoading,
       ignorePointers: false,
-      child: _buildSection(context, groups, listedGroups),
+      child: _StudentGroupsCard(
+        groups: groups,
+        listedGroups: listedGroups,
+        onEdit: onEdit,
+      ),
     );
   }
+}
 
-  Widget _buildSection(
-    BuildContext context,
-    List<GroupResponse> groups,
-    List<GroupSummaryResponse> listedGroups,
-  ) => Container(
+class _StudentGroupsCard extends StatelessWidget {
+  final List<GroupResponse> groups;
+  final List<GroupSummaryResponse> listedGroups;
+  final VoidCallback? onEdit;
+
+  const new({
+    required this.groups,
+    required this.listedGroups,
+    this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     decoration: BoxDecoration(
       color: Colors.white,
@@ -76,7 +89,7 @@ class StudentGroupsSection extends ConsumerWidget {
               ),
           ],
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -88,6 +101,7 @@ class StudentGroupsSection extends ConsumerWidget {
             final group = _summaryOf(groups[index], listedGroups);
 
             return GroupCard(
+              key: ValueKey(group.id),
               group: group,
               noteVisible: false,
               onTap: () {

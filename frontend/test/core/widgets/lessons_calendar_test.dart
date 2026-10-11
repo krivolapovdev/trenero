@@ -288,7 +288,7 @@ void main() {
 
   testWidgets('the surface can be hidden by the owner', (tester) async {
     await tester.pumpWidget(
-      _wrap(LessonsCalendar(lessons: const [], surfaceVisible: false)),
+      _wrap(const LessonsCalendar(lessons: [], surfaceVisible: false)),
     );
     await tester.pumpAndSettle();
 
@@ -297,7 +297,7 @@ void main() {
 
   testWidgets('the header can be hidden by the owner', (tester) async {
     await tester.pumpWidget(
-      _wrap(LessonsCalendar(lessons: const [], headerVisible: false)),
+      _wrap(const LessonsCalendar(lessons: [], headerVisible: false)),
     );
     await tester.pumpAndSettle();
 
@@ -396,10 +396,10 @@ void main() {
       _wrap(
         SingleChildScrollView(
           controller: scrollController,
-          child: Column(
+          child: const Column(
             children: [
-              LessonsCalendar(lessons: const []),
-              const SizedBox(height: 1200),
+              LessonsCalendar(lessons: []),
+              SizedBox(height: 1200),
             ],
           ),
         ),

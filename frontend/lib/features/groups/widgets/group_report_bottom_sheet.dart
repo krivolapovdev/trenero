@@ -24,7 +24,7 @@ class GroupReportBottomSheet extends ConsumerStatefulWidget {
 
 class _GroupReportBottomSheetState
     extends ConsumerState<GroupReportBottomSheet> {
-  static const int _yearDigits = 4;
+  static const int _monthDigits = 2;
 
   late final DateTime _latest = DateTime.now();
 
@@ -96,7 +96,7 @@ class _GroupReportBottomSheetState
   }
 
   String? get _yearError {
-    if (_yearController.text.length < _yearDigits) return null;
+    if (_yearController.text.length < 4) return null;
 
     return _year == null ? _invalid : null;
   }
@@ -166,53 +166,70 @@ class _GroupReportBottomSheetState
 
             const SizedBox(height: 16),
 
-            _buildMonthField(),
+            _MonthField(controller: _monthController, errorText: _monthError),
             const SizedBox(height: 16),
-            _buildYearField(),
+            _YearField(controller: _yearController, errorText: _yearError),
 
             if (reportState != null && reportState.hasError) ...[
               const SizedBox(height: 12),
-              _buildReportError(period!, reportState.error),
+              _ReportError(period: period!, error: reportState.error),
             ],
 
             if (report != null) ...[
               const SizedBox(height: 22),
-              _buildReportPreview(report),
+              _ReportPreview(report: report),
             ],
 
             const SizedBox(height: 22),
 
             Align(
               alignment: Alignment.centerRight,
-              child: _buildPrintButton(period, reportState),
+              child: _PrintButton(
+                isPrinting: _isPrinting,
+                enabled: period != null && report != null && !_isPrinting,
+                onPressed: () => _printReport(period!),
+              ),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildReportPreview(GroupReportResponse report) => ConstrainedBox(
-    constraints: const BoxConstraints(maxHeight: 260),
-    child: SingleChildScrollView(child: GroupReportTable(report: report)),
-  );
+class _MonthField extends StatelessWidget {
+  final TextEditingController controller;
+  final String? errorText;
 
-  Widget _buildMonthField() => TextField(
-    controller: _monthController,
+  const new({required this.controller, this.errorText});
+
+  @override
+  Widget build(BuildContext context) => TextField(
+    controller: controller,
     keyboardType: TextInputType.number,
     inputFormatters: [
       FilteringTextInputFormatter.digitsOnly,
-      LengthLimitingTextInputFormatter(2),
+      LengthLimitingTextInputFormatter(_GroupReportBottomSheetState._monthDigits),
     ],
     decoration: InputDecoration(
       labelText: context.t.month,
       hintText: 'MM',
-      errorText: _monthError,
+      errorText: errorText,
     ),
   );
+}
 
-  Widget _buildYearField() => TextField(
-    controller: _yearController,
+class _YearField extends StatelessWidget {
+  static const int _yearDigits = 4;
+
+  final TextEditingController controller;
+  final String? errorText;
+
+  const new({required this.controller, this.errorText});
+
+  @override
+  Widget build(BuildContext context) => TextField(
+    controller: controller,
     keyboardType: TextInputType.number,
     inputFormatters: [
       FilteringTextInputFormatter.digitsOnly,
@@ -221,18 +238,40 @@ class _GroupReportBottomSheetState
     decoration: InputDecoration(
       labelText: context.t.year,
       hintText: 'YYYY',
-      errorText: _yearError,
+      errorText: errorText,
     ),
   );
+}
 
-  Widget _buildPrintButton(
-    GroupReportPeriod? period,
-    AsyncValue<GroupReportResponse>? reportState,
-  ) => TextButton.icon(
-    onPressed: period == null || reportState?.value == null || _isPrinting
-        ? null
-        : () => _printReport(period),
-    icon: _isPrinting
+class _ReportPreview extends StatelessWidget {
+  static const double _maxHeight = 260;
+
+  final GroupReportResponse report;
+
+  const new({required this.report});
+
+  @override
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(maxHeight: _maxHeight),
+    child: SingleChildScrollView(child: GroupReportTable(report: report)),
+  );
+}
+
+class _PrintButton extends StatelessWidget {
+  final bool isPrinting;
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  const new({
+    required this.isPrinting,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) => TextButton.icon(
+    onPressed: enabled ? onPressed : null,
+    icon: isPrinting
         ? const SizedBox(
             width: 18,
             height: 18,
@@ -241,8 +280,16 @@ class _GroupReportBottomSheetState
         : null,
     label: Text(context.t.print, style: const TextStyle(fontSize: 18)),
   );
+}
 
-  Widget _buildReportError(GroupReportPeriod period, Object? error) => Row(
+class _ReportError extends ConsumerWidget {
+  final GroupReportPeriod period;
+  final Object? error;
+
+  const new({required this.period, required this.error});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => Row(
     children: [
       Expanded(
         child: Text(

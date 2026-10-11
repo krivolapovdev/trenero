@@ -18,6 +18,8 @@ import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/generated/models/visit_type.dart';
 import 'package:phone/i18n/strings.g.dart';
 
+const Color _freeCheckColor = Color(0xFFFFC107);
+
 class LessonPage extends ConsumerStatefulWidget {
   final String groupId;
 
@@ -37,8 +39,6 @@ class LessonPage extends ConsumerStatefulWidget {
 }
 
 class _LessonPageState extends ConsumerState<LessonPage> {
-  static const Color _freeCheckColor = Color(0xFFFFC107);
-
   late DateTime _selectedDate;
 
   Map<String, LessonAttendance>? _pickedAttendance;
@@ -312,13 +312,18 @@ class _LessonPageState extends ConsumerState<LessonPage> {
         title: Text(context.t.lessons.groupLesson),
         actions: [
           if (lesson == null || _isEditing)
-            _buildSaveAction(
-              students: students,
-              attendance: attendance,
-              hasChanges: hasChanges,
+            _SaveLessonAction(
+              isCreate: lesson == null,
               isLoading: isLoading,
+              hasChanges: hasChanges,
+              studentsAvailable: students.isNotEmpty,
+              onPressed: () => _onSubmit(students, attendance),
             ),
-          if (lesson != null && !_isEditing) _buildLessonMenu(),
+          if (lesson != null && !_isEditing)
+            _LessonMenu(
+              onEdit: () => setState(() => _isEditing = true),
+              onDelete: _onDelete,
+            ),
           const SizedBox(width: 8),
         ],
         backgroundColor: colorScheme.surface,
@@ -335,13 +340,20 @@ class _LessonPageState extends ConsumerState<LessonPage> {
             mainAxisSize: MainAxisSize.min,
             spacing: 16,
             children: [
-              _buildDateCard(canEdit),
-              _buildStudentCard(
-                studentsState: studentsState,
+              _LessonDateCard(
+                formattedDate: _formatDate(_selectedDate),
+                canEdit: canEdit,
+                onTap: _pickDate,
+              ),
+              _StudentAttendanceCard(
                 students: students,
                 attendance: attendance,
                 canEdit: canEdit,
                 isAttendanceLoading: isAttendanceLoading,
+                isLoading: isLoading,
+                onToggle: (student) => _toggleStudent(attendance, student),
+                onLongPress: (student) => _editStudent(student, attendance),
+                onToggleAll: () => _toggleAll(attendance, students),
               ),
             ],
           ),
@@ -349,16 +361,28 @@ class _LessonPageState extends ConsumerState<LessonPage> {
       ),
     );
   }
+}
 
-  Widget _buildSaveAction({
-    required List<GroupStudentSummaryResponse> students,
-    required Map<String, LessonAttendance> attendance,
-    required bool hasChanges,
-    required bool isLoading,
-  }) => TextButton.icon(
-    onPressed: (isLoading || !hasChanges || students.isEmpty)
+class _SaveLessonAction extends StatelessWidget {
+  final bool isCreate;
+  final bool isLoading;
+  final bool hasChanges;
+  final bool studentsAvailable;
+  final VoidCallback onPressed;
+
+  const new({
+    required this.isCreate,
+    required this.isLoading,
+    required this.hasChanges,
+    required this.studentsAvailable,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) => TextButton.icon(
+    onPressed: (isLoading || !hasChanges || !studentsAvailable)
         ? null
-        : () => _onSubmit(students, attendance),
+        : onPressed,
     icon: isLoading
         ? const SizedBox(
             width: 18,
@@ -367,22 +391,29 @@ class _LessonPageState extends ConsumerState<LessonPage> {
           )
         : null,
     label: Text(
-      widget.lesson == null ? context.t.create : context.t.update,
+      isCreate ? context.t.create : context.t.update,
       style: const TextStyle(fontSize: 18),
     ),
   );
+}
 
-  Widget _buildLessonMenu() {
-    final colorScheme = Theme.of(context).colorScheme;
-    final errorColor = colorScheme.error;
+class _LessonMenu extends StatelessWidget {
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const new({required this.onEdit, required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    final errorColor = Theme.of(context).colorScheme.error;
 
     return PopupMenuButton<String>(
       tooltip: '',
       offset: const Offset(-8, 0),
-      color: colorScheme.surface,
+      color: Theme.of(context).colorScheme.surface,
       itemBuilder: (menuContext) => [
         PopupMenuItem<String>(
-          onTap: () => setState(() => _isEditing = true),
+          onTap: onEdit,
           child: Row(
             children: [
               const Icon(CupertinoIcons.text_cursor, size: 20),
@@ -392,7 +423,7 @@ class _LessonPageState extends ConsumerState<LessonPage> {
           ),
         ),
         PopupMenuItem<String>(
-          onTap: _onDelete,
+          onTap: onDelete,
           child: Row(
             children: [
               Icon(CupertinoIcons.trash, size: 20, color: errorColor),
@@ -404,13 +435,26 @@ class _LessonPageState extends ConsumerState<LessonPage> {
       ],
     );
   }
+}
 
-  Widget _buildDateCard(bool canEdit) => Material(
+class _LessonDateCard extends StatelessWidget {
+  final String formattedDate;
+  final bool canEdit;
+  final VoidCallback onTap;
+
+  const new({
+    required this.formattedDate,
+    required this.canEdit,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => Material(
     color: Colors.white,
     clipBehavior: Clip.antiAlias,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     child: InkWell(
-      onTap: canEdit ? _pickDate : null,
+      onTap: canEdit ? onTap : null,
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: context.t.lessons.date,
@@ -420,40 +464,63 @@ class _LessonPageState extends ConsumerState<LessonPage> {
           disabledBorder: InputBorder.none,
           contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
         ),
-        child: Text(
-          _formatDate(_selectedDate),
-          style: const TextStyle(fontSize: 16),
-        ),
+        child: Text(formattedDate, style: const TextStyle(fontSize: 16)),
       ),
     ),
   );
+}
 
-  Widget _buildStudentCard({
-    required AsyncValue<List<GroupStudentSummaryResponse>> studentsState,
-    required List<GroupStudentSummaryResponse> students,
-    required Map<String, LessonAttendance> attendance,
-    required bool canEdit,
-    required bool isAttendanceLoading,
-  }) {
+class _StudentAttendanceCard extends StatelessWidget {
+  static const double _cornerRadius = 16;
+
+  final List<GroupStudentSummaryResponse> students;
+  final Map<String, LessonAttendance> attendance;
+  final bool canEdit;
+  final bool isAttendanceLoading;
+  final bool isLoading;
+  final ValueChanged<GroupStudentSummaryResponse> onToggle;
+  final ValueChanged<GroupStudentSummaryResponse> onLongPress;
+  final VoidCallback onToggleAll;
+
+  const new({
+    required this.students,
+    required this.attendance,
+    required this.canEdit,
+    required this.isAttendanceLoading,
+    required this.isLoading,
+    required this.onToggle,
+    required this.onLongPress,
+    required this.onToggleAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final markedStudents = students
         .where((student) => attendance.containsKey(student.id))
         .toList();
     final unmarkedStudents = students
         .where((student) => !attendance.containsKey(student.id))
         .toList();
-    final isLoading =
-        (studentsState.isLoading || isAttendanceLoading) && students.isEmpty;
+    final isStudentsLoading =
+        (isLoading || isAttendanceLoading) && students.isEmpty;
+    final allPresent =
+        markedStudents.isNotEmpty &&
+        markedStudents.every(
+          (student) => attendance[student.id]?.status == VisitStatus.present,
+        );
 
     return Material(
       color: Colors.white,
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_cornerRadius),
+      ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (isLoading)
+            if (isStudentsLoading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 28),
                 child: Center(child: CircularProgressIndicator()),
@@ -473,32 +540,32 @@ class _LessonPageState extends ConsumerState<LessonPage> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: canEdit
-                        ? () => _toggleAll(attendance, students)
-                        : null,
+                    onPressed: onToggleAll,
                     child: Text(
-                      _allPresent(markedStudents, attendance)
+                      allPresent
                           ? context.t.lessons.deselectAll
                           : context.t.lessons.selectAll,
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),
                 ),
-              ...markedStudents.indexed.map(
-                (entry) => _buildStudentTile(
-                  student: entry.$2,
-                  number: entry.$1 + 1,
-                  attendance: attendance[entry.$2.id],
+              for (final (index, student) in markedStudents.indexed)
+                _StudentAttendanceTile(
+                  key: ValueKey(student.id),
+                  student: student,
+                  number: index + 1,
+                  attendance: attendance[student.id],
                   canEdit: canEdit,
-                  attendanceMap: attendance,
+                  onToggle: () => onToggle(student),
+                  onLongPress: () => onLongPress(student),
                 ),
-              ),
               if (unmarkedStudents.isNotEmpty)
-                _buildUnmarkedAccordion(
+                _UnmarkedStudentsAccordion(
                   students: unmarkedStudents,
                   firstNumber: markedStudents.length + 1,
-                  attendanceMap: attendance,
                   canEdit: canEdit,
+                  onToggle: onToggle,
+                  onLongPress: onLongPress,
                 ),
             ],
           ],
@@ -506,20 +573,25 @@ class _LessonPageState extends ConsumerState<LessonPage> {
       ),
     );
   }
+}
 
-  bool _allPresent(
-    List<GroupStudentSummaryResponse> students,
-    Map<String, LessonAttendance> attendance,
-  ) => students.every(
-    (student) => attendance[student.id]?.status == VisitStatus.present,
-  );
+class _UnmarkedStudentsAccordion extends StatelessWidget {
+  final List<GroupStudentSummaryResponse> students;
+  final int firstNumber;
+  final bool canEdit;
+  final ValueChanged<GroupStudentSummaryResponse> onToggle;
+  final ValueChanged<GroupStudentSummaryResponse> onLongPress;
 
-  Widget _buildUnmarkedAccordion({
-    required List<GroupStudentSummaryResponse> students,
-    required int firstNumber,
-    required Map<String, LessonAttendance> attendanceMap,
-    required bool canEdit,
-  }) => Theme(
+  const new({
+    required this.students,
+    required this.firstNumber,
+    required this.canEdit,
+    required this.onToggle,
+    required this.onLongPress,
+  });
+
+  @override
+  Widget build(BuildContext context) => Theme(
     data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
     child: ExpansionTile(
       tilePadding: EdgeInsets.zero,
@@ -528,37 +600,56 @@ class _LessonPageState extends ConsumerState<LessonPage> {
         context.t.lessons.notMarked,
         style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
-      children: students.indexed
-          .map(
-            (entry) => _buildStudentTile(
-              student: entry.$2,
-              number: firstNumber + entry.$1,
-              attendance: null,
-              canEdit: canEdit,
-              attendanceMap: attendanceMap,
-              unmarked: true,
-            ),
-          )
-          .toList(),
+      children: [
+        for (final (index, student) in students.indexed)
+          _StudentAttendanceTile(
+            key: ValueKey(student.id),
+            student: student,
+            number: firstNumber + index,
+            canEdit: canEdit,
+            unmarked: true,
+            onToggle: () => onToggle(student),
+            onLongPress: () => onLongPress(student),
+          ),
+      ],
     ),
   );
+}
 
-  Widget _buildStudentTile({
-    required GroupStudentSummaryResponse student,
-    required int number,
-    required LessonAttendance? attendance,
-    required bool canEdit,
-    required Map<String, LessonAttendance> attendanceMap,
-    bool unmarked = false,
-  }) {
+class _StudentAttendanceTile extends StatelessWidget {
+  final GroupStudentSummaryResponse student;
+  final int number;
+  final LessonAttendance? attendance;
+  final bool canEdit;
+  final bool unmarked;
+  final VoidCallback onToggle;
+  final VoidCallback onLongPress;
+
+  const new({
+    super.key,
+    required this.student,
+    required this.number,
+    required this.canEdit,
+    required this.onToggle,
+    required this.onLongPress,
+    this.attendance,
+    this.unmarked = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isFree = attendance?.type == VisitType.free;
     final isPresent = attendance?.status == VisitStatus.present;
 
+    final modifiers = <String>[
+      if (attendance?.status == VisitStatus.excused) context.t.lessons.excused,
+      if (attendance?.type == VisitType.free) context.t.lessons.freeLesson,
+    ];
+
     return InkWell(
-      onTap: canEdit && !unmarked
-          ? () => _toggleStudent(attendanceMap, student)
-          : null,
-      onLongPress: canEdit ? () => _editStudent(student, attendanceMap) : null,
+      onTap: canEdit && !unmarked ? onToggle : null,
+      onLongPress: canEdit ? onLongPress : null,
       child: ListTile(
         contentPadding: EdgeInsets.zero,
         dense: true,
@@ -568,7 +659,7 @@ class _LessonPageState extends ConsumerState<LessonPage> {
             '$number.',
             style: TextStyle(
               fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -579,21 +670,21 @@ class _LessonPageState extends ConsumerState<LessonPage> {
           style: TextStyle(
             fontSize: 16,
             decoration: unmarked ? TextDecoration.lineThrough : null,
-            color: unmarked
-                ? Theme.of(context).colorScheme.onSurfaceVariant
-                : null,
+            color: unmarked ? colorScheme.onSurfaceVariant : null,
           ),
         ),
-        subtitle: _buildSubtitle(attendance),
+        subtitle: modifiers.isEmpty
+            ? null
+            : _ModifiersText(modifiers: modifiers),
         trailing: unmarked
             ? null
             : canEdit
             ? Checkbox(
                 value: isPresent,
                 activeColor: isFree ? _freeCheckColor : null,
-                onChanged: (_) => _toggleStudent(attendanceMap, student),
+                onChanged: (_) => onToggle(),
               )
-            : _buildAttendanceMark(
+            : _AttendanceMark(
                 isPresent: isPresent,
                 isFree: isFree,
                 status: attendance?.status,
@@ -601,15 +692,38 @@ class _LessonPageState extends ConsumerState<LessonPage> {
       ),
     );
   }
+}
 
-  Widget _buildAttendanceMark({
-    required bool isPresent,
-    required bool isFree,
-    required VisitStatus? status,
-  }) {
+class _ModifiersText extends StatelessWidget {
+  final List<String> modifiers;
+
+  const new({required this.modifiers});
+
+  @override
+  Widget build(BuildContext context) => Text(
+    modifiers.join(' · '),
+    style: TextStyle(
+      fontSize: 12,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    ),
+  );
+}
+
+class _AttendanceMark extends StatelessWidget {
+  static const double _size = 48;
+  static const double _iconSize = 24;
+
+  final bool isPresent;
+  final bool isFree;
+  final VisitStatus? status;
+
+  const new({required this.isPresent, required this.isFree, this.status});
+
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final String label = switch (status) {
+    final label = switch (status) {
       VisitStatus.present => context.t.lessons.present,
       VisitStatus.excused => context.t.lessons.excused,
       _ => context.t.lessons.absent,
@@ -618,36 +732,14 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     return Semantics(
       label: label,
       child: SizedBox.square(
-        dimension: 48,
+        dimension: _size,
         child: Icon(
           isPresent ? Icons.check_box : Icons.check_box_outline_blank,
-          size: 24,
+          size: _iconSize,
           color: isPresent
               ? (isFree ? _freeCheckColor : colorScheme.primary)
               : colorScheme.onSurfaceVariant,
         ),
-      ),
-    );
-  }
-
-  Widget? _buildSubtitle(LessonAttendance? attendance) {
-    final modifiers = <String>[];
-
-    if (attendance?.status == VisitStatus.excused) {
-      modifiers.add(context.t.lessons.excused);
-    }
-
-    if (attendance?.type == VisitType.free) {
-      modifiers.add(context.t.lessons.freeLesson);
-    }
-
-    if (modifiers.isEmpty) return null;
-
-    return Text(
-      modifiers.join(' · '),
-      style: TextStyle(
-        fontSize: 12,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
     );
   }

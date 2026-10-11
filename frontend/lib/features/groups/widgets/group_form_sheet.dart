@@ -147,7 +147,9 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
                       ),
 
                       Padding(
-                        padding: EdgeInsetsGeometry.symmetric(vertical: 10),
+                        padding: const EdgeInsetsGeometry.symmetric(
+                          vertical: 10,
+                        ),
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: TextButton.icon(

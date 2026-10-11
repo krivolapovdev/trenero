@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/features/finance/widgets/delete_transaction_bottom_sheet.dart';
@@ -59,7 +60,7 @@ class _TransactionPageState extends ConsumerState<TransactionPage> {
         ),
       ],
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        borderRadius: AppRadius.bottomRounded,
       ),
     ),
     body: SingleChildScrollView(

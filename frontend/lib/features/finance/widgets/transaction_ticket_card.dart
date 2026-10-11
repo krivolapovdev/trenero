@@ -198,7 +198,7 @@ class _TicketPainter extends CustomPainter {
     final cutouts = Path()
       ..addOval(
         Rect.fromCircle(
-          center: Offset(0, _headerHeight + _dividerHeight / 2),
+          center: const Offset(0, _headerHeight + _dividerHeight / 2),
           radius: _notchRadius,
         ),
       )

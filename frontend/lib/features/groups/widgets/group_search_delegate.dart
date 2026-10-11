@@ -19,7 +19,7 @@ class GroupSearchDelegate extends SearchDelegate {
         },
       ),
 
-    SizedBox(width: 8),
+    const SizedBox(width: 8),
   ];
 
   @override
@@ -31,18 +31,26 @@ class GroupSearchDelegate extends SearchDelegate {
   );
 
   @override
-  Widget buildResults(BuildContext context) => _buildSearchResults(context);
+  Widget buildResults(BuildContext context) =>
+      _GroupSearchResults(groups: groups, query: query);
 
   @override
-  Widget buildSuggestions(BuildContext context) => _buildSearchResults(context);
+  Widget buildSuggestions(BuildContext context) =>
+      _GroupSearchResults(groups: groups, query: query);
+}
 
-  Widget _buildSearchResults(BuildContext context) {
-    final filteredGroups = groups.where((group) {
-      final groupName = group.name.toLowerCase();
-      final searchLower = query.toLowerCase();
+class _GroupSearchResults extends StatelessWidget {
+  final List<GroupSummaryResponse> groups;
+  final String query;
 
-      return groupName.contains(searchLower);
-    }).toList();
+  const new({required this.groups, required this.query});
+
+  @override
+  Widget build(BuildContext context) {
+    final searchLower = query.toLowerCase();
+    final filteredGroups = groups
+        .where((group) => group.name.toLowerCase().contains(searchLower))
+        .toList();
 
     if (filteredGroups.isEmpty) {
       return Center(child: Text(context.t.groups.notFound));

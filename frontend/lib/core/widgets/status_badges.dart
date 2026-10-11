@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_colors.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/constants/app_spacing.dart';
 
 class StatusBadgeData {
@@ -8,8 +10,8 @@ class StatusBadgeData {
 
   const new({
     required this.label,
-    this.backgroundColor = const Color(0xFFe8def8),
-    this.textColor = const Color(0xFF0e081b),
+    this.backgroundColor = AppColors.badgeSurface,
+    this.textColor = AppColors.badgeOn,
   });
 }
 
@@ -22,23 +24,31 @@ class StatusBadges extends StatelessWidget {
   Widget build(BuildContext context) => Wrap(
     spacing: AppSpacing.sm,
     runSpacing: AppSpacing.sm,
-    children: badges
-        .map(
-          (badge) => Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              color: badge.backgroundColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              badge.label,
-              style: TextStyle(fontSize: 14, color: badge.textColor),
-            ),
-          ),
-        )
-        .toList(),
+    children: [
+      for (final badge in badges)
+        _StatusBadge(key: ValueKey(badge.label), badge: badge),
+    ],
+  );
+}
+
+class _StatusBadge extends StatelessWidget {
+  final StatusBadgeData badge;
+
+  const new({super.key, required this.badge});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.lg,
+      vertical: AppSpacing.xs + 2,
+    ),
+    decoration: BoxDecoration(
+      color: badge.backgroundColor,
+      borderRadius: AppRadius.lgAll,
+    ),
+    child: Text(
+      badge.label,
+      style: TextStyle(fontSize: 14, color: badge.textColor),
+    ),
   );
 }

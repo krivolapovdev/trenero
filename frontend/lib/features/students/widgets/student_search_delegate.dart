@@ -36,49 +36,68 @@ class StudentSearchDelegate extends SearchDelegate {
   );
 
   @override
-  Widget buildResults(BuildContext context) => _buildSearchResults();
+  Widget buildResults(BuildContext context) => _StudentSearchResults(
+    students: students,
+    query: query,
+  );
 
   @override
-  Widget buildSuggestions(BuildContext context) => _buildSearchResults();
+  Widget buildSuggestions(BuildContext context) => _StudentSearchResults(
+    students: students,
+    query: query,
+  );
+}
 
-  Widget _buildSearchResults() => Consumer(
-    builder: (context, ref, child) {
-      final filter = ref.watch(studentFilterControllerProvider);
-      final searchQuery = query.toLowerCase();
+class _StudentSearchResults extends ConsumerWidget {
+  final List<StudentSummaryResponse> students;
+  final String query;
 
-      final filteredStudents = students.where((student) {
-        final nameMatches = student.fullName.toLowerCase().contains(
-          searchQuery,
-        );
-        final phoneMatches =
-            student.phone != null &&
-            student.phone!.toLowerCase().contains(searchQuery);
+  const new({required this.students, required this.query});
 
-        return (nameMatches || phoneMatches) && filter.matches(student);
-      }).toList();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filter = ref.watch(studentFilterControllerProvider);
+    final searchQuery = query.toLowerCase();
 
-      if (filteredStudents.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(context.t.students.filter.empty),
+    final filteredStudents = students
+        .where(
+          (student) =>
+              _matchesQuery(student, searchQuery) && filter.matches(student),
+        )
+        .toList(growable: false);
 
-              if (filter.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () => ref
-                      .read(studentFilterControllerProvider.notifier)
-                      .clear(),
-                  child: Text(context.t.students.filter.reset),
-                ),
-              ],
-            ],
-          ),
-        );
-      }
+    if (filteredStudents.isEmpty) return const _StudentSearchEmpty();
 
-      return StudentListView(students: filteredStudents);
-    },
+    return StudentListView(students: filteredStudents);
+  }
+
+  bool _matchesQuery(StudentSummaryResponse student, String searchQuery) {
+    final nameMatches = student.fullName.toLowerCase().contains(searchQuery);
+    final phone = student.phone;
+
+    return nameMatches ||
+        (phone != null && phone.toLowerCase().contains(searchQuery));
+  }
+}
+
+class _StudentSearchEmpty extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(context.t.students.filter.empty),
+
+        const SizedBox(height: 16),
+
+        FilledButton(
+          onPressed: () =>
+              ref.read(studentFilterControllerProvider.notifier).clear(),
+          child: Text(context.t.students.filter.reset),
+        ),
+      ],
+    ),
   );
 }

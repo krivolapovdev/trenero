@@ -35,75 +35,90 @@ class FinancePage extends ShellPage {
 
   @override
   Widget build(BuildContext context) => Consumer(
-    builder: (context, ref, child) {
-      final metricsAsync = ref.watch(paymentMetricsControllerProvider);
-      final selectedIndex = ref.watch(selectedMetricIndexProvider);
-      final transactionsState = ref.watch(transactionsControllerProvider);
-      final transactionsAsync = transactionsState.whenData(
-        (s) => s.transactions,
-      );
-
-      return CustomMaterialIndicator(
-        color: Colors.black,
-        clipBehavior: Clip.antiAlias,
-        onRefresh: () async {
-          await Future.wait([
-            ref.read(paymentMetricsControllerProvider.notifier).loadMetrics(),
-            ref.read(transactionsControllerProvider.notifier).refresh(),
-          ]);
-        },
-        child: SingleChildScrollView(
-          clipBehavior: Clip.none,
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              spacing: 16,
-              children: [
-                metricsAsync.when(
-                  data: (data) {
-                    if (data.isEmpty) {
-                      return SizedBox(
-                        height: 200,
-                        child: Center(child: Text(context.t.noData)),
-                      );
-                    }
-
-                    final safeIndex = selectedIndex.clamp(0, data.length - 1);
-
-                    return ProfitLineChart(
-                      data: data,
-                      selectedIndex: safeIndex,
-                      onIndexChanged: (index) {
-                        ref.read(selectedMetricIndexProvider.notifier).state =
-                            index;
-                      },
-                    );
-                  },
-                  loading: () => const ChartSkeleton(),
-                  error: (error, stackTrace) => SizedBox(
-                    height: 200,
-                    child: Center(
-                      child: Text(context.t.errorLoadingData(error: error)),
-                    ),
-                  ),
-                ),
-
-                RecentTransactions(
-                  asyncTransactions: transactionsAsync,
-                  onSeeAllPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const TransactionListPage(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    builder: (context, ref, child) => CustomMaterialIndicator(
+      color: Colors.black,
+      clipBehavior: Clip.antiAlias,
+      onRefresh: () async {
+        await Future.wait([
+          ref.read(paymentMetricsControllerProvider.notifier).loadMetrics(),
+          ref.read(transactionsControllerProvider.notifier).refresh(),
+        ]);
+      },
+      child: const SingleChildScrollView(
+        clipBehavior: Clip.none,
+        physics: BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            spacing: 16,
+            children: [_FinanceMetricsChart(), _FinanceRecentTransactions()],
           ),
         ),
-      );
-    },
+      ),
+    ),
+  );
+}
+
+class _FinanceMetricsChart extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final metricsAsync = ref.watch(paymentMetricsControllerProvider);
+    final selectedIndex = ref.watch(selectedMetricIndexProvider);
+
+    return metricsAsync.when(
+      data: (data) {
+        if (data.isEmpty) {
+          return _MetricsMessage(message: context.t.noData);
+        }
+
+        return ProfitLineChart(
+          data: data,
+          selectedIndex: selectedIndex.clamp(0, data.length - 1),
+          onIndexChanged: (index) {
+            ref.read(selectedMetricIndexProvider.notifier).state = index;
+          },
+        );
+      },
+      loading: () => const ChartSkeleton(),
+      error: (error, stackTrace) =>
+          _MetricsMessage(message: context.t.errorLoadingData(error: error)),
+    );
+  }
+}
+
+class _FinanceRecentTransactions extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final transactionsState = ref.watch(transactionsControllerProvider);
+    final transactionsAsync = transactionsState.whenData(
+      (state) => state.transactions,
+    );
+
+    return RecentTransactions(
+      asyncTransactions: transactionsAsync,
+      onSeeAllPressed: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const TransactionListPage()),
+      ),
+    );
+  }
+}
+
+class _MetricsMessage extends StatelessWidget {
+  static const double _height = 200;
+
+  final String message;
+
+  const new({required this.message});
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: _height,
+    child: Center(child: Text(message)),
   );
 }

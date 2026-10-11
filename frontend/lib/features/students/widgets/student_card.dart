@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/core/widgets/card_badge.dart';
 import 'package:phone/features/students/extensions/student_status_extension.dart';
+import 'package:phone/features/students/models/student_badge_data.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 
 class StudentCard extends StatelessWidget {
@@ -95,27 +96,14 @@ class StudentCard extends StatelessWidget {
 
                         const SizedBox(height: 8),
 
-                        Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
-                          children: badges
-                              .map(
-                                (badge) => CardBadge(
-                                  icon: badge.icon,
-                                  label: badge.label,
-                                  backgroundColor: badge.backgroundColor,
-                                  foregroundColor: badge.foregroundColor,
-                                ),
-                              )
-                              .toList(),
-                        ),
+                        _StudentBadges(badges: badges),
                       ],
                     ),
                   ),
                 ],
               ),
 
-              if (hasNote) ...[
+              if (hasNote) ...<Widget>[
                 const SizedBox(height: 12),
                 const Divider(height: 1, thickness: 0.5),
                 const SizedBox(height: 12),
@@ -156,4 +144,28 @@ class StudentCard extends StatelessWidget {
 
   static String _labelOf(String name, num? defaultPrice) =>
       defaultPrice != null ? '$name · $defaultPrice' : name;
+}
+
+class _StudentBadges extends StatelessWidget {
+  static const double _spacing = 8.0;
+
+  final List<StudentBadgeData> badges;
+
+  const new({required this.badges});
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+    spacing: _spacing,
+    runSpacing: _spacing,
+    children: [
+      for (final badge in badges)
+        CardBadge(
+          key: ValueKey(badge.id),
+          icon: badge.icon,
+          label: badge.label,
+          backgroundColor: badge.backgroundColor,
+          foregroundColor: badge.foregroundColor,
+        ),
+    ],
+  );
 }

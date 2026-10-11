@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_radius.dart';
 
 class CardBadge extends StatelessWidget {
+  static const double _paddingHorizontal = 10;
+  static const double _paddingVertical = 5;
+  static const double _iconSize = 16;
+  static const double _iconGap = 6;
+
   final Widget? icon;
   final String label;
   final Color backgroundColor;
@@ -16,21 +22,24 @@ class CardBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    padding: const EdgeInsets.symmetric(
+      horizontal: _paddingHorizontal,
+      vertical: _paddingVertical,
+    ),
     decoration: BoxDecoration(
       color: backgroundColor,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: AppRadius.xlAll,
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (icon != null) ...[
           IconTheme(
-            data: IconThemeData(color: foregroundColor, size: 16),
+            data: IconThemeData(color: foregroundColor, size: _iconSize),
             child: icon!,
           ),
 
-          const SizedBox(width: 6),
+          const SizedBox(width: _iconGap),
         ],
 
         Text(

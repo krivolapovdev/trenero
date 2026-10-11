@@ -12,7 +12,7 @@ import 'package:phone/generated/reviewer_auth_controller/reviewer_auth_controlle
 
 final authRepositoryProvider = Provider<AuthRepository>(
   (ref) => AuthRepository(
-    oAuth2Client: ref.watch(oAuth2Service),
+    oAuth2Client: ref.watch(oAuth2ServiceProvider),
     jwtClient: ref.watch(jwtServiceProvider),
     reviewerAuthClient: ref.watch(reviewerAuthServiceProvider),
     googleAuthService: ref.watch(googleAuthServiceProvider),

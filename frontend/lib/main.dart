@@ -13,10 +13,10 @@ void main() async {
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  runApp(ProviderScope(child: TranslationProvider(child: const Application())));
+  runApp(ProviderScope(child: TranslationProvider(child: const TreneroApp())));
 }
 
-class Application extends ConsumerWidget {
+class TreneroApp extends ConsumerWidget {
   const new({super.key});
 
   @override

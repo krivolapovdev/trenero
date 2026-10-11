@@ -2,6 +2,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
+import 'package:phone/core/widgets/retry_view.dart';
 import 'package:phone/core/widgets/transaction_list_view.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
@@ -51,23 +52,11 @@ class StudentPaymentListPage extends ConsumerWidget {
           },
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                error.toString(),
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: () => ref.invalidate(
-                  studentPaymentsControllerProvider(student.id),
-                ),
-                child: Text(context.t.repeat),
-              ),
-            ],
-          ),
+        error: (error, stack) => RetryView(
+          message: error.toString(),
+          messageColor: Theme.of(context).colorScheme.error,
+          onRetry: () =>
+              ref.invalidate(studentPaymentsControllerProvider(student.id)),
         ),
       ),
     );
