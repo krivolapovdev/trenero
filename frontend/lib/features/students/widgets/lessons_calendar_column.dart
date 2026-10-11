@@ -51,7 +51,11 @@ class LessonsCalendarColumn extends StatelessWidget {
   final GroupResponse? studentGroup;
   final DateTime focusedDay;
   final String? locale;
-  final void Function(GroupResponse group, DateTime day, List<VisitWithLessonResponse> visits)
+  final void Function(
+    GroupResponse group,
+    DateTime day,
+    List<VisitWithLessonResponse> visits,
+  )
   onGroupDayTapped;
   final void Function(DateTime day, List<VisitWithLessonResponse> visits)
   onIndividualDayTapped;
@@ -90,7 +94,10 @@ class LessonsCalendarColumn extends StatelessWidget {
             onDayTapped: onGroupDayTapped,
             onCreate: () => onCreateGroupLesson(group),
           ),
-        if (StudentLessonsSection.showsIndividualCalendar(visits, studentGroupsList))
+        if (StudentLessonsSection.showsIndividualCalendar(
+          visits,
+          studentGroupsList,
+        ))
           StudentLessonCalendarSection(
             title: context.t.lessons.individualLessons,
             locale: locale,
@@ -99,7 +106,8 @@ class LessonsCalendarColumn extends StatelessWidget {
             dayVisitStatuses: (day) =>
                 StudentLessonsSection.dayVisitStatusesOf(individualVisits, day),
             onCreate: onCreateIndividualLesson,
-            onDayTapped: (day, _) => onIndividualDayTapped(day, individualVisits),
+            onDayTapped: (day, _) =>
+                onIndividualDayTapped(day, individualVisits),
           ),
       ],
     );

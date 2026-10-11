@@ -12,6 +12,7 @@ class GroupListRetry extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => RetryView(
     message: '$error',
     scrollable: true,
-    onRetry: () => ref.read(groupListControllerProvider.notifier).getAllGroups(),
+    onRetry: () =>
+        ref.read(groupListControllerProvider.notifier).getAllGroups(),
   );
 }

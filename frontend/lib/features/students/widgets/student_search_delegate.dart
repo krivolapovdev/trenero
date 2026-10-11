@@ -33,15 +33,10 @@ class StudentSearchDelegate extends SearchDelegate {
   );
 
   @override
-  Widget buildResults(BuildContext context) => StudentSearchResults(
-    students: students,
-    query: query,
-  );
+  Widget buildResults(BuildContext context) =>
+      StudentSearchResults(students: students, query: query);
 
   @override
-  Widget buildSuggestions(BuildContext context) => StudentSearchResults(
-    students: students,
-    query: query,
-  );
+  Widget buildSuggestions(BuildContext context) =>
+      StudentSearchResults(students: students, query: query);
 }
-

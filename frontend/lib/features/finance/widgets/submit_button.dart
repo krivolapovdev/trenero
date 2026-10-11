@@ -27,10 +27,7 @@ class SubmitButton extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : null,
-        label: Text(
-          context.t.create,
-          style: const TextStyle(fontSize: 18),
-        ),
+        label: Text(context.t.create, style: const TextStyle(fontSize: 18)),
       ),
     ),
   );

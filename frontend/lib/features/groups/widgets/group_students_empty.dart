@@ -8,9 +8,7 @@ class GroupStudentsEmpty extends StatelessWidget {
   Widget build(BuildContext context) => Center(
     child: Text(
       context.t.students.emptySubtitle,
-      style: TextStyle(
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
     ),
   );
 }

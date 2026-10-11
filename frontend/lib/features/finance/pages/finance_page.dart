@@ -43,9 +43,7 @@ class FinancePage extends ShellPage {
       },
       child: const SingleChildScrollView(
         clipBehavior: Clip.none,
-        physics: BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
+        physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: Column(

@@ -144,4 +144,3 @@ class StudentCard extends StatelessWidget {
   static String _labelOf(String name, num? defaultPrice) =>
       defaultPrice != null ? '$name · $defaultPrice' : name;
 }
-

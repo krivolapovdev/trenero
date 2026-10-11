@@ -10,11 +10,7 @@ class TransactionsSkeleton extends ConsumerWidget {
   final AsyncValue<TransactionsState> listState;
   final List<TransactionResponse> transactions;
 
-  const new({
-    super.key,
-    required this.listState,
-    required this.transactions,
-  });
+  const new({super.key, required this.listState, required this.transactions});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

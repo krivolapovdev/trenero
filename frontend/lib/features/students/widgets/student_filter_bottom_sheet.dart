@@ -89,7 +89,9 @@ class _StudentFilterBottomSheetState
 
                     const SizedBox(height: 8),
 
-                    _FilterSectionTitle(title: context.t.students.filter.status),
+                    _FilterSectionTitle(
+                      title: context.t.students.filter.status,
+                    ),
 
                     for (final status in StudentStatus.$valuesDefined)
                       FilterCheckboxTile(
@@ -155,4 +157,3 @@ class _FilterLoading extends StatelessWidget {
     child: Center(child: CircularProgressIndicator()),
   );
 }
-

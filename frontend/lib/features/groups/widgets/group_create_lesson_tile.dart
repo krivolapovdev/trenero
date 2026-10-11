@@ -16,7 +16,6 @@ class GroupCreateLessonTile extends StatelessWidget {
       style: const TextStyle(fontSize: 16),
     ),
     trailing: const Icon(Icons.chevron_right),
-    onTap: () =>
-        Navigator.of(context).pop(const GroupDayLessonSelection()),
+    onTap: () => Navigator.of(context).pop(const GroupDayLessonSelection()),
   );
 }

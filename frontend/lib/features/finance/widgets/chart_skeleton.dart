@@ -30,8 +30,7 @@ class ChartSkeleton extends StatelessWidget {
           Row(
             children: List.generate(
               6,
-              (index) =>
-                  const Expanded(child: Center(child: MonthLabelBone())),
+              (index) => const Expanded(child: Center(child: MonthLabelBone())),
             ),
           ),
         ],
@@ -39,4 +38,3 @@ class ChartSkeleton extends StatelessWidget {
     ),
   );
 }
-

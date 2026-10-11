@@ -49,10 +49,7 @@ class StudentAttendanceTile extends StatelessWidget {
           width: 24,
           child: Text(
             '$number.',
-            style: TextStyle(
-              fontSize: 14,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant),
           ),
         ),
         title: Text(

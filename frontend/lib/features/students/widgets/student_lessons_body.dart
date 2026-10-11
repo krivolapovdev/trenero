@@ -15,7 +15,11 @@ class StudentLessonsBody extends StatelessWidget {
   final List<GroupSummaryResponse>? groups;
   final GroupResponse? studentGroup;
   final String? locale;
-  final void Function(GroupResponse group, DateTime day, List<VisitWithLessonResponse> visits)
+  final void Function(
+    GroupResponse group,
+    DateTime day,
+    List<VisitWithLessonResponse> visits,
+  )
   onGroupDayTapped;
   final void Function(DateTime day, List<VisitWithLessonResponse> visits)
   onIndividualDayTapped;

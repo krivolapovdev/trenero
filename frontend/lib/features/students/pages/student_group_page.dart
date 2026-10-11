@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:phone/core/constants/app_radius.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/students/controllers/assign_student_group_controller.dart';
@@ -97,4 +97,3 @@ class _StudentGroupPageState extends ConsumerState<StudentGroupPage> {
     );
   }
 }
-

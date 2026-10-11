@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:phone/core/constants/app_radius.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/features/auth/controllers/auth_controller.dart';
 import 'package:phone/i18n/strings.g.dart';
 

@@ -89,7 +89,8 @@ class _CreateTransactionBottomSheetState
   DateTime get _defaultPaidUntil =>
       DateTime(_selectedDate.year, _selectedDate.month + 1, _selectedDate.day);
 
-  DateTime get _maxPaidUntil => DateTime.now().add(const Duration(days: 365 * 3));
+  DateTime get _maxPaidUntil =>
+      DateTime.now().add(const Duration(days: 365 * 3));
 
   void _onDateChanged(DateTime? date) {
     setState(() {
@@ -270,7 +271,11 @@ class _CreateTransactionBottomSheetState
 
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.only(left: 22, right: 22, bottom: 8 + keyboardInset),
+        padding: EdgeInsets.only(
+          left: 22,
+          right: 22,
+          bottom: 8 + keyboardInset,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -5,7 +5,12 @@ class StudentDayCreateTile extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  const new({super.key, required this.icon, required this.title, required this.onTap});
+  const new({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) => ListTile(

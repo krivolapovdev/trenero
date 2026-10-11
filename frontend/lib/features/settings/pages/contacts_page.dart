@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/constants/app_colors.dart';
 import 'package:phone/core/constants/app_constants.dart';
+import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/features/settings/widgets/settings_group_card.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:url_launcher/url_launcher.dart';

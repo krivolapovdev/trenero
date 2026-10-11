@@ -18,10 +18,7 @@ class LanguageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListTile(
-    leading: Text(
-      locale.flag,
-      style: const TextStyle(fontSize: _flagFontSize),
-    ),
+    leading: Text(locale.flag, style: const TextStyle(fontSize: _flagFontSize)),
     title: Text(locale.label, style: const TextStyle(fontSize: 16)),
     trailing: selected
         ? const Icon(Icons.check, color: Colors.deepPurple)

@@ -9,7 +9,11 @@ class GroupLessonCalendar extends StatelessWidget {
   final List<VisitWithLessonResponse> visits;
   final DateTime focusedDay;
   final String? locale;
-  final void Function(GroupResponse group, DateTime day, List<VisitWithLessonResponse> visits)
+  final void Function(
+    GroupResponse group,
+    DateTime day,
+    List<VisitWithLessonResponse> visits,
+  )
   onDayTapped;
   final VoidCallback onCreate;
 

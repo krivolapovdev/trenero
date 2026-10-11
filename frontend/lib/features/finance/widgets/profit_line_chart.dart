@@ -40,9 +40,7 @@ LineChartBarData _buildBarData(List<FlSpot> spots, double zeroStop) =>
         getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
           radius: _dotRadius,
           color: Colors.white,
-          strokeColor: spot.y < 0
-              ? AppColors.chartLoss
-              : AppColors.chartProfit,
+          strokeColor: spot.y < 0 ? AppColors.chartLoss : AppColors.chartProfit,
           strokeWidth: _dotStrokeWidth,
         ),
       ),
@@ -112,10 +110,10 @@ String? _monthLabelFor(
   final index = value.toInt();
   if (value % 1 != 0 || index < 0 || index >= data.length) return null;
 
-  return DateFormat('MMM', locale)
-      .format(data[index].date)
-      .replaceAll('.', '')
-      .capitalized;
+  return DateFormat(
+    'MMM',
+    locale,
+  ).format(data[index].date).replaceAll('.', '').capitalized;
 }
 
 class ProfitLineChart extends ConsumerWidget {
@@ -134,7 +132,9 @@ class ProfitLineChart extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (data.isEmpty) return const SizedBox.shrink();
 
-    final locale = ref.watch(languageProvider.select((s) => s.value?.languageTag));
+    final locale = ref.watch(
+      languageProvider.select((s) => s.value?.languageTag),
+    );
 
     final spots = [
       for (final (index, metric) in data.indexed)
@@ -212,4 +212,3 @@ class ProfitLineChart extends ConsumerWidget {
     );
   }
 }
-

@@ -25,7 +25,10 @@ class TicketPainter extends CustomPainter {
       )
       ..addOval(
         Rect.fromCircle(
-          center: Offset(size.width, ticketHeaderHeight + ticketDividerHeight / 2),
+          center: Offset(
+            size.width,
+            ticketHeaderHeight + ticketDividerHeight / 2,
+          ),
           radius: ticketNotchRadius,
         ),
       );

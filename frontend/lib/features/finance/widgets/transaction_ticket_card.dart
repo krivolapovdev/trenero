@@ -137,4 +137,3 @@ class TransactionTicketCard extends StatelessWidget {
   String _formatDateTime(DateTime date, String languageCode) =>
       DateFormat('d MMM, yyyy HH:mm', languageCode).format(date).toUpperCase();
 }
-

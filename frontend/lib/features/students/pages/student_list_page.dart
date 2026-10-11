@@ -52,4 +52,3 @@ class StudentListPage extends ShellPage {
     ),
   );
 }
-

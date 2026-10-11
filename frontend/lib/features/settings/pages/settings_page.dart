@@ -93,4 +93,3 @@ class SettingsPage extends ShellPage {
     );
   }
 }
-

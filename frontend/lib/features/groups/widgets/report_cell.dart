@@ -4,7 +4,11 @@ class ReportCell extends StatelessWidget {
   final Widget child;
   final Alignment alignment;
 
-  const new({super.key, required this.child, this.alignment = Alignment.center});
+  const new({
+    super.key,
+    required this.child,
+    this.alignment = Alignment.center,
+  });
 
   @override
   Widget build(BuildContext context) => Container(

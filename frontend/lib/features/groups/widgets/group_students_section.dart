@@ -74,4 +74,3 @@ class GroupStudentsSection extends ConsumerWidget {
     );
   }
 }
-

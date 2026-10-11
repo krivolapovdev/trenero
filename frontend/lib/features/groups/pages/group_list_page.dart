@@ -50,4 +50,3 @@ class GroupListPage extends ShellPage {
     ),
   );
 }
-

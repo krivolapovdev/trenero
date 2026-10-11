@@ -37,9 +37,8 @@ class StudentLessonsSection extends ConsumerStatefulWidget {
       visit.visit.type == VisitType.regular ||
       visit.visit.type == VisitType.free;
 
-  static List<LessonResponse> toLessons(
-    List<VisitWithLessonResponse> visits,
-  ) => visits.map((visit) => visit.lesson).toList();
+  static List<LessonResponse> toLessons(List<VisitWithLessonResponse> visits) =>
+      visits.map((visit) => visit.lesson).toList();
 
   static List<VisitWithLessonResponse> lessonVisitsOf(
     List<VisitWithLessonResponse> visits,

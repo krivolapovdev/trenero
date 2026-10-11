@@ -5,11 +5,7 @@ class HeaderCell extends StatelessWidget {
   final String text;
   final Alignment alignment;
 
-  const new({
-    super.key,
-    required this.text,
-    this.alignment = Alignment.center,
-  });
+  const new({super.key, required this.text, this.alignment = Alignment.center});
 
   @override
   Widget build(BuildContext context) {
