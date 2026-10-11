@@ -11,12 +11,6 @@ final deleteGroupControllerProvider =
       DeleteGroupController.new,
     );
 
-/// Deletes a group of the trainer.
-///
-/// The group is gone from the server, so every page that cached it drops what
-/// it held: the lessons and the monthly reports of the group are dropped, the
-/// group list is reloaded in the background and the groups the students carry
-/// are read again.
 class DeleteGroupController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
@@ -27,8 +21,9 @@ class DeleteGroupController extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() async {
       await ref.read(groupRepositoryProvider).deleteGroup(groupId);
 
-      ref.invalidate(groupLessonsProvider(groupId));
-      ref.invalidate(groupReportProvider);
+      ref
+        ..invalidate(groupLessonsProvider(groupId))
+        ..invalidate(groupReportProvider);
 
       refreshAfterGroupStudentsMutation(ref, groupId: groupId);
     });

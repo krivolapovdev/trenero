@@ -16,7 +16,6 @@ Widget _wrap(Widget child) => TranslationProvider(
   child: MaterialApp(home: Scaffold(body: child)),
 );
 
-/// The label drawn inside the circle avatar.
 String _avatarLabel(WidgetTester tester) => tester
     .widget<Text>(
       find.descendant(
@@ -39,8 +38,6 @@ void main() {
     expect(_avatarLabel(tester), 'NA');
   });
 
-  // Regression: the group page numbers the students inside the displayed name,
-  // so the derived initials picked the index up (`4. Nill Artmsh` -> `4N`).
   testWidgets('the override keeps the index out of the avatar', (tester) async {
     await tester.pumpWidget(
       _wrap(

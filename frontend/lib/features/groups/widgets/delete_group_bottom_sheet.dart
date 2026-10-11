@@ -5,10 +5,6 @@ import 'package:phone/features/groups/controllers/delete_group_controller.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Asks for confirmation before deleting [group].
-///
-/// Pops with `true` when the group was deleted. The caller is the one that
-/// leaves the page of the group, so this sheet only reports the outcome.
 class DeleteGroupBottomSheet extends ConsumerWidget {
   final GroupSummaryResponse group;
 

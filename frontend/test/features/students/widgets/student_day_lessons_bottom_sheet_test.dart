@@ -36,10 +36,8 @@ StudentDayLesson _groupLesson({
   visitStatus: status,
 );
 
-/// What the sheet popped, filled in once a tile is tapped.
 final List<StudentDayLessonSelection?> _results = [];
 
-/// Shows the sheet the way the student page does.
 Future<void> _openSheet(
   WidgetTester tester,
   StudentDayLessonsBottomSheet sheet,
@@ -134,8 +132,6 @@ void main() {
     expect(find.text(t.lessons.present), findsOneWidget);
     expect(find.text(t.lessons.missed), findsOneWidget);
 
-    // The day keeps offering another individual lesson, and the group lesson of
-    // the day can still be created.
     expect(find.text(t.lessons.individualLesson), findsOneWidget);
     expect(find.text(t.lessons.groupLesson), findsOneWidget);
   });
@@ -179,7 +175,6 @@ void main() {
     expect(find.text(t.lessons.present), findsOneWidget);
     expect(find.text(t.lessons.missed), findsOneWidget);
 
-    // The day keeps offering another group lesson.
     expect(find.text(t.lessons.groupLesson), findsOneWidget);
   });
 
@@ -196,8 +191,6 @@ void main() {
       ),
     );
 
-    // The stored lessons are listed, and another lesson of each kind can still
-    // be created.
     expect(find.text(t.lessons.individualLessons), findsOneWidget);
     expect(find.text(t.lessons.groupLessons), findsOneWidget);
     expect(find.text(t.lessons.individualLesson), findsOneWidget);

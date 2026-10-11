@@ -9,7 +9,6 @@ import 'package:phone/generated/models/group_report_response.dart';
 import 'package:phone/generated/models/group_report_student_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// February 2026: two lesson days, Anna present on the first one and paid.
 GroupReportResponse _report({
   String groupName = 'Group A',
   String studentName = 'Anna Smirnova',
@@ -35,12 +34,8 @@ GroupReportResponse _report({
   totalLessons: 2,
 );
 
-/// The PDF is compressed, so only the plain dictionaries around the content can
-/// be read back; the text itself is stored as glyph references of the embedded
-/// font.
 String _asText(Uint8List bytes) => latin1.decode(bytes);
 
-/// Width and height of the first page, taken from its `MediaBox`.
 List<double> _pageSize(String pdf) {
   final match = RegExp(r'/MediaBox\[([^\]]+)\]').firstMatch(pdf);
 
@@ -49,10 +44,6 @@ List<double> _pageSize(String pdf) {
   return match!.group(1)!.split(' ').skip(2).map(double.parse).toList();
 }
 
-/// The drawing commands of the page, read back from its content stream.
-///
-/// The stream is compressed, so every candidate stream is inflated before it
-/// can be searched.
 String _pageContent(Uint8List bytes) {
   final text = latin1.decode(bytes);
   final buffer = StringBuffer();
@@ -112,7 +103,6 @@ void main() {
     expect(text.trimRight(), endsWith('%%EOF'));
     expect(bytes.length, greaterThan(1000));
 
-    // Landscape A4: a column per day of the month only fits on its side.
     final page = _pageSize(text);
     expect(page, hasLength(2));
     expect(page[0], closeTo(841.89, 0.01));
@@ -147,7 +137,6 @@ void main() {
     expect(text, startsWith('%PDF-1.'));
     expect(bytes.length, greaterThan(1000));
 
-    // Without the embedded Roboto the Cyrillic names would render as blanks.
     expect(text, contains('/FontName/Roboto-Regular'));
     expect(text, contains('/FontName/Roboto-Bold'));
   });
@@ -168,11 +157,6 @@ void main() {
 
     final content = _pageContent(bytes);
 
-    // Anna is present on the first lesson day and paid, so that day and the
-    // payment column hold a check; the second lesson day is crossed out.
-    //
-    // Both marks are drawn as paths: the embedded Roboto has neither `✓`
-    // (U+2713) nor `✕` (U+2715), so a text cell would print an empty box.
     expect(content, contains('1 4.6 m 3.2 2 l 8 7.4 l S'));
     expect(content, contains('1.4 1.4 m 7.6 7.6 l 7.6 1.4 m 1.4 7.6 l S'));
     expect(content, contains('1 J 1 j'), reason: 'the marks are rounded');

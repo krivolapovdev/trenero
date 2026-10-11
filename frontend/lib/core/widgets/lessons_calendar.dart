@@ -8,52 +8,19 @@ class LessonsCalendar extends StatefulWidget {
   final List<LessonResponse> lessons;
   final String? locale;
 
-  /// Called when a day is tapped, with the lessons that take place on it.
-  ///
-  /// When set, the owner of the calendar takes over the tap (for example by
-  /// opening the lesson page) and the bundled list of the day is not shown.
   final void Function(DateTime selectedDay, List<LessonResponse> dayLessons)?
   onDayTapped;
 
-  /// The statuses of the visits that take place on a day, used to colour a
-  /// student's day by the attendance recorded for it.
-  ///
-  /// When set, a day whose visits were all present is drawn green and a day
-  /// that was entirely missed is drawn red. The days that are neither (a mix of
-  /// present and absent) keep the colour of the lesson. The group calendar
-  /// leaves it null, so its days keep telling the kind of lesson only.
   final List<VisitStatus> Function(DateTime day)? dayVisitStatuses;
 
-  /// The month the calendar shows.
-  ///
-  /// When set the owner drives the shown month, which lets a single header step
-  /// several calendars through the months together; when null the calendar
-  /// keeps the month on its own.
   final DateTime? focusedDay;
 
-  /// Called when the shown month changes, with the first day of the new month.
   final ValueChanged<DateTime>? onMonthChanged;
 
-  /// Whether the calendar draws the month header of `table_calendar`.
-  ///
-  /// Hidden when the owner draws its own header, for example one shared over
-  /// several calendars.
   final bool headerVisible;
 
-  /// Whether the calendar draws a white surface around the grid.
-  ///
-  /// Hidden when the calendar is laid out inside the surface of its owner.
   final bool surfaceVisible;
 
-  /// Whether the month can be changed by swiping the grid sideways.
-  ///
-  /// Turned off when the owner draws its own month header and only that header
-  /// is meant to step the months.
-  ///
-  /// Only the sideways swipe is ever handed to the calendar: the vertical swipe
-  /// of `table_calendar` changes the format of the grid, which this calendar
-  /// never uses, yet the detector it installs still wins the vertical drags
-  /// from the page that scrolls the calendar and freezes it.
   final bool swipeEnabled;
 
   const new({
@@ -76,29 +43,19 @@ class LessonsCalendar extends StatefulWidget {
 class _LessonsCalendarState extends State<LessonsCalendar> {
   late DateTime _focusedDay;
 
-  /// The month the calendar shows: the one the owner drives when it is set, the
-  /// one the calendar keeps on its own otherwise.
   DateTime get _shownDay => widget.focusedDay ?? _focusedDay;
 
   static const Color _lightGreenAlpha = Color(0x4D4CAF50);
   static const Color _darkForestGreen = Color(0xFF1B5E20);
 
-  /// An individual lesson belongs to one student, so its day is drawn with a
-  /// colour of its own to tell it from a day of a group lesson.
   static const Color _lightBlueAlpha = Color(0x4D2196F3);
   static const Color _darkBlue = Color(0xFF0D47A1);
 
-  /// The day of a student is drawn with these when the attendance of every
-  /// lesson of the day is known and the same.
   static const Color _lightRedAlpha = Color(0x4DF44336);
   static const Color _darkRed = Color(0xFFB71C1C);
 
-  /// Lessons are only ever recorded for the past, so the days after today
-  /// cannot be picked.
   DateTime get _today => DateUtils.dateOnly(DateTime.now());
 
-  /// table_calendar builds the days of its grid in UTC, so the instants cannot
-  /// be compared with a local [DateTime]. Only the date part is compared.
   bool _isEnabledDay(DateTime day) {
     final today = DateTime.now();
 
@@ -118,10 +75,6 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
   List<LessonResponse> _lessonsOf(DateTime day) =>
       widget.lessons.where((lesson) => isSameDay(lesson.date, day)).toList();
 
-  /// The owner drives the shown month when it passed `focusedDay`, so the month
-  /// the calendar is stepped to is only remembered locally when the calendar
-  /// keeps it on its own. Remembering it while the owner drives it would make
-  /// the two fight over the shown page.
   void _onPageChanged(DateTime focusedDay) {
     if (widget.focusedDay == null) {
       setState(() {
@@ -154,12 +107,6 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
     _showLessonsBottomSheet(selectedDay, dayLessons);
   }
 
-  /// The colours a day of lessons is drawn with.
-  ///
-  /// A student's day is coloured by the attendance recorded for it: green when
-  /// the whole day was attended and red when it was entirely missed. The days
-  /// that are neither (a mix of present and absent) fall back to the colour of
-  /// the lesson, which tells an individual lesson from a group one.
   ({Color background, Color foreground}) _dayColors(
     DateTime day,
     List<LessonResponse> dayLessons,
@@ -190,8 +137,6 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
         : (background: _lightGreenAlpha, foreground: _darkForestGreen);
   }
 
-  /// The marker of a day with at least one lesson, `null` for the other days so
-  /// that table_calendar falls back to its own style.
   Widget? _buildLessonDay(DateTime day) {
     final dayLessons = _lessonsOf(day);
     if (dayLessons.isEmpty) return null;
@@ -284,14 +229,11 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
   Widget build(BuildContext context) {
     final calendar = TableCalendar<LessonResponse>(
       locale: widget.locale,
-      firstDay: DateTime(2000, 1, 1),
+      firstDay: DateTime(2000),
       lastDay: DateTime.now().add(const Duration(days: 365)),
       focusedDay: _shownDay,
-      // The days after today are shown greyed out and cannot be tapped.
       enabledDayPredicate: _isEnabledDay,
       headerVisible: widget.headerVisible,
-      // Only the sideways swipe is offered when it is enabled, so the page the
-      // calendar is scrolled in keeps the vertical drags that start on the grid.
       availableGestures: widget.swipeEnabled
           ? AvailableGestures.horizontalSwipe
           : AvailableGestures.none,
@@ -305,8 +247,6 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
         titleCentered: true,
       ),
       calendarBuilders: CalendarBuilders<LessonResponse>(
-        // table_calendar asks the today builder before the default one, so a
-        // lesson that takes place today has to be drawn here as well.
         todayBuilder: (context, day, focusedDay) => _buildLessonDay(day),
         defaultBuilder: (context, day, focusedDay) => _buildLessonDay(day),
         singleMarkerBuilder: (context, day, event) => const SizedBox.shrink(),

@@ -13,23 +13,14 @@ import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class CreateTransactionBottomSheet extends ConsumerStatefulWidget {
-  /// Student the payment is created for, pre-selected when the sheet opens.
   final String? initialStudentId;
 
-  /// Name of [initialStudentId], shown by the locked student field. It keeps the
-  /// field readable while the student list is still loading.
   final String? initialStudentName;
 
-  /// Hides the type selector and always creates an income transaction.
   final bool isIncomeOnly;
 
-  /// Keeps the payment on [initialStudentId]: the student field is shown
-  /// read-only and cannot be switched to another student. It is set when the
-  /// sheet is opened from the page of a known student.
   final bool isStudentLocked;
 
-  /// Amount prefilled when the sheet opens, usually the group default price of
-  /// [initialStudentId].
   final num? initialAmount;
 
   const new({
@@ -58,9 +49,6 @@ class _CreateTransactionBottomSheetState
   bool _isLoading = false;
   bool _isStudentExpanded = false;
 
-  /// The last amount taken from a group default price. It allows the sheet to
-  /// refresh that amount when another student is picked, while a sum typed by
-  /// the user stays untouched.
   double? _autoFilledAmount;
 
   @override
@@ -73,8 +61,6 @@ class _CreateTransactionBottomSheetState
       _amountController.text = _formatAmount(initialAmount);
     }
 
-    // Registered after the prefill so that it does not call setState during
-    // initState.
     _amountController.addListener(_onAmountChanged);
 
     final initialStudentId = widget.initialStudentId;
@@ -96,18 +82,14 @@ class _CreateTransactionBottomSheetState
 
   bool get _isIncome => _selectedType == TransactionType.income;
 
-  /// A student payment is an income transaction attributed to a student.
   bool get _isStudentPayment => _isIncome && _selectedStudentId != null;
 
-  /// Prefills the paid until date with one month from the payment date.
   DateTime get _defaultPaidUntil =>
       DateTime(_selectedDate.year, _selectedDate.month + 1, _selectedDate.day);
 
-  /// The latest date a payment can be extended to, three years from today.
   DateTime get _maxPaidUntil =>
       DateTime.now().add(const Duration(days: 365 * 3));
 
-  /// Keeps the last valid date while the typed text is invalid or incomplete.
   void _onDateChanged(DateTime? date) {
     setState(() {
       _isDateValid = date != null;
@@ -214,9 +196,9 @@ class _CreateTransactionBottomSheetState
       }
 
       Navigator.of(context).pop();
-    } catch (e) {
+    } catch (error) {
       if (!mounted) return;
-      AppSnackBar.show(context, '$e', SnackBarType.error);
+      AppSnackBar.show(context, '$error', SnackBarType.error);
     } finally {
       if (mounted) {
         setState(() {
@@ -226,7 +208,6 @@ class _CreateTransactionBottomSheetState
     }
   }
 
-  /// Formats [amount] without trailing zeros, the way price fields do.
   String _formatAmount(num amount) {
     final asDouble = amount.toDouble();
 
@@ -235,7 +216,6 @@ class _CreateTransactionBottomSheetState
         : asDouble.toString();
   }
 
-  /// The default price of the group the given student belongs to, if any.
   double? _groupDefaultAmount(String? studentId) {
     if (studentId == null) return null;
 
@@ -252,10 +232,6 @@ class _CreateTransactionBottomSheetState
     return null;
   }
 
-  /// Fills the amount with the group default price of the picked student.
-  ///
-  /// The value is refreshed while the field still shows the previously
-  /// auto-filled price, so a sum typed by the user is never overwritten.
   void _applyGroupDefaultAmount(String? studentId) {
     final defaultAmount = _groupDefaultAmount(studentId);
     if (defaultAmount == null || defaultAmount <= 0) return;
@@ -283,7 +259,6 @@ class _CreateTransactionBottomSheetState
       if (!studentsState.isLoading) return const SizedBox.shrink();
 
       return Skeletonizer(
-        ignorePointers: true,
         child: TextField(
           enabled: false,
           decoration: InputDecoration(
@@ -370,10 +345,6 @@ class _CreateTransactionBottomSheetState
     );
   }
 
-  /// The student field of a sheet opened for a known student.
-  ///
-  /// The name of that student stays visible but the field cannot be tapped, so
-  /// the created payment always belongs to them.
   Widget _buildLockedStudentField(List<StudentSummaryResponse> students) {
     final selectedStudents = students.where(
       (student) => student.id == _selectedStudentId,
@@ -438,7 +409,6 @@ class _CreateTransactionBottomSheetState
         padding: EdgeInsets.only(
           left: 22,
           right: 22,
-          top: 0,
           bottom: 8 + keyboardInset,
         ),
         child: Column(

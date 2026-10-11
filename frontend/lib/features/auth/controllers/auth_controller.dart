@@ -58,18 +58,11 @@ class AuthController extends AsyncNotifier<AuthStatus> {
       return AuthStatus.unauthenticated;
     });
 
-    // The shell is swapped for the auth page during the frame below. Clearing
-    // the caches only afterwards keeps the data providers from rebuilding (and
-    // requesting the API with the removed tokens) while the pages listening to
-    // them are still mounted.
     await WidgetsBinding.instance.endOfFrame;
 
     ref.read(cacheCleanerProvider).clearSessionCaches();
   }
 
-  /// Opens the session without a sign in request.
-  ///
-  /// Used after the reviewer key was accepted by the backend.
   void markAuthenticated() {
     state = const AsyncData(AuthStatus.authenticated);
   }

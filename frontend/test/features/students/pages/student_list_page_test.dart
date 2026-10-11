@@ -61,8 +61,6 @@ class _FakeStudentListController extends StudentListController {
   }
 }
 
-/// Records every build of a student page family, so a test can tell whether
-/// the cached data of the student pages was dropped.
 class _FakeStudentLessonsController extends StudentLessonsController {
   new(super.studentId, this.builds);
 
@@ -232,7 +230,6 @@ void main() {
   testWidgets('a pull to refresh drops the caches of the student pages', (
     tester,
   ) async {
-    // Warm the caches the way opening a student page does.
     await container.read(studentLessonsProvider('student-1').future);
     await container.read(studentPaymentsControllerProvider('student-1').future);
 
@@ -248,7 +245,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The caches are gone, so reading again builds the family once more.
     await container.read(studentLessonsProvider('student-1').future);
     await container.read(studentPaymentsControllerProvider('student-1').future);
 

@@ -9,15 +9,7 @@ import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-/// Picks the students of a group on a full page.
-///
-/// The page lists every student with a checkbox and makes the picked ones the
-/// students of the group, dropping the students that are left unchecked. A
-/// group may end up without any student, so clearing every student is allowed
-/// too. The action stays disabled until the pick differs from the students the
-/// group already holds.
 class GroupStudentsPage extends ConsumerStatefulWidget {
-  /// The group the picked students are assigned to.
   final GroupSummaryResponse group;
 
   const new({super.key, required this.group});
@@ -27,23 +19,17 @@ class GroupStudentsPage extends ConsumerStatefulWidget {
 }
 
 class _GroupStudentsPageState extends ConsumerState<GroupStudentsPage> {
-  /// Shown while the students are loading, before any student was fetched.
   static const List<String> _placeholderNames = [
     'Student Name Placeholder',
     'Student Name Placeholder',
     'Student Name Placeholder',
   ];
 
-  /// The students the user picked, or `null` while the current students of the
-  /// group are shown untouched.
   Set<String>? _pickedStudentIds;
 
-  /// The students the checkboxes show selected.
   Set<String> _picked(Set<String> groupStudentIds) =>
       _pickedStudentIds ?? groupStudentIds;
 
-  /// Whether the picked students differ from the students the group holds, so
-  /// that the action stays disabled until the user changes something.
   bool _hasChanges(Set<String> groupStudentIds) {
     final pickedStudentIds = _pickedStudentIds;
     if (pickedStudentIds == null) return false;
@@ -52,8 +38,6 @@ class _GroupStudentsPageState extends ConsumerState<GroupStudentsPage> {
         !pickedStudentIds.containsAll(groupStudentIds);
   }
 
-  /// Picks a student, or drops the pick when the selected student is tapped
-  /// again.
   void _toggleStudent(Set<String> groupStudentIds, String studentId) {
     setState(() {
       final next = {..._picked(groupStudentIds)};

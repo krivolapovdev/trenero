@@ -36,7 +36,6 @@ Widget _sheet({
       }) async {},
 );
 
-/// The form of a stored student, opened the way the edit sheet opens it.
 Widget _editSheet() => StudentFormSheet(
   title: t.students.editStudent,
   submitLabel: t.edit,
@@ -53,21 +52,11 @@ Widget _editSheet() => StudentFormSheet(
   }) async {},
 );
 
-/// The action of the form.
 TextButton _submit(WidgetTester tester) =>
     tester.widget<TextButton>(find.byType(TextButton));
 
-/// The spot of [leaf] read from the top left corner of the [row] that holds
-/// it, so that the spots of two rows can be compared.
 Offset _spotIn(Rect row, Rect leaf) => leaf.topLeft - row.topLeft;
 
-/// Checks that the free field is drawn as the phone field above it.
-///
-/// The row of the free field is as tall as the row of the phone field, so its
-/// underline is drawn as far from its name as the underline of a field that
-/// holds a value; the checkbox of the free field is read on the spot of the
-/// icon of the phone field; and the name of the free field is read on the spot
-/// of the label of the phone field.
 void _expectFreeDrawnAsPhone(WidgetTester tester) {
   final fields = find.byType(InputDecorator);
   final phone = tester.getRect(fields.at(2));
@@ -212,7 +201,6 @@ void main() {
     );
 
     await tester.enterText(find.byType(TextField).first, 'Ivan Petrov');
-    // The name of the field is not a control, so the tap is read by the row.
     await tester.tap(find.text(t.students.free));
     await tester.pump();
 
@@ -233,7 +221,6 @@ void main() {
   testWidgets(
     'the free field is drawn like the fields above it on a dense theme',
     (tester) async {
-      // A dense theme draws the fields more tightly than the checkbox asks for.
       await tester.pumpWidget(
         _wrap(_sheet(), visualDensity: VisualDensity.comfortable),
       );
@@ -245,7 +232,6 @@ void main() {
   testWidgets('the edit form waits for a field to change', (tester) async {
     await tester.pumpWidget(_wrap(_editSheet()));
 
-    // Every field carries the stored value, so there is nothing to edit yet.
     expect(_submit(tester).onPressed, isNull);
 
     await tester.enterText(find.byType(TextField).first, 'Ivan Petrov Jr.');
@@ -253,7 +239,6 @@ void main() {
 
     expect(_submit(tester).onPressed, isNotNull);
 
-    // Typing the stored name back leaves nothing to edit again.
     await tester.enterText(find.byType(TextField).first, 'Ivan Petrov');
     await tester.pump();
 

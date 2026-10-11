@@ -40,7 +40,6 @@ class CreateStudentController extends AsyncNotifier<void> {
       final service = ref.read(studentServiceProvider);
       await service.createStudent(body: request);
 
-      // The new student has to appear in the list the cards are drawn from.
       await refreshAfterStudentMutation(ref);
     });
 
@@ -48,7 +47,6 @@ class CreateStudentController extends AsyncNotifier<void> {
   }
 }
 
-/// Trims [value] and returns `null` when nothing is left.
 String? blankToNull(String? value) {
   final trimmed = value?.trim();
   return (trimmed == null || trimmed.isEmpty) ? null : trimmed;

@@ -41,15 +41,11 @@ class TransactionsController extends AsyncNotifier<TransactionsState> {
   @override
   FutureOr<TransactionsState> build() async {
     final repository = ref.read(transactionRepositoryProvider);
-    final response = await repository.getTransactionsByPage(
-      page: 1,
-      size: _pageSize,
-    );
+    final response = await repository.getTransactionsByPage(size: _pageSize);
     final content = response.content ?? [];
 
     return TransactionsState(
       transactions: content,
-      page: 1,
       hasMore: content.length >= _pageSize,
     );
   }
@@ -90,15 +86,11 @@ class TransactionsController extends AsyncNotifier<TransactionsState> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final repository = ref.read(transactionRepositoryProvider);
-      final response = await repository.getTransactionsByPage(
-        page: 1,
-        size: _pageSize,
-      );
+      final response = await repository.getTransactionsByPage(size: _pageSize);
       final content = response.content ?? [];
 
       return TransactionsState(
         transactions: content,
-        page: 1,
         hasMore: content.length >= _pageSize,
       );
     });

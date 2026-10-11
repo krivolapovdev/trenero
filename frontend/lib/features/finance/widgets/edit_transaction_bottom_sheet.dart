@@ -25,14 +25,11 @@ class _EditTransactionBottomSheetState
 
   late DateTime _selectedDate;
 
-  /// The amount the sheet was opened with, as the field shows it.
   late final String _initialAmountText;
 
   bool _isDateValid = true;
   bool _isLoading = false;
 
-  /// Whether a field differs from the transaction the sheet was opened with, so
-  /// that the sheet stays untouched until the user changes something.
   bool get _hasChanges =>
       _amountController.text != _initialAmountText ||
       DateUtils.dateOnly(_selectedDate) !=
@@ -119,7 +116,6 @@ class _EditTransactionBottomSheetState
         padding: EdgeInsets.only(
           left: 22,
           right: 22,
-          top: 0,
           bottom: 8 + keyboardInset,
         ),
         child: Column(
@@ -138,8 +134,8 @@ class _EditTransactionBottomSheetState
               children: [
                 Icon(
                   isIncome
-                      ? FluentIcons.arrow_up_24_regular
-                      : FluentIcons.arrow_down_24_regular,
+                      ? FluentIcons.arrow_down_24_regular
+                      : FluentIcons.arrow_up_24_regular,
                   color: isIncome ? Colors.green : Colors.redAccent,
                 ),
                 const SizedBox(width: 8),

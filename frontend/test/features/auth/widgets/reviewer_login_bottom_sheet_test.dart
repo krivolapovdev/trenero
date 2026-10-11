@@ -18,12 +18,9 @@ import 'package:phone/generated/models/user_response.dart';
 import 'package:phone/generated/reviewer_auth_controller/reviewer_auth_controller_client.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Records the reviewer keys and answers like the backend does.
 class _FakeReviewerAuthClient implements ReviewerAuthControllerClient {
-  /// When set, [login] waits for it before answering.
   Completer<void>? gate;
 
-  /// When set, [login] throws it instead of answering.
   Object? error;
 
   final List<String> keys = [];
@@ -48,7 +45,6 @@ class _FakeReviewerAuthClient implements ReviewerAuthControllerClient {
   }
 }
 
-/// Answers the Google sign in without touching the platform channels.
 class _FakeGoogleAuthService implements GoogleAuthService {
   @override
   Future<String?> getGoogleIdToken() async => null;
@@ -57,7 +53,6 @@ class _FakeGoogleAuthService implements GoogleAuthService {
   Future<void> signOut() async {}
 }
 
-/// Keeps the tokens in memory instead of the platform secure storage.
 class _FakeTokenStorage implements TokenStorage {
   String? _accessToken;
   String? _refreshToken;
@@ -100,7 +95,6 @@ Widget _providers(
   child: TranslationProvider(child: child),
 );
 
-/// Hosts the sheet behind a button, the way the pages open it.
 Widget _sheetHost(
   Widget sheet, {
   required _FakeReviewerAuthClient reviewerClient,
@@ -120,7 +114,6 @@ Widget _sheetHost(
   tokenStorage: tokenStorage,
 );
 
-/// Opens the reviewer sheet the way the auth page does.
 Future<void> _openSheet(
   WidgetTester tester, {
   required _FakeReviewerAuthClient reviewerClient,
@@ -255,14 +248,10 @@ void main() {
     await tester.pump();
 
     expect(find.byType(ReviewerLoginBottomSheet), findsOneWidget);
-    // The sheet would cover a snack bar of the page below it, so the error is
-    // shown above the sheet instead.
     expect(find.byType(AwesomeSnackbarContent), findsOneWidget);
     expect(find.byType(SnackBar), findsNothing);
     expect(_loginButton(tester).onPressed, isNotNull);
 
-    // Waits for the snack bar to go away, otherwise its timer outlives the
-    // test.
     await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
   });
@@ -270,8 +259,6 @@ void main() {
   testWidgets('a long press on the lottie opens the reviewer sheet', (
     tester,
   ) async {
-    // The auth page is laid out for a phone; the test font is wider than the
-    // real one, so a viewport that fits the square lottie is used.
     tester.view.physicalSize = const Size(960, 2400);
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
@@ -284,7 +271,6 @@ void main() {
       ),
     );
 
-    // The lottie loops, so the sheet is opened without `pumpAndSettle`.
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }

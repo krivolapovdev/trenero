@@ -1,6 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:phone/core/constants/app_date_formats.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/models/create_student_payment_request.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
@@ -14,111 +15,81 @@ final studentRepositoryProvider = Provider<StudentRepository>((ref) {
 });
 
 class StudentRepository {
+  static final DateFormat _isoDate = DateFormat(AppDateFormats.isoDate);
+
   final StudentControllerClient _service;
   List<StudentSummaryResponse>? _cachedStudents;
-
-  /// `PATCH /api/v1/students/{studentId}` parses `joinedAt` with `LocalDate.parse`
-  /// on the backend, so a plain `yyyy-MM-dd` value is required (an ISO date-time
-  /// would fail, the same way the birthdate does).
-  static final DateFormat _isoDate = DateFormat('yyyy-MM-dd');
 
   new(this._service);
 
   Future<List<StudentSummaryResponse>> getAllStudents({
     bool forceRefresh = false,
   }) async {
-    if (!forceRefresh && _cachedStudents != null) {
-      return List.unmodifiable(_cachedStudents!);
+    final cached = _cachedStudents;
+
+    if (!forceRefresh && cached != null) {
+      return List.unmodifiable(cached);
     }
 
-    try {
+    return guardApiCall(() async {
       final students = await _service.getStudentsSummary();
       _cachedStudents = students;
-      return List.unmodifiable(_cachedStudents!);
-    } on DioException catch (e) {
-      throw Exception('Error: ${e.message}');
-    }
+
+      return List.unmodifiable(students);
+    });
   }
 
-  Future<void> deleteStudent(String studentId) async {
-    try {
-      await _service.deleteStudent(studentId: studentId);
+  Future<void> deleteStudent(String studentId) => guardApiCall(() async {
+    await _service.deleteStudent(studentId: studentId);
 
-      if (_cachedStudents != null) {
-        _cachedStudents = _cachedStudents!
-            .where((s) => s.id != studentId)
-            .toList();
-      }
-    } on DioException catch (e) {
-      throw Exception('Error deleting student: ${e.message}');
+    final cached = _cachedStudents;
+
+    if (cached != null) {
+      _cachedStudents = cached
+          .where((student) => student.id != studentId)
+          .toList();
     }
-  }
+  });
 
   Future<List<VisitWithLessonResponse>> getStudentVisits({
     required String studentId,
     required DateTime from,
     required DateTime to,
-  }) async {
-    try {
-      return await _service.getStudentVisits(
-        studentId: studentId,
-        from: from,
-        to: to,
-      );
-    } on DioException catch (e) {
-      throw Exception('Failed to fetch student lessons: ${e.message}');
-    }
-  }
+  }) => guardApiCall(
+    () => _service.getStudentVisits(studentId: studentId, from: from, to: to),
+  );
 
-  Future<List<TransactionResponse>> getStudentPayments(String studentId) async {
-    try {
-      return await _service.getStudentPayments(studentId: studentId);
-    } on DioException catch (e) {
-      throw Exception('Failed to fetch the student payments: ${e.message}');
-    }
-  }
+  Future<List<TransactionResponse>> getStudentPayments(String studentId) =>
+      guardApiCall(() => _service.getStudentPayments(studentId: studentId));
 
   Future<TransactionResponse> createStudentPayment({
     required String studentId,
     required double amount,
     required DateTime date,
     required DateTime paidUntil,
-  }) async {
-    try {
-      return await _service.createStudentPayment(
-        studentId: studentId,
-        body: CreateStudentPaymentRequest(
-          amount: amount,
-          date: date,
-          paidUntil: paidUntil,
-        ),
-      );
-    } on DioException catch (e) {
-      throw Exception('Failed to create student payment: ${e.message}');
-    }
-  }
+  }) => guardApiCall(
+    () => _service.createStudentPayment(
+      studentId: studentId,
+      body: CreateStudentPaymentRequest(
+        amount: amount,
+        date: date,
+        paidUntil: paidUntil,
+      ),
+    ),
+  );
 
-  /// Attaches [studentId] to every group in [groupIds], dropping the groups
-  /// that are not picked. The student is stored as joined today in the groups
-  /// that are new to them.
   Future<void> assignStudentGroups({
     required String studentId,
     required Set<String> groupIds,
-  }) async {
-    try {
-      await _service.updateStudent(
-        studentId: studentId,
-        body: <String, dynamic>{
-          'groupIds': groupIds.toList(),
-          'joinedAt': _isoDate.format(DateTime.now()),
-        },
-      );
-    } on DioException catch (e) {
-      throw Exception(
-        'Failed to assign the student to the groups: ${e.message}',
-      );
-    }
-  }
+  }) => guardApiCall(
+    () => _service.updateStudent(
+      studentId: studentId,
+      body: <String, dynamic>{
+        'groupIds': groupIds.toList(),
+        'joinedAt': _isoDate.format(DateTime.now()),
+      },
+    ),
+  );
 
   void clearCache() {
     _cachedStudents = null;

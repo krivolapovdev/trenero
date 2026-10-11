@@ -12,9 +12,6 @@ final updateStudentControllerProvider =
     );
 
 class UpdateStudentController extends AsyncNotifier<void> {
-  /// `PATCH /api/v1/students/{studentId}` is handled by `StudentMapper` on the
-  /// backend, which parses the birthdate with `LocalDate.parse`, so a plain
-  /// `yyyy-MM-dd` value is required (an ISO date-time would fail).
   static final DateFormat _isoDate = DateFormat('yyyy-MM-dd');
 
   @override
@@ -47,8 +44,6 @@ class UpdateStudentController extends AsyncNotifier<void> {
       final service = ref.read(studentServiceProvider);
       await service.updateStudent(studentId: studentId, body: body);
 
-      // The card of the student shows the edited fields, so the list has to
-      // be reloaded.
       await refreshAfterStudentMutation(ref);
     });
 

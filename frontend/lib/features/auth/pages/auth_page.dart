@@ -1,10 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phone/core/constants/app_constants.dart';
 import 'package:phone/core/constants/app_lottie.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/features/auth/widgets/google_sign_in_button.dart';
 import 'package:phone/features/auth/widgets/reviewer_login_bottom_sheet.dart';
-import 'package:flutter/material.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 

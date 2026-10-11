@@ -4,40 +4,19 @@ import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/generated/models/visit_type.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// What [LessonAttendanceBottomSheet] popped.
-///
-/// A `null` [attendance] means the student was left unmarked: no visit is
-/// stored for them and the one they had is deleted.
 class LessonAttendanceSelection {
   final LessonAttendance? attendance;
 
   const new({this.attendance});
 }
 
-/// The status options the sheet offers.
-///
-/// "Unmarked" is not a [VisitStatus]: it means the student has no visit at all,
-/// so it is kept as a choice of its own.
 enum _StatusChoice { present, absent, excused, unmarked }
 
-/// Picks the status and the type of a student's mark with radio buttons.
-///
-/// The status is picked from Present, Absent, Excused and Unmarked. The type is
-/// only offered while a status is picked, because an unmarked student has no
-/// visit. A student who studies for free always keeps a free lesson, so the type
-/// is hidden and forced to Free for them.
-///
-/// Nothing is confirmed with a button: picking a radio pops the sheet with the
-/// [LessonAttendanceSelection] it stands for, so the change is applied straight
-/// away. The sheet pops with `null` when it is dismissed without a pick.
 class LessonAttendanceBottomSheet extends StatelessWidget {
-  /// The name of the student the sheet marks, shown as its title.
   final String studentName;
 
-  /// Whether the student studies for free, which pins the type to Free.
   final bool free;
 
-  /// The mark the student currently carries, `null` when they are unmarked.
   final LessonAttendance? attendance;
 
   const new({
@@ -47,10 +26,8 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
     this.attendance,
   });
 
-  /// The status the student currently carries, `null` while they are unmarked.
   VisitStatus? get _status => attendance?.status;
 
-  /// The status option that is selected for the student.
   _StatusChoice get _statusChoice => switch (_status) {
     VisitStatus.present => _StatusChoice.present,
     VisitStatus.absent => _StatusChoice.absent,
@@ -58,14 +35,11 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
     _ => _StatusChoice.unmarked,
   };
 
-  /// The type the sheet stores: a free student is always free.
   VisitType get _effectiveType =>
       free ? VisitType.free : (attendance?.type ?? VisitType.regular);
 
-  /// The type is only offered while the student is marked and not free.
   bool get _showsType => !free && _status != null;
 
-  /// Pops with the picked status, or unmarked when the unmarked one is picked.
   void _pickStatus(BuildContext context, _StatusChoice? choice) {
     final status = switch (choice) {
       _StatusChoice.present => VisitStatus.present,
@@ -83,7 +57,6 @@ class LessonAttendanceBottomSheet extends StatelessWidget {
     );
   }
 
-  /// Pops with the picked type, keeping the status the student carries.
   void _pickType(BuildContext context, VisitType? type) {
     final status = _status;
     if (status == null || type == null) return;

@@ -34,7 +34,7 @@ final DateTime _lessonDate = DateTime(2026, 10, 8);
 final GroupStudentSummaryResponse _ivan = GroupStudentSummaryResponse(
   id: 'student-1',
   fullName: 'Ivan Petrov',
-  createdAt: DateTime(2025, 1, 1),
+  createdAt: DateTime(2025),
   free: false,
   statuses: const [],
 );
@@ -42,21 +42,18 @@ final GroupStudentSummaryResponse _ivan = GroupStudentSummaryResponse(
 final GroupStudentSummaryResponse _anna = GroupStudentSummaryResponse(
   id: 'student-2',
   fullName: 'Anna Smirnova',
-  createdAt: DateTime(2025, 1, 1),
+  createdAt: DateTime(2025),
   free: false,
   statuses: const [],
 );
 
-/// A student that left the group: the group does not list them any more, but
-/// the lesson they came to still holds their visit.
 final StudentResponse _heroLeft = StudentResponse(
   id: 'student-3',
   fullName: 'Hero Left',
-  createdAt: DateTime(2025, 1, 1),
+  createdAt: DateTime(2025),
   free: false,
 );
 
-/// The student behind [groupStudent], the way the lesson details carry them.
 StudentResponse _student(GroupStudentSummaryResponse groupStudent) =>
     StudentResponse(
       id: groupStudent.id,
@@ -84,7 +81,6 @@ VisitResponse _visit({
   createdAt: DateTime(2026, 10, 8),
 );
 
-/// Serves the students of the group.
 class _FakeGroupClient implements GroupControllerClient {
   final List<GroupStudentSummaryResponse> students;
 
@@ -128,11 +124,9 @@ class _FakeGroupClient implements GroupControllerClient {
   }) => throw UnimplementedError();
 }
 
-/// Records the lessons that are created, updated and deleted.
 class _FakeLessonClient implements LessonControllerClient {
   final List<VisitResponse> visits;
 
-  /// The students the visits belong to, the way the backend carries them.
   final List<StudentResponse> students;
 
   final List<CreateLessonRequest> createBodies = [];
@@ -190,8 +184,6 @@ class _FakeLessonClient implements LessonControllerClient {
   }
 }
 
-/// Counts the visits that are fetched for a student, so a background refresh of
-/// a page can be told from a page that was never opened.
 class _FakeStudentClient implements StudentControllerClient {
   final Map<String, int> visitCalls = {};
 
@@ -237,7 +229,6 @@ Widget _wrap(
   ),
 );
 
-/// Opens the page the same way the group page and the calendar do.
 Future<void> _openPage(
   WidgetTester tester, {
   List<GroupStudentSummaryResponse>? students,
@@ -257,23 +248,15 @@ Future<void> _openPage(
   await tester.pumpAndSettle();
 }
 
-/// The row of [fullName].
 Finder _rowOf(String fullName) =>
     find.ancestor(of: find.text(fullName), matching: find.byType(ListTile));
 
-/// The checkbox of the row of [fullName], drawn while the lesson is edited. A
-/// student that is left unmarked has no checkbox, so this finds nothing for
-/// them.
 Finder _checkboxOf(String fullName) =>
     find.descendant(of: _rowOf(fullName), matching: find.byType(Checkbox));
 
-/// The mark the row of [fullName] is read with while the lesson is only shown,
-/// drawn in place of the checkbox.
 Finder _markOf(String fullName) =>
     find.descendant(of: _rowOf(fullName), matching: find.byType(Icon));
 
-/// Whether the row of [fullName] is marked present: read from the checkbox
-/// while the lesson is edited, from the mark it is drawn with otherwise.
 bool _isChecked(WidgetTester tester, String fullName) =>
     _checkboxOf(fullName).evaluate().isNotEmpty
     ? tester.widget<Checkbox>(_checkboxOf(fullName)).value!
@@ -282,15 +265,11 @@ bool _isChecked(WidgetTester tester, String fullName) =>
 bool _isEnabled(WidgetTester tester, String fullName) =>
     tester.widget<Checkbox>(_checkboxOf(fullName)).onChanged != null;
 
-/// Taps the checkbox of the row of [fullName], the way a user marks a student
-/// present or absent.
 Future<void> _toggle(WidgetTester tester, String fullName) async {
   await tester.tap(_checkboxOf(fullName));
   await tester.pumpAndSettle();
 }
 
-/// Opens the attendance sheet of the row of [fullName] the way a user does,
-/// with a long press.
 Future<void> _openAttendanceSheet(WidgetTester tester, String fullName) async {
   await tester.longPress(find.text(fullName));
   await tester.pumpAndSettle();
@@ -302,12 +281,9 @@ bool _isActionEnabled(WidgetTester tester, String label) =>
         .onPressed !=
     null;
 
-/// Puts the opened lesson into the mode that marks the students, the way a user
-/// picks `Edit` in the menu of the page.
 Future<void> _startEditing(WidgetTester tester) =>
     _pickMenuItem(tester, t.edit);
 
-/// Picks an entry of the page menu.
 Future<void> _pickMenuItem(WidgetTester tester, String label) async {
   await tester.tap(find.byType(PopupMenuButton<String>));
   await tester.pumpAndSettle();
@@ -320,15 +296,12 @@ Future<void> _pressAction(WidgetTester tester, String label) async {
   await tester.tap(find.text(label));
   await tester.pump();
 
-  // The lessons of the group are reloaded with a delay.
   await tester.pump(const Duration(seconds: 3));
   await tester.pumpAndSettle();
 }
 
-/// Creates the new lesson through the app bar action.
 Future<void> _save(WidgetTester tester) => _pressAction(tester, t.create);
 
-/// Updates the stored lesson through the app bar action.
 Future<void> _update(WidgetTester tester) => _pressAction(tester, t.update);
 
 void main() {
@@ -428,11 +401,9 @@ void main() {
     expect(_isChecked(tester, 'Ivan Petrov'), isTrue);
     expect(_isChecked(tester, 'Anna Smirnova'), isFalse);
 
-    // The marks are read, not tapped: the page draws them without a checkbox.
     expect(_checkboxOf('Ivan Petrov'), findsNothing);
     expect(_markOf('Ivan Petrov'), findsOneWidget);
 
-    // A mark keeps the colours of the form, it is not greyed out.
     final colorScheme = Theme.of(tester.element(find.text('Ivan Petrov')))
         .colorScheme;
 
@@ -445,7 +416,6 @@ void main() {
       colorScheme.onSurfaceVariant,
     );
 
-    // The date is read as well, so it keeps the colour of the form.
     final dateText = tester.widget<Text>(find.text('08.10.2026'));
     expect(dateText.style?.color, isNull);
 
@@ -470,7 +440,6 @@ void main() {
 
     expect(_isEnabled(tester, 'Ivan Petrov'), isTrue);
 
-    // Nothing changed yet, so there is nothing to update.
     expect(_isActionEnabled(tester, t.update), isFalse);
   });
 
@@ -496,7 +465,6 @@ void main() {
 
     expect(_isActionEnabled(tester, t.update), isTrue);
 
-    // Picking the same students again leaves nothing to update.
     await _toggle(tester, 'Anna Smirnova');
 
     expect(_isActionEnabled(tester, t.update), isFalse);
@@ -520,8 +488,6 @@ void main() {
       lessonClient: lessonClient,
     );
 
-    // Hero is not a student of the group any more, so he is added back from the
-    // lesson with the mark that was recorded for him.
     expect(find.text('Hero Left'), findsOneWidget);
     expect(_isChecked(tester, 'Hero Left'), isTrue);
 
@@ -531,7 +497,6 @@ void main() {
 
     await _toggle(tester, 'Ivan Petrov');
 
-    // Saving the lesson keeps the visit of the student who left.
     await _update(tester);
 
     expect(
@@ -588,7 +553,6 @@ void main() {
 
     await _startEditing(tester);
 
-    // Deleting a lesson is done from the page that shows it.
     expect(find.byType(PopupMenuButton<String>), findsNothing);
   });
 
@@ -636,12 +600,10 @@ void main() {
       ),
     );
 
-    // Anna has no visit for the lesson, so she is not in the main list.
     expect(_markOf('Ivan Petrov'), findsOneWidget);
     expect(_checkboxOf('Anna Smirnova'), findsNothing);
     expect(find.text(t.lessons.notMarked), findsOneWidget);
 
-    // She waits under the accordion, without a mark of her own.
     await tester.tap(find.text(t.lessons.notMarked));
     await tester.pumpAndSettle();
 
@@ -668,10 +630,8 @@ void main() {
 
     await _openAttendanceSheet(tester, 'Anna Smirnova');
 
-    // She is unmarked, so the type is not offered yet.
     expect(find.text(t.lessons.regular), findsNothing);
 
-    // Picking a status closes the sheet and marks her straight away.
     await tester.tap(find.text(t.lessons.present));
     await tester.pumpAndSettle();
 
@@ -694,11 +654,9 @@ void main() {
 
     await _openAttendanceSheet(tester, 'Ivan Petrov');
 
-    // A marked student picks a type next to the status.
     expect(find.text(t.lessons.regular), findsOneWidget);
     expect(find.text(t.lessons.free), findsOneWidget);
 
-    // Picking a type closes the sheet and applies it straight away.
     await tester.tap(find.text(t.lessons.free));
     await tester.pumpAndSettle();
 
@@ -711,7 +669,7 @@ void main() {
     final freeAnna = GroupStudentSummaryResponse(
       id: 'student-2',
       fullName: 'Anna Smirnova',
-      createdAt: DateTime(2025, 1, 1),
+      createdAt: DateTime(2025),
       free: true,
       statuses: const [],
     );
@@ -725,10 +683,8 @@ void main() {
 
     await _openAttendanceSheet(tester, 'Anna Smirnova');
 
-    // The type of a free student is pinned, so it is not offered.
     expect(find.text(t.lessons.regular), findsNothing);
 
-    // Picking another status closes the sheet, still storing a free lesson.
     await tester.tap(find.text(t.lessons.absent));
     await tester.pumpAndSettle();
 
@@ -758,7 +714,6 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      // The page of Ivan is loaded, the one of Anna is not.
       await container.read(studentLessonsProvider('student-1').future);
       expect(studentClient.visitCalls['student-1'], 1);
 
@@ -778,7 +733,6 @@ void main() {
 
       expect(isSaved, isTrue);
 
-      // The refresh runs in the background, so it is given a moment to finish.
       await Future<void>.delayed(const Duration(milliseconds: 20));
 
       expect(lessonClient.createBodies, hasLength(1));

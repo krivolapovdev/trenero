@@ -30,8 +30,6 @@ class _FakeGroupListController extends GroupListController {
   }
 }
 
-/// Records every build of a group page family, so a test can tell whether the
-/// cached data of the group pages was dropped.
 class _FakeGroupLessonsController extends GroupLessonsController {
   new(super.groupId, this.builds);
 
@@ -129,7 +127,6 @@ void main() {
   testWidgets('a pull to refresh drops the caches of the group pages', (
     tester,
   ) async {
-    // Warm the caches the way opening a group page does.
     await container.read(groupLessonsProvider('group-1').future);
     await container.read(groupStudentsProvider('group-1').future);
 
@@ -139,7 +136,6 @@ void main() {
     await _pumpGroupListPage(tester, container);
     await _pullToRefresh(tester);
 
-    // The caches are gone, so reading again builds the family once more.
     await container.read(groupLessonsProvider('group-1').future);
     await container.read(groupStudentsProvider('group-1').future);
 

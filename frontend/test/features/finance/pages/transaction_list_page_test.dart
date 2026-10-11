@@ -13,8 +13,6 @@ import 'package:phone/generated/student_controller/student_controller_client.dar
 import 'package:phone/generated/transaction_controller/transaction_controller_client.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Answers the paginated transactions call with an empty page, so the list
-/// renders its empty state without touching the network.
 class _FakeTransactionClient implements TransactionControllerClient {
   @override
   Future<PageTransactionResponse> getPaginatedTransactions({
@@ -26,8 +24,6 @@ class _FakeTransactionClient implements TransactionControllerClient {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// The create sheet loads the students to attribute a payment to; an empty list
-/// keeps the sheet free of network calls.
 class _FakeStudentClient implements StudentControllerClient {
   @override
   Future<List<StudentSummaryResponse>> getStudentsSummary() async => const [];

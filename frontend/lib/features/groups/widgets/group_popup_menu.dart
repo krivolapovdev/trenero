@@ -36,10 +36,6 @@ class GroupPopupMenu extends StatelessWidget {
     );
   }
 
-  /// Asks for confirmation and leaves the group page once the group is gone.
-  ///
-  /// The navigator is taken before the confirmation is shown, so the page of the
-  /// group is popped and not the sheet the menu leaves behind.
   Future<void> _confirmDelete(BuildContext context) async {
     final navigator = Navigator.of(context);
 

@@ -37,11 +37,9 @@ String _formatDate(DateTime date) {
   return '$day.$month.${date.year}';
 }
 
-/// Minimal answers for the group page itself plus the report it can open.
 class _FakeGroupClient implements GroupControllerClient {
   final List<LessonResponse> lessons;
 
-  /// The ids of the groups the page asked to delete.
   final List<String> deletedGroupIds = [];
 
   new({this.lessons = const []});
@@ -108,7 +106,6 @@ class _FakeLanguageNotifier extends LanguageNotifier {
   Future<AppLocale> build() async => AppLocale.en;
 }
 
-/// Records the lessons created from the page.
 class _FakeLessonClient implements LessonControllerClient {
   final List<CreateLessonRequest> createBodies = [];
 
@@ -218,7 +215,6 @@ void main() {
       await tester.tap(find.text('${today.day}'));
       await tester.pumpAndSettle();
 
-      // An empty day creates a lesson straight away, no day sheet in between.
       expect(find.byType(GroupDayLessonsBottomSheet), findsNothing);
       expect(find.byType(LessonPage), findsOneWidget);
       expect(find.text(t.lessons.groupLesson), findsOneWidget);
@@ -250,7 +246,6 @@ void main() {
     await tester.tap(find.text('${today.day}'));
     await tester.pumpAndSettle();
 
-    // The day sheet lists the stored lesson of the day.
     await tester.tap(find.text('${t.lessons.groupLesson} 1'));
     await tester.pumpAndSettle();
 
@@ -295,7 +290,6 @@ void main() {
     await tester.tap(find.text(t.delete));
     await tester.pumpAndSettle();
 
-    // The group is only deleted once the confirmation is accepted.
     expect(find.byType(DeleteGroupBottomSheet), findsOneWidget);
     expect(find.text(t.groups.deleteGroup), findsOneWidget);
     expect(find.text(t.groups.deleteGroupMessage), findsOneWidget);
@@ -306,7 +300,6 @@ void main() {
 
     expect(client.deletedGroupIds, ['group-1']);
 
-    // The page of the group is left, so the list it was opened from shows.
     expect(find.byType(GroupPage), findsNothing);
   });
 }

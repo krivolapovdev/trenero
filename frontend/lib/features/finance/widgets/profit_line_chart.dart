@@ -56,7 +56,6 @@ class ProfitLineChart extends ConsumerWidget {
             LineBarSpot(
               LineChartBarData(
                 spots: spots,
-                isCurved: false,
                 barWidth: 2.5,
                 isStrokeCapRound: true,
                 gradient: LinearGradient(
@@ -66,7 +65,6 @@ class ProfitLineChart extends ConsumerWidget {
                   stops: [0.0, zeroStop, zeroStop, 1.0],
                 ),
                 dotData: FlDotData(
-                  show: true,
                   getDotPainter: (spot, percent, barData, index) =>
                       FlDotCirclePainter(
                         radius: 5,
@@ -77,7 +75,6 @@ class ProfitLineChart extends ConsumerWidget {
                 ),
                 belowBarData: BarAreaData(
                   show: true,
-                  cutOffY: 0,
                   applyCutOffY: true,
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -92,7 +89,6 @@ class ProfitLineChart extends ConsumerWidget {
                 ),
                 aboveBarData: BarAreaData(
                   show: true,
-                  cutOffY: 0,
                   applyCutOffY: true,
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -128,9 +124,7 @@ class ProfitLineChart extends ConsumerWidget {
           maxY: calculatedMaxY,
           showingTooltipIndicators: showingTooltipIndicators,
           gridData: FlGridData(
-            show: true,
             drawVerticalLine: false,
-            drawHorizontalLine: true,
             getDrawingHorizontalLine: (value) => FlLine(
               color: Colors.black.withValues(
                 alpha: value.abs() < 0.001 ? 0.1 : 0.04,
@@ -140,16 +134,9 @@ class ProfitLineChart extends ConsumerWidget {
           ),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
-            show: true,
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            leftTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
+            topTitles: const AxisTitles(),
+            rightTitles: const AxisTitles(),
+            leftTitles: const AxisTitles(),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -180,7 +167,6 @@ class ProfitLineChart extends ConsumerWidget {
           lineBarsData: [
             LineChartBarData(
               spots: spots,
-              isCurved: false,
               barWidth: 2.5,
               isStrokeCapRound: true,
               gradient: LinearGradient(
@@ -190,7 +176,6 @@ class ProfitLineChart extends ConsumerWidget {
                 stops: [0.0, zeroStop, zeroStop, 1.0],
               ),
               dotData: FlDotData(
-                show: true,
                 getDotPainter: (spot, percent, barData, index) =>
                     FlDotCirclePainter(
                       radius: 5,
@@ -201,7 +186,6 @@ class ProfitLineChart extends ConsumerWidget {
               ),
               belowBarData: BarAreaData(
                 show: true,
-                cutOffY: 0,
                 applyCutOffY: true,
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -216,7 +200,6 @@ class ProfitLineChart extends ConsumerWidget {
               ),
               aboveBarData: BarAreaData(
                 show: true,
-                cutOffY: 0,
                 applyCutOffY: true,
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -232,12 +215,11 @@ class ProfitLineChart extends ConsumerWidget {
             ),
           ],
           lineTouchData: LineTouchData(
-            enabled: true,
             handleBuiltInTouches: false,
             touchTooltipData: LineTouchTooltipData(
               fitInsideVertically: true,
               tooltipBorderRadius: BorderRadius.all(Radius.circular(16)),
-              tooltipBorder: BorderSide(color: Colors.white, width: 1),
+              tooltipBorder: BorderSide(color: Colors.white),
               getTooltipColor: (spot) =>
                   spot.y >= 0 ? Color(0xffedf4ef) : Color(0xfffdebeb),
               tooltipPadding: const EdgeInsets.symmetric(

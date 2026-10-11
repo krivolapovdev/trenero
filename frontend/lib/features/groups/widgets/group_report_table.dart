@@ -3,7 +3,6 @@ import 'package:phone/generated/models/group_report_response.dart';
 import 'package:phone/generated/models/group_report_student_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Attendance grid of a single month: `№ | Full Name | 1..last day | Paid | Result`.
 class GroupReportTable extends StatelessWidget {
   static const double _numberWidth = 38;
   static const double _nameWidth = 170;
@@ -27,7 +26,7 @@ class GroupReportTable extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          border: Border.all(color: colorScheme.outlineVariant, width: 1),
+          border: Border.all(color: colorScheme.outlineVariant),
         ),
         clipBehavior: Clip.antiAlias,
         child: Table(
@@ -35,11 +34,9 @@ class GroupReportTable extends StatelessWidget {
           border: TableBorder(
             horizontalInside: BorderSide(
               color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-              width: 1,
             ),
             verticalInside: BorderSide(
               color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-              width: 1,
             ),
           ),
           columnWidths: {

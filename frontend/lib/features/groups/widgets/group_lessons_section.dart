@@ -26,17 +26,11 @@ class GroupLessonsSection extends ConsumerWidget {
     );
   });
 
-  /// The lessons of the day oldest first, so the numbered rows of the day sheet
-  /// keep the order the lessons were created in.
   @visibleForTesting
   static List<LessonResponse> dayLessonsOldestFirst(
     List<LessonResponse> dayLessons,
   ) => [...dayLessons]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-  /// Opens the lessons of the tapped day.
-  ///
-  /// A day without a lesson opens the page that creates one straight away, the
-  /// day sheet is only worth it when there are lessons to pick from.
   Future<void> _openDayLessons(
     BuildContext context,
     DateTime selectedDay,
@@ -59,7 +53,6 @@ class GroupLessonsSection extends ConsumerWidget {
     await _openLessonPage(context, selectedDay, selection.lesson);
   }
 
-  /// Opens the lesson page, or an empty page when the day has no lesson yet.
   Future<void> _openLessonPage(
     BuildContext context,
     DateTime selectedDay,
@@ -116,8 +109,6 @@ class GroupLessonsSection extends ConsumerWidget {
               },
               onDayTapped: (selectedDay, dayLessons) =>
                   _openDayLessons(context, selectedDay, dayLessons),
-              // The surface of the calendar is drawn by the section, so the
-              // button that creates a lesson sits inside the same card.
               surfaceVisible: false,
             ),
             Align(

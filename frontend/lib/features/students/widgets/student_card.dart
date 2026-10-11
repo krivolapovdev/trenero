@@ -8,12 +8,6 @@ class StudentCard extends StatelessWidget {
   final StudentSummaryResponse student;
   final VoidCallback onTap;
 
-  /// The initials drawn in the avatar, when they differ from the ones derived
-  /// from [student]'s name.
-  ///
-  /// The group page prepends the position of every student to its name, so the
-  /// derived initials would pick up the index (`4. Nill Artmsh` -> `4N`) and the
-  /// real name has to be provided here instead (`NA`).
   final String? overrideInitials;
 
   const new({
@@ -48,7 +42,6 @@ class StudentCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   CircleAvatar(
                     radius: 18,
@@ -139,12 +132,6 @@ class StudentCard extends StatelessWidget {
     );
   }
 
-  /// Every group of the student joined into a label, each group carrying its
-  /// default price when it has one.
-  ///
-  /// The summary carries the full list of groups the student belongs to; the
-  /// single group is the fallback for a response that only holds the primary
-  /// one.
   static String _groupLabel(StudentSummaryResponse student) {
     final groups = student.studentGroups;
     final labels = <String>[];

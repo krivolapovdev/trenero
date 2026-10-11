@@ -2,15 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/constants/app_colors.dart';
+import 'package:phone/core/constants/app_spacing.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/settings/controllers/delete_account_controller.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Asks for confirmation before deleting the account of the current user.
-///
-/// The delete button stays locked for [countdownSeconds] so the account is not
-/// removed by a single accidental tap. The remaining seconds are shown right
-/// below the button.
 class DeleteAccountBottomSheet extends ConsumerStatefulWidget {
   static const int countdownSeconds = 10;
 
@@ -88,15 +85,15 @@ class _DeleteAccountBottomSheetState
             textAlign: TextAlign.center,
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
 
           Text(
             context.t.settings.deleteAccountMessage,
-            style: const TextStyle(fontSize: 16, color: Color(0xFF8E8E93)),
+            style: const TextStyle(fontSize: 16, color: AppColors.mutedText),
             textAlign: TextAlign.center,
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xxl),
 
           SizedBox(
             width: double.infinity,
@@ -134,7 +131,7 @@ class _DeleteAccountBottomSheetState
               context.t.settings.deleteAccountCountdown(
                 seconds: _secondsRemaining,
               ),
-              style: const TextStyle(fontSize: 14, color: Color(0xFF8E8E93)),
+              style: const TextStyle(fontSize: 14, color: AppColors.mutedText),
               textAlign: TextAlign.center,
             ),
           ],

@@ -25,14 +25,12 @@ final GroupSummaryResponse _group = GroupSummaryResponse(
   createdAt: DateTime(DateTime.now().year, 1, 15),
 );
 
-/// A group that started years ago, so the year popup offers more than one year.
 final GroupSummaryResponse _oldGroup = GroupSummaryResponse(
   id: 'group-1',
   name: 'Group A',
-  createdAt: DateTime(2000, 3, 1),
+  createdAt: DateTime(2000, 3),
 );
 
-/// Records the reported periods and answers them with a single student.
 class _FakeGroupClient implements GroupControllerClient {
   final List<({int year, int month})> requestedPeriods = [];
 
@@ -102,7 +100,6 @@ class _FakeLanguageNotifier extends LanguageNotifier {
   Future<AppLocale> build() async => AppLocale.en;
 }
 
-/// Collects the PDF documents the sheet hands over to the print dialog.
 class _FakePdfPrinter implements PdfPrinter {
   final List<({Uint8List bytes, String name, PdfPageFormat format})> printed =
       [];
@@ -135,38 +132,28 @@ Widget _wrap(
   ),
 );
 
-/// The field whose floating label is [label].
 Finder _field(String label) => find.widgetWithText(TextField, label);
 
-/// The text currently shown by the field labelled [label].
 String _textOf(WidgetTester tester, String label) =>
     tester.widget<TextField>(_field(label)).controller!.text;
 
-/// Replaces the text of the field labelled [label], the way the user types it.
 Future<void> _type(WidgetTester tester, String label, String value) async {
   await tester.enterText(_field(label), value);
   await tester.pumpAndSettle();
 }
 
-/// Whether the print action of the sheet reacts to a tap.
 bool _canPrint(WidgetTester tester) =>
     tester
         .widget<TextButton>(find.widgetWithText(TextButton, t.print))
         .onPressed !=
     null;
 
-/// The month before the current one, a month a report can always be built for.
 int _earlierMonth(DateTime now) =>
     now.month == DateTime.january ? 12 : now.month - 1;
 
-/// The year the month before the current one belongs to.
 int _earlierYear(DateTime now) =>
     now.month == DateTime.january ? now.year - 1 : now.year;
 
-/// Taps the print button of the sheet.
-///
-/// A print action that is blocked by the typed period is tapped too, so a test
-/// can show that it does nothing.
 Future<void> _tapPrint(WidgetTester tester) async {
   await tester.tap(
     find.widgetWithText(TextButton, t.print),
@@ -223,8 +210,6 @@ void main() {
     await tester.pumpWidget(_wrap(_FakeGroupClient(), printer: printer));
     await tester.pumpAndSettle();
 
-    // December has no later month left in the current year, so the next period
-    // is the January of the next year.
     final laterMonth = now.month == DateTime.december ? 1 : now.month + 1;
     final laterYear = now.month == DateTime.december ? now.year + 1 : now.year;
 
@@ -246,7 +231,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The group started in 2000.
     await _type(tester, t.year, '1999');
 
     expect(find.text(t.invalidDate), findsOneWidget);
@@ -267,7 +251,6 @@ void main() {
     await tester.pumpWidget(_wrap(_FakeGroupClient()));
     await tester.pumpAndSettle();
 
-    // The year is typed digit by digit, so half of one is not judged yet.
     await _type(tester, t.year, '20');
 
     expect(find.text(t.invalidDate), findsNothing);

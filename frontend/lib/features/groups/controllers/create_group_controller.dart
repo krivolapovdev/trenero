@@ -38,8 +38,6 @@ class CreateGroupController extends AsyncNotifier<void> {
       final service = ref.read(groupServiceProvider);
       await service.createGroup(body: request);
 
-      // The group list is reloaded in the background, so the new group shows
-      // up on the list page without a manual refresh.
       refreshAfterGroupMutation(ref);
     });
 

@@ -17,7 +17,6 @@ Widget _createSheet() => GroupFormSheet(
   }) async {},
 );
 
-/// The form of a stored group, opened the way the edit sheet opens it.
 Widget _editSheet() => GroupFormSheet(
   title: t.groups.editGroup,
   submitLabel: t.update,
@@ -31,7 +30,6 @@ Widget _editSheet() => GroupFormSheet(
   }) async {},
 );
 
-/// The action of the form.
 TextButton _submit(WidgetTester tester) =>
     tester.widget<TextButton>(find.byType(TextButton));
 
@@ -52,7 +50,6 @@ void main() {
   testWidgets('the edit form waits for a field to change', (tester) async {
     await tester.pumpWidget(_wrap(_editSheet()));
 
-    // Every field carries the stored value, so there is nothing to edit yet.
     expect(_submit(tester).onPressed, isNull);
 
     await tester.enterText(find.byType(TextField).first, 'Group B');
@@ -60,7 +57,6 @@ void main() {
 
     expect(_submit(tester).onPressed, isNotNull);
 
-    // Typing the stored name back leaves nothing to edit again.
     await tester.enterText(find.byType(TextField).first, 'Group A');
     await tester.pump();
 

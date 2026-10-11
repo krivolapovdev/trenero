@@ -9,7 +9,6 @@ final assignStudentGroupControllerProvider =
       AssignStudentGroupController.new,
     );
 
-/// Moves a student to the groups picked in the student group page.
 class AssignStudentGroupController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
@@ -26,12 +25,8 @@ class AssignStudentGroupController extends AsyncNotifier<void> {
           .read(studentRepositoryProvider)
           .assignStudentGroups(studentId: studentId, groupIds: groupIds);
 
-      // The student card carries the groups the student joined now, so the
-      // list is reloaded before the page closes.
       await refreshAfterStudentMutation(ref);
 
-      // Every group the student joined counts one more student, every group
-      // they left one less; their pages have to request the students again.
       refreshAfterStudentGroupChange(
         ref,
         groupIds: groupIds,

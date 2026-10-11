@@ -12,12 +12,6 @@ import 'package:phone/generated/models/group_report_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Types the month of a group report and shows its PDF in the print dialog.
-///
-/// The month and the year are typed into two fields, the way the other sheets
-/// take their dates instead of opening a picker. Only a period up to the
-/// current month can be printed: a month that has not started yet has no
-/// report, so the fields refuse it.
 class GroupReportBottomSheet extends ConsumerStatefulWidget {
   final GroupSummaryResponse group;
 
@@ -30,10 +24,8 @@ class GroupReportBottomSheet extends ConsumerStatefulWidget {
 
 class _GroupReportBottomSheetState
     extends ConsumerState<GroupReportBottomSheet> {
-  /// Amount of digits of a complete year.
   static const int _yearDigits = 4;
 
-  /// The latest month that can be reported on.
   late final DateTime _latest = DateTime.now();
 
   late final TextEditingController _monthController;
@@ -45,7 +37,6 @@ class _GroupReportBottomSheetState
   void initState() {
     super.initState();
 
-    // The sheet opens on the current month, the latest one it can print.
     _monthController = TextEditingController(text: '${_latest.month}');
     _yearController = TextEditingController(text: '${_latest.year}');
 
@@ -62,7 +53,6 @@ class _GroupReportBottomSheetState
     super.dispose();
   }
 
-  /// The month typed into the month field, `null` while it is not a month.
   int? get _month {
     final month = int.tryParse(_monthController.text);
 
@@ -71,8 +61,6 @@ class _GroupReportBottomSheetState
         : null;
   }
 
-  /// The year typed into the year field, `null` while the group cannot have a
-  /// report for it.
   int? get _year {
     final year = int.tryParse(_yearController.text);
 
@@ -83,8 +71,6 @@ class _GroupReportBottomSheetState
         : null;
   }
 
-  /// The period the sheet prints, `null` while the typed period is incomplete,
-  /// impossible or lies in the future.
   GroupReportPeriod? get _period {
     final month = _month;
     final year = _year;
@@ -99,23 +85,17 @@ class _GroupReportBottomSheetState
     );
   }
 
-  /// The message under the month field, `null` while the typed month is one a
-  /// report can be built for.
   String? get _monthError {
     final month = _month;
 
     if (month == null) return _monthController.text.isEmpty ? null : _invalid;
 
-    // A month of the current year that has not started yet.
     if (_year == _latest.year && month > _latest.month) return _invalid;
 
     return null;
   }
 
-  /// The message under the year field, `null` while the year can still be
-  /// completed and while the typed year is one the group has a history for.
   String? get _yearError {
-    // A year is typed digit by digit, so only a complete one is judged.
     if (_yearController.text.length < _yearDigits) return null;
 
     return _year == null ? _invalid : null;
@@ -123,8 +103,6 @@ class _GroupReportBottomSheetState
 
   String get _invalid => context.t.invalidDate;
 
-  /// Turns the report of the typed month into a PDF and shows it in the print
-  /// dialog of the platform.
   Future<void> _printReport(GroupReportPeriod period) async {
     final report = ref.read(groupReportProvider(period)).value;
 
@@ -214,14 +192,11 @@ class _GroupReportBottomSheetState
     );
   }
 
-  /// The report of the typed month, previewing the document the print action
-  /// hands over.
   Widget _buildReportPreview(GroupReportResponse report) => ConstrainedBox(
     constraints: const BoxConstraints(maxHeight: 260),
     child: SingleChildScrollView(child: GroupReportTable(report: report)),
   );
 
-  /// The field the month is typed into, e.g. `12`.
   Widget _buildMonthField() => TextField(
     controller: _monthController,
     keyboardType: TextInputType.number,
@@ -236,7 +211,6 @@ class _GroupReportBottomSheetState
     ),
   );
 
-  /// The field the year is typed into, e.g. `2026`.
   Widget _buildYearField() => TextField(
     controller: _yearController,
     keyboardType: TextInputType.number,
@@ -251,7 +225,6 @@ class _GroupReportBottomSheetState
     ),
   );
 
-  /// Print action of the sheet: disabled until the typed month was loaded.
   Widget _buildPrintButton(
     GroupReportPeriod? period,
     AsyncValue<GroupReportResponse>? reportState,
@@ -269,8 +242,6 @@ class _GroupReportBottomSheetState
     label: Text(context.t.print, style: const TextStyle(fontSize: 18)),
   );
 
-  /// The failure of the report of the typed month, with a way to read it
-  /// again.
   Widget _buildReportError(GroupReportPeriod period, Object? error) => Row(
     children: [
       Expanded(

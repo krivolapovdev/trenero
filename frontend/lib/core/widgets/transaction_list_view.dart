@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_colors.dart';
+import 'package:phone/core/constants/app_spacing.dart';
 import 'package:phone/core/widgets/transaction_tile.dart';
 import 'package:phone/features/finance/pages/transaction_page.dart';
 import 'package:phone/features/finance/utils/transaction_date_formatter.dart';
@@ -59,7 +61,7 @@ class _TransactionListViewState extends State<TransactionListView> {
       return Center(
         child: Text(
           widget.emptyText ?? context.t.noTransactions,
-          style: const TextStyle(color: Color(0xFF8E8E93)),
+          style: const TextStyle(color: AppColors.mutedText),
         ),
       );
     }
@@ -72,7 +74,11 @@ class _TransactionListViewState extends State<TransactionListView> {
       physics: const BouncingScrollPhysics(
         parent: AlwaysScrollableScrollPhysics(),
       ),
-      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 0),
+      padding: const EdgeInsets.only(
+        left: AppSpacing.xl,
+        right: AppSpacing.xl,
+        bottom: AppSpacing.xl,
+      ),
       children: [
         ...groupedTransactions.entries.expand((entry) {
           final dateHeader = TransactionDateFormatter.formatDateHeader(
@@ -82,12 +88,15 @@ class _TransactionListViewState extends State<TransactionListView> {
 
           return [
             Padding(
-              padding: const EdgeInsets.only(top: 20, bottom: 8),
+              padding: const EdgeInsets.only(
+                top: AppSpacing.xl,
+                bottom: AppSpacing.sm,
+              ),
               child: Text(
                 dateHeader,
                 style: const TextStyle(
                   fontSize: 16,
-                  color: Color(0xFF8E8E93),
+                  color: AppColors.mutedText,
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -104,10 +113,8 @@ class _TransactionListViewState extends State<TransactionListView> {
                     (tx) => TransactionTile(
                       transaction: tx,
                       overrideTitle: widget.overrideTitle,
-                      // The card clips the tile, so the ink spans its whole
-                      // width while the content keeps the 12px side inset.
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                        horizontal: AppSpacing.md,
                       ),
                       borderRadius: BorderRadius.zero,
                       onTap: widget.isLoading

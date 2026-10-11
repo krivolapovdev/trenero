@@ -15,10 +15,8 @@ import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// The range a single load asked the server for.
 typedef _Range = ({DateTime from, DateTime to});
 
-/// Answers the lessons endpoint and remembers the ranges it was asked for.
 class _FakeGroupClient implements GroupControllerClient {
   final List<_Range> lessonCalls = [];
 
@@ -103,10 +101,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(client.lessonCalls, hasLength(1));
-    expect(
-      client.lessonCalls.single.from,
-      DateTime(now.year, now.month - 2, 1),
-    );
+    expect(client.lessonCalls.single.from, DateTime(now.year, now.month - 2));
   });
 
   testWidgets('stepping four months back loads the months before the window', (
@@ -122,14 +117,12 @@ void main() {
       await tester.tap(find.byIcon(Icons.chevron_left));
       await tester.pumpAndSettle();
 
-      // The calendar shows the month that was stepped to ...
       final shown = DateFormat.yMMMM('en')
           .format(DateTime(now.year, now.month - step));
 
       expect(find.text(shown), findsOneWidget, reason: 'step $step');
     }
 
-    // ... and the window was extended to reach it.
     expect(client.lessonCalls, hasLength(2));
   });
 }

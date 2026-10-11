@@ -41,7 +41,6 @@ final _groups = [
   ),
 ];
 
-/// The student as the response of the group holds them, carrying no group.
 final _groupStudents = [
   GroupStudentSummaryResponse(
     id: _studentId,
@@ -52,8 +51,6 @@ final _groupStudents = [
   ),
 ];
 
-/// The same student as the student list holds them, with the group they belong
-/// to.
 final _listedStudents = [
   StudentSummaryResponse(
     id: _studentId,
@@ -153,8 +150,6 @@ Future<void> _pumpSection(
   await tester.pumpAndSettle();
 }
 
-/// Opens the group page of the student the section card points at, the way the
-/// student page does: through the menu of the app bar.
 Future<void> _openGroupPage(WidgetTester tester) async {
   await tester.tap(find.byType(PopupMenuButton<String>));
   await tester.pumpAndSettle();
@@ -206,7 +201,6 @@ void main() {
 
     expect(find.byType(StudentGroupPage), findsOneWidget);
 
-    // The group the student belongs to is preselected.
     expect(_tile(tester, 'Group A').value, isTrue);
     expect(_tile(tester, 'Group B').value, isFalse);
   });

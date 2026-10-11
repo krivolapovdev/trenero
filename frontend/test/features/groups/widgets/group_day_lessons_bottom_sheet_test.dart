@@ -31,7 +31,6 @@ VisitResponse _visit({
   createdAt: _day,
 );
 
-/// Serves the attendance the sheet shows next to a lesson.
 class _FakeLessonClient implements LessonControllerClient {
   final List<VisitResponse> visits;
 
@@ -64,10 +63,8 @@ class _FakeLessonClient implements LessonControllerClient {
       throw UnimplementedError();
 }
 
-/// What the sheet popped, filled in once a tile is tapped.
 final List<GroupDayLessonSelection?> _results = [];
 
-/// Shows the sheet the way the group page does.
 Future<void> _openSheet(
   WidgetTester tester,
   GroupDayLessonsBottomSheet sheet, {
@@ -136,7 +133,6 @@ void main() {
     expect(find.text('${t.lessons.groupLesson} 1'), findsOneWidget);
     expect(find.text('${t.lessons.groupLesson} 2'), findsOneWidget);
 
-    // The row that creates another lesson of the day stays available.
     expect(find.text(t.lessons.groupLesson), findsOneWidget);
   });
 

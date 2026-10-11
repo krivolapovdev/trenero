@@ -12,5 +12,5 @@ class UserRepository {
 
   new(this._client);
 
-  Future<void> deleteAccount() async => await _client.deleteMyAccount();
+  Future<void> deleteAccount() async => _client.deleteMyAccount();
 }

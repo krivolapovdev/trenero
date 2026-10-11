@@ -36,7 +36,7 @@ class AuthRepository {
   });
 
   Future<String?> getGoogleIdToken() async =>
-      await _googleAuthService.getGoogleIdToken();
+      _googleAuthService.getGoogleIdToken();
 
   Future<bool> authenticateGoogleTokenWithBackend(String idToken) async {
     final response = await _oAuth2Client.googleLogin(
@@ -51,7 +51,6 @@ class AuthRepository {
     return true;
   }
 
-  /// Exchanges the reviewer key for a regular user session.
   Future<bool> authenticateReviewerKeyWithBackend(String reviewerKey) async {
     final response = await _reviewerAuthClient.login(xReviewerKey: reviewerKey);
 

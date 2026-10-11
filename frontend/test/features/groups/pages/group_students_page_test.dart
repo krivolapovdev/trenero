@@ -47,8 +47,6 @@ GroupStudentSummaryResponse _groupStudent(String id, String fullName) =>
       statuses: const [],
     );
 
-/// Serves the students the group currently holds, plus the answers the group
-/// page itself never asks for.
 class _FakeGroupClient implements GroupControllerClient {
   final List<GroupStudentSummaryResponse> groupStudents;
 
@@ -260,7 +258,6 @@ void main() {
       container(groupStudents: [_groupStudent('student-1', 'Anna Smirnova')]),
     );
 
-    // The stored students are preselected, so there is nothing to update yet.
     expect(
       tester.widget<TextButton>(find.byType(TextButton)).onPressed,
       isNull,
@@ -274,7 +271,6 @@ void main() {
       isNotNull,
     );
 
-    // Picking the same student again leaves nothing to update.
     await tester.tap(find.text('Ivan Petrov'));
     await tester.pumpAndSettle();
 

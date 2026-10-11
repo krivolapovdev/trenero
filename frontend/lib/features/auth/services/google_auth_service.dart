@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:phone/core/constants/app_constants.dart';
+import 'package:phone/core/errors/app_exception.dart';
 
 final googleAuthServiceProvider = Provider<GoogleAuthService>(
   (ref) => GoogleAuthService(),
@@ -39,12 +40,14 @@ class GoogleAuthService {
       final String? idToken = user.authentication.idToken;
 
       if (idToken == null || idToken.isEmpty) {
-        throw Exception('Failed to retrieve Google ID token');
+        throw const AuthenticationException(
+          message: 'Failed to retrieve the Google ID token.',
+        );
       }
 
       return idToken;
-    } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) {
+    } on GoogleSignInException catch (error) {
+      if (error.code == GoogleSignInExceptionCode.canceled) {
         return null;
       }
 

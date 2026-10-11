@@ -1,104 +1,38 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/config/app_environment.dart';
+import 'package:phone/core/network/auth_interceptor.dart';
+import 'package:phone/core/network/response_log_interceptor.dart';
 import 'package:phone/core/storage/token_storage.dart';
 
-const _timeout = Duration(seconds: kDebugMode ? 5 : 30);
-const _baseUrl = kDebugMode ? 'http://192.168.1.4:8080' : 'https://trenerio.ru';
-
-final unauthenticatedDioProvider = Provider<Dio>(
-  (ref) => Dio(
-    BaseOptions(
-      baseUrl: _baseUrl,
-      headers: {'Content-Type': 'application/json'},
-      receiveTimeout: _timeout,
-      connectTimeout: _timeout,
-      sendTimeout: _timeout,
-    ),
-  ),
-);
+final unauthenticatedDioProvider = Provider<Dio>((ref) => Dio(_baseOptions()));
 
 final apiProvider = Provider<Dio>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
-  final rawDio = ref.watch(unauthenticatedDioProvider);
+  final refreshClient = ref.watch(unauthenticatedDioProvider);
 
-  final dio = Dio(
-    BaseOptions(
-      baseUrl: _baseUrl,
-      headers: {'Content-Type': 'application/json'},
-      receiveTimeout: _timeout,
-      connectTimeout: _timeout,
-      sendTimeout: _timeout,
-    ),
-  );
+  final dio = Dio(_baseOptions());
 
   dio.interceptors.add(
-    QueuedInterceptorsWrapper(
-      onRequest: (options, handler) {
-        final accessToken = tokenStorage.accessToken;
-
-        if (accessToken != null && accessToken.isNotEmpty) {
-          options.headers['Authorization'] = 'Bearer $accessToken';
-        }
-
-        return handler.next(options);
-      },
-
-      onError: (DioException error, handler) async {
-        if (error.requestOptions.path.contains('/jwt/refresh')) {
-          return handler.next(error);
-        }
-
-        if (error.response?.statusCode == 401 ||
-            error.response?.statusCode == 403) {
-          final refreshToken = await tokenStorage.getRefreshToken();
-
-          if (refreshToken != null && refreshToken.isNotEmpty) {
-            try {
-              final response = await rawDio.post(
-                '/api/v1/jwt/refresh',
-                data: {'refreshToken': refreshToken},
-              );
-
-              final newAccessToken = response.data['accessToken'] as String;
-              final newRefreshToken = response.data['refreshToken'] as String;
-
-              await tokenStorage.saveTokens(
-                accessToken: newAccessToken,
-                refreshToken: newRefreshToken,
-              );
-
-              final opts = error.requestOptions;
-              opts.headers['Authorization'] = 'Bearer $newAccessToken';
-
-              final clonedResponse = await dio.fetch(opts);
-              return handler.resolve(clonedResponse);
-            } catch (e) {
-              log('Token refresh failed: $e');
-              await tokenStorage.clear();
-            }
-          }
-        }
-
-        return handler.next(error);
-      },
+    AuthInterceptor(
+      refreshClient: refreshClient,
+      retryClient: dio,
+      tokenStorage: tokenStorage,
     ),
   );
 
-  // The response bodies are only dumped in debug builds: they hold the data of
-  // the signed in user, and `print` is not meant for production code.
   if (kDebugMode) {
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        onResponse: (response, handler) {
-          log('Response [${response.statusCode}] => DATA: ${response.data}');
-          return handler.next(response);
-        },
-      ),
-    );
+    dio.interceptors.add(const ResponseLogInterceptor());
   }
 
   return dio;
 });
+
+BaseOptions _baseOptions() => BaseOptions(
+  baseUrl: AppEnvironment.baseUrl,
+  headers: const {'Content-Type': 'application/json'},
+  receiveTimeout: AppEnvironment.requestTimeout,
+  connectTimeout: AppEnvironment.requestTimeout,
+  sendTimeout: AppEnvironment.requestTimeout,
+);

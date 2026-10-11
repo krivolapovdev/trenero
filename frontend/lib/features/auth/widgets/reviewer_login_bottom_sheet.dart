@@ -6,9 +6,6 @@ import 'package:phone/core/widgets/outlined_input_field.dart';
 import 'package:phone/features/auth/controllers/reviewer_auth_controller.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Asks for the reviewer key and logs in with it.
-///
-/// Pops with `true` when the key was accepted.
 class ReviewerLoginBottomSheet extends ConsumerStatefulWidget {
   const new({super.key});
 
@@ -76,7 +73,6 @@ class _ReviewerLoginBottomSheetState
         padding: EdgeInsets.only(
           left: 22,
           right: 22,
-          top: 0,
           bottom: 16 + keyboardInset,
         ),
         child: Column(

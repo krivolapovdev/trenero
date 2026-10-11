@@ -19,7 +19,6 @@ final _group = GroupResponse(
   createdAt: DateTime(2025, 8, 22),
 );
 
-/// A group that carries a note, the note is dropped on the student page.
 final _notedGroup = GroupResponse(
   id: 'group-b',
   name: 'Group B',
@@ -27,8 +26,6 @@ final _notedGroup = GroupResponse(
   note: 'Bring the notebook',
 );
 
-/// The group of the student as the list of the trainer holds it, carrying the
-/// count of its students.
 final _listedGroups = [
   GroupSummaryResponse(
     id: _groupId,
@@ -38,7 +35,6 @@ final _listedGroups = [
   ),
 ];
 
-/// The student of the page, belonging to a single group.
 final _student = StudentSummaryResponse(
   id: _studentId,
   fullName: 'Anna Smirnova',
@@ -49,7 +45,6 @@ final _student = StudentSummaryResponse(
   studentGroups: [_group],
 );
 
-/// The same student in a group that carries a note.
 final _studentInNotedGroup = StudentSummaryResponse(
   id: _studentId,
   fullName: 'Anna Smirnova',
@@ -60,8 +55,6 @@ final _studentInNotedGroup = StudentSummaryResponse(
   studentGroups: [_notedGroup],
 );
 
-/// The same student as the response of a single group holds them, carrying the
-/// group alone.
 final _studentWithOneGroup = StudentSummaryResponse(
   id: _studentId,
   fullName: 'Anna Smirnova',
@@ -71,7 +64,6 @@ final _studentWithOneGroup = StudentSummaryResponse(
   studentGroup: _group,
 );
 
-/// The student nobody has put in a group yet.
 final _studentWithoutGroup = StudentSummaryResponse(
   id: _studentId,
   fullName: 'Anna Smirnova',
@@ -132,8 +124,6 @@ void main() {
     expect(find.byType(GroupCard), findsOneWidget);
     expect(find.text('Group A'), findsOneWidget);
 
-    // The group of the list wins, so the card carries the count of its
-    // students.
     expect(find.text('4'), findsOneWidget);
   });
 

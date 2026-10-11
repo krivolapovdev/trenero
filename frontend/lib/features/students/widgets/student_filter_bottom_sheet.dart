@@ -46,7 +46,7 @@ class _StudentFilterBottomSheetState
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.only(left: 22, right: 22, top: 0, bottom: 8),
+        padding: const EdgeInsets.only(left: 22, right: 22, bottom: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

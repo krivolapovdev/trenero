@@ -7,7 +7,6 @@ import 'package:phone/features/finance/widgets/profit_line_chart.dart';
 import 'package:phone/generated/models/payment_metric_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Answers the language provider with a fixed locale.
 class _EnglishLanguageNotifier extends LanguageNotifier {
   @override
   Future<AppLocale> build() async => AppLocale.en;

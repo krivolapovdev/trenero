@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Dropdown menu with the actions available for a single transaction.
 class TransactionPopupMenu extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;

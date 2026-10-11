@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:phone/core/constants/app_colors.dart';
+import 'package:phone/core/constants/app_date_formats.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class TransactionTileInfo {
-  static const Color incomeColor = Color(0xFF28A745);
-  static const Color expenseColor = Color(0xFFE00153);
-
   final String title;
   final String subtitle;
   final IconData icon;
@@ -29,17 +28,12 @@ class TransactionTileInfo {
     final typeIcon = isIncome
         ? Icons.arrow_downward_rounded
         : Icons.arrow_upward_rounded;
-    final typeColor = isIncome ? incomeColor : expenseColor;
+    final typeColor = isIncome ? AppColors.income : AppColors.expense;
 
     if (details != null) {
-      final title = overrideTitle ?? details.studentName ?? t.finance.deposit;
-      final paidUntil = details.paidUntil;
-
       return TransactionTileInfo(
-        title: title,
-        subtitle: paidUntil != null
-            ? '${t.finance.paidUntil} ${DateFormat('dd.MM.yyyy').format(paidUntil)}'
-            : '',
+        title: overrideTitle ?? details.studentName ?? t.finance.deposit,
+        subtitle: _subtitle(details.paidUntil),
         icon: typeIcon,
         backgroundColor: typeColor,
       );
@@ -52,4 +46,9 @@ class TransactionTileInfo {
       backgroundColor: typeColor,
     );
   }
+
+  static String _subtitle(DateTime? paidUntil) => paidUntil == null
+      ? ''
+      : '${t.finance.paidUntil} '
+            '${DateFormat(AppDateFormats.dayMonthYear).format(paidUntil)}';
 }

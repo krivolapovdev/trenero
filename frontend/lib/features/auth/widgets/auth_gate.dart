@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/error_page.dart';
+import 'package:phone/features/auth/controllers/auth_controller.dart';
 import 'package:phone/features/auth/pages/auth_page.dart';
 import 'package:phone/features/auth/pages/loading_page.dart';
-import 'package:phone/features/auth/controllers/auth_controller.dart';
 import 'package:phone/features/shell/pages/main_shell_screen.dart';
 
 class AuthGate extends ConsumerWidget {

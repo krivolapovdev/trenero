@@ -7,25 +7,13 @@ import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// The lesson the user picked in [GroupDayLessonsBottomSheet].
 class GroupDayLessonSelection {
-  /// The stored lesson to edit, or `null` to create a new lesson.
   final LessonResponse? lesson;
 
   const new({this.lesson});
 }
 
-/// The lessons of a day of a group.
-///
-/// A group can hold several lessons on the same day, so every lesson of the day
-/// is listed on its own together with the attendance it has recorded: the
-/// students that were present over the students the lesson holds. The row at the
-/// bottom always creates another lesson of the day.
-///
-/// Pops with the [GroupDayLessonSelection] the user picked, or `null` when the
-/// sheet is dismissed.
 class GroupDayLessonsBottomSheet extends ConsumerWidget {
-  /// The lessons of the day, oldest first.
   final List<LessonResponse> groupLessons;
 
   const new({super.key, this.groupLessons = const []});
@@ -94,9 +82,6 @@ class GroupDayLessonsBottomSheet extends ConsumerWidget {
     onTap: () => _select(context, const GroupDayLessonSelection()),
   );
 
-  /// `3/12`: the students that were present over the students of the lesson.
-  ///
-  /// Nothing is shown while the attendance of the lesson is still loading.
   Widget _buildAttendanceBadge(
     BuildContext context,
     AsyncValue<LessonDetailsResponse> detailsState,

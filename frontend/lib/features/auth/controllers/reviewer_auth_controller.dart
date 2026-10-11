@@ -9,12 +9,10 @@ final reviewerAuthControllerProvider =
       ReviewerAuthController.new,
     );
 
-/// Logs in with the reviewer key from the auth page.
 class ReviewerAuthController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
-  /// Returns `true` when the key was accepted and the session was started.
   Future<bool> login(String reviewerKey) async {
     final trimmedKey = reviewerKey.trim();
 

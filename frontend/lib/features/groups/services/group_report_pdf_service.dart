@@ -14,29 +14,19 @@ final groupReportPdfServiceProvider = Provider<GroupReportPdfService>(
   (ref) => GroupReportPdfService(),
 );
 
-/// Renders a monthly group report as a printable PDF: the group name and the
-/// reported month on top of the same `№ | Full name | 1..last day | Paid |
-/// Result` grid the report page shows.
 class GroupReportPdfService {
-  /// Bundled Unicode fonts. The fonts built into the PDF format only cover
-  /// Latin, so they cannot draw the Cyrillic group and student names.
   static const String regularFontAsset = 'assets/fonts/Roboto-Regular.ttf';
   static const String boldFontAsset = 'assets/fonts/Roboto-Bold.ttf';
 
-  /// Album (landscape) A4 with narrow margins: the report needs one column per
-  /// day of the month, so the sheet is used on its long side (`297 x 210`).
   static const PdfPageFormat pageFormat = PdfPageFormat(
     297 * PdfPageFormat.mm,
     210 * PdfPageFormat.mm,
     marginAll: 10 * PdfPageFormat.mm,
   );
 
-  /// Side of the square a mark is drawn in and the width of its stroke.
   static const double _markSize = 9;
   static const double _markStroke = 1.3;
 
-  /// The colour of a present lesson and of a paid month, and the colour of a
-  /// missed lesson and of an unpaid month.
   static const PdfColor _presentColor = PdfColors.green800;
   static const PdfColor _missingColor = PdfColors.red800;
 
@@ -45,8 +35,6 @@ class GroupReportPdfService {
   static const double _paidWidth = 44;
   static const double _resultWidth = 54;
 
-  /// The day columns share the space the fixed columns leave over, but grow no
-  /// wider than this.
   static const double _maxDayWidth = 20;
   static const double _cellPadding = 2;
   static const double _cellHeight = 18;
@@ -79,17 +67,13 @@ class GroupReportPdfService {
     color: PdfColors.grey700,
   );
 
-  /// Parsed once and reused for every document the same service builds.
   late final Future<pw.Font> _regularFont = _loadFont(regularFontAsset);
   late final Future<pw.Font> _boldFont = _loadFont(boldFontAsset);
 
-  /// Name of the printed job and of the exported file: `<group> <yyyy-MM>.pdf`.
   static String documentName(GroupReportResponse report) =>
       '${report.groupName} ${report.year}-'
       '${report.month.toString().padLeft(2, '0')}.pdf';
 
-  /// Builds the PDF of [report]. [t] supplies the table headers and [locale]
-  /// the language of the reported month.
   Future<Uint8List> build(
     GroupReportResponse report, {
     required Translations t,
@@ -98,26 +82,25 @@ class GroupReportPdfService {
     final period = DateFormat.yMMMM(locale)
         .format(DateTime(report.year, report.month));
 
-    final document = pw.Document(
-      theme: pw.ThemeData.withFont(
-        base: await _regularFont,
-        bold: await _boldFont,
-      ),
-      title: '${report.groupName} — $period',
-      author: report.groupName,
-      subject: period,
-    );
-
-    document.addPage(
-      pw.MultiPage(
-        pageFormat: pageFormat,
-        build: (context) => [
-          _buildHeading(report, period),
-          pw.SizedBox(height: 12),
-          _buildTable(t, report),
-        ],
-      ),
-    );
+    final document =
+        pw.Document(
+          theme: pw.ThemeData.withFont(
+            base: await _regularFont,
+            bold: await _boldFont,
+          ),
+          title: '${report.groupName} — $period',
+          author: report.groupName,
+          subject: period,
+        )..addPage(
+          pw.MultiPage(
+            pageFormat: pageFormat,
+            build: (context) => [
+              _buildHeading(report, period),
+              pw.SizedBox(height: 12),
+              _buildTable(t, report),
+            ],
+          ),
+        );
 
     return document.save();
   }
@@ -125,7 +108,6 @@ class GroupReportPdfService {
   Future<pw.Font> _loadFont(String asset) async =>
       pw.Font.ttf(await rootBundle.load(asset));
 
-  /// Group name and reported month, the two lines printed above the table.
   pw.Widget _buildHeading(GroupReportResponse report, String period) =>
       pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -161,8 +143,6 @@ class GroupReportPdfService {
     );
   }
 
-  /// Width of a single day column: whatever the fixed columns leave over, so
-  /// that all days of the month fit on one landscape page.
   double _dayWidth(int dayCount) {
     final fixedWidth = _numberWidth + _nameWidth + _paidWidth + _resultWidth;
 
@@ -230,23 +210,12 @@ class GroupReportPdfService {
         ],
       );
 
-  /// A `✓` for a present lesson or a paid month, a `✕` for a missed lesson or
-  /// an unpaid month and an empty cell for a day without a lesson.
-  ///
-  /// Both marks are stroked paths instead of characters: the embedded Roboto
-  /// has neither `✓` (U+2713) nor `✕` (U+2715), so a text cell would print an
-  /// empty box.
   pw.Widget _buildMarkCell(bool? mark) {
     if (mark == null) return _buildCell(null);
 
     return _buildCell(_buildMark(mark));
   }
 
-  /// The mark of a single cell.
-  ///
-  /// A widget is painted from the bottom left corner of its box upwards, so the
-  /// elbow of the check and the four ends of the cross are given in that
-  /// coordinate system.
   pw.Widget _buildMark(bool isPresent) => pw.CustomPaint(
     size: const PdfPoint(_markSize, _markSize),
     painter: (canvas, size) {

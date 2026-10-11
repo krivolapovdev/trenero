@@ -36,8 +36,6 @@ TransactionResponse _transaction({
   paymentDetails: paymentDetails,
 );
 
-/// Records the calls made by the update/delete controllers and answers with
-/// the [transaction] the fake was built for.
 class _FakeTransactionClient implements TransactionControllerClient {
   new({required this.transaction});
 
@@ -92,8 +90,6 @@ Widget _wrap(Widget child) => ProviderScope(
   child: TranslationProvider(child: MaterialApp(home: child)),
 );
 
-/// Wrapper with the finance API clients replaced by [transactionClient] and an
-/// empty metrics client.
 Widget _wrapWithApi(
   Widget child,
   TransactionControllerClient transactionClient,
@@ -105,7 +101,6 @@ Widget _wrapWithApi(
   child: TranslationProvider(child: MaterialApp(home: child)),
 );
 
-/// The action of the edit transaction sheet.
 TextButton _editAction(WidgetTester tester) =>
     tester.widget<TextButton>(find.widgetWithText(TextButton, t.edit));
 
@@ -237,7 +232,6 @@ void main() {
     await tester.tap(find.text(t.edit));
     await tester.pumpAndSettle();
 
-    // The stored amount is prefilled, so there is nothing to edit yet.
     expect(_editAction(tester).onPressed, isNull);
 
     await tester.enterText(find.byType(TextField).first, '4200');
@@ -245,7 +239,6 @@ void main() {
 
     expect(_editAction(tester).onPressed, isNotNull);
 
-    // Typing the stored amount back leaves nothing to edit again.
     await tester.enterText(find.byType(TextField).first, '3800');
     await tester.pump();
 
@@ -267,13 +260,11 @@ void main() {
     await tester.tap(find.text(t.edit));
     await tester.pumpAndSettle();
 
-    // The amount is the first field of the sheet, the date follows.
     await tester.enterText(find.byType(TextField).first, '4200');
     await tester.pump();
     await tester.tap(find.text(t.edit));
     await tester.pump();
 
-    // The transaction list and the metrics are reloaded with a delay.
     await tester.pump(const Duration(seconds: 3));
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();

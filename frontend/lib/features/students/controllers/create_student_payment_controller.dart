@@ -13,7 +13,6 @@ class CreateStudentPaymentController extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  /// Creates an income transaction with student payment details for [studentId].
   Future<bool> saveStudentPayment({
     required String studentId,
     required double amount,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_colors.dart';
 import 'package:phone/features/students/models/student_badge_data.dart';
 import 'package:phone/generated/models/student_status.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -24,22 +25,22 @@ extension StudentStatusExtension on List<StudentStatus> {
         StudentStatus.inactive => StudentBadgeData(
           id: status.name,
           label: status.label(context),
-          backgroundColor: const Color(0xFFF1F5F9),
-          foregroundColor: const Color(0xFF64748B),
+          backgroundColor: AppColors.neutralSurface,
+          foregroundColor: AppColors.neutralOn,
         ),
 
         StudentStatus.present => StudentBadgeData(
           id: status.name,
           label: status.label(context),
-          backgroundColor: const Color(0xFFDCFCE7),
-          foregroundColor: const Color(0xFF166534),
+          backgroundColor: AppColors.successSurface,
+          foregroundColor: AppColors.successOn,
         ),
 
         StudentStatus.missing => StudentBadgeData(
           id: status.name,
           label: status.label(context),
-          backgroundColor: const Color(0xFFFFEDD5).withValues(alpha: 0.8),
-          foregroundColor: const Color(0xFF9A3412),
+          backgroundColor: AppColors.warningSurface.withValues(alpha: 0.8),
+          foregroundColor: AppColors.warningOn,
         ),
 
         StudentStatus.paid => StudentBadgeData(
@@ -59,8 +60,8 @@ extension StudentStatusExtension on List<StudentStatus> {
         StudentStatus.free => StudentBadgeData(
           id: status.name,
           label: status.label(context),
-          backgroundColor: const Color(0xFFFEF9C3),
-          foregroundColor: const Color(0xFF854D0E),
+          backgroundColor: AppColors.freeSurface,
+          foregroundColor: AppColors.freeOn,
         ),
 
         StudentStatus.$unknown => StudentBadgeData(

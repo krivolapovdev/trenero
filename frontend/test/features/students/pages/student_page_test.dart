@@ -25,8 +25,6 @@ final _group = GroupResponse(
   createdAt: DateTime(2025, 8, 22),
 );
 
-/// The student nobody has put in a group yet, the page draws the calendar of
-/// their individual lessons alone.
 final _studentWithoutGroup = StudentSummaryResponse(
   id: _studentId,
   fullName: 'Anna Smirnova',
@@ -35,7 +33,6 @@ final _studentWithoutGroup = StudentSummaryResponse(
   statuses: const [],
 );
 
-/// The student of a group, the page draws the calendar of the group.
 final _studentWithGroup = StudentSummaryResponse(
   id: _studentId,
   fullName: 'Anna Smirnova',
@@ -103,7 +100,6 @@ Future<void> _pumpPage(
   await tester.pumpAndSettle();
 }
 
-/// The action of the app bar that creates an individual lesson.
 Finder _appBarAction() => find.descendant(
   of: find.byType(AppBar),
   matching: find.byType(CreateLessonButton),
@@ -139,7 +135,6 @@ void main() {
 
     expect(find.byType(StudentLessonCalendarSection), findsOneWidget);
 
-    // The action of the page alone, the calendar itself has none.
     expect(find.byType(CreateLessonButton), findsOneWidget);
   });
 
@@ -148,7 +143,6 @@ void main() {
   ) async {
     await _pumpPage(tester, _studentWithGroup);
 
-    // The action of the page and the button under the calendar of the group.
     expect(find.byType(CreateLessonButton), findsNWidgets(2));
   });
 }

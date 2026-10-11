@@ -13,10 +13,6 @@ class GroupStudentsSection extends ConsumerWidget {
   final String groupId;
   final int? studentCount;
 
-  /// Opens the page that updates the students of the group.
-  ///
-  /// The button that carries it sits at the bottom of the card; when no action
-  /// is given the card only lists the students.
   final VoidCallback? onEdit;
 
   const new({super.key, required this.groupId, this.studentCount, this.onEdit});
@@ -37,10 +33,6 @@ class GroupStudentsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final studentsAsync = ref.watch(groupStudentsProvider(groupId));
 
-    // The response of the group carries no group of the student, while the
-    // student list carries every group they belong to. The cards open the
-    // student page with the student of the list, so that the page knows the
-    // groups of the student no matter which page opened it.
     final listedStudents =
         ref.watch(studentListControllerProvider).value ??
         const <StudentSummaryResponse>[];
@@ -153,8 +145,6 @@ class GroupStudentsSection extends ConsumerWidget {
     ),
   );
 
-  /// The response of the group students section widened to a student summary,
-  /// the fallback for a student the list does not hold yet.
   static StudentSummaryResponse _summaryOf(
     GroupStudentSummaryResponse student,
   ) => StudentSummaryResponse(

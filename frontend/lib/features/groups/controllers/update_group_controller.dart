@@ -38,8 +38,6 @@ class UpdateGroupController extends AsyncNotifier<void> {
       final service = ref.read(groupServiceProvider);
       await service.updateGroup(groupId: groupId, body: body);
 
-      // The group list carries the edited fields; reload it in the background
-      // so the list page and the group page header catch up.
       refreshAfterGroupMutation(ref);
     });
 

@@ -8,8 +8,6 @@ import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/student_controller/student_controller_client.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// The create sheet loads the students to attribute a payment to; the fake
-/// client serves [students] so the picker can be exercised.
 class _FakeStudentClient implements StudentControllerClient {
   new([this.students = const []]);
 
@@ -22,7 +20,6 @@ class _FakeStudentClient implements StudentControllerClient {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// The student the sheet is opened for.
 final _student = StudentSummaryResponse(
   id: 'student-1',
   fullName: 'Anna Smirnova',
@@ -31,7 +28,6 @@ final _student = StudentSummaryResponse(
   statuses: const [],
 );
 
-/// Another student of the list, reachable only through the picker.
 final _otherStudent = StudentSummaryResponse(
   id: 'student-2',
   fullName: 'Boris Petrov',
@@ -63,7 +59,6 @@ Widget _wrap({
   ),
 );
 
-/// Pumps the sheet on a tall surface so every field is reachable by a tap.
 Future<void> _pump(
   WidgetTester tester, {
   num? initialAmount,
@@ -86,27 +81,21 @@ Future<void> _pump(
   await tester.pumpAndSettle();
 }
 
-/// Mirrors the dd.MM.yyyy formatting used by the sheet.
 String _formatDate(DateTime date) {
   final day = date.day.toString().padLeft(2, '0');
   final month = date.month.toString().padLeft(2, '0');
   return '$day.$month.${date.year}';
 }
 
-/// The digits of [date] without the dots, the way the user types them.
 String _digits(DateTime date) => _formatDate(date).replaceAll('.', '');
 
-/// The field whose floating label is [label].
 Finder _field(String label) => find.widgetWithText(TextField, label);
 
-/// The text currently shown by the field labelled [label].
 String _textOf(WidgetTester tester, String label) =>
     tester.widget<TextField>(_field(label)).controller!.text;
 
-/// The floating label of the date field.
 String get _dateLabel => '${t.finance.date}*';
 
-/// The floating label of the paid until field.
 String get _paidUntilLabel => '${t.finance.paidUntil}*';
 
 void main() {
@@ -153,7 +142,7 @@ void main() {
     await _pump(tester);
 
     final now = DateTime.now();
-    final target = DateTime(now.year, now.month + 1, 1);
+    final target = DateTime(now.year, now.month + 1);
 
     await tester.enterText(_field(_paidUntilLabel), _digits(target));
     await tester.pumpAndSettle();

@@ -9,8 +9,6 @@ final assignGroupStudentsControllerProvider =
       AssignGroupStudentsController.new,
     );
 
-/// Makes the students picked in the group students page the students of a
-/// group.
 class AssignGroupStudentsController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
@@ -26,9 +24,6 @@ class AssignGroupStudentsController extends AsyncNotifier<void> {
           .read(groupRepositoryProvider)
           .setGroupStudents(groupId: groupId, studentIds: studentIds);
 
-      // The group page caches the students of its group, the group list counts
-      // them and the student list carries the groups of every student, so all
-      // of them follow the change.
       refreshAfterGroupStudentsMutation(ref, groupId: groupId);
     });
 

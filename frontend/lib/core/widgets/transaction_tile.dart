@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_colors.dart';
+import 'package:phone/core/constants/app_spacing.dart';
 import 'package:phone/core/extensions/number_extension.dart';
 import 'package:phone/features/finance/models/transaction_tile_info.dart';
 import 'package:phone/generated/models/transaction_response.dart';
@@ -9,12 +11,8 @@ class TransactionTile extends StatelessWidget {
   final String? overrideTitle;
   final VoidCallback? onTap;
 
-  /// Inset of the tile content. It is applied inside the ink surface, so the
-  /// ripple, the highlight and the tap area still cover the whole tile.
   final EdgeInsetsGeometry contentPadding;
 
-  /// Corner radius of the ink surface. Use [BorderRadius.zero] when the parent
-  /// clips the tile to the corners of a card.
   final BorderRadius borderRadius;
 
   const new({
@@ -44,7 +42,9 @@ class TransactionTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: borderRadius,
         child: Padding(
-          padding: contentPadding.add(const EdgeInsets.symmetric(vertical: 12)),
+          padding: contentPadding.add(
+            const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          ),
           child: Row(
             children: [
               Container(
@@ -58,7 +58,7 @@ class TransactionTile extends StatelessWidget {
                   child: Icon(info.icon, color: info.backgroundColor, size: 20),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
 
               Expanded(
                 child: Column(
@@ -81,7 +81,7 @@ class TransactionTile extends StatelessWidget {
                       info.subtitle,
                       style: const TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF8E8E93),
+                        color: AppColors.mutedText,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -90,7 +90,7 @@ class TransactionTile extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
 
               Text(
                 formattedAmount,
@@ -98,7 +98,7 @@ class TransactionTile extends StatelessWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: transaction.type == TransactionType.income
-                      ? TransactionTileInfo.incomeColor
+                      ? AppColors.income
                       : Colors.black,
                 ),
               ),

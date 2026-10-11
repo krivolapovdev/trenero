@@ -9,27 +9,13 @@ import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-/// The groups of a student, on the student page.
-///
-/// The mirror image of the students section of a group: the card lists one
-/// entry per group the student belongs to, and the button that carries the page
-/// picking those groups sits at the bottom of the card. When no action is given
-/// the card only lists the groups, and a student without a group keeps no card
-/// at all.
 class StudentGroupsSection extends ConsumerWidget {
-  /// The student the section belongs to, holding the groups they belong to.
   final StudentSummaryResponse student;
 
-  /// Opens the page that updates the groups of the student.
   final VoidCallback? onEdit;
 
   const new({super.key, required this.student, this.onEdit});
 
-  /// The groups of [student].
-  ///
-  /// The summary carries the full list of groups the student belongs to; the
-  /// single group is the fallback for a response that only holds the primary
-  /// one.
   static List<GroupResponse> _groupsOf(StudentSummaryResponse student) {
     final groups = student.studentGroups;
 
@@ -49,8 +35,6 @@ class StudentGroupsSection extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    // The list of the trainer holds every group with the number of its
-    // students, the groups of the student alone carry no count.
     final groupsState = ref.watch(groupListControllerProvider);
     final listedGroups = groupsState.value ?? const <GroupSummaryResponse>[];
 
@@ -120,11 +104,6 @@ class StudentGroupsSection extends ConsumerWidget {
     ),
   );
 
-  /// The group of the student as the group page needs it.
-  ///
-  /// The list of the trainer wins when it holds the group, so the card carries
-  /// the count of the students of the group; a group the list does not hold yet
-  /// is widened from the response of the student.
   static GroupSummaryResponse _summaryOf(
     GroupResponse group,
     List<GroupSummaryResponse> listedGroups,

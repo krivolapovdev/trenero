@@ -13,10 +13,8 @@ import 'package:phone/generated/models/lesson_response.dart';
 
 const String _groupId = 'group-1';
 
-/// The range a single load asked the server for.
 typedef _Range = ({DateTime from, DateTime to});
 
-/// Answers the lessons endpoint and remembers the ranges it was asked for.
 class _FakeGroupClient implements GroupControllerClient {
   final List<_Range> lessonCalls = [];
 
@@ -84,14 +82,14 @@ void main() {
     test('steps whole months back, keeping the first day of the month', () {
       expect(
         MonthWindowController.firstDayOfMonthBefore(DateTime(2026, 10, 24), 2),
-        DateTime(2026, 8, 1),
+        DateTime(2026, 8),
       );
     });
 
     test('steps over the year boundary', () {
       expect(
         MonthWindowController.firstDayOfMonthBefore(DateTime(2026, 1, 15), 3),
-        DateTime(2025, 10, 1),
+        DateTime(2025, 10),
       );
     });
   });
@@ -104,10 +102,7 @@ void main() {
     await container.read(groupLessonsProvider(_groupId).future);
 
     expect(client.lessonCalls, hasLength(1));
-    expect(
-      client.lessonCalls.single.from,
-      DateTime(now.year, now.month - 2, 1),
-    );
+    expect(client.lessonCalls.single.from, DateTime(now.year, now.month - 2));
     expect(
       client.lessonCalls.single.to,
       DateTime(now.year, now.month, now.day),
@@ -128,10 +123,10 @@ void main() {
     expect(client.lessonCalls, hasLength(2));
 
     final earlier = client.lessonCalls.last;
-    expect(earlier.from, DateTime(now.year, now.month - 5, 1));
+    expect(earlier.from, DateTime(now.year, now.month - 5));
     expect(
       earlier.to,
-      DateTime(now.year, now.month - 2, 1).subtract(const Duration(days: 1)),
+      DateTime(now.year, now.month - 2).subtract(const Duration(days: 1)),
     );
 
     final lessons = container.read(groupLessonsProvider(_groupId)).value!;
@@ -153,8 +148,6 @@ void main() {
       container.read(groupLessonsLoadingEarlierProvider(_groupId)),
       isTrue,
     );
-    // The lessons that were already stored stay, so the calendar keeps its
-    // blocks under the shimmer.
     expect(container.read(groupLessonsProvider(_groupId)).hasValue, isTrue);
 
     await loading;
@@ -184,7 +177,7 @@ void main() {
       await container.read(groupLessonsProvider(_groupId).notifier).refresh();
 
       final reload = client.lessonCalls.last;
-      expect(reload.from, DateTime(now.year, now.month - 2, 1));
+      expect(reload.from, DateTime(now.year, now.month - 2));
       expect(reload.to, DateTime(now.year, now.month, now.day));
 
       expect(
@@ -203,8 +196,6 @@ void main() {
 
     final notifier = container.read(groupLessonsProvider(_groupId).notifier);
 
-    // A fast run back through the months asks for several of them while the
-    // first window is still on its way.
     final first = notifier.loadEarlierMonths(DateTime(now.year, now.month - 3));
     final further = notifier.loadEarlierMonths(
       DateTime(now.year, now.month - 6),
@@ -212,9 +203,8 @@ void main() {
 
     await Future.wait([first, further]);
 
-    // The window that was already running reaches the month asked for last.
     expect(client.lessonCalls, hasLength(3));
-    expect(client.lessonCalls.last.from, DateTime(now.year, now.month - 8, 1));
+    expect(client.lessonCalls.last.from, DateTime(now.year, now.month - 8));
   });
 
   test('the read reaches the month the calendar shows', () async {
@@ -223,16 +213,12 @@ void main() {
     final now = DateTime.now();
     final shownMonth = DateTime(now.year, now.month - 6);
 
-    // The calendar was left on a month that lies before the last three months,
-    // the way it survives a reload of the lessons.
     container
         .read(groupLessonsMonthProvider(_groupId).notifier)
         .show(shownMonth);
 
     await container.read(groupLessonsProvider(_groupId).future);
 
-    // The window reaches back to the month that is shown instead of leaving it
-    // empty.
     expect(client.lessonCalls.single.from, shownMonth);
   });
 }

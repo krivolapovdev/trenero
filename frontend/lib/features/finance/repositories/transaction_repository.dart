@@ -19,16 +19,16 @@ class TransactionRepository {
   Future<PageTransactionResponse> getTransactionsByPage({
     int page = 1,
     int size = 20,
-  }) async => await _client.getPaginatedTransactions(page: page, size: size);
+  }) async => _client.getPaginatedTransactions(page: page, size: size);
 
   Future<TransactionResponse> updateTransaction({
     required String transactionId,
     required Map<String, dynamic> body,
   }) async =>
-      await _client.updateTransaction(transactionId: transactionId, body: body);
+      _client.updateTransaction(transactionId: transactionId, body: body);
 
   Future<void> deleteTransaction(String transactionId) async =>
-      await _client.deleteTransaction(transactionId: transactionId);
+      _client.deleteTransaction(transactionId: transactionId);
 
   Future<void> createTransaction({
     required TransactionType type,

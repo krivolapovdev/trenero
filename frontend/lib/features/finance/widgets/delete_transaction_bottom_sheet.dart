@@ -5,9 +5,6 @@ import 'package:phone/features/finance/controllers/delete_transaction_controller
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Asks for confirmation before deleting [transaction].
-///
-/// Pops with `true` when the transaction was deleted.
 class DeleteTransactionBottomSheet extends ConsumerWidget {
   final TransactionResponse transaction;
 

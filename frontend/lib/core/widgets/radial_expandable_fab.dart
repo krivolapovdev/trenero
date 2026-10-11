@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// Padding for scrollable page content so the floating actions never cover it.
 const EdgeInsets kRadialFabContentPadding = EdgeInsets.fromLTRB(
   16,
   16,
@@ -72,7 +71,6 @@ class _RadialExpandableFabState extends State<RadialExpandableFab>
         color: Colors.black.withValues(alpha: 0.1),
         blurRadius: 10,
         spreadRadius: 1,
-        offset: const Offset(0, 0),
       ),
     ],
   );

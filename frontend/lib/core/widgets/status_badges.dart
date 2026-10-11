@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/constants/app_spacing.dart';
 
 class StatusBadgeData {
   final String label;
@@ -19,12 +20,15 @@ class StatusBadges extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Wrap(
-    spacing: 8,
-    runSpacing: 8,
+    spacing: AppSpacing.sm,
+    runSpacing: AppSpacing.sm,
     children: badges
         .map(
           (badge) => Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: 6,
+            ),
             decoration: BoxDecoration(
               color: badge.backgroundColor,
               borderRadius: BorderRadius.circular(16),

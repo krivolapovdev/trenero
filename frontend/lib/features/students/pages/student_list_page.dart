@@ -86,8 +86,9 @@ class StudentListPage extends ShellPage {
               .read(studentListControllerProvider.notifier)
               .getAllStudents(forceRefresh: true);
 
-          ref.invalidate(studentLessonsProvider);
-          ref.invalidate(studentPaymentsControllerProvider);
+          ref
+            ..invalidate(studentLessonsProvider)
+            ..invalidate(studentPaymentsControllerProvider);
         },
         child: _buildBody(
           context,

@@ -6,20 +6,9 @@ import 'package:phone/i18n/strings.g.dart';
 
 enum SnackBarType { success, error, warning, help }
 
-/// Shows transient notifications to the user.
-///
-/// A regular snack bar is owned by the [Scaffold] of the page it was shown
-/// from, so a modal route opened above that page (a bottom sheet, a dialog,
-/// ...) covers it. Whenever such a modal route is on top, the notification is
-/// rendered in the root [Overlay] instead, which keeps it visible above the
-/// modal.
 class AppSnackBar {
-  /// How long the notification stays on top of a modal before it hides itself.
-  ///
-  /// Matches the default duration of a [SnackBar].
   static const Duration _overlayDuration = Duration(seconds: 4);
 
-  /// The notification currently shown on top of a modal, if any.
   static OverlayEntry? _overlayEntry;
   static Timer? _overlayTimer;
 
@@ -45,15 +34,12 @@ class AppSnackBar {
     ScaffoldMessenger.of(context).showSnackBar(_snackBar(content));
   }
 
-  /// Whether a modal route (bottom sheet, dialog, ...) covers the page the
-  /// notification is shown from.
   static bool _isCoveredByModal(BuildContext context) {
     final route = ModalRoute.of(context);
 
     return route is PopupRoute && !route.isFirst;
   }
 
-  /// Renders [content] at the top of the root overlay, above every route.
   static void _showOverModal(BuildContext context, Widget content) {
     final overlay = Overlay.maybeOf(context, rootOverlay: true);
 
@@ -78,7 +64,6 @@ class AppSnackBar {
     _overlayTimer = Timer(_overlayDuration, () => _removeOverlay(entry));
   }
 
-  /// Removes [entry] when it is still the notification on screen.
   static void _removeOverlay(OverlayEntry entry) {
     if (_overlayEntry != entry) return;
 
@@ -88,7 +73,6 @@ class AppSnackBar {
     entry.remove();
   }
 
-  /// Removes the notification on screen, if any.
   static void _hideOverlay() {
     _overlayTimer?.cancel();
     _overlayTimer = null;
@@ -105,11 +89,6 @@ class AppSnackBar {
   );
 }
 
-/// Paints a snack bar like notification at the top of the overlay.
-///
-/// The content sits in a local [ScaffoldMessenger] so that the close button of
-/// [AwesomeSnackbarContent] does not touch the page messengers below the modal
-/// and tapping the notification closes it instead.
 class _OverlaySnackBar extends StatefulWidget {
   final Widget content;
   final VoidCallback onDismissed;
@@ -144,7 +123,6 @@ class _OverlaySnackBarState extends State<_OverlaySnackBar>
     super.dispose();
   }
 
-  /// Plays the exit animation and removes the notification afterwards.
   Future<void> _dismiss() async {
     await _controller.reverse();
 

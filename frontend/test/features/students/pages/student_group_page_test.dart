@@ -117,8 +117,6 @@ void main() {
     expect(find.text('Group A'), findsOneWidget);
     expect(find.text('Group B'), findsOneWidget);
 
-    // The join date is no longer part of the page, the student always joins
-    // today.
     expect(find.text(t.students.joinedAt), findsNothing);
   });
 
@@ -175,8 +173,6 @@ void main() {
   ) async {
     await _pumpPage(tester, container, initialGroupIds: {'group-a'});
 
-    // The groups of the student are preselected, so there is nothing to
-    // update yet.
     expect(
       tester.widget<TextButton>(find.byType(TextButton)).onPressed,
       isNull,
@@ -190,7 +186,6 @@ void main() {
       isNotNull,
     );
 
-    // Picking the same group again leaves nothing to update.
     await tester.tap(find.text('Group B'));
     await tester.pumpAndSettle();
 
@@ -222,8 +217,6 @@ void main() {
   ) async {
     await _pumpPage(tester, container, initialGroupIds: {'group-a', 'group-b'});
 
-    // The groups of the student are preselected, so there is nothing to
-    // update yet.
     expect(
       tester.widget<TextButton>(find.byType(TextButton)).onPressed,
       isNull,

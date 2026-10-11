@@ -13,12 +13,6 @@ final deleteStudentControllerProvider =
       DeleteStudentController.new,
     );
 
-/// Deletes a student of the trainer.
-///
-/// The student is gone from the server, so every page that cached them drops
-/// what it held: the lessons and the payments of the student are dropped, the
-/// group pages read their students again, the monthly reports of the groups are
-/// read again and the student list loses the card.
 class DeleteStudentController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
@@ -29,10 +23,11 @@ class DeleteStudentController extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() async {
       await ref.read(studentRepositoryProvider).deleteStudent(studentId);
 
-      ref.invalidate(studentLessonsProvider(studentId));
-      ref.invalidate(studentPaymentsControllerProvider(studentId));
-      ref.invalidate(groupStudentsProvider);
-      ref.invalidate(groupReportProvider);
+      ref
+        ..invalidate(studentLessonsProvider(studentId))
+        ..invalidate(studentPaymentsControllerProvider(studentId))
+        ..invalidate(groupStudentsProvider)
+        ..invalidate(groupReportProvider);
 
       await ref
           .read(studentListControllerProvider.notifier)

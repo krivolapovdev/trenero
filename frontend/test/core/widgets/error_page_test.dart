@@ -7,15 +7,12 @@ import 'package:phone/i18n/strings.g.dart';
 Widget _wrap(Widget child) =>
     TranslationProvider(child: MaterialApp(home: child));
 
-/// The error lottie is rendered at the full width, so a phone shaped viewport
-/// is used to keep the whole page on screen.
 void _useTallViewport(WidgetTester tester) {
   tester.view.physicalSize = const Size(960, 2400);
   tester.view.devicePixelRatio = 2;
   addTearDown(tester.view.reset);
 }
 
-/// The lottie loops, so the page is pumped without `pumpAndSettle`.
 Future<void> _pumpPage(WidgetTester tester, Widget page) async {
   await tester.pumpWidget(_wrap(page));
 
@@ -42,7 +39,6 @@ void main() {
     expect(notice, findsOneWidget);
     expect(button, findsOneWidget);
 
-    // The lottie sits above the notice, which sits above the button.
     expect(
       tester.getBottomLeft(lottie).dy,
       lessThanOrEqualTo(tester.getTopLeft(notice).dy),
@@ -52,7 +48,6 @@ void main() {
       lessThanOrEqualTo(tester.getTopLeft(button).dy),
     );
 
-    // The whole block is centered, so the gaps around it are equal.
     final height = tester.getSize(find.byType(Scaffold)).height;
 
     expect(
@@ -83,7 +78,6 @@ void main() {
     expect(find.text(t.pleaseUpdateApp), findsOneWidget);
     expect(find.text(t.repeat), findsOneWidget);
 
-    // Only the notice and the button label are rendered.
     expect(find.byType(Text), findsNWidgets(2));
   });
 
@@ -101,7 +95,6 @@ void main() {
 
     expect(error, findsOneWidget);
 
-    // It is the small print at the very end of the page.
     expect(tester.widget<Text>(error).style?.fontSize, lessThanOrEqualTo(12));
     expect(
       tester.getTopLeft(error).dy,

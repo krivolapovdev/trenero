@@ -5,7 +5,6 @@ import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// A page offering an error straight from the page and one from a sheet.
 class _Host extends StatelessWidget {
   const new();
 
@@ -28,7 +27,6 @@ class _Host extends StatelessWidget {
   );
 }
 
-/// The bottom sheet content reporting its own error.
 class _Sheet extends StatelessWidget {
   const new();
 
@@ -45,7 +43,6 @@ class _Sheet extends StatelessWidget {
 
 Widget _host() => TranslationProvider(child: const MaterialApp(home: _Host()));
 
-/// Opens the sheet and reports an error from it.
 Future<void> _openSheetAndFail(WidgetTester tester) async {
   await tester.pumpWidget(_host());
 
@@ -57,8 +54,6 @@ Future<void> _openSheetAndFail(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 300));
 }
 
-/// Waits for the notification to go away, otherwise its timer outlives the
-/// test.
 Future<void> _waitForNotification(WidgetTester tester) async {
   await tester.pump(const Duration(seconds: 5));
   await tester.pumpAndSettle();
@@ -95,7 +90,6 @@ void main() {
       findsNothing,
     );
 
-    // The notification sits above the sheet, so the sheet cannot cover it.
     expect(
       tester.getBottomLeft(notification).dy,
       lessThan(tester.getTopLeft(find.byType(_Sheet)).dy),

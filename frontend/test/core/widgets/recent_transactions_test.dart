@@ -16,7 +16,6 @@ TransactionResponse _income() => TransactionResponse(
   createdAt: DateTime(2025, 8, 22, 14, 30),
 );
 
-/// Mirrors the finance page: the card is padded by 16 from the screen edges.
 Widget _wrap(Widget child) => TranslationProvider(
   child: MaterialApp(
     home: Scaffold(
@@ -33,8 +32,6 @@ void main() {
     LocaleSettings.setLocaleSync(AppLocale.en);
   });
 
-  // Regression: the card used to inset its content horizontally, so the ink
-  // surface of the tiles was narrower than the card itself.
   testWidgets('recent tiles fill the whole card so their ink spans it', (
     tester,
   ) async {
@@ -56,10 +53,8 @@ void main() {
     expect(tile.left, card.left);
     expect(tile.right, card.right);
 
-    // Only the content keeps the 20px side inset.
     expect(avatar.left - card.left, 20);
 
-    // The header keeps the same inset as the tile content.
     final title = tester.getTopLeft(find.text(t.finance.lastTransactions));
 
     expect(title.dx, card.left + 20);

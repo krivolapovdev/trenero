@@ -42,8 +42,6 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     );
   }
 
-  /// Opens the group page of the student; the card and the lessons follow the
-  /// reloaded student list.
   Future<void> _openAssignGroupPage() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -55,8 +53,6 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     );
   }
 
-  /// The ids of every group the student belongs to, used to preselect them on
-  /// the group page.
   Set<String> get _studentGroupIds {
     final groups = _student.studentGroups;
 
@@ -81,7 +77,6 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     );
   }
 
-  /// Opens the lesson page for a new individual lesson of the student.
   Future<void> _openCreateLessonPage() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -94,10 +89,6 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     );
   }
 
-  /// Asks for confirmation and leaves the page once the student is gone.
-  ///
-  /// The navigator is taken before the confirmation is shown, so the page of the
-  /// student is popped and not the sheet the menu leaves behind.
   Future<void> _confirmDelete() async {
     final navigator = Navigator.of(context);
 
@@ -118,8 +109,6 @@ class _StudentPageState extends ConsumerState<StudentPage> {
       studentPaymentsControllerProvider(_student.id),
     );
 
-    // The student list is reloaded in the background after a payment, a lesson
-    // or a group change; keep the card and the lessons in sync with it.
     ref.listen(studentListControllerProvider, (previous, next) {
       final updated = (next.value ?? const <StudentSummaryResponse>[])
           .where((student) => student.id == _student.id)
@@ -134,7 +123,6 @@ class _StudentPageState extends ConsumerState<StudentPage> {
       appBar: AppBar(
         title: Text(_student.fullName),
         actions: [
-          CreateLessonButton(onPressed: _openCreateLessonPage),
           PopupMenuButton<String>(
             tooltip: '',
             offset: const Offset(-8, 0),

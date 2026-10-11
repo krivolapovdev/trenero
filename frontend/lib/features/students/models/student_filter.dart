@@ -1,12 +1,7 @@
 import 'package:phone/generated/models/student_status.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 
-/// Filters applied to the student list.
-///
-/// An empty collection means "no restriction" for that dimension, while the
-/// dimensions themselves are combined with a logical AND.
 class StudentFilter {
-  /// Sentinel group id used to match students that are not assigned to any group.
   static const String noGroupId = '__no_group__';
 
   final Set<String> groupIds;
@@ -21,7 +16,6 @@ class StudentFilter {
 
   bool get isNotEmpty => !isEmpty;
 
-  /// Number of selected checkboxes, used to mark the filter button.
   int get activeCount => groupIds.length + statuses.length;
 
   StudentFilter copyWith({
@@ -38,7 +32,6 @@ class StudentFilter {
   StudentFilter toggleStatus(StudentStatus status) =>
       copyWith(statuses: _toggled(statuses, status));
 
-  /// Whether [student] satisfies every selected dimension.
   bool matches(StudentSummaryResponse student) {
     final studentGroupIds = <String>{
       if (student.studentGroup != null) student.studentGroup!.id,

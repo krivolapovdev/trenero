@@ -11,23 +11,13 @@ import 'package:phone/generated/models/visit_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Adds an individual lesson to a student: picks the date and whether the
-/// student attended.
-///
-/// Unlike the group lesson page the lesson does not belong to a group, it is
-/// stored for the single student only. When [lesson] is given the page edits
-/// the individual lesson that is already stored on [date]: its attendance is
-/// pre-filled and the menu offers deleting it.
 class StudentLessonPage extends ConsumerStatefulWidget {
   final String studentId;
 
-  /// The student the lesson is created for, shown next to the attendance.
   final String studentName;
 
-  /// The day the lesson is created for / the day [lesson] takes place.
   final DateTime date;
 
-  /// The stored lesson to open. When null a new lesson is created.
   final LessonResponse? lesson;
 
   const new({
@@ -47,8 +37,6 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
 
   late DateTime _selectedDate;
 
-  /// Set once the user flips the attendance, from then on it wins over the
-  /// attendance loaded from the server.
   bool? _pickedIsPresent;
 
   @override
@@ -57,7 +45,6 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
     _selectedDate = widget.lesson?.date ?? widget.date;
   }
 
-  /// Whether the student is stored as present for the lesson on the server.
   bool _storedIsPresent(AsyncValue<LessonDetailsResponse>? state) =>
       (state?.value?.studentVisits ?? const <VisitResponse>[]).any(
         (visit) =>
@@ -65,16 +52,12 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
             visit.status == VisitStatus.present,
       );
 
-  /// A new lesson starts with the student present, a stored one with the
-  /// attendance that was recorded for it, until the user picks one.
   bool _isPresent(bool storedIsPresent) =>
       _pickedIsPresent ?? (widget.lesson == null ? true : storedIsPresent);
 
-  /// Whether the lesson that is being edited differs from the stored one.
   bool _hasChanges(bool isPresent, bool storedIsPresent) {
     final lesson = widget.lesson;
 
-    // A new lesson is always worth saving.
     if (lesson == null) return true;
 
     final isSameDay =

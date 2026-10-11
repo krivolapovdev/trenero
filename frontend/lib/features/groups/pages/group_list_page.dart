@@ -83,12 +83,9 @@ class GroupListPage extends ShellPage {
               .read(groupListControllerProvider.notifier)
               .getAllGroups(forceRefresh: true);
 
-          // The group pages cache their lessons and students per group. The
-          // refresh drops every one of those caches, so opening a group after
-          // the refresh requests its data again instead of showing what was
-          // loaded before.
-          ref.invalidate(groupLessonsProvider);
-          ref.invalidate(groupStudentsProvider);
+          ref
+            ..invalidate(groupLessonsProvider)
+            ..invalidate(groupStudentsProvider);
         },
         child: _buildBody(
           context,

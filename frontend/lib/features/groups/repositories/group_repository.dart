@@ -1,5 +1,5 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/generated/group_controller/group_controller_client.dart';
 import 'package:phone/generated/models/group_report_response.dart';
@@ -21,90 +21,58 @@ class GroupRepository {
   Future<List<GroupSummaryResponse>> getAllGroups({
     bool forceRefresh = false,
   }) async {
-    if (!forceRefresh && _cachedGroups != null) {
-      return List.unmodifiable(_cachedGroups!);
+    final cached = _cachedGroups;
+
+    if (!forceRefresh && cached != null) {
+      return List.unmodifiable(cached);
     }
 
-    try {
+    return guardApiCall(() async {
       final groups = await _service.getAllGroupsSummary();
       _cachedGroups = groups;
-      return List.unmodifiable(_cachedGroups!);
-    } on DioException catch (e) {
-      throw Exception('Error: ${e.message}');
-    }
+
+      return List.unmodifiable(groups);
+    });
   }
 
-  /// Deletes the group with [groupId] and drops it from the cache.
-  Future<void> deleteGroup(String groupId) async {
-    try {
-      await _service.deleteGroup(groupId: groupId);
+  Future<void> deleteGroup(String groupId) => guardApiCall(() async {
+    await _service.deleteGroup(groupId: groupId);
 
-      if (_cachedGroups != null) {
-        _cachedGroups = _cachedGroups!.where((g) => g.id != groupId).toList();
-      }
-    } on DioException catch (e) {
-      throw Exception('Error deleting group: ${e.message}');
+    final cached = _cachedGroups;
+
+    if (cached != null) {
+      _cachedGroups = cached.where((group) => group.id != groupId).toList();
     }
-  }
+  });
 
   Future<List<LessonResponse>> getGroupLessons({
     required String groupId,
     required DateTime from,
     required DateTime to,
-  }) async {
-    try {
-      return await _service.getGroupLessons(
-        groupId: groupId,
-        from: from,
-        to: to,
-      );
-    } on DioException catch (e) {
-      throw Exception('Failed to fetch group lessons: ${e.message}');
-    }
-  }
+  }) => guardApiCall(
+    () => _service.getGroupLessons(groupId: groupId, from: from, to: to),
+  );
 
-  Future<List<GroupStudentSummaryResponse>> getGroupStudents(
-    String groupId,
-  ) async {
-    try {
-      return await _service.getGroupStudents(groupId: groupId);
-    } on DioException catch (e) {
-      throw Exception('Failed to fetch group students: ${e.message}');
-    }
-  }
+  Future<List<GroupStudentSummaryResponse>> getGroupStudents(String groupId) =>
+      guardApiCall(() => _service.getGroupStudents(groupId: groupId));
 
-  /// Makes the students of [groupId] the picked [studentIds]: the students that
-  /// are not picked are removed from the group, the picked ones that are new
-  /// are added.
   Future<void> setGroupStudents({
     required String groupId,
     required Set<String> studentIds,
-  }) async {
-    try {
-      await _service.updateGroup(
-        groupId: groupId,
-        body: <String, dynamic>{'studentIds': studentIds.toList()},
-      );
-    } on DioException catch (e) {
-      throw Exception('Failed to update the group students: ${e.message}');
-    }
-  }
+  }) => guardApiCall(
+    () => _service.updateGroup(
+      groupId: groupId,
+      body: <String, dynamic>{'studentIds': studentIds.toList()},
+    ),
+  );
 
   Future<GroupReportResponse> getGroupReport({
     required String groupId,
     required int year,
     required int month,
-  }) async {
-    try {
-      return await _service.getGroupReport(
-        groupId: groupId,
-        year: year,
-        month: month,
-      );
-    } on DioException catch (e) {
-      throw Exception('Failed to fetch group report: ${e.message}');
-    }
-  }
+  }) => guardApiCall(
+    () => _service.getGroupReport(groupId: groupId, year: year, month: month),
+  );
 
   void clearCache() {
     _cachedGroups = null;

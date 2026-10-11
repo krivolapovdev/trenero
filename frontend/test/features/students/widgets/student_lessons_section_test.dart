@@ -23,7 +23,6 @@ LessonResponse _lesson({required String id, String? groupId, DateTime? date}) =>
       groupId: groupId,
     );
 
-/// A visit of the student for [lesson], present by default.
 VisitWithLessonResponse _visit({
   required LessonResponse lesson,
   VisitStatus status = VisitStatus.present,

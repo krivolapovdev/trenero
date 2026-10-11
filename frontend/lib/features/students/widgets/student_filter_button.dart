@@ -6,8 +6,6 @@ import 'package:phone/features/students/controllers/student_filter_controller.da
 import 'package:phone/features/students/widgets/student_filter_bottom_sheet.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Opens the student filter sheet and marks itself with the amount of
-/// selected filters, so it can be reused by the list page and by search.
 class StudentFilterButton extends ConsumerWidget {
   const new({super.key});
 

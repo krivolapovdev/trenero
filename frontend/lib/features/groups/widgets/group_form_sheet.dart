@@ -50,11 +50,6 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
 
   void _onFieldChanged() => setState(() {});
 
-  /// Whether a field differs from the value the form was opened with.
-  ///
-  /// The form of a new group starts empty, so typing the name alone is already
-  /// a change; the form of a stored one keeps its action disabled until the
-  /// user edits something.
   bool get _hasChanges =>
       _nameController.text != (widget.initialName ?? '') ||
       _priceController.text != (widget.initialPrice ?? '') ||
@@ -92,7 +87,6 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
         padding: EdgeInsets.only(
           left: 22,
           right: 22,
-          top: 0,
           bottom: 8 + keyboardInset,
         ),
         child: Column(
@@ -153,10 +147,7 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
                       ),
 
                       Padding(
-                        padding: EdgeInsetsGeometry.symmetric(
-                          vertical: 10,
-                          horizontal: 0,
-                        ),
+                        padding: EdgeInsetsGeometry.symmetric(vertical: 10),
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: TextButton.icon(

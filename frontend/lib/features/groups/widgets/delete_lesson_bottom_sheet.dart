@@ -4,9 +4,6 @@ import 'package:phone/core/widgets/delete_confirmation_sheet.dart';
 import 'package:phone/features/groups/controllers/lesson_mutation_controller.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Asks for confirmation before deleting the lesson with [lessonId].
-///
-/// Pops with `true` when the lesson was deleted.
 class DeleteLessonBottomSheet extends ConsumerWidget {
   final String lessonId;
   final String groupId;

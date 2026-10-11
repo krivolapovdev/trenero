@@ -5,8 +5,6 @@ import 'package:phone/generated/models/group_report_response.dart';
 import 'package:phone/generated/models/group_report_student_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Anna was present on the first lesson day and missed the second one, Ivan the
-/// other way round, and the third day had no lesson at all.
 GroupReportResponse _report() => const GroupReportResponse(
   groupId: 'group-1',
   groupName: 'Group A',
@@ -53,9 +51,6 @@ void main() {
     expect(find.text('Paid'), findsOneWidget);
     expect(find.text('Result'), findsOneWidget);
 
-    // Every day of the month gets its own column, including day 3 without a
-    // lesson. The numbers 1 and 2 are reused as the row numbers of the two
-    // students, so they appear twice.
     expect(find.text('1'), findsNWidgets(2));
     expect(find.text('2'), findsNWidgets(2));
     expect(find.text('3'), findsOneWidget);
@@ -69,9 +64,6 @@ void main() {
   ) async {
     await tester.pumpWidget(_wrap(_report()));
 
-    // Anna: present on day 1, absent on day 2 and paid. Ivan: absent on day 1,
-    // present on day 2 and unpaid. The third day had no lesson, so it renders
-    // no mark at all.
     expect(find.text('+'), findsNWidgets(3));
     expect(find.text('-'), findsNWidgets(3));
   });
@@ -89,9 +81,6 @@ void main() {
   testWidgets('gives every row a visible height', (tester) async {
     await tester.pumpWidget(_wrap(_report()));
 
-    // Regression: with `TableCellVerticalAlignment.fill` on every cell the row
-    // height collapses to zero, so the grid was laid out but entirely
-    // invisible while every `find.text` assertion above still passed.
     expect(tester.getSize(find.byType(Table)).height, greaterThan(0));
 
     for (final text in ['Anna Smirnova', 'Ivan Petrov', 'Total', '+', '1/2']) {

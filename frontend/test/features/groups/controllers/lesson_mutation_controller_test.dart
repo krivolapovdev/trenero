@@ -31,8 +31,6 @@ final GroupStudentSummaryResponse _student = GroupStudentSummaryResponse(
   statuses: const [],
 );
 
-/// Serves the lessons and the students of the group and remembers how often
-/// each of them was read.
 class _FakeGroupClient implements GroupControllerClient {
   int lessonCalls = 0;
   int studentCalls = 0;
@@ -83,7 +81,6 @@ class _FakeGroupClient implements GroupControllerClient {
   }) => throw UnimplementedError();
 }
 
-/// Accepts the lessons the controller writes.
 class _FakeLessonClient implements LessonControllerClient {
   final List<CreateLessonRequest> createBodies = [];
 
@@ -116,7 +113,6 @@ class _FakeLessonClient implements LessonControllerClient {
       throw UnimplementedError();
 }
 
-/// Keeps the student list the mutation reloads out of the network.
 class _FakeStudentListController extends StudentListController {
   @override
   Future<List<StudentSummaryResponse>> build() async => const [];
@@ -144,40 +140,43 @@ ProviderContainer _container(
 }
 
 void main() {
-  test('creating a lesson reloads the lessons and the students of the group', () async {
-    final groupClient = _FakeGroupClient();
-    final lessonClient = _FakeLessonClient();
-    final container = _container(groupClient, lessonClient);
+  test(
+    'creating a lesson reloads the lessons and the students of the group',
+    () async {
+      final groupClient = _FakeGroupClient();
+      final lessonClient = _FakeLessonClient();
+      final container = _container(groupClient, lessonClient);
 
-    // The group page keeps the students of its group alive; the mutation has to
-    // reload them so their badges match the lesson that was just recorded.
-    container.listen(groupStudentsProvider(_groupId), (_, _) {});
-    await container.read(groupStudentsProvider(_groupId).future);
-    expect(groupClient.studentCalls, 1);
+      final subscription = container.listen(
+        groupStudentsProvider(_groupId),
+        (_, _) {},
+      );
+      addTearDown(subscription.close);
 
-    final created = await container
-        .read(lessonMutationControllerProvider.notifier)
-        .createLesson(
-          groupId: _groupId,
-          date: DateTime(2026, 10, 8),
-          students: [_student],
-          attendance: {
-            _student.id: const LessonAttendance(
-              status: VisitStatus.present,
-              type: VisitType.regular,
-            ),
-          },
-        );
+      await container.read(groupStudentsProvider(_groupId).future);
+      expect(groupClient.studentCalls, 1);
 
-    expect(created, isTrue);
-    expect(lessonClient.createBodies, hasLength(1));
+      final created = await container
+          .read(lessonMutationControllerProvider.notifier)
+          .createLesson(
+            groupId: _groupId,
+            date: DateTime(2026, 10, 8),
+            students: [_student],
+            attendance: {
+              _student.id: const LessonAttendance(
+                status: VisitStatus.present,
+                type: VisitType.regular,
+              ),
+            },
+          );
 
-    // The lessons of the group are reloaded...
-    expect(groupClient.lessonCalls, greaterThan(0));
+      expect(created, isTrue);
+      expect(lessonClient.createBodies, hasLength(1));
 
-    // ...and the students of the group are read again, so the group page shows
-    // the badges the new lesson changes.
-    await container.read(groupStudentsProvider(_groupId).future);
-    expect(groupClient.studentCalls, 2);
-  });
+      expect(groupClient.lessonCalls, greaterThan(0));
+
+      await container.read(groupStudentsProvider(_groupId).future);
+      expect(groupClient.studentCalls, 2);
+    },
+  );
 }

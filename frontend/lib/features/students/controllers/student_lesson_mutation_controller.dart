@@ -16,12 +16,6 @@ final studentLessonMutationControllerProvider =
       StudentLessonMutationController.new,
     );
 
-/// Creates, updates and deletes the individual lessons of a student.
-///
-/// An individual lesson is a lesson without a group that holds exactly one
-/// student, so it is sent with a `null` groupId and the single visit of the
-/// student. Every mutation reloads the lessons of the student, so the calendar
-/// of the student page is up to date when the lesson page closes.
 class StudentLessonMutationController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
@@ -58,8 +52,6 @@ class StudentLessonMutationController extends AsyncNotifier<void> {
           ),
         );
 
-    // The attendance shown by the lesson page is loaded from the server and
-    // has to be dropped once it changed.
     ref.invalidate(lessonDetailsProvider(lessonId));
   });
 
@@ -79,8 +71,6 @@ class StudentLessonMutationController extends AsyncNotifier<void> {
 
       await ref.read(studentLessonsProvider(studentId).notifier).refresh();
 
-      // The lesson changes the attendance of the student, so the statuses of
-      // the student list have to be reloaded as well.
       await ref
           .read(studentListControllerProvider.notifier)
           .getAllStudents(forceRefresh: true);
@@ -89,8 +79,6 @@ class StudentLessonMutationController extends AsyncNotifier<void> {
     return !state.hasError;
   }
 
-  /// A student that attended is marked present and regular, a student that did
-  /// not is marked absent and regular.
   StudentVisit _buildVisit(String studentId, bool isPresent) => isPresent
       ? StudentVisit(
           studentId: studentId,
@@ -103,6 +91,5 @@ class StudentLessonMutationController extends AsyncNotifier<void> {
           type: VisitType.regular,
         );
 
-  /// The backend stores lessons per day, so the time part is dropped.
   DateTime _asDay(DateTime date) => DateTime(date.year, date.month, date.day);
 }

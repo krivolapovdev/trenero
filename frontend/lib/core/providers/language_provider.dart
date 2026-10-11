@@ -29,7 +29,7 @@ class LanguageNotifier extends AsyncNotifier<AppLocale> {
   Future<void> setLanguage(AppLocale newLocale) async {
     final prefs = await ref.read(sharedPreferencesProvider.future);
 
-    LocaleSettings.setLocale(newLocale);
+    await LocaleSettings.setLocale(newLocale);
     await prefs.setString(_languageKey, newLocale.languageTag);
 
     state = AsyncData(newLocale);

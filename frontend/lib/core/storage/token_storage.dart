@@ -23,7 +23,7 @@ class TokenStorage {
   }
 
   Future<String?> getRefreshToken() async =>
-      await _secureStorage.read(key: _refreshTokenKey);
+      _secureStorage.read(key: _refreshTokenKey);
 
   Future<void> saveTokens({
     required String accessToken,

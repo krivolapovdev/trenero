@@ -7,7 +7,6 @@ Widget _wrap(Widget child) => TranslationProvider(
   child: MaterialApp(home: Scaffold(body: child)),
 );
 
-/// The text currently held by the field under test.
 String _text(WidgetTester tester) =>
     tester.widget<TextField>(find.byType(TextField)).controller!.text;
 
@@ -177,7 +176,6 @@ void main() {
     await tester.enterText(find.byType(TextField), '9999');
     await tester.pump();
 
-    // The parent keeps its last valid date, the typed text stays untouched.
     expect(notifier.value, DateTime(2020));
     expect(_text(tester), '99.99');
   });

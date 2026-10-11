@@ -1,4 +1,3 @@
-/// Selects the month a group report is requested for.
 class GroupReportPeriod {
   final String groupId;
   final int year;
@@ -20,5 +19,4 @@ class GroupReportPeriod {
   String toString() => 'GroupReportPeriod($groupId, $year-$month)';
 }
 
-/// Number of days of [month] in [year], used while the report is still loading.
 int daysInMonth(int year, int month) => DateTime(year, month + 1, 0).day;

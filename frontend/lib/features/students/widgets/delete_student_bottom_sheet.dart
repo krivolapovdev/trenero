@@ -5,10 +5,6 @@ import 'package:phone/features/students/controllers/delete_student_controller.da
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Asks for confirmation before deleting [student].
-///
-/// Pops with `true` when the student was deleted. The caller is the one that
-/// leaves the page of the student, so this sheet only reports the outcome.
 class DeleteStudentBottomSheet extends ConsumerWidget {
   final StudentSummaryResponse student;
 

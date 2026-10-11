@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:phone/core/constants/app_colors.dart';
 import 'package:phone/core/extensions/number_extension.dart';
 import 'package:phone/features/finance/models/transaction_tile_info.dart';
 import 'package:phone/generated/models/transaction_response.dart';
@@ -13,11 +14,8 @@ const double _dividerHeight = 1;
 const double _cornerRadius = 24;
 const double _notchRadius = 14;
 const double _scallopRadius = 9;
-const Color _mutedColor = Color(0xFF8E8E93);
 const Color _dividerColor = Color(0xFFD9D9D9);
 
-/// Ticket shaped card with a header (icon + title) and all transaction
-/// details below the perforated divider line.
 class TransactionTicketCard extends StatelessWidget {
   final TransactionResponse transaction;
   final String? overrideTitle;
@@ -49,7 +47,7 @@ class TransactionTicketCard extends StatelessWidget {
       _TicketDetail(
         label: context.t.finance.amount,
         value: amount,
-        valueColor: isIncome ? TransactionTileInfo.incomeColor : Colors.black,
+        valueColor: isIncome ? AppColors.income : Colors.black,
       ),
       _TicketDetail(
         label: context.t.finance.type,
@@ -166,7 +164,7 @@ class _TicketDetail extends StatelessWidget {
           fontSize: 12,
           letterSpacing: 0.8,
           fontWeight: FontWeight.w500,
-          color: _mutedColor,
+          color: AppColors.mutedText,
         ),
       ),
 
@@ -211,7 +209,6 @@ class _TicketPainter extends CustomPainter {
         ),
       );
 
-    // Scalloped bottom edge, imitating a torn ticket.
     final scallopDiameter = _scallopRadius * 2;
     final scallopCount = math.max(1, (size.width / scallopDiameter).round());
     final step = size.width / scallopCount;

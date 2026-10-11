@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/core/constants/app_colors.dart';
+import 'package:phone/core/constants/app_constants.dart';
 import 'package:phone/core/providers/language_provider.dart';
+import 'package:phone/core/theme/app_theme.dart';
 import 'package:phone/features/auth/widgets/auth_gate.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -23,12 +24,9 @@ class Application extends ConsumerWidget {
     final currentLocale = ref.watch(languageProvider);
 
     return MaterialApp(
-      title: 'Trenerio',
+      title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: AppColors.background,
-      ),
+      theme: AppTheme.light,
       locale: currentLocale.value?.flutterLocale,
       supportedLocales: AppLocaleUtils.supportedLocales,
       localizationsDelegates: GlobalMaterialLocalizations.delegates,

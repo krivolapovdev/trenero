@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:phone/core/constants/app_colors.dart';
 import 'package:phone/core/widgets/transaction_list_view.dart';
 import 'package:phone/core/widgets/transaction_tile.dart';
 import 'package:phone/features/finance/models/transaction_tile_info.dart';
@@ -44,11 +45,9 @@ void main() {
 
     expect(info.title, 'Ivan Petrov');
     expect(info.icon, Icons.arrow_downward_rounded);
-    expect(info.backgroundColor, TransactionTileInfo.incomeColor);
+    expect(info.backgroundColor, AppColors.income);
   });
 
-  // The finance page has no single student to override the title with, so the
-  // name of the payment details provides the title there.
   test('student payments keep the student name without an override title', () {
     final info = TransactionTileInfo.fromTransaction(_studentPayment());
 
@@ -62,7 +61,7 @@ void main() {
     );
 
     expect(info.icon, Icons.arrow_upward_rounded);
-    expect(info.backgroundColor, TransactionTileInfo.expenseColor);
+    expect(info.backgroundColor, AppColors.expense);
   });
 
   testWidgets('tile renders the arrow icon for student payments', (
@@ -80,7 +79,7 @@ void main() {
     final icon = tester.widget<Icon>(find.byIcon(Icons.arrow_downward_rounded));
 
     expect(icon.size, 20);
-    expect(icon.color, TransactionTileInfo.incomeColor);
+    expect(icon.color, AppColors.income);
     expect(find.text('IP'), findsNothing);
   });
 
@@ -100,8 +99,6 @@ void main() {
     expect(find.byIcon(Icons.arrow_downward_rounded), findsOneWidget);
   });
 
-  // Regression: the tile used to be wrapped in a horizontal padding inside the
-  // card, so its ink surface was narrower than the card itself.
   testWidgets('list tiles fill the whole card so their ink spans it', (
     tester,
   ) async {
@@ -124,8 +121,6 @@ void main() {
       ),
     );
 
-    // The list keeps 20px side margins, the tile fills the card completely and
-    // only its content keeps the 12px side inset.
     expect(tile.left, 20);
     expect(tile.right, screenWidth - 20);
     expect(avatar.left - tile.left, 12);
@@ -148,7 +143,7 @@ void main() {
     final icon = tester.widget<Icon>(find.byIcon(Icons.arrow_downward_rounded));
 
     expect(icon.size, 34);
-    expect(icon.color, TransactionTileInfo.incomeColor);
+    expect(icon.color, AppColors.income);
     expect(find.text('IP'), findsNothing);
   });
 }

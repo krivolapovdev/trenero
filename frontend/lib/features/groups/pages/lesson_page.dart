@@ -18,19 +18,11 @@ import 'package:phone/generated/models/visit_status.dart';
 import 'package:phone/generated/models/visit_type.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// Adds a lesson to a group: picks the date and marks every student.
-///
-/// When [lesson] is given the page only shows the lesson that is already stored
-/// on [date] first: its attendance is read-only and the menu of the page offers
-/// editing and deleting it. Picking `Edit` turns the page into the form that
-/// marks the students.
 class LessonPage extends ConsumerStatefulWidget {
   final String groupId;
 
-  /// The day the lesson is created for / the day [lesson] takes place.
   final DateTime date;
 
-  /// The stored lesson to open. When null a new lesson is created.
   final LessonResponse? lesson;
 
   const new({
@@ -45,20 +37,12 @@ class LessonPage extends ConsumerStatefulWidget {
 }
 
 class _LessonPageState extends ConsumerState<LessonPage> {
-  /// The colour the checkbox of a free lesson is filled with.
   static const Color _freeCheckColor = Color(0xFFFFC107);
 
   late DateTime _selectedDate;
 
-  /// Set once the user changes a mark, from then on it wins over the marks
-  /// loaded from the server.
   Map<String, LessonAttendance>? _pickedAttendance;
 
-  /// Whether the page marks the students.
-  ///
-  /// A stored lesson is only shown when it is opened, the marks wake up once
-  /// the user picks `Edit` in the menu of the page. A lesson that does not
-  /// exist yet has nothing to show, so it starts editable straight away.
   late bool _isEditing = widget.lesson == null;
 
   @override
@@ -67,7 +51,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     _selectedDate = widget.lesson?.date ?? widget.date;
   }
 
-  /// The marks that are stored for the lesson on the server, keyed by student.
   Map<String, LessonAttendance> _storedAttendance(
     AsyncValue<LessonDetailsResponse>? state,
   ) {
@@ -82,21 +65,12 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     };
   }
 
-  /// The mark a student starts with while not loaded from the server: present,
-  /// free when the student studies for free.
   LessonAttendance _defaultAttendance(GroupStudentSummaryResponse student) =>
       LessonAttendance(
         status: VisitStatus.present,
         type: student.free ? VisitType.free : VisitType.regular,
       );
 
-  /// The students of the lesson: the students of the group followed by the
-  /// students that carry a visit in it without being part of the group.
-  ///
-  /// A student that left the group is not listed by it any more, but their visit
-  /// stays in the lesson, so they are added back at the bottom from the students
-  /// the lesson details carry. Their row keeps the mark of the lesson, so saving
-  /// the lesson leaves their visit alone instead of dropping it.
   List<GroupStudentSummaryResponse> _lessonStudents(
     List<GroupStudentSummaryResponse> groupStudents,
     List<StudentResponse> visitStudents,
@@ -111,10 +85,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     ];
   }
 
-  /// The row of a student the group does not hold any more.
-  ///
-  /// The badges of the group are not known for them, and the lesson page draws
-  /// no badge of a student anyway.
   GroupStudentSummaryResponse _toGroupStudent(StudentResponse student) =>
       GroupStudentSummaryResponse(
         id: student.id,
@@ -127,8 +97,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
         statuses: const [],
       );
 
-  /// A new lesson starts with everybody present, a stored one with the marks
-  /// that were recorded for it, until the user changes one.
   Map<String, LessonAttendance> _attendance(
     List<GroupStudentSummaryResponse> students,
     Map<String, LessonAttendance> stored,
@@ -143,20 +111,17 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     };
   }
 
-  /// The type a mark keeps for [student]: a free student always stores free.
   VisitType _typeFor(
     GroupStudentSummaryResponse student,
     LessonAttendance? current,
   ) => student.free ? VisitType.free : (current?.type ?? VisitType.regular);
 
-  /// Whether the lesson that is being edited differs from the stored one.
   bool _hasChanges(
     Map<String, LessonAttendance> attendance,
     Map<String, LessonAttendance> stored,
   ) {
     final lesson = widget.lesson;
 
-    // A new lesson is always worth saving.
     if (lesson == null) return true;
 
     final isSameDay =
@@ -201,8 +166,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     _pickedAttendance = next;
   });
 
-  /// Marks the students of the list present or absent together. A student that
-  /// is left unmarked stays unmarked.
   void _toggleAll(
     Map<String, LessonAttendance> attendance,
     List<GroupStudentSummaryResponse> students,
@@ -227,8 +190,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     _pickedAttendance = next;
   });
 
-  /// Opens the sheet that picks the status and the type of [student]. Leaving
-  /// the student unmarked drops their visit.
   Future<void> _editStudent(
     GroupStudentSummaryResponse student,
     Map<String, LessonAttendance> attendance,
@@ -350,7 +311,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
       appBar: AppBar(
         title: Text(context.t.lessons.groupLesson),
         actions: [
-          // A stored lesson only shows its data until the user picks `Edit`.
           if (lesson == null || _isEditing)
             _buildSaveAction(
               students: students,
@@ -390,8 +350,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     );
   }
 
-  /// The action of the page, living in the app bar: creating a new lesson or
-  /// updating the stored one.
   Widget _buildSaveAction({
     required List<GroupStudentSummaryResponse> students,
     required Map<String, LessonAttendance> attendance,
@@ -414,11 +372,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     ),
   );
 
-  /// The actions of a stored lesson that is only shown, living in the app bar:
-  /// `Edit` to turn the page into the form and `Delete`.
-  ///
-  /// The form offers no menu, deleting a lesson is done from the page that
-  /// shows it.
   Widget _buildLessonMenu() {
     final colorScheme = Theme.of(context).colorScheme;
     final errorColor = colorScheme.error;
@@ -469,8 +422,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
         ),
         child: Text(
           _formatDate(_selectedDate),
-          // The date of a lesson that is only shown is read, not picked, yet it
-          // keeps the colour of the form instead of greying out.
           style: const TextStyle(fontSize: 16),
         ),
       ),
@@ -518,7 +469,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
                 ),
               )
             else ...[
-              // The whole list is marked together only while editing.
               if (canEdit && markedStudents.isNotEmpty)
                 Align(
                   alignment: Alignment.centerRight,
@@ -557,7 +507,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     );
   }
 
-  /// Whether every student of [students] is marked present.
   bool _allPresent(
     List<GroupStudentSummaryResponse> students,
     Map<String, LessonAttendance> attendance,
@@ -565,10 +514,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     (student) => attendance[student.id]?.status == VisitStatus.present,
   );
 
-  /// The students of a stored lesson that were never marked: they joined the
-  /// group later, so they have no visit for this lesson. They are folded away at
-  /// the bottom, drawn struck through and without a checkbox so they cannot be
-  /// marked by accident. The ellipsis still lets them be marked on purpose.
   Widget _buildUnmarkedAccordion({
     required List<GroupStudentSummaryResponse> students,
     required int firstNumber,
@@ -598,14 +543,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     ),
   );
 
-  /// One student of the lesson.
-  ///
-  /// While the lesson is edited the whole row is tappable: tapping it marks the
-  /// student present when they were not and absent when they were, a long press
-  /// opens the sheet that picks the status and the type. A lesson that is only
-  /// shown draws the mark without a checkbox, so the row keeps reading instead
-  /// of looking like a disabled control. A student that is unmarked has no mark
-  /// at all and is only marked on purpose, through the sheet.
   Widget _buildStudentTile({
     required GroupStudentSummaryResponse student,
     required int number,
@@ -665,10 +602,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     );
   }
 
-  /// The mark of a lesson that is only shown.
-  ///
-  /// Drawn as an icon the size a checkbox takes: the mark of a stored lesson is
-  /// data, and a disabled checkbox would grey it out until it is hard to read.
   Widget _buildAttendanceMark({
     required bool isPresent,
     required bool isFree,
@@ -697,8 +630,6 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     );
   }
 
-  /// The modifiers of a student, shown small under the name: an excused lesson
-  /// and a free lesson are not told by the checkbox alone.
   Widget? _buildSubtitle(LessonAttendance? attendance) {
     final modifiers = <String>[];
 

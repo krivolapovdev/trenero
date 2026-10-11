@@ -90,7 +90,7 @@ class _OutlinedTextFieldState extends State<OutlinedTextField> {
                 child: widget.leadingIcon,
               )
             : null,
-        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+        prefixIconConstraints: const BoxConstraints(),
         suffixIcon: widget.maxLength != null && _isFocused
             ? Padding(
                 padding: const EdgeInsets.only(right: 20, left: 12),
@@ -106,7 +106,7 @@ class _OutlinedTextFieldState extends State<OutlinedTextField> {
                 ),
               )
             : null,
-        suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+        suffixIconConstraints: const BoxConstraints(),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide(
@@ -116,7 +116,7 @@ class _OutlinedTextFieldState extends State<OutlinedTextField> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(width: 1, color: Colors.deepPurple),
+          borderSide: const BorderSide(color: Colors.deepPurple),
         ),
       ),
     );

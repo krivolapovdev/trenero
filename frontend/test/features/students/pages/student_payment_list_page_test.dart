@@ -30,8 +30,6 @@ class _FakeStudentListController extends StudentListController {
   Future<List<StudentSummaryResponse>> build() async => const [];
 }
 
-/// Answers the payments call of the page with an empty list, so the list shows
-/// its empty state without touching the network.
 class _FakeStudentPaymentsController extends StudentPaymentsController {
   new(super.studentId);
 
@@ -64,7 +62,7 @@ void main() {
           _FakeStudentListController.new,
         ),
         studentPaymentsControllerProvider.overrideWith2(
-          (studentId) => _FakeStudentPaymentsController(studentId),
+          _FakeStudentPaymentsController.new,
         ),
       ],
     );

@@ -8,7 +8,6 @@ void main() {
     await initializeDateFormatting();
   });
 
-  // 22 August 2025 is a Friday.
   final friday = DateTime(2025, 8, 22);
 
   test('writes the header in Russian for the Russian locale', () {

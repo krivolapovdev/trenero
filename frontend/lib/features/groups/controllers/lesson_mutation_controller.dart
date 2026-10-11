@@ -18,10 +18,6 @@ final lessonMutationControllerProvider =
       LessonMutationController.new,
     );
 
-/// Creates, updates and deletes the lessons of a group.
-///
-/// Every mutation reloads the lessons of the group, so the calendar of the
-/// group page is up to date when the lesson page closes.
 class LessonMutationController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
@@ -62,8 +58,6 @@ class LessonMutationController extends AsyncNotifier<void> {
           ),
         );
 
-    // The attendance shown by the lesson page is loaded from the server and
-    // has to be dropped once it changed.
     ref.invalidate(lessonDetailsProvider(lessonId));
   }, studentIds: students.map((student) => student.id));
 
@@ -88,9 +82,6 @@ class LessonMutationController extends AsyncNotifier<void> {
 
       await ref.read(groupLessonsProvider(groupId).notifier).refresh();
 
-      // The attendance of the lesson changed the statuses the student list
-      // shows, the monthly report of the group and the lessons the pages of the
-      // students of the group draw.
       refreshAfterGroupLessonsMutation(
         ref,
         groupId: groupId,
@@ -101,12 +92,6 @@ class LessonMutationController extends AsyncNotifier<void> {
     return !state.hasError;
   }
 
-  /// The ids of the students of [groupId], used to refresh their pages after a
-  /// lesson of the group changed.
-  ///
-  /// The group page caches the students of its group, so they are already loaded
-  /// when a lesson is saved; a group whose students are not loaded yet has no
-  /// page to refresh.
   Iterable<String> _groupStudentIds(String groupId) =>
       ref
           .read(groupStudentsProvider(groupId))
@@ -114,11 +99,6 @@ class LessonMutationController extends AsyncNotifier<void> {
           ?.map((student) => student.id) ??
       const <String>[];
 
-  /// The visits that are stored for the lesson.
-  ///
-  /// Only the students that carry a mark are sent: a student that is left
-  /// unmarked is missing from [attendance] and loses their visit. A student
-  /// who studies for free always stores a free lesson.
   List<StudentVisit> _buildVisits(
     List<GroupStudentSummaryResponse> students,
     Map<String, LessonAttendance> attendance,
@@ -133,6 +113,5 @@ class LessonMutationController extends AsyncNotifier<void> {
       )
       .toList();
 
-  /// The backend stores lessons per day, so the time part is dropped.
   DateTime _asDay(DateTime date) => DateTime(date.year, date.month, date.day);
 }

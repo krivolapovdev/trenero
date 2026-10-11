@@ -2,36 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-/// A text field that accepts a date typed as `dd.MM.yyyy`, for example
-/// `31.12.1999`.
-///
-/// The user only types digits: the dots are inserted by the mask while typing,
-/// so no calendar picker is needed inside bottom sheets.
 class DateInputField extends StatefulWidget {
-  /// The date the field starts with. A later change updates the typed text.
   final DateTime? initialDate;
 
-  /// Called on every text change with the parsed date, `null` when the text is
-  /// empty, incomplete, not a real calendar date or outside the allowed range.
   final ValueChanged<DateTime?> onDateChanged;
 
   final String labelText;
   final IconData? icon;
   final bool enabled;
 
-  /// Earliest date accepted by the field, unbounded when `null`.
   final DateTime? firstDate;
 
-  /// Latest date accepted by the field, unbounded when `null`.
   final DateTime? lastDate;
 
-  /// Shows the button that empties the field once it has content.
   final bool allowClear;
 
-  /// The example shown while the field is empty.
   static const String hint = '31.12.1999';
 
-  /// Amount of digits in a complete `dd.MM.yyyy` value.
   static const int digitCount = 8;
 
   const new({
@@ -46,15 +33,12 @@ class DateInputField extends StatefulWidget {
     this.allowClear = false,
   });
 
-  /// Formats [date] as `dd.MM.yyyy`, the only format the field accepts.
   static String format(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
     return '$day.$month.${date.year}';
   }
 
-  /// Parses a `dd.MM.yyyy` [text] into a date, or returns `null` when [text] is
-  /// not a complete, existing calendar date.
   static DateTime? tryParse(String text) {
     final match = RegExp(r'^(\d{2})\.(\d{2})\.(\d{4})$')
         .firstMatch(text.trim());
@@ -82,12 +66,8 @@ class _DateInputFieldState extends State<DateInputField> {
   DateTime? _date;
   String? _errorText;
 
-  /// The last text handled by [_onTextChanged]. The controller also notifies on
-  /// selection changes, which must not be reported back to the parent.
   late String _handledText;
 
-  /// Set while the text is updated from [DateInputField.initialDate], so the
-  /// resulting controller notification is not reported back to the parent.
   bool _isSyncing = false;
 
   @override
@@ -138,8 +118,6 @@ class _DateInputFieldState extends State<DateInputField> {
   }
 
   void _onFocusChanged() {
-    // An incomplete value is expected while typing, so the error is recomputed
-    // once the focus leaves the field.
     if (_focusNode.hasFocus) return;
     _refresh();
   }
@@ -205,8 +183,6 @@ class _DateInputFieldState extends State<DateInputField> {
   }
 }
 
-/// Keeps the typed text in the `dd.MM.yyyy` shape, inserting a dot after the
-/// day and after the month. Only the digits typed by the user are kept.
 class DateInputFormatter extends TextInputFormatter {
   const new();
 
@@ -251,7 +227,6 @@ class DateInputFormatter extends TextInputFormatter {
     return buffer.toString();
   }
 
-  /// The offset in [masked] placed right after [digitCount] digits.
   int _offsetForDigit(String masked, int digitCount) {
     if (digitCount <= 0) return 0;
 

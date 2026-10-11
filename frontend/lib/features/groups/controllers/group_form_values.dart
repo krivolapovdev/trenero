@@ -1,4 +1,3 @@
-/// The validated fields of the group form.
 class GroupFormValues {
   final String name;
   final double? defaultPrice;
@@ -11,10 +10,6 @@ class GroupFormValues {
   });
 }
 
-/// Validates the fields the create and the edit group sheets submit.
-///
-/// Throws an [ArgumentError] when a field cannot be stored, so the controller
-/// guard reports it to the user the way it reports a failed request.
 GroupFormValues validateGroupForm({
   required String name,
   required String? priceText,
