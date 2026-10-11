@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
-import 'package:phone/core/widgets/radial_expandable_fab.dart';
 import 'package:phone/core/widgets/recent_transactions.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
@@ -15,6 +14,7 @@ import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
 import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
+import 'package:phone/features/students/widgets/student_groups_section.dart';
 import 'package:phone/features/students/widgets/student_lessons_section.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -187,44 +187,6 @@ class _StudentPageState extends ConsumerState<StudentPage> {
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: RadialExpandableFab(
-        distance: 120.0,
-        children: [
-          FloatingActionButton(
-            heroTag: 'edit-student',
-            onPressed: _openEditStudentSheet,
-            elevation: 0,
-            focusElevation: 0,
-            highlightElevation: 0,
-            child: const Icon(Icons.edit),
-          ),
-          FloatingActionButton(
-            heroTag: 'payment-student',
-            onPressed: _openCreatePaymentSheet,
-            elevation: 0,
-            focusElevation: 0,
-            highlightElevation: 0,
-            child: const Icon(Icons.payments),
-          ),
-          FloatingActionButton(
-            heroTag: 'lesson-student',
-            onPressed: _openCreateLessonPage,
-            elevation: 0,
-            focusElevation: 0,
-            highlightElevation: 0,
-            child: const Icon(Icons.calendar_month),
-          ),
-          FloatingActionButton(
-            heroTag: 'group-student',
-            onPressed: _openAssignGroupPage,
-            elevation: 0,
-            focusElevation: 0,
-            highlightElevation: 0,
-            child: const Icon(Icons.group),
-          ),
-        ],
-      ),
       body: CustomMaterialIndicator(
         color: Colors.black,
         clipBehavior: Clip.antiAlias,
@@ -264,8 +226,10 @@ class _StudentPageState extends ConsumerState<StudentPage> {
           }
         },
         child: SingleChildScrollView(
-          padding: kRadialFabContentPadding,
-          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           child: Column(
             spacing: 16,
             children: [
@@ -305,6 +269,11 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                     ),
                   );
                 },
+              ),
+
+              StudentGroupsSection(
+                student: _student,
+                onEdit: _openAssignGroupPage,
               ),
             ],
           ),

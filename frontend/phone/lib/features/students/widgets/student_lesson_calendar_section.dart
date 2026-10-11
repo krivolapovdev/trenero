@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/widgets/create_lesson_button.dart';
 import 'package:phone/core/widgets/lessons_calendar.dart';
 import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
 
-/// One block of the lessons of a student: the title over the calendar that
-/// draws only its own lessons.
+/// One block of the lessons of a student: the title of the block with the
+/// action that creates a lesson of it, over the calendar that draws only its own
+/// lessons.
 ///
 /// The calendar is driven by the owner through [focusedDay] and is not stepped
 /// by a sideways swipe, so the blocks of the section move through the months
@@ -12,8 +14,8 @@ import 'package:phone/generated/models/visit_status.dart';
 /// header of the calendar are hidden, so the block sits inside the surface of
 /// the section together with the other blocks.
 class StudentLessonCalendarSection extends StatelessWidget {
-  /// The title drawn above the calendar, at the left: `Individual lessons` or
-  /// the name of a group.
+  /// The title drawn at the left of the header of the block: `Individual
+  /// lessons` or the name of a group.
   final String title;
 
   /// The lessons the calendar draws.
@@ -33,6 +35,15 @@ class StudentLessonCalendarSection extends StatelessWidget {
   /// colour the day by the attendance of the student.
   final List<VisitStatus> Function(DateTime day)? dayVisitStatuses;
 
+  /// Called when the action of the header is tapped, it opens the page that
+  /// creates a lesson of this block.
+  ///
+  /// The action sits at the right of the title, so the block of a group creates
+  /// a lesson of that group while the block of the individual lessons creates an
+  /// individual one. When no action is given the block draws the title and the
+  /// calendar alone.
+  final VoidCallback? onCreate;
+
   const new({
     super.key,
     required this.title,
@@ -41,6 +52,7 @@ class StudentLessonCalendarSection extends StatelessWidget {
     required this.onDayTapped,
     this.locale,
     this.dayVisitStatuses,
+    this.onCreate,
   });
 
   @override
@@ -49,10 +61,16 @@ class StudentLessonCalendarSection extends StatelessWidget {
     children: [
       Padding(
         padding: const EdgeInsets.all(8),
-        child: Text(
-          title,
-          textAlign: TextAlign.left,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.left,
+              style: const TextStyle(fontSize: 18),
+            ),
+            if (onCreate != null) CreateLessonButton(onPressed: onCreate),
+          ],
         ),
       ),
       LessonsCalendar(

@@ -69,7 +69,9 @@ class _TransactionListViewState extends State<TransactionListView> {
 
     return ListView(
       controller: _scrollController,
-      physics: const AlwaysScrollableScrollPhysics(),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 0),
       children: [
         ...groupedTransactions.entries.expand((entry) {

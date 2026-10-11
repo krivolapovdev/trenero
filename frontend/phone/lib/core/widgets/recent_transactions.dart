@@ -68,28 +68,12 @@ class RecentTransactions extends StatelessWidget {
                   style: const TextStyle(fontSize: 18, color: Colors.black),
                 ),
                 if (onSeeAllPressed != null)
-                  FilledButton.icon(
+                  TextButton(
                     onPressed: onSeeAllPressed,
-                    iconAlignment: IconAlignment.end,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFFE8DEF8),
-                      foregroundColor: const Color(0xFF1D192B),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      textStyle: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
+                    child: Text(
+                      context.t.all,
+                      style: const TextStyle(fontSize: 16),
                     ),
-                    label: Text(context.t.all),
-                    icon: const Icon(Icons.chevron_right, size: 18),
                   ),
               ],
             ),

@@ -321,6 +321,9 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
             focusedDay: focusedDay,
             locale: locale,
             group: group,
+            // The calendar of a group carries the button that creates a lesson
+            // of the group.
+            onCreate: () => _createGroupLesson(context, group),
           ),
         if (StudentLessonsSection.showsIndividualCalendar(
           visits,
@@ -332,6 +335,8 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
             visits: StudentLessonsSection.individualVisits(visits),
             focusedDay: focusedDay,
             locale: locale,
+            // Enables the create button for individual lessons as well.
+            onCreate: () => _createIndividualLesson(context),
           ),
       ],
     );
@@ -344,6 +349,7 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
     required DateTime focusedDay,
     required String? locale,
     GroupResponse? group,
+    VoidCallback? onCreate,
   }) => StudentLessonCalendarSection(
     title: title,
     locale: locale,
@@ -351,10 +357,28 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
     focusedDay: focusedDay,
     dayVisitStatuses: (day) =>
         StudentLessonsSection.dayVisitStatusesOf(visits, day),
+    onCreate: onCreate,
     onDayTapped: (selectedDay, dayLessons) => group == null
         ? _openIndividualDay(context, selectedDay, visits)
         : _openGroupDay(context, selectedDay, group, visits),
   );
+
+  /// Opens the page that creates a lesson of [group].
+  ///
+  /// The page starts on today, the lessons are only ever recorded for the past.
+  Future<void> _createGroupLesson(
+    BuildContext context,
+    GroupResponse group,
+  ) async {
+    await _openGroupLessonPage(context, group.id, DateTime.now(), null);
+  }
+
+  /// Opens the page that creates an individual lesson.
+  ///
+  /// The page starts on today, the lessons are only ever recorded for the past.
+  Future<void> _createIndividualLesson(BuildContext context) async {
+    await _openIndividualLessonPage(context, DateTime.now(), null);
+  }
 
   /// Opens the individual lesson of the tapped day, or the page that creates
   /// one when the day has none.

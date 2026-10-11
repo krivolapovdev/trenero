@@ -9,13 +9,25 @@ class GroupCard extends StatelessWidget {
   final GroupSummaryResponse group;
   final VoidCallback onTap;
 
-  const new({super.key, required this.group, required this.onTap});
+  /// Whether the card draws the note of the group.
+  ///
+  /// The note is dropped where the card only tells which groups a student
+  /// belongs to and the note of a single group is out of place.
+  final bool noteVisible;
+
+  const new({
+    super.key,
+    required this.group,
+    required this.onTap,
+    this.noteVisible = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final hasNote = group.note != null && group.note!.trim().isNotEmpty;
+    final hasNote =
+        noteVisible && group.note != null && group.note!.trim().isNotEmpty;
 
     return Card(
       elevation: 0,

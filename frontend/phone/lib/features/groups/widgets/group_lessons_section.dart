@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
+import 'package:phone/core/widgets/create_lesson_button.dart';
 import 'package:phone/core/widgets/lessons_calendar.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
@@ -121,12 +122,8 @@ class GroupLessonsSection extends ConsumerWidget {
             ),
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton(
+              child: CreateLessonButton(
                 onPressed: () => _openLessonPage(context, DateTime.now(), null),
-                child: Text(
-                  context.t.create,
-                  style: const TextStyle(fontSize: 16),
-                ),
               ),
             ),
           ],

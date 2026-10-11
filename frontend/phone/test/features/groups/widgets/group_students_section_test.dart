@@ -154,12 +154,12 @@ Future<void> _pumpSection(
 }
 
 /// Opens the group page of the student the section card points at, the way the
-/// student page does.
+/// student page does: through the menu of the app bar.
 Future<void> _openGroupPage(WidgetTester tester) async {
-  await tester.tap(find.byType(AnimatedIcon));
+  await tester.tap(find.byType(PopupMenuButton<String>));
   await tester.pumpAndSettle();
 
-  await tester.tap(find.byIcon(Icons.group));
+  await tester.tap(find.text(t.students.group));
   await tester.pumpAndSettle();
 }
 
@@ -183,7 +183,7 @@ void main() {
     expect(find.text(t.students.title), findsOneWidget);
     expect(find.text('1. Anna Smirnova'), findsOneWidget);
 
-    await tester.tap(find.text(t.update));
+    await tester.tap(find.text(t.edit));
     await tester.pumpAndSettle();
 
     expect(updated, isTrue);

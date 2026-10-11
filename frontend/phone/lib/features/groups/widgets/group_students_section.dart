@@ -86,7 +86,7 @@ class GroupStudentsSection extends ConsumerWidget {
     List<StudentSummaryResponse> listedStudents, {
     bool isLoading = false,
   }) => Container(
-    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
@@ -94,12 +94,25 @@ class GroupStudentsSection extends ConsumerWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 8,
       children: [
-        Text(
-          context.t.students.title,
-          style: const TextStyle(fontSize: 18, color: Colors.black),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              context.t.students.title,
+              style: const TextStyle(fontSize: 18, color: Colors.black),
+            ),
+            if (onEdit != null)
+              TextButton(
+                onPressed: onEdit,
+                child: Text(
+                  context.t.edit,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+          ],
         ),
+        SizedBox(height: 8),
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -136,14 +149,6 @@ class GroupStudentsSection extends ConsumerWidget {
             );
           },
         ),
-        if (onEdit != null)
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: onEdit,
-              child: Text(context.t.edit, style: const TextStyle(fontSize: 16)),
-            ),
-          ),
       ],
     ),
   );
