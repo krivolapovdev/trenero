@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/card_badge.dart';
-import 'package:phone/features/groups/controllers/lesson_details_controller.dart';
 import 'package:phone/generated/models/lesson_details_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
@@ -64,17 +63,13 @@ class GroupDayLessonsBottomSheet extends ConsumerWidget {
     required LessonResponse lesson,
   }) => ListTile(
     contentPadding: EdgeInsets.zero,
-    leading: const Icon(Icons.groups_outlined),
     title: Text(
-      '${context.t.lessons.groupLesson} $number',
+      '${context.t.lessons.title} $number',
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: const TextStyle(fontSize: 16),
     ),
-    trailing: _buildAttendanceBadge(
-      context,
-      ref.watch(lessonDetailsProvider(lesson.id)),
-    ),
+    trailing: Icon(Icons.chevron_right, color: Colors.black54),
     onTap: () => _select(context, GroupDayLessonSelection(lesson: lesson)),
   );
 
