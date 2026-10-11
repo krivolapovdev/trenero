@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/features/groups/pages/group_page.dart';
-import 'package:phone/features/groups/pages/group_report_page.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/features/groups/services/lesson_service.dart';
 import 'package:phone/features/groups/widgets/group_day_lessons_bottom_sheet.dart';
+import 'package:phone/features/groups/widgets/group_report_bottom_sheet.dart';
 import 'package:phone/generated/group_controller/group_controller_client.dart';
 import 'package:phone/generated/lesson_controller/lesson_controller_client.dart';
 import 'package:phone/generated/models/create_group_request.dart';
@@ -167,21 +167,21 @@ void main() {
     LocaleSettings.setLocaleSync(AppLocale.en);
   });
 
-  testWidgets('the app bar menu opens the report page', (tester) async {
+  testWidgets('the app bar menu opens the report sheet', (tester) async {
     await tester.pumpWidget(_wrap(_FakeGroupClient()));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byType(PopupMenuButton<String>));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Report'));
+    await tester.tap(find.text(t.groups.report));
     await tester.pumpAndSettle();
 
-    expect(find.byType(GroupReportPage), findsOneWidget);
-    expect(find.text('Anna Smirnova'), findsOneWidget);
+    expect(find.byType(GroupReportBottomSheet), findsOneWidget);
+    expect(find.text(t.print), findsOneWidget);
   });
 
-  testWidgets('the floating button opens the report page', (tester) async {
+  testWidgets('the floating button opens the report sheet', (tester) async {
     await tester.pumpWidget(_wrap(_FakeGroupClient()));
     await tester.pumpAndSettle();
 
@@ -192,8 +192,8 @@ void main() {
     await tester.tap(find.byIcon(Icons.print));
     await tester.pumpAndSettle();
 
-    expect(find.byType(GroupReportPage), findsOneWidget);
-    expect(find.text('Anna Smirnova'), findsOneWidget);
+    expect(find.byType(GroupReportBottomSheet), findsOneWidget);
+    expect(find.text(t.print), findsOneWidget);
   });
 
   testWidgets('the app bar menu opens the add lesson page', (tester) async {

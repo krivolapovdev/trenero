@@ -48,6 +48,8 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get all => 'Все';
 	@override String get today => 'Сегодня';
 	@override String get yesterday => 'Вчера';
+	@override String get month => 'Месяц';
+	@override String get year => 'Год';
 	@override String get print => 'Печать';
 	@override String get error => 'Ошибка';
 	@override String get noData => 'Нет данных';
@@ -297,6 +299,8 @@ extension on TranslationsRu {
 			'all' => 'Все',
 			'today' => 'Сегодня',
 			'yesterday' => 'Вчера',
+			'month' => 'Месяц',
+			'year' => 'Год',
 			'print' => 'Печать',
 			'error' => 'Ошибка',
 			'noData' => 'Нет данных',

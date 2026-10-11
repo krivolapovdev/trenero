@@ -9,6 +9,8 @@
   "all": "All",
   "today": "Today",
   "yesterday": "Yesterday",
+  "month": "Month",
+  "year": "Year",
   "print": "Print",
   "error": "Error",
   "noData": "No data",

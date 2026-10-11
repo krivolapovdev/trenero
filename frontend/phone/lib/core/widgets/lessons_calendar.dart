@@ -49,6 +49,11 @@ class LessonsCalendar extends StatefulWidget {
   ///
   /// Turned off when the owner draws its own month header and only that header
   /// is meant to step the months.
+  ///
+  /// Only the sideways swipe is ever handed to the calendar: the vertical swipe
+  /// of `table_calendar` changes the format of the grid, which this calendar
+  /// never uses, yet the detector it installs still wins the vertical drags
+  /// from the page that scrolls the calendar and freezes it.
   final bool swipeEnabled;
 
   const new({
@@ -285,9 +290,9 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
       // The days after today are shown greyed out and cannot be tapped.
       enabledDayPredicate: _isEnabledDay,
       headerVisible: widget.headerVisible,
-      availableGestures: widget.swipeEnabled
-          ? AvailableGestures.all
-          : AvailableGestures.none,
+      // Only the sideways swipe is offered, so the page the calendar is
+      // scrolled in keeps the vertical drags that start on the grid.
+      availableGestures: AvailableGestures.none,
       onPageChanged: _onPageChanged,
       selectedDayPredicate: (day) => false,
       onDaySelected: _onDaySelected,

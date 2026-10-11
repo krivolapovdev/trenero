@@ -6,12 +6,12 @@ import 'package:phone/core/widgets/radial_expandable_fab.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
-import 'package:phone/features/groups/pages/group_report_page.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/widgets/edit_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_hero_card.dart';
 import 'package:phone/features/groups/widgets/group_lessons_section.dart';
 import 'package:phone/features/groups/widgets/group_popup_menu.dart';
+import 'package:phone/features/groups/widgets/group_report_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_students_section.dart';
 import 'package:phone/generated/export.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -44,9 +44,10 @@ class _GroupPageState extends ConsumerState<GroupPage> {
     if (updated != null) setState(() => _group = updated);
   }
 
-  Future<void> _openReportPage() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => GroupReportPage(group: _group)),
+  Future<void> _openReportSheet() async {
+    await AppBottomSheet.show(
+      context: context,
+      child: GroupReportBottomSheet(group: _group),
     );
   }
 
@@ -111,7 +112,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
           ),
           FloatingActionButton(
             heroTag: 'report-group',
-            onPressed: _openReportPage,
+            onPressed: _openReportSheet,
             elevation: 0,
             focusElevation: 0,
             highlightElevation: 0,

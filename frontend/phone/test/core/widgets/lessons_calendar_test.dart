@@ -373,4 +373,61 @@ void main() {
     expect(changes, isEmpty);
     expect(find.text('May 2026'), findsOneWidget);
   });
+
+  testWidgets('a sideways swipe shows the next month', (tester) async {
+    final changes = <DateTime>[];
+
+    await tester.pumpWidget(
+      _wrap(
+        LessonsCalendar(
+          lessons: const [],
+          focusedDay: DateTime(2026, 5, 1),
+          onMonthChanged: changes.add,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(
+      find.byType(TableCalendar<LessonResponse>),
+      const Offset(-600, 0),
+    );
+    await tester.pumpAndSettle();
+
+    expect(changes, isNotEmpty);
+    expect(changes.first.month, DateTime.june);
+  });
+
+  testWidgets('a vertical drag on the grid scrolls the page it sits in', (
+    tester,
+  ) async {
+    final scrollController = ScrollController();
+    addTearDown(scrollController.dispose);
+
+    await tester.pumpWidget(
+      _wrap(
+        SingleChildScrollView(
+          controller: scrollController,
+          child: Column(
+            children: [
+              LessonsCalendar(lessons: const []),
+              const SizedBox(height: 1200),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // table_calendar installs a vertical swipe detector for the format of its
+    // grid, which this calendar never changes. That detector used to win the
+    // drags of the page that scrolls the calendar and leave it frozen.
+    await tester.drag(
+      find.byType(TableCalendar<LessonResponse>),
+      const Offset(0, -300),
+    );
+    await tester.pumpAndSettle();
+
+    expect(scrollController.offset, greaterThan(0));
+  });
 }

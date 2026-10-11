@@ -23,13 +23,22 @@ class GroupReportPdfService {
   static const String regularFontAsset = 'assets/fonts/Roboto-Regular.ttf';
   static const String boldFontAsset = 'assets/fonts/Roboto-Bold.ttf';
 
-  /// Landscape A4 with narrow margins: the report needs one column per day of
-  /// the month.
+  /// Album (landscape) A4 with narrow margins: the report needs one column per
+  /// day of the month, so the sheet is used on its long side (`297 x 210`).
   static const PdfPageFormat pageFormat = PdfPageFormat(
     297 * PdfPageFormat.mm,
     210 * PdfPageFormat.mm,
     marginAll: 10 * PdfPageFormat.mm,
   );
+
+  /// Side of the square a mark is drawn in and the width of its stroke.
+  static const double _markSize = 9;
+  static const double _markStroke = 1.3;
+
+  /// The colour of a present lesson and of a paid month, and the colour of a
+  /// missed lesson and of an unpaid month.
+  static const PdfColor _presentColor = PdfColors.green800;
+  static const PdfColor _missingColor = PdfColors.red800;
 
   static const double _numberWidth = 26;
   static const double _nameWidth = 150;
@@ -209,10 +218,7 @@ class GroupReportPdfService {
         decoration: const pw.BoxDecoration(color: PdfColors.grey100),
         children: [
           _buildCell(null),
-          _buildCell(
-            pw.Text(t.reports.total, style: _totalStyle),
-            alignment: pw.Alignment.centerLeft,
-          ),
+          _buildCell(null),
           for (var day = 1; day <= report.dayCount; day++) _buildCell(null),
           _buildCell(null),
           _buildCell(
@@ -224,20 +230,48 @@ class GroupReportPdfService {
         ],
       );
 
-  /// A `+` for a present lesson or a paid month, a `-` for a missed lesson or
+  /// A `✓` for a present lesson or a paid month, a `✕` for a missed lesson or
   /// an unpaid month and an empty cell for a day without a lesson.
+  ///
+  /// Both marks are stroked paths instead of characters: the embedded Roboto
+  /// has neither `✓` (U+2713) nor `✕` (U+2715), so a text cell would print an
+  /// empty box.
   pw.Widget _buildMarkCell(bool? mark) {
     if (mark == null) return _buildCell(null);
 
-    return _buildCell(
-      pw.Text(
-        mark ? '+' : '-',
-        style: _cellStyle.copyWith(
-          color: mark ? PdfColors.green800 : PdfColors.red800,
-        ),
-      ),
-    );
+    return _buildCell(_buildMark(mark));
   }
+
+  /// The mark of a single cell.
+  ///
+  /// A widget is painted from the bottom left corner of its box upwards, so the
+  /// elbow of the check and the four ends of the cross are given in that
+  /// coordinate system.
+  pw.Widget _buildMark(bool isPresent) => pw.CustomPaint(
+    size: const PdfPoint(_markSize, _markSize),
+    painter: (canvas, size) {
+      canvas
+        ..setStrokeColor(isPresent ? _presentColor : _missingColor)
+        ..setLineWidth(_markStroke)
+        ..setLineCap(PdfLineCap.round)
+        ..setLineJoin(PdfLineJoin.round);
+
+      if (isPresent) {
+        canvas
+          ..moveTo(1.0, 4.6)
+          ..lineTo(3.2, 2.0)
+          ..lineTo(8.0, 7.4);
+      } else {
+        canvas
+          ..moveTo(1.4, 1.4)
+          ..lineTo(7.6, 7.6)
+          ..moveTo(7.6, 1.4)
+          ..lineTo(1.4, 7.6);
+      }
+
+      canvas.strokePath();
+    },
+  );
 
   pw.Widget _buildHeaderCell(
     String text, {

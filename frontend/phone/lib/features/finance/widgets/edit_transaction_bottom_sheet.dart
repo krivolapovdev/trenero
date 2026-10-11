@@ -209,7 +209,7 @@ class _EditTransactionBottomSheetState
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Icon(FluentIcons.checkmark_24_regular),
+                                : null,
                             label: Text(
                               context.t.edit,
                               style: const TextStyle(fontSize: 18),

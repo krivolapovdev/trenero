@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -46,6 +47,46 @@ List<double> _pageSize(String pdf) {
   expect(match, isNotNull, reason: 'the document should have a page size');
 
   return match!.group(1)!.split(' ').skip(2).map(double.parse).toList();
+}
+
+/// The drawing commands of the page, read back from its content stream.
+///
+/// The stream is compressed, so every candidate stream is inflated before it
+/// can be searched.
+String _pageContent(Uint8List bytes) {
+  final text = latin1.decode(bytes);
+  final buffer = StringBuffer();
+  var index = 0;
+
+  while (true) {
+    final start = text.indexOf('stream', index);
+    if (start < 0) break;
+
+    var dataStart = start + 'stream'.length;
+    if (text[dataStart] == '\r') dataStart++;
+    if (text[dataStart] == '\n') dataStart++;
+
+    final end = text.indexOf('endstream', dataStart);
+    if (end < 0) break;
+
+    final raw = bytes.sublist(dataStart, end);
+    for (final candidate in [
+      raw,
+      Uint8List.sublistView(raw, 0, raw.length - 1),
+      Uint8List.sublistView(raw, 0, raw.length - 2),
+    ]) {
+      try {
+        buffer.writeln(latin1.decode(zlib.decode(candidate)));
+        break;
+      } catch (_) {
+        continue;
+      }
+    }
+
+    index = end + 'endstream'.length;
+  }
+
+  return buffer.toString();
 }
 
 void main() {
@@ -116,5 +157,24 @@ void main() {
       GroupReportPdfService.documentName(_report(groupName: 'Группа А')),
       'Группа А 2026-02.pdf',
     );
+  });
+
+  test('draws the check and the cross as strokes, not as characters', () async {
+    final bytes = await service.build(
+      _report(),
+      t: LocaleSettings.instance.currentTranslations,
+      locale: 'en',
+    );
+
+    final content = _pageContent(bytes);
+
+    // Anna is present on the first lesson day and paid, so that day and the
+    // payment column hold a check; the second lesson day is crossed out.
+    //
+    // Both marks are drawn as paths: the embedded Roboto has neither `✓`
+    // (U+2713) nor `✕` (U+2715), so a text cell would print an empty box.
+    expect(content, contains('1 4.6 m 3.2 2 l 8 7.4 l S'));
+    expect(content, contains('1.4 1.4 m 7.6 7.6 l 7.6 1.4 m 1.4 7.6 l S'));
+    expect(content, contains('1 J 1 j'), reason: 'the marks are rounded');
   });
 }

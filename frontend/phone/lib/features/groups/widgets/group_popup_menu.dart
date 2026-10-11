@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
-import 'package:phone/features/groups/pages/group_report_page.dart';
 import 'package:phone/features/groups/pages/group_students_page.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/widgets/edit_group_bottom_sheet.dart';
+import 'package:phone/features/groups/widgets/group_report_bottom_sheet.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -13,9 +13,10 @@ class GroupPopupMenu extends StatelessWidget {
 
   const new({super.key, required this.group});
 
-  void _openReportPage(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => GroupReportPage(group: group)),
+  void _openReportSheet(BuildContext context) {
+    AppBottomSheet.show(
+      context: context,
+      child: GroupReportBottomSheet(group: group),
     );
   }
 
@@ -64,7 +65,7 @@ class GroupPopupMenu extends StatelessWidget {
         ),
       ),
       PopupMenuItem<String>(
-        onTap: () => _openReportPage(context),
+        onTap: () => _openReportSheet(context),
         child: Row(
           children: [
             const Icon(CupertinoIcons.printer, size: 20),

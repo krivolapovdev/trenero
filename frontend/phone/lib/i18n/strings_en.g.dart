@@ -72,6 +72,12 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Yesterday'
 	String get yesterday => 'Yesterday';
 
+	/// en: 'Month'
+	String get month => 'Month';
+
+	/// en: 'Year'
+	String get year => 'Year';
+
 	/// en: 'Print'
 	String get print => 'Print';
 
@@ -560,6 +566,8 @@ extension on Translations {
 			'all' => 'All',
 			'today' => 'Today',
 			'yesterday' => 'Yesterday',
+			'month' => 'Month',
+			'year' => 'Year',
 			'print' => 'Print',
 			'error' => 'Error',
 			'noData' => 'No data',
