@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
+import 'package:phone/features/finance/widgets/transaction_filter_button.dart';
 import 'package:phone/features/finance/widgets/transaction_list_body.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -18,6 +19,8 @@ class TransactionListPage extends ConsumerWidget {
       backgroundColor: Theme.of(context).colorScheme.surface,
       surfaceTintColor: Theme.of(context).colorScheme.surface,
       actions: [
+        const TransactionFilterButton(),
+
         IconButton(
           icon: const Icon(FluentIcons.savings_24_regular),
           tooltip: context.t.finance.createTransaction,
@@ -26,6 +29,7 @@ class TransactionListPage extends ConsumerWidget {
             child: const CreateTransactionBottomSheet(),
           ),
         ),
+
         const SizedBox(width: 8),
       ],
       shape: const RoundedRectangleBorder(

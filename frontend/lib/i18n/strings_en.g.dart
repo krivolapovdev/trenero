@@ -460,6 +460,8 @@ class Translations$finance$en {
 
 	/// en: 'The transaction will be deleted permanently. This action cannot be undone.'
 	String get deleteTransactionMessage => 'The transaction will be deleted permanently. This action cannot be undone.';
+
+	late final Translations$finance$filter$en filter = Translations$finance$filter$en._(_root);
 }
 
 // Path: students.filter
@@ -514,6 +516,27 @@ class Translations$students$status$en {
 
 	/// en: 'Free'
 	String get free => 'Free';
+}
+
+// Path: finance.filter
+class Translations$finance$filter$en {
+	Translations$finance$filter$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Period'
+	String get title => 'Period';
+
+	/// en: 'Start'
+	String get start => 'Start';
+
+	/// en: 'End'
+	String get end => 'End';
+
+	/// en: 'Continue'
+	String get apply => 'Continue';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -651,6 +674,10 @@ extension on Translations {
 			'finance.editTransaction' => 'Edit transaction',
 			'finance.deleteTransaction' => 'Delete transaction?',
 			'finance.deleteTransactionMessage' => 'The transaction will be deleted permanently. This action cannot be undone.',
+			'finance.filter.title' => 'Period',
+			'finance.filter.start' => 'Start',
+			'finance.filter.end' => 'End',
+			'finance.filter.apply' => 'Continue',
 			_ => null,
 		};
 	}

@@ -142,6 +142,12 @@
     "withdrawal": "Withdrawal",
     "editTransaction": "Edit transaction",
     "deleteTransaction": "Delete transaction?",
-    "deleteTransactionMessage": "The transaction will be deleted permanently. This action cannot be undone."
+    "deleteTransactionMessage": "The transaction will be deleted permanently. This action cannot be undone.",
+    "filter": {
+      "title": "Period",
+      "start": "Start",
+      "end": "End",
+      "apply": "Continue"
+    }
   }
 }

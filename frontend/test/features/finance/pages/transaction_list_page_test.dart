@@ -6,6 +6,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:phone/features/finance/pages/transaction_list_page.dart';
 import 'package:phone/features/finance/services/transaction_service.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
+import 'package:phone/features/finance/widgets/transaction_period_filter_bottom_sheet.dart';
 import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/models/page_transaction_response.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
@@ -64,5 +65,25 @@ void main() {
 
     expect(find.byType(CreateTransactionBottomSheet), findsOneWidget);
     expect(find.text(t.finance.createTransaction), findsOneWidget);
+  });
+
+  testWidgets('the app bar offers filtering the transactions', (tester) async {
+    await tester.pumpWidget(_wrap(const TransactionListPage()));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(FluentIcons.filter_28_regular), findsOneWidget);
+  });
+
+  testWidgets('tapping the app bar filter opens the period sheet', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(const TransactionListPage()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(FluentIcons.filter_28_regular));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TransactionPeriodFilterBottomSheet), findsOneWidget);
+    expect(find.text(t.finance.filter.title), findsOneWidget);
   });
 }

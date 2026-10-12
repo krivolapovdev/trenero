@@ -225,6 +225,7 @@ class _Translations$finance$ru implements Translations$finance$en {
 	@override String get editTransaction => 'Редактировать транзакцию';
 	@override String get deleteTransaction => 'Удалить транзакцию?';
 	@override String get deleteTransactionMessage => 'Транзакция будет удалена безвозвратно. Действие нельзя отменить.';
+	@override late final _Translations$finance$filter$ru filter = _Translations$finance$filter$ru._(_root);
 }
 
 // Path: students.filter
@@ -255,6 +256,19 @@ class _Translations$students$status$ru implements Translations$students$status$e
 	@override String get paid => 'Оплачено';
 	@override String get unpaid => 'Не оплачено';
 	@override String get free => 'Бесплатно';
+}
+
+// Path: finance.filter
+class _Translations$finance$filter$ru implements Translations$finance$filter$en {
+	_Translations$finance$filter$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Период';
+	@override String get start => 'Начало';
+	@override String get end => 'Конец';
+	@override String get apply => 'Продолжить';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -392,6 +406,10 @@ extension on TranslationsRu {
 			'finance.editTransaction' => 'Редактировать транзакцию',
 			'finance.deleteTransaction' => 'Удалить транзакцию?',
 			'finance.deleteTransactionMessage' => 'Транзакция будет удалена безвозвратно. Действие нельзя отменить.',
+			'finance.filter.title' => 'Период',
+			'finance.filter.start' => 'Начало',
+			'finance.filter.end' => 'Конец',
+			'finance.filter.apply' => 'Продолжить',
 			_ => null,
 		};
 	}
