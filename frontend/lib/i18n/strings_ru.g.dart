@@ -55,6 +55,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get noTransactions => 'Нет операций';
 	@override String get pleaseUpdateApp => 'Пожалуйста, обновите приложение';
 	@override String get invalidDate => 'Некорректная дата';
+	@override String titleWithCount({required Object title, required Object count}) => '${title} [${count}]';
 	@override String errorLoadingData({required Object error}) => 'Ошибка загрузки данных: ${error}';
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
 	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
@@ -297,6 +298,7 @@ extension on TranslationsRu {
 			'noTransactions' => 'Нет операций',
 			'pleaseUpdateApp' => 'Пожалуйста, обновите приложение',
 			'invalidDate' => 'Некорректная дата',
+			'titleWithCount' => ({required Object title, required Object count}) => '${title} [${count}]',
 			'errorLoadingData' => ({required Object error}) => 'Ошибка загрузки данных: ${error}',
 			'auth.signInWithGoogle' => 'Войти через Google',
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',

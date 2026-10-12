@@ -20,6 +20,15 @@ class GroupListPage extends ShellPage {
   });
 
   @override
+  Widget titleView(BuildContext context) => Consumer(
+    builder: (context, ref, child) {
+      final groups = ref.watch(groupListControllerProvider).value;
+
+      return titleWithCount(context, groups?.length ?? 0);
+    },
+  );
+
+  @override
   List<Widget> actions(BuildContext context) => [
     const GroupSearchButton(),
     IconButton(

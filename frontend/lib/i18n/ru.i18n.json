@@ -16,6 +16,7 @@
   "noTransactions": "Нет операций",
   "pleaseUpdateApp": "Пожалуйста, обновите приложение",
   "invalidDate": "Некорректная дата",
+  "titleWithCount": "$title [$count]",
   "errorLoadingData": "Ошибка загрузки данных: $error",
   "auth": {
     "signInWithGoogle": "Войти через Google",

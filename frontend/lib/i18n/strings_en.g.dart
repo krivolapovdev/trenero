@@ -93,6 +93,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Invalid date'
 	String get invalidDate => 'Invalid date';
 
+	/// en: '$title [$count]'
+	String titleWithCount({required Object title, required Object count}) => '${title} [${count}]';
+
 	/// en: 'Error loading data: $error'
 	String errorLoadingData({required Object error}) => 'Error loading data: ${error}';
 
@@ -567,6 +570,7 @@ extension on Translations {
 			'noTransactions' => 'No transactions',
 			'pleaseUpdateApp' => 'Please, update the app',
 			'invalidDate' => 'Invalid date',
+			'titleWithCount' => ({required Object title, required Object count}) => '${title} [${count}]',
 			'errorLoadingData' => ({required Object error}) => 'Error loading data: ${error}',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',

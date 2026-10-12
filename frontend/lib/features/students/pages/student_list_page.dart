@@ -21,6 +21,12 @@ class StudentListPage extends ShellPage {
   });
 
   @override
+  Widget titleView(BuildContext context) => Consumer(
+    builder: (context, ref, child) =>
+        titleWithCount(context, ref.watch(filteredStudentsProvider).length),
+  );
+
+  @override
   List<Widget> actions(BuildContext context) => [
     const StudentSearchButton(),
     const StudentFilterButton(),

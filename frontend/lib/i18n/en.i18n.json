@@ -16,6 +16,7 @@
   "noTransactions": "No transactions",
   "pleaseUpdateApp": "Please, update the app",
   "invalidDate": "Invalid date",
+  "titleWithCount": "$title [$count]",
   "errorLoadingData": "Error loading data: $error",
   "auth": {
       "signInWithGoogle": "Sign in with Google",

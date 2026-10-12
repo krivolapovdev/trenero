@@ -110,7 +110,7 @@ Future<void> _pumpStudentListPage(
           home: Builder(
             builder: (context) => Scaffold(
               appBar: AppBar(
-                title: const Text('Students'),
+                title: page.titleView(context),
                 actions: page.actions(context),
               ),
               body: page,
@@ -238,6 +238,39 @@ void main() {
 
     expect(find.text('Ivan Petrov'), findsOneWidget);
     expect(find.text('Petr Sidorov'), findsOneWidget);
+  });
+
+  testWidgets('the app bar title shows the number of students in the list', (
+    tester,
+  ) async {
+    await _pumpStudentListPage(tester, container);
+
+    expect(find.text('Students [2]'), findsOneWidget);
+
+    await _openFilterSheet(tester);
+    await tester.tap(_optionTile('Group A'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Apply'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Students [1]'), findsOneWidget);
+  });
+
+  testWidgets('the app bar title hides the number for an empty list', (
+    tester,
+  ) async {
+    await _pumpStudentListPage(tester, container);
+    await _openFilterSheet(tester);
+
+    await tester.tap(_optionTile('Group A'));
+    await tester.pumpAndSettle();
+    await tester.tap(_optionTile('Unpaid'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Apply'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No students found'), findsOneWidget);
+    expect(find.text('Students'), findsOneWidget);
   });
 
   testWidgets('a pull to refresh drops the caches of the student pages', (

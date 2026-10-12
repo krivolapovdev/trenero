@@ -34,7 +34,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(currentPage.title),
+        title: currentPage.titleView(context),
         elevation: 0,
         actions: currentPage.actions(context),
         backgroundColor: Theme.of(context).colorScheme.surface,

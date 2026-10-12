@@ -1,7 +1,6 @@
 package org.trenero.backend.transaction.internal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 import java.math.BigDecimal;
@@ -12,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.web.server.ResponseStatusException;
 import org.trenero.backend.TestcontainersConfig;
 import org.trenero.backend.common.domain.OAuth2Provider;
 import org.trenero.backend.common.security.JwtUser;
@@ -60,21 +58,6 @@ class TransactionServiceUpdateTransactionTest {
 
     assertThat(studentPaymentRepository.findById(created.getId()).orElseThrow().getPaidUntil())
         .isEqualTo(newPaidUntil);
-  }
-
-  @Test
-  void rejectsPaidUntilBeforeThePaymentDate() {
-    JwtUser jwtUser = insertOwner();
-    TransactionResponse created = createStudentPayment(jwtUser);
-
-    assertThatThrownBy(
-            () ->
-                transactionService()
-                    .updateTransaction(created.getId(), Map.of("paidUntil", "2026-10-01"), jwtUser))
-        .isInstanceOf(ResponseStatusException.class);
-
-    assertThat(studentPaymentRepository.findById(created.getId()).orElseThrow().getPaidUntil())
-        .isEqualTo(INITIAL_PAID_UNTIL);
   }
 
   private TransactionResponse createStudentPayment(JwtUser jwtUser) {

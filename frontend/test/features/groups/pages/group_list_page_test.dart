@@ -70,7 +70,7 @@ Future<void> _pumpGroupListPage(
           home: Builder(
             builder: (context) => Scaffold(
               appBar: AppBar(
-                title: const Text('Groups'),
+                title: page.titleView(context),
                 actions: page.actions(context),
               ),
               body: page,
@@ -122,6 +122,14 @@ void main() {
     await _pumpGroupListPage(tester, container);
 
     expect(find.text('Group A'), findsOneWidget);
+  });
+
+  testWidgets('the app bar title shows the number of groups in the list', (
+    tester,
+  ) async {
+    await _pumpGroupListPage(tester, container);
+
+    expect(find.text('Groups [1]'), findsOneWidget);
   });
 
   testWidgets('a pull to refresh drops the caches of the group pages', (
