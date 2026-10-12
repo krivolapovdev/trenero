@@ -201,7 +201,8 @@ class _CreateTransactionBottomSheetState
 
         AppSnackBar.show(
           context,
-          error == null ? context.t.error : '${context.t.error}: $error',
+          context.t.error,
+          error?.toString() ?? context.t.error,
           SnackBarType.error,
         );
         return;
@@ -210,7 +211,7 @@ class _CreateTransactionBottomSheetState
       Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
-      AppSnackBar.show(context, '$error', SnackBarType.error);
+      AppSnackBar.show(context, context.t.error, '$error', SnackBarType.error);
     } finally {
       if (mounted) {
         setState(() {

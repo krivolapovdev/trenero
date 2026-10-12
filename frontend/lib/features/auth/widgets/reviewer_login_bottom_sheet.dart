@@ -60,7 +60,7 @@ class _ReviewerLoginBottomSheetState
 
     final error = ref.read(reviewerAuthControllerProvider).error;
     if (error != null) {
-      AppSnackBar.show(context, '$error', SnackBarType.error);
+      AppSnackBar.show(context, context.t.error, '$error', SnackBarType.error);
     }
   }
 

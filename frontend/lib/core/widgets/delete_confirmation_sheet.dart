@@ -45,7 +45,7 @@ class _DeleteConfirmationSheetState extends State<DeleteConfirmationSheet> {
       _isLoading = false;
     });
 
-    AppSnackBar.show(context, error, SnackBarType.error);
+    AppSnackBar.show(context, context.t.error, error, SnackBarType.error);
   }
 
   @override

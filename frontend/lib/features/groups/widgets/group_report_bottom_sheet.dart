@@ -130,11 +130,7 @@ class _GroupReportBottomSheetState
     } catch (error) {
       if (!mounted) return;
 
-      AppSnackBar.show(
-        context,
-        '${context.t.error}: $error',
-        SnackBarType.error,
-      );
+      AppSnackBar.show(context, context.t.error, '$error', SnackBarType.error);
     } finally {
       if (mounted) setState(() => _isPrinting = false);
     }

@@ -18,7 +18,8 @@ class GoogleSignInButton extends ConsumerWidget {
       if (next.hasError && !next.isLoading) {
         AppSnackBar.show(
           context,
-          '${context.t.error}: ${next.error}',
+          context.t.error,
+          '${next.error}',
           SnackBarType.error,
         );
       }

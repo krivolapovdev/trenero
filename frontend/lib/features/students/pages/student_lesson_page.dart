@@ -119,7 +119,8 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
 
     AppSnackBar.show(
       context,
-      error == null ? context.t.error : '${context.t.error}: $error',
+      context.t.error,
+      error?.toString() ?? context.t.error,
       SnackBarType.error,
     );
   }

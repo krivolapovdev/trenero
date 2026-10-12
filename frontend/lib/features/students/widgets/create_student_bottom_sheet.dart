@@ -42,7 +42,8 @@ class _CreateStudentBottomSheetState
       if (error != null) {
         AppSnackBar.show(
           context,
-          '${context.t.error}: $error',
+          context.t.error,
+          '$error',
           SnackBarType.error,
         );
       }

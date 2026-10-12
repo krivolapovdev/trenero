@@ -69,7 +69,7 @@ class _DeleteAccountBottomSheetState
 
     final error = ref.read(deleteAccountControllerProvider).error;
     if (error != null) {
-      AppSnackBar.show(context, '$error', SnackBarType.error);
+      AppSnackBar.show(context, context.t.error, '$error', SnackBarType.error);
     }
   }
 

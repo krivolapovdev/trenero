@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +16,7 @@ import 'package:phone/generated/models/login_response.dart';
 import 'package:phone/generated/models/user_response.dart';
 import 'package:phone/generated/reviewer_auth_controller/reviewer_auth_controller_client.dart';
 import 'package:phone/i18n/strings.g.dart';
+import 'package:toastification/toastification.dart';
 
 class _FakeReviewerAuthClient implements ReviewerAuthControllerClient {
   Completer<void>? gate;
@@ -245,11 +245,10 @@ void main() {
     );
 
     await _login(tester, 'wrong');
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.byType(ReviewerLoginBottomSheet), findsOneWidget);
-    expect(find.byType(AwesomeSnackbarContent), findsOneWidget);
-    expect(find.byType(SnackBar), findsNothing);
+    expect(find.byType(DefaultStandardToastWidget), findsOneWidget);
     expect(_loginButton(tester).onPressed, isNotNull);
 
     await tester.pump(const Duration(seconds: 5));

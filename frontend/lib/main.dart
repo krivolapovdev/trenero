@@ -7,16 +7,23 @@ import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/core/theme/app_theme.dart';
 import 'package:phone/features/auth/widgets/auth_gate.dart';
 import 'package:phone/i18n/strings.g.dart';
+import 'package:toastification/toastification.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  runApp(ProviderScope(child: TranslationProvider(child: const TreneroApp())));
+  runApp(
+    ProviderScope(
+      child: TranslationProvider(
+        child: const ToastificationWrapper(child: Application()),
+      ),
+    ),
+  );
 }
 
-class TreneroApp extends ConsumerWidget {
+class Application extends ConsumerWidget {
   const new({super.key});
 
   @override

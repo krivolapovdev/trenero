@@ -59,7 +59,8 @@ class _StudentGroupPageState extends ConsumerState<StudentGroupPage> {
       if (error != null) {
         AppSnackBar.show(
           context,
-          '${context.t.error}: $error',
+          context.t.error,
+          '$error',
           SnackBarType.error,
         );
       }

@@ -142,7 +142,7 @@ class _EditTransactionBottomSheetState
 
     final error = ref.read(updateTransactionControllerProvider).error;
     if (error != null) {
-      AppSnackBar.show(context, '$error', SnackBarType.error);
+      AppSnackBar.show(context, context.t.error, '$error', SnackBarType.error);
     }
   }
 
