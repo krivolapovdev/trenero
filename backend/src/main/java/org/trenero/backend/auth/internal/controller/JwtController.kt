@@ -7,13 +7,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.trenero.backend.auth.external.response.JwtResponse
 import org.trenero.backend.auth.internal.request.RefreshTokenRequest
-import org.trenero.backend.auth.internal.service.JwtService
+import org.trenero.backend.auth.internal.service.TokenRefreshService
 
 @RestController
 @RequestMapping("/api/v1/jwt")
-class JwtController(private val jwtService: JwtService) {
+class JwtController(private val tokenRefreshService: TokenRefreshService) {
 
   @PostMapping("/refresh")
   fun refreshTokens(@RequestBody @Valid request: RefreshTokenRequest): JwtResponse =
-    jwtService.refreshTokens(request)
+    tokenRefreshService.refresh(request.refreshToken)
 }
