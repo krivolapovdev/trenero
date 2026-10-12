@@ -34,7 +34,6 @@ class StudentFilter {
 
   bool matches(StudentSummaryResponse student) {
     final studentGroupIds = <String>{
-      if (student.studentGroup != null) student.studentGroup!.id,
       for (final group in student.studentGroups ?? const []) group.id,
     };
 

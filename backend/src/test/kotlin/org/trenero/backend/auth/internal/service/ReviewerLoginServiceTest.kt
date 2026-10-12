@@ -16,7 +16,7 @@ class ReviewerLoginServiceTest {
   private val jwtTokenProvider = jwtTokenProvider()
   private val tokenIssuer = TokenIssuer(jwtTokenProvider)
   private val configuredKey = "super-secret-reviewer-key"
-  private val reviewerUser = UserResponse(UUID.randomUUID(), "REVIEWER@TRENERO.ORG")
+  private val reviewerUser = UserResponse(UUID.randomUUID(), "REVIEWER@TRENERIO.RU")
 
   @Test
   fun signsInTheReviewerWithAValidKey() {
@@ -26,7 +26,7 @@ class ReviewerLoginServiceTest {
 
     assertThat(userSpi.lastProvider).isEqualTo(OAuth2Provider.GOOGLE)
     assertThat(userSpi.lastProviderId).isEqualTo("REVIEWER")
-    assertThat(userSpi.lastEmail).isEqualTo("REVIEWER@TRENERO.ORG")
+    assertThat(userSpi.lastEmail).isEqualTo("REVIEWER@TRENERIO.RU")
     assertThat(session.user).isEqualTo(reviewerUser)
     assertThat(jwtTokenProvider.isTokenValid(session.jwtTokens.accessToken, TokenType.ACCESS))
       .isTrue()

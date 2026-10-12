@@ -175,11 +175,6 @@ class _GroupReportBottomSheetState
               ReportError(period: period!, error: reportState.error),
             ],
 
-            if (report != null) ...[
-              const SizedBox(height: 22),
-              ReportPreview(report: report),
-            ],
-
             const SizedBox(height: 22),
 
             Align(

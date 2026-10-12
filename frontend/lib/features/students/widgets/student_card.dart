@@ -126,21 +126,10 @@ class StudentCard extends StatelessWidget {
     if (groups != null) {
       for (final group in groups) {
         if (group.name.trim().isEmpty) continue;
-        labels.add(_labelOf(group.name, group.defaultPrice));
-      }
-    }
-
-    if (labels.isEmpty) {
-      final group = student.studentGroup;
-
-      if (group != null && group.name.trim().isNotEmpty) {
-        labels.add(_labelOf(group.name, group.defaultPrice));
+        labels.add(group.name);
       }
     }
 
     return labels.join(', ');
   }
-
-  static String _labelOf(String name, num? defaultPrice) =>
-      defaultPrice != null ? '$name · $defaultPrice' : name;
 }

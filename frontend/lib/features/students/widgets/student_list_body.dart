@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/widgets/student_filter_empty.dart';
 import 'package:phone/features/students/widgets/student_list_dummy_students.dart';
+import 'package:phone/features/students/widgets/student_list_empty.dart';
 import 'package:phone/features/students/widgets/student_list_retry.dart';
 import 'package:phone/features/students/widgets/student_list_view.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
@@ -23,7 +24,11 @@ class StudentListBody extends ConsumerWidget {
       return StudentListRetry(error: studentsState.error);
     }
 
-    if (!isLoading && students.isNotEmpty && filteredStudents.isEmpty) {
+    if (!isLoading && students.isEmpty) {
+      return const StudentListEmpty();
+    }
+
+    if (!isLoading && filteredStudents.isEmpty) {
       return const StudentFilterEmpty();
     }
 

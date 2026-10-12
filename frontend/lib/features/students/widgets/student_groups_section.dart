@@ -14,16 +14,8 @@ class StudentGroupsSection extends ConsumerWidget {
 
   const new({super.key, required this.student, this.onEdit});
 
-  static List<GroupResponse> _groupsOf(StudentSummaryResponse student) {
-    final groups = student.studentGroups;
-
-    if (groups != null && groups.isNotEmpty) {
-      return groups;
-    }
-
-    final group = student.studentGroup;
-    return group == null ? const <GroupResponse>[] : [group];
-  }
+  static List<GroupResponse> _groupsOf(StudentSummaryResponse student) =>
+      student.studentGroups ?? const <GroupResponse>[];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

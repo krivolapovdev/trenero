@@ -8,16 +8,20 @@ import org.junit.jupiter.api.Test
 import org.trenero.backend.auth.internal.exception.InvalidRefreshTokenException
 import org.trenero.backend.common.domain.TokenType
 import org.trenero.backend.common.security.JwtUser
+import org.trenero.backend.user.external.response.UserResponse
 
 class TokenRefreshServiceTest {
 
   private val jwtTokenProvider = jwtTokenProvider()
   private val tokenIssuer = TokenIssuer(jwtTokenProvider)
-  private val tokenRefreshService = TokenRefreshService(jwtTokenProvider, tokenIssuer)
+  private val jwtUser = JwtUser(UUID.randomUUID(), "STUDENT@EXAMPLE.COM")
+  private val existingUserSpi =
+    RecordingUserSpi(UserResponse(jwtUser.id, jwtUser.email), setOf(jwtUser.id))
+  private val tokenRefreshService =
+    TokenRefreshService(jwtTokenProvider, tokenIssuer, existingUserSpi)
 
   @Test
   fun rotatesTheTokenPairForAValidRefreshToken() {
-    val jwtUser = JwtUser(UUID.randomUUID(), "STUDENT@EXAMPLE.COM")
     val refreshToken = jwtTokenProvider.generateRefreshToken(jwtUser)
 
     val rotatedTokens = tokenRefreshService.refresh(refreshToken)
@@ -36,8 +40,7 @@ class TokenRefreshServiceTest {
 
   @Test
   fun rejectsAnAccessTokenUsedAsARefreshToken() {
-    val accessToken =
-      jwtTokenProvider.generateAccessToken(JwtUser(UUID.randomUUID(), "STUDENT@EXAMPLE.COM"))
+    val accessToken = jwtTokenProvider.generateAccessToken(jwtUser)
 
     assertThatThrownBy { tokenRefreshService.refresh(accessToken) }
       .isInstanceOf(InvalidRefreshTokenException::class.java)
@@ -46,11 +49,22 @@ class TokenRefreshServiceTest {
   @Test
   fun rejectsAnExpiredRefreshToken() {
     val expiredProvider = jwtTokenProvider(refreshTokenExpiration = Duration.ofSeconds(-1))
-    val service = TokenRefreshService(expiredProvider, TokenIssuer(expiredProvider))
-    val expiredRefreshToken =
-      expiredProvider.generateRefreshToken(JwtUser(UUID.randomUUID(), "STUDENT@EXAMPLE.COM"))
+    val service =
+      TokenRefreshService(expiredProvider, TokenIssuer(expiredProvider), existingUserSpi)
+    val expiredRefreshToken = expiredProvider.generateRefreshToken(jwtUser)
 
     assertThatThrownBy { service.refresh(expiredRefreshToken) }
+      .isInstanceOf(InvalidRefreshTokenException::class.java)
+  }
+
+  @Test
+  fun rejectsARefreshTokenWhoseUserNoLongerExists() {
+    val deletedUserSpi =
+      RecordingUserSpi(UserResponse(UUID.randomUUID(), "DELETED@EXAMPLE.COM"), emptySet())
+    val service = TokenRefreshService(jwtTokenProvider, tokenIssuer, deletedUserSpi)
+    val refreshToken = jwtTokenProvider.generateRefreshToken(jwtUser)
+
+    assertThatThrownBy { service.refresh(refreshToken) }
       .isInstanceOf(InvalidRefreshTokenException::class.java)
   }
 }

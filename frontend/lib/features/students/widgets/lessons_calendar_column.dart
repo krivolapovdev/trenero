@@ -7,17 +7,18 @@ import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/visit_with_lesson_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-List<GroupResponse> studentGroups(
+List<GroupResponse> studentGroupsOf(
   List<VisitWithLessonResponse> visits,
   List<GroupSummaryResponse>? groups,
-  GroupResponse? studentGroup,
+  List<GroupResponse> studentGroups,
 ) {
   final orderedGroups = <GroupResponse>[];
   final seenGroupIds = <String>{};
 
-  if (studentGroup != null) {
-    orderedGroups.add(studentGroup);
-    seenGroupIds.add(studentGroup.id);
+  for (final group in studentGroups) {
+    if (seenGroupIds.add(group.id)) {
+      orderedGroups.add(group);
+    }
   }
 
   for (final groupId in StudentLessonsSection.groupIdsOf(visits)) {
@@ -48,7 +49,7 @@ GroupResponse _groupOf(String groupId, List<GroupSummaryResponse>? groups) {
 class LessonsCalendarColumn extends StatelessWidget {
   final List<VisitWithLessonResponse> visits;
   final List<GroupSummaryResponse>? groups;
-  final GroupResponse? studentGroup;
+  final List<GroupResponse> studentGroups;
   final DateTime focusedDay;
   final String? locale;
   final void Function(
@@ -71,13 +72,13 @@ class LessonsCalendarColumn extends StatelessWidget {
     required this.onCreateGroupLesson,
     required this.onCreateIndividualLesson,
     this.groups,
-    this.studentGroup,
+    this.studentGroups = const [],
     this.locale,
   });
 
   @override
   Widget build(BuildContext context) {
-    final studentGroupsList = studentGroups(visits, groups, studentGroup);
+    final studentGroupsList = studentGroupsOf(visits, groups, studentGroups);
     final individualVisits = StudentLessonsSection.individualVisits(visits);
 
     return Column(

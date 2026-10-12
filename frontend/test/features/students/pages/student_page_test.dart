@@ -39,7 +39,6 @@ final _studentWithGroup = StudentSummaryResponse(
   createdAt: DateTime(2025, 8, 22),
   free: false,
   statuses: const [],
-  studentGroup: _group,
   studentGroups: [_group],
 );
 

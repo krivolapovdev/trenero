@@ -45,7 +45,6 @@ class StudentGroupsCard extends StatelessWidget {
               ),
           ],
         ),
-        const SizedBox(height: 8),
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),

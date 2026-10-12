@@ -237,7 +237,7 @@ class _CreateTransactionBottomSheetState
 
     for (final student in students) {
       if (student.id == studentId) {
-        return student.studentGroup?.defaultPrice?.toDouble();
+        return student.studentGroups?.firstOrNull?.defaultPrice?.toDouble();
       }
     }
 

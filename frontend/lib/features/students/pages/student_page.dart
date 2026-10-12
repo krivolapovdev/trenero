@@ -50,16 +50,8 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     );
   }
 
-  Set<String> get _studentGroupIds {
-    final groups = _student.studentGroups;
-
-    if (groups != null && groups.isNotEmpty) {
-      return groups.map((group) => group.id).toSet();
-    }
-
-    final group = _student.studentGroup;
-    return group == null ? const <String>{} : {group.id};
-  }
+  Set<String> get _studentGroupIds =>
+      (_student.studentGroups ?? const []).map((group) => group.id).toSet();
 
   Future<void> _openCreatePaymentSheet() async {
     await AppBottomSheet.show(
@@ -67,7 +59,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
       child: CreateTransactionBottomSheet(
         initialStudentId: _student.id,
         initialStudentName: _student.fullName,
-        initialAmount: _student.studentGroup?.defaultPrice,
+        initialAmount: _student.studentGroups?.firstOrNull?.defaultPrice,
         isIncomeOnly: true,
         isStudentLocked: true,
       ),
@@ -182,7 +174,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
               StudentLessonsSection(
                 studentId: _student.id,
                 studentName: _student.fullName,
-                studentGroup: _student.studentGroup,
+                studentGroups: _student.studentGroups ?? const [],
               ),
 
               RecentTransactions(

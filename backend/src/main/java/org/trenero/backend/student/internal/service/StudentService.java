@@ -148,7 +148,6 @@ public class StudentService implements StudentSpi {
                       .map(link -> groupsMap.get(link.getGroupId()))
                       .filter(Objects::nonNull)
                       .toList();
-              var group = studentGroups.isEmpty() ? null : studentGroups.getFirst();
 
               var studentVisits = visitsMap.getOrDefault(student.getId(), List.of());
               var studentPayments = paymentsMap.getOrDefault(student.getId(), List.of());
@@ -164,7 +163,7 @@ public class StudentService implements StudentSpi {
                   studentStatusService.getStudentStatuses(
                       studentVisits, studentPayments, studentLessons, student.getFree());
 
-              return new StudentSummaryResponse(student, group, statuses, studentGroups);
+              return new StudentSummaryResponse(student, statuses, studentGroups);
             })
         .toList();
   }

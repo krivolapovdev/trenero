@@ -36,7 +36,7 @@ class _FakeReviewerAuthClient implements ReviewerAuthControllerClient {
     if (error != null) throw error;
 
     return const LoginResponse(
-      user: UserResponse(id: 'reviewer-1', email: 'REVIEWER@TRENERO.ORG'),
+      user: UserResponse(id: 'reviewer-1', email: 'REVIEWER@TRENERIO.RU'),
       jwtTokens: JwtResponse(
         accessToken: 'access-token',
         refreshToken: 'refresh-token',

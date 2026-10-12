@@ -41,7 +41,6 @@ final _student = StudentSummaryResponse(
   createdAt: DateTime(2025, 8, 22),
   free: false,
   statuses: const [],
-  studentGroup: _group,
   studentGroups: [_group],
 );
 
@@ -51,7 +50,6 @@ final _studentInNotedGroup = StudentSummaryResponse(
   createdAt: DateTime(2025, 8, 22),
   free: false,
   statuses: const [],
-  studentGroup: _notedGroup,
   studentGroups: [_notedGroup],
 );
 
@@ -61,7 +59,7 @@ final _studentWithOneGroup = StudentSummaryResponse(
   createdAt: DateTime(2025, 8, 22),
   free: false,
   statuses: const [],
-  studentGroup: _group,
+  studentGroups: [_group],
 );
 
 final _studentWithoutGroup = StudentSummaryResponse(

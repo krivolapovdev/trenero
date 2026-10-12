@@ -18,7 +18,6 @@ StudentSummaryResponse _student({
     createdAt: DateTime(2025, 8, 22),
     free: false,
     statuses: statuses,
-    studentGroup: groups.isEmpty ? null : _group(groups.first),
     studentGroups: groups.map(_group).toList(),
   );
 }

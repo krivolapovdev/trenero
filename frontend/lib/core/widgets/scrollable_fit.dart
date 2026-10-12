@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Wraps [child] so it can host a scrollable child of a pull to refresh while
-/// still centring its content when there is spare vertical space.
 class ScrollableFit extends StatelessWidget {
   final Widget child;
 

@@ -33,7 +33,10 @@ class _StudentFilterBottomSheetState
   void _toggleStatus(StudentStatus status) =>
       setState(() => _draft = _draft.toggleStatus(status));
 
-  void _reset() => setState(() => _draft = const StudentFilter());
+  void _reset() {
+    ref.read(studentFilterControllerProvider.notifier).clear();
+    Navigator.of(context).pop();
+  }
 
   void _apply() {
     ref.read(studentFilterControllerProvider.notifier).setFilter(_draft);
@@ -111,15 +114,16 @@ class _StudentFilterBottomSheetState
               children: [
                 TextButton(
                   onPressed: _draft.isEmpty ? null : _reset,
-                  child: Text(context.t.students.filter.reset),
+                  child: Text(context.t.students.filter.reset,
+                      style: const TextStyle(fontSize: 18),
+                  ),
                 ),
 
                 const Spacer(),
 
-                TextButton.icon(
+                TextButton(
                   onPressed: _apply,
-                  icon: const Icon(Icons.check),
-                  label: Text(
+                  child: Text(
                     context.t.students.filter.apply,
                     style: const TextStyle(fontSize: 18),
                   ),

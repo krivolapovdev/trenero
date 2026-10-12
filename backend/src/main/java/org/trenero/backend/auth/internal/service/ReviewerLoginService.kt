@@ -16,7 +16,7 @@ class ReviewerLoginService(
 
   private companion object {
     const val REVIEWER_PROVIDER_ID = "REVIEWER"
-    const val REVIEWER_EMAIL = "REVIEWER@TRENERIO.ORG"
+    const val REVIEWER_EMAIL = "REVIEWER@TRENERIO.RU"
 
     val REVIEWER_IDENTITY =
       OAuth2Identity(

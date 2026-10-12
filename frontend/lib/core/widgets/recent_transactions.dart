@@ -51,7 +51,7 @@ class RecentTransactions extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     clipBehavior: Clip.antiAlias,
-    padding: const EdgeInsets.only(top: AppSpacing.lg),
+    padding: const EdgeInsets.only(top: AppSpacing.sm),
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),

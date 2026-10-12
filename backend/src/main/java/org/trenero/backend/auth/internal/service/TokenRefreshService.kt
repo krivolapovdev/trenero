@@ -6,11 +6,13 @@ import org.trenero.backend.auth.external.response.JwtResponse
 import org.trenero.backend.auth.internal.exception.InvalidRefreshTokenException
 import org.trenero.backend.common.domain.TokenType
 import org.trenero.backend.common.security.JwtTokenProvider
+import org.trenero.backend.user.external.spi.UserSpi
 
 @Service
 class TokenRefreshService(
   private val jwtTokenProvider: JwtTokenProvider,
   private val tokenIssuer: TokenIssuer,
+  private val userSpi: UserSpi,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -25,6 +27,13 @@ class TokenRefreshService(
       throw InvalidRefreshTokenException(INVALID_REFRESH_TOKEN_MESSAGE)
     }
 
-    return tokenIssuer.issue(jwtTokenProvider.extractUser(refreshToken))
+    val jwtUser = jwtTokenProvider.extractUser(refreshToken)
+
+    if (!userSpi.existsById(jwtUser.id)) {
+      log.warn("Rejecting refresh token for a user that no longer exists: id={}", jwtUser.id)
+      throw InvalidRefreshTokenException(INVALID_REFRESH_TOKEN_MESSAGE)
+    }
+
+    return tokenIssuer.issue(jwtUser)
   }
 }

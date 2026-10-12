@@ -133,7 +133,9 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                       TextField(
                         decoration: InputDecoration(
                           labelText: '${context.t.students.fullName}*',
-                          prefixIcon: const Icon(FluentIcons.person_16_regular),
+                          prefixIcon: const Icon(
+                            FluentIcons.mention_16_regular,
+                          ),
                         ),
                         controller: _nameController,
                         textCapitalization: TextCapitalization.words,

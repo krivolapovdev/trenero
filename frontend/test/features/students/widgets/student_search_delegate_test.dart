@@ -25,11 +25,13 @@ final _students = [
     createdAt: DateTime(2025, 8, 22),
     free: false,
     statuses: const [StudentStatus.paid],
-    studentGroup: GroupResponse(
-      id: 'group-a',
-      name: 'Group A',
-      createdAt: DateTime(2025, 8, 22),
-    ),
+    studentGroups: [
+      GroupResponse(
+        id: 'group-a',
+        name: 'Group A',
+        createdAt: DateTime(2025, 8, 22),
+      ),
+    ],
   ),
   StudentSummaryResponse(
     id: 'student-2',

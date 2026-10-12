@@ -13,7 +13,7 @@ class StudentLessonsBody extends StatelessWidget {
   final bool isLoadingEarlier;
   final DateTime focusedDay;
   final List<GroupSummaryResponse>? groups;
-  final GroupResponse? studentGroup;
+  final List<GroupResponse> studentGroups;
   final String? locale;
   final void Function(
     GroupResponse group,
@@ -36,7 +36,7 @@ class StudentLessonsBody extends StatelessWidget {
     required this.onCreateGroupLesson,
     required this.onCreateIndividualLesson,
     this.groups,
-    this.studentGroup,
+    this.studentGroups = const [],
     this.locale,
   });
 
@@ -55,7 +55,7 @@ class StudentLessonsBody extends StatelessWidget {
       child: LessonsCalendarColumn(
         visits: visits ?? studentLessonsDummyVisits,
         groups: groups,
-        studentGroup: studentGroup,
+        studentGroups: studentGroups,
         focusedDay: focusedDay,
         locale: locale,
         onGroupDayTapped: onGroupDayTapped,

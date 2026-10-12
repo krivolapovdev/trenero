@@ -58,7 +58,6 @@ final _listedStudents = [
     createdAt: DateTime(2025, 8, 22),
     free: false,
     statuses: const [StudentStatus.paid],
-    studentGroup: _group,
     studentGroups: [_group],
   ),
 ];

@@ -2,6 +2,7 @@ package org.trenero.backend.user.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
+import java.util.UUID;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,12 @@ public class UserService implements UserSpi {
         .findByProviderAndProviderId(provider, providerId)
         .map(userMapper::toResponse)
         .orElseGet(() -> createNewUser(provider, providerId, email));
+  }
+
+  @Transactional(readOnly = true)
+  public boolean existsById(@NonNull UUID id) {
+    log.info("Checking whether user exists: id={}", id);
+    return userRepository.existsById(id);
   }
 
   private @NonNull UserResponse createNewUser(

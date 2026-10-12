@@ -20,13 +20,13 @@ class StudentLessonsSection extends ConsumerStatefulWidget {
 
   final String studentName;
 
-  final GroupResponse? studentGroup;
+  final List<GroupResponse> studentGroups;
 
   const new({
     super.key,
     required this.studentId,
     required this.studentName,
-    this.studentGroup,
+    this.studentGroups = const [],
   });
 
   @override
@@ -280,7 +280,7 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
             isLoadingEarlier: isLoadingEarlier,
             focusedDay: focusedDay,
             groups: groups,
-            studentGroup: widget.studentGroup,
+            studentGroups: widget.studentGroups,
             locale: locale,
             onGroupDayTapped: _openGroupDay,
             onIndividualDayTapped: _openIndividualDay,

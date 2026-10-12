@@ -1,6 +1,7 @@
 package org.trenero.backend.auth.internal.service
 
 import java.time.Duration
+import java.util.UUID
 import org.trenero.backend.auth.internal.domain.OAuth2Identity
 import org.trenero.backend.auth.internal.port.GoogleIdentityVerifier
 import org.trenero.backend.common.config.JwtProperties
@@ -22,7 +23,10 @@ internal fun jwtTokenProvider(
   return JwtTokenProvider(properties).also { it.init() }
 }
 
-internal class RecordingUserSpi(private val user: UserResponse) : UserSpi {
+internal class RecordingUserSpi(
+  private val user: UserResponse,
+  private val existingUserIds: Set<UUID> = setOf(user.id),
+) : UserSpi {
   var lastProvider: OAuth2Provider? = null
   var lastProviderId: String? = null
   var lastEmail: String? = null
@@ -40,6 +44,8 @@ internal class RecordingUserSpi(private val user: UserResponse) : UserSpi {
 
     return user
   }
+
+  override fun existsById(id: UUID): Boolean = id in existingUserIds
 }
 
 internal class FakeGoogleIdentityVerifier(private val identity: OAuth2Identity) :

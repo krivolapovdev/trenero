@@ -60,7 +60,7 @@ class _EditStudentBottomSheetState
 
     return StudentFormSheet(
       title: context.t.students.editStudent,
-      submitLabel: context.t.edit,
+      submitLabel: context.t.update,
       isLoading: isLoading,
       initialFullName: student.fullName,
       initialBirthdate: student.birthdate,

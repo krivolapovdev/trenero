@@ -1,3 +1,4 @@
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:phone/core/widgets/retry_view.dart';
 import 'package:phone/core/widgets/transaction_list_view.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
+import 'package:phone/features/students/widgets/student_payments_skeleton.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -20,6 +22,10 @@ class StudentPaymentListPage extends ConsumerWidget {
       studentPaymentsControllerProvider(student.id),
     );
 
+    Future<void> refreshPayments() => ref
+        .read(studentPaymentsControllerProvider(student.id).notifier)
+        .refresh();
+
     return Scaffold(
       appBar: AppBar(
         title: Text(context.t.students.paymentTitle(name: student.fullName)),
@@ -33,7 +39,7 @@ class StudentPaymentListPage extends ConsumerWidget {
               child: CreateTransactionBottomSheet(
                 initialStudentId: student.id,
                 initialStudentName: student.fullName,
-                initialAmount: student.studentGroup?.defaultPrice,
+                initialAmount: student.studentGroups?.firstOrNull?.defaultPrice,
                 isIncomeOnly: true,
                 isStudentLocked: true,
               ),
@@ -42,21 +48,27 @@ class StudentPaymentListPage extends ConsumerWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: paymentsAsync.when(
-        data: (transactions) => TransactionListView(
-          transactions: transactions,
-          overrideTitle: student.fullName,
-          emptyText: context.t.students.noPayments,
-          onRefresh: () async {
-            ref.invalidate(studentPaymentsControllerProvider(student.id));
-          },
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => RetryView(
-          message: error.toString(),
-          messageColor: Theme.of(context).colorScheme.error,
-          onRetry: () =>
-              ref.invalidate(studentPaymentsControllerProvider(student.id)),
+      body: CustomMaterialIndicator(
+        color: Colors.black,
+        clipBehavior: Clip.antiAlias,
+        onRefresh: refreshPayments,
+        child: paymentsAsync.when(
+          data: (transactions) => TransactionListView(
+            transactions: transactions,
+            overrideTitle: student.fullName,
+            emptyText: context.t.students.noPayments,
+            onRefresh: refreshPayments,
+          ),
+          loading: () => StudentPaymentsSkeleton(
+            onRefresh: refreshPayments,
+            overrideTitle: student.fullName,
+            emptyText: context.t.students.noPayments,
+          ),
+          error: (error, stack) => RetryView(
+            message: error.toString(),
+            messageColor: Theme.of(context).colorScheme.error,
+            onRetry: refreshPayments,
+          ),
         ),
       ),
     );

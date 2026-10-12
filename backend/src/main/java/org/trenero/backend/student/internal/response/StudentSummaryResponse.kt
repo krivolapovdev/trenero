@@ -8,7 +8,6 @@ import org.trenero.backend.student.external.response.StudentResponse
 
 data class StudentSummaryResponse(
   @field:JsonUnwrapped val student: StudentResponse,
-  val studentGroup: GroupResponse?,
   @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val statuses: Set<StudentStatus>,
   val studentGroups: List<GroupResponse> = emptyList(),
 )
