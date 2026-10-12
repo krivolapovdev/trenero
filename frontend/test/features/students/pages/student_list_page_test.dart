@@ -28,6 +28,8 @@ final _students = [
   StudentSummaryResponse(
     id: 'student-1',
     fullName: 'Ivan Petrov',
+    birthdate: DateTime(1998, 6, 15),
+    phone: '+7 999 123-45-67',
     createdAt: DateTime(2025, 8, 22),
     free: false,
     statuses: const [StudentStatus.paid],
@@ -181,6 +183,15 @@ void main() {
     ]) {
       expect(_optionTile(label), findsOneWidget);
     }
+  });
+
+  testWidgets('the student cards show the birthdate and the phone', (
+    tester,
+  ) async {
+    await _pumpStudentListPage(tester, container);
+
+    expect(find.text('15.06.1998'), findsOneWidget);
+    expect(find.text('+7 999 123-45-67'), findsOneWidget);
   });
 
   testWidgets('selected group filters the student list and marks the button', (

@@ -19,7 +19,7 @@ class StudentHeroCard extends StatelessWidget {
       tag: 'student-card-${student.id}',
       child: Material(
         type: MaterialType.transparency,
-        child: StudentCard(student: student, onTap: () {}),
+        child: StudentCard(student: student, onTap: () {}, showBirthdate: true),
       ),
     ),
   );

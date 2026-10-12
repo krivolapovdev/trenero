@@ -78,10 +78,14 @@ class _ReviewerLoginBottomSheetState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            OutlinedTextField(
-              label: context.t.auth.reviewerKey,
+            TextField(
+              decoration: InputDecoration(
+                labelText: context.t.auth.reviewerKey,
+                prefixIcon: const Icon(
+                  FluentIcons.key_24_regular,
+                ),
+              ),
               controller: _reviewerKeyController,
-              leadingIcon: const Icon(FluentIcons.key_24_regular),
               enabled: !_isLoading,
             ),
 

@@ -13,13 +13,13 @@ class LanguageSelectionSheet extends ConsumerWidget {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               context.t.settings.selectLanguage,
-              style: const TextStyle(fontSize: 16, color: Colors.black),
+              style: const TextStyle(fontSize: 20, color: Colors.black),
               textAlign: TextAlign.center,
             ),
 

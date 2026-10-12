@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/extensions/string_extension.dart';
+import 'package:phone/core/widgets/date_input_field.dart';
 import 'package:phone/features/students/extensions/student_status_extension.dart';
 import 'package:phone/features/students/widgets/student_badges.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
@@ -9,12 +10,14 @@ class StudentCard extends StatelessWidget {
   final VoidCallback onTap;
 
   final String? overrideInitials;
+  final bool showBirthdate;
 
   const new({
     super.key,
     required this.student,
     required this.onTap,
     this.overrideInitials,
+    this.showBirthdate = false,
   });
 
   @override
@@ -23,8 +26,9 @@ class StudentCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final hasNote = student.note != null && student.note!.trim().isNotEmpty;
     final hasPhone = student.phone != null && student.phone!.isNotEmpty;
-    final groupLabel = _groupLabel(student);
-    final hasGroup = groupLabel.isNotEmpty;
+    final birthdate = student.birthdate;
+    final groupLabels = _groupLabels(student);
+    final hasGroup = groupLabels.isNotEmpty;
     final badges = student.statuses.toBadges(context);
 
     return Card(
@@ -73,10 +77,24 @@ class StudentCard extends StatelessWidget {
 
                         if (hasGroup) ...[
                           const SizedBox(height: 2),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (final groupLabel in groupLabels)
+                                Text(
+                                  groupLabel,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+
+                        if (showBirthdate && birthdate != null) ...[
+                          const SizedBox(height: 2),
                           Text(
-                            groupLabel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            DateInputField.format(birthdate),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -87,7 +105,7 @@ class StudentCard extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             student.phone!,
-                            style: theme.textTheme.bodySmall?.copyWith(
+                            style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
                           ),
@@ -119,7 +137,7 @@ class StudentCard extends StatelessWidget {
     );
   }
 
-  static String _groupLabel(StudentSummaryResponse student) {
+  static List<String> _groupLabels(StudentSummaryResponse student) {
     final groups = student.studentGroups;
     final labels = <String>[];
 
@@ -130,6 +148,6 @@ class StudentCard extends StatelessWidget {
       }
     }
 
-    return labels.join(', ');
+    return labels;
   }
 }

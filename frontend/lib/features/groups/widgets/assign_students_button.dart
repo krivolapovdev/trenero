@@ -24,7 +24,7 @@ class AssignStudentsButton extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : null,
-      label: Text(context.t.edit, style: const TextStyle(fontSize: 18)),
+      label: Text(context.t.update, style: const TextStyle(fontSize: 18)),
     );
   }
 }

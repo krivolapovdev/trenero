@@ -26,6 +26,7 @@ class StudentListView extends StatelessWidget {
           type: MaterialType.transparency,
           child: StudentCard(
             student: student,
+            showBirthdate: true,
             onTap: isLoading
                 ? () {}
                 : () {

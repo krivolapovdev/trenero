@@ -105,7 +105,9 @@ class _GroupPageState extends ConsumerState<GroupPage> {
                   routeAnimation: routeAnimation,
                 ),
               ),
+
               GroupLessonsSection(groupId: _group.id),
+
               GroupStudentsSection(
                 groupId: _group.id,
                 studentCount: _group.countOfStudents == 0

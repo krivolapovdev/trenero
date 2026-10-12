@@ -76,7 +76,7 @@ class _DeleteAccountBottomSheetState
   @override
   Widget build(BuildContext context) => SafeArea(
     child: Padding(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

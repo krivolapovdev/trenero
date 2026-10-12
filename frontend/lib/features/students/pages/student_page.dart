@@ -10,7 +10,7 @@ import 'package:phone/features/students/controllers/student_list_controller.dart
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/features/students/pages/student_app_menu.dart';
 import 'package:phone/features/students/pages/student_group_page.dart';
-import 'package:phone/features/students/pages/student_hero_card.dart';
+import 'package:phone/features/students/widgets/student_hero_card.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
 import 'package:phone/features/students/widgets/delete_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
