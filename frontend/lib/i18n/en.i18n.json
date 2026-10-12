@@ -147,7 +147,8 @@
       "title": "Period",
       "start": "Start",
       "end": "End",
-      "apply": "Continue"
+      "apply": "Continue",
+      "reset": "Reset filters"
     }
   }
 }

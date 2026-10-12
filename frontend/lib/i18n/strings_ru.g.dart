@@ -269,6 +269,7 @@ class _Translations$finance$filter$ru implements Translations$finance$filter$en 
 	@override String get start => 'Начало';
 	@override String get end => 'Конец';
 	@override String get apply => 'Продолжить';
+	@override String get reset => 'Сбросить фильтры';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -410,6 +411,7 @@ extension on TranslationsRu {
 			'finance.filter.start' => 'Начало',
 			'finance.filter.end' => 'Конец',
 			'finance.filter.apply' => 'Продолжить',
+			'finance.filter.reset' => 'Сбросить фильтры',
 			_ => null,
 		};
 	}

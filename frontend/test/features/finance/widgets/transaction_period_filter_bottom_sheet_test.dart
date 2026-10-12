@@ -90,9 +90,28 @@ void main() {
 
     expect(find.text(t.finance.filter.title), findsOneWidget);
     expect(find.text(t.finance.filter.apply), findsOneWidget);
+    expect(find.text(t.finance.filter.reset), findsOneWidget);
     expect(_fieldText(tester, 0), '16.09.2026');
     expect(_fieldText(tester, 1), '13.10.2026');
     expect(find.text('September 2026'), findsOneWidget);
+  });
+
+  testWidgets('centers the title and puts the actions at the bottom', (
+    tester,
+  ) async {
+    seedPeriod();
+
+    await _openSheet(tester, container);
+
+    final title = tester.widget<Text>(find.text(t.finance.filter.title));
+    final reset = tester.getCenter(find.text(t.finance.filter.reset));
+    final apply = tester.getCenter(find.text(t.finance.filter.apply));
+    final monthHeader = tester.getCenter(find.text('September 2026'));
+
+    expect(title.textAlign, TextAlign.center);
+    expect(reset.dx, lessThan(apply.dx));
+    expect(reset.dy, greaterThan(monthHeader.dy));
+    expect(apply.dy, greaterThan(monthHeader.dy));
   });
 
   testWidgets('tapping a calendar day fills the focused field', (tester) async {
@@ -171,6 +190,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(transactionFilterControllerProvider).isEmpty, isTrue);
+  });
+
+  testWidgets('reset clears the period and closes the sheet', (tester) async {
+    seedPeriod();
+
+    await _openSheet(tester, container);
+
+    await tester.tap(find.text(t.finance.filter.reset));
+    await tester.pumpAndSettle();
+
+    expect(container.read(transactionFilterControllerProvider).isEmpty, isTrue);
+    expect(find.byType(TransactionPeriodFilterBottomSheet), findsNothing);
   });
 
   testWidgets('an inverted period cannot be saved', (tester) async {

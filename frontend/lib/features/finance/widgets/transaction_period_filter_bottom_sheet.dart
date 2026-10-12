@@ -8,6 +8,7 @@ import 'package:phone/core/widgets/date_input_field.dart';
 import 'package:phone/features/finance/controllers/transaction_filter_controller.dart';
 import 'package:phone/features/finance/controllers/transaction_list_controller.dart';
 import 'package:phone/features/finance/models/transaction_period_filter.dart';
+import 'package:phone/features/finance/widgets/sheet_title.dart';
 import 'package:phone/i18n/strings.g.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -201,10 +202,27 @@ class _TransactionPeriodFilterBottomSheetState
     Navigator.of(context).pop();
   }
 
+  Future<void> _reset() async {
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    ref.read(transactionFilterControllerProvider.notifier).clear();
+    await ref.read(transactionsControllerProvider.notifier).refresh();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final locale = LocaleSettings.currentLocale.languageCode;
     final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
+    final appliedPeriod = ref.watch(transactionFilterControllerProvider);
+    final canReset =
+        !_isLoading &&
+        (_start != null || _end != null || appliedPeriod.isNotEmpty);
 
     return SafeArea(
       child: Padding(
@@ -216,7 +234,7 @@ class _TransactionPeriodFilterBottomSheetState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildHeader(),
+            SheetTitle(title: context.t.finance.filter.title),
             const SizedBox(height: AppSpacing.lg),
             Flexible(
               child: SingleChildScrollView(
@@ -249,23 +267,24 @@ class _TransactionPeriodFilterBottomSheetState
                 ),
               ),
             ),
+            const SizedBox(height: AppSpacing.sm),
+            _buildActions(canReset: canReset),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() => Row(
+  Widget _buildActions({required bool canReset}) => Row(
     children: [
-      Expanded(
+      TextButton(
+        onPressed: canReset ? _reset : null,
         child: Text(
-          context.t.finance.filter.title,
-          style: const TextStyle(
-            fontSize: 20,
-            color: Colors.black,
-          ),
+          context.t.finance.filter.reset,
+          style: const TextStyle(fontSize: 18),
         ),
       ),
+      const Spacer(),
       TextButton(
         onPressed: _canApply ? _apply : null,
         child: _isLoading
@@ -296,10 +315,7 @@ class _TransactionPeriodFilterBottomSheetState
       Expanded(
         child: Text(
           DateFormat.yMMMM(locale).format(_focusedDay),
-          style: const TextStyle(
-            fontSize: 20,
-            color: Colors.black,
-          ),
+          style: const TextStyle(fontSize: 20, color: Colors.black),
         ),
       ),
       IconButton(

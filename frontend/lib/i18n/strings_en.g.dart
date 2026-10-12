@@ -537,6 +537,9 @@ class Translations$finance$filter$en {
 
 	/// en: 'Continue'
 	String get apply => 'Continue';
+
+	/// en: 'Reset filters'
+	String get reset => 'Reset filters';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -678,6 +681,7 @@ extension on Translations {
 			'finance.filter.start' => 'Start',
 			'finance.filter.end' => 'End',
 			'finance.filter.apply' => 'Continue',
+			'finance.filter.reset' => 'Reset filters',
 			_ => null,
 		};
 	}
