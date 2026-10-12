@@ -104,6 +104,9 @@ Widget _wrapWithApi(
 TextButton _editAction(WidgetTester tester) =>
     tester.widget<TextButton>(find.widgetWithText(TextButton, t.edit));
 
+Finder _paidUntilField() =>
+    find.widgetWithText(TextField, '${t.finance.paidUntil}*');
+
 void main() {
   setUpAll(() async {
     await initializeDateFormatting();
@@ -276,6 +279,67 @@ void main() {
     });
     expect(find.byType(EditTransactionBottomSheet), findsNothing);
     expect(find.text(4200.toFormattedAmount()), findsOneWidget);
+  });
+
+  testWidgets('the edit sheet hides paid until for plain transactions', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(TransactionPage(transaction: _transaction())),
+    );
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(t.edit));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EditTransactionBottomSheet), findsOneWidget);
+    expect(_paidUntilField(), findsNothing);
+  });
+
+  testWidgets('editing a student payment can change the paid until date', (
+    tester,
+  ) async {
+    final transaction = _transaction(
+      paymentDetails: StudentPaymentDetailsResponse(
+        detailsType: 'STUDENT',
+        studentId: 'student-1',
+        studentName: 'Ivan Petrov',
+        paidUntil: DateTime(2025, 9),
+      ),
+    );
+    final client = _FakeTransactionClient(transaction: transaction);
+
+    await tester.pumpWidget(
+      _wrapWithApi(TransactionPage(transaction: transaction), client),
+    );
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(t.edit));
+    await tester.pumpAndSettle();
+
+    expect(_paidUntilField(), findsOneWidget);
+    expect(
+      tester.widget<TextField>(_paidUntilField()).controller!.text,
+      '01.09.2025',
+    );
+
+    await tester.enterText(_paidUntilField(), '01102025');
+    await tester.pump();
+
+    await tester.tap(find.text(t.edit));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+
+    expect(client.updateBodies, hasLength(1));
+    expect(client.updateBodies.single, {
+      'amount': 3800.0,
+      'date': '2025-08-22',
+      'paidUntil': '2025-10-01',
+    });
+    expect(find.byType(EditTransactionBottomSheet), findsNothing);
   });
 
   testWidgets('deleting a transaction confirms and returns to the list', (

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/core/widgets/date_input_field.dart';
 import 'package:phone/features/finance/controllers/update_transaction_controller.dart';
+import 'package:phone/features/finance/widgets/paid_until_field.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -24,16 +25,38 @@ class _EditTransactionBottomSheetState
   final TextEditingController _amountController = TextEditingController();
 
   late DateTime _selectedDate;
+  late DateTime? _paidUntil;
 
   late final String _initialAmountText;
 
   bool _isDateValid = true;
   bool _isLoading = false;
 
+  bool get _isStudentPayment => widget.transaction.paymentDetails != null;
+
+  DateTime get _defaultPaidUntil =>
+      DateTime(_selectedDate.year, _selectedDate.month + 1, _selectedDate.day);
+
+  DateTime get _maxPaidUntil => DateTime.now().add(const Duration(days: 365 * 3));
+
   bool get _hasChanges =>
       _amountController.text != _initialAmountText ||
       DateUtils.dateOnly(_selectedDate) !=
-          DateUtils.dateOnly(widget.transaction.date);
+          DateUtils.dateOnly(widget.transaction.date) ||
+      _hasPaidUntilChanged;
+
+  bool get _hasPaidUntilChanged {
+    if (!_isStudentPayment) return false;
+
+    final initialPaidUntil = widget.transaction.paymentDetails?.paidUntil;
+    final paidUntil = _paidUntil;
+
+    if (initialPaidUntil == null || paidUntil == null) {
+      return initialPaidUntil != paidUntil;
+    }
+
+    return DateUtils.dateOnly(paidUntil) != DateUtils.dateOnly(initialPaidUntil);
+  }
 
   @override
   void initState() {
@@ -49,6 +72,7 @@ class _EditTransactionBottomSheetState
       ..addListener(_onAmountChanged);
 
     _selectedDate = widget.transaction.date;
+    _paidUntil = widget.transaction.paymentDetails?.paidUntil;
   }
 
   void _onAmountChanged() {
@@ -67,12 +91,28 @@ class _EditTransactionBottomSheetState
       if (date == null) return;
 
       _selectedDate = date;
+
+      final paidUntil = _paidUntil;
+      final isValidPaidUntil = paidUntil != null && !paidUntil.isBefore(date);
+
+      if (_isStudentPayment && !isValidPaidUntil) {
+        _paidUntil = _defaultPaidUntil;
+      }
+    });
+  }
+
+  void _onPaidUntilChanged(DateTime? date) {
+    setState(() {
+      _paidUntil = date;
     });
   }
 
   Future<void> _onUpdate() async {
     final amount = double.tryParse(_amountController.text.trim());
     if (amount == null || amount <= 0) return;
+
+    final paidUntil = _paidUntil;
+    if (_isStudentPayment && paidUntil == null) return;
 
     FocusScope.of(context).unfocus();
 
@@ -86,6 +126,7 @@ class _EditTransactionBottomSheetState
           transactionId: widget.transaction.id,
           amount: amount,
           date: _selectedDate,
+          paidUntil: _isStudentPayment ? paidUntil : null,
         );
 
     if (!mounted) return;
@@ -109,6 +150,7 @@ class _EditTransactionBottomSheetState
   Widget build(BuildContext context) {
     final isAmountEmpty = _amountController.text.trim().isEmpty;
     final isIncome = widget.transaction.type == TransactionType.income;
+    final isPaidUntilMissing = _isStudentPayment && _paidUntil == null;
     final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
 
     return SafeArea(
@@ -185,6 +227,15 @@ class _EditTransactionBottomSheetState
                         onDateChanged: _onDateChanged,
                       ),
 
+                      if (_isStudentPayment)
+                        PaidUntilField(
+                          initialDate: _paidUntil,
+                          firstDate: _selectedDate,
+                          lastDate: _maxPaidUntil,
+                          enabled: !_isLoading,
+                          onDateChanged: _onPaidUntilChanged,
+                        ),
+
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         child: Align(
@@ -193,6 +244,7 @@ class _EditTransactionBottomSheetState
                             onPressed:
                                 (isAmountEmpty ||
                                     !_isDateValid ||
+                                    isPaidUntilMissing ||
                                     !_hasChanges ||
                                     _isLoading)
                                 ? null
@@ -207,7 +259,7 @@ class _EditTransactionBottomSheetState
                                   )
                                 : null,
                             label: Text(
-                              context.t.edit,
+                              context.t.update,
                               style: const TextStyle(fontSize: 18),
                             ),
                           ),

@@ -22,6 +22,7 @@ class UpdateTransactionController extends AsyncNotifier<void> {
     required String transactionId,
     required num amount,
     required DateTime date,
+    DateTime? paidUntil,
   }) async {
     TransactionResponse? updatedTransaction;
 
@@ -32,7 +33,11 @@ class UpdateTransactionController extends AsyncNotifier<void> {
           .read(transactionRepositoryProvider)
           .updateTransaction(
             transactionId: transactionId,
-            body: {'amount': amount, 'date': _isoDate.format(date)},
+            body: {
+              'amount': amount,
+              'date': _isoDate.format(date),
+              if (paidUntil != null) 'paidUntil': _isoDate.format(paidUntil),
+            },
           );
 
       await refreshAfterTransactionMutation(ref, action: 'updating');

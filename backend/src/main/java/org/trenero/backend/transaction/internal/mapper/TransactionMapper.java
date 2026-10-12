@@ -102,6 +102,15 @@ public interface TransactionMapper {
       transaction.setDate(date != null ? LocalDate.parse(date.toString()) : null);
     }
 
+    if (updates.containsKey("paidUntil")) {
+      StudentPayment studentPayment = transaction.getStudentPayment();
+      Object paidUntil = updates.get("paidUntil");
+
+      if (studentPayment != null && paidUntil != null) {
+        studentPayment.setPaidUntil(LocalDate.parse(paidUntil.toString()));
+      }
+    }
+
     return transaction;
   }
 }

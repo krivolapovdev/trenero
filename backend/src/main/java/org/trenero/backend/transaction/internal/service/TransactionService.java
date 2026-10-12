@@ -191,12 +191,29 @@ public class TransactionService implements TransactionSpi {
       @NonNull UUID transactionId, @NonNull Map<String, Object> updates, @NonNull JwtUser jwtUser) {
     log.info("Patching transactionId={} in database for userId={}", transactionId, jwtUser.id());
 
-    return transactionRepository
-        .findByIdAndOwnerId(transactionId, jwtUser.id())
-        .map(transaction -> transactionMapper.updateTransaction(transaction, updates))
-        .map(transactionRepository::save)
-        .map(transactionMapper::toResponse)
-        .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
+    Transaction transaction =
+        transactionRepository
+            .findByIdAndOwnerId(transactionId, jwtUser.id())
+            .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
+
+    StudentPayment studentPayment = transaction.getStudentPayment();
+    Object paidUntilUpdate = updates.get("paidUntil");
+    boolean updatesPaidUntil = studentPayment != null && paidUntilUpdate != null;
+
+    if (updatesPaidUntil) {
+      LocalDate date =
+          updates.get("date") != null
+              ? LocalDate.parse(updates.get("date").toString())
+              : transaction.getDate();
+    }
+
+    transactionMapper.updateTransaction(transaction, updates);
+
+    if (updatesPaidUntil) {
+      studentPaymentRepository.saveAndFlush(studentPayment);
+    }
+
+    return transactionMapper.toResponse(transactionRepository.save(transaction));
   }
 
   @Transactional

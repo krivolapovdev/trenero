@@ -79,6 +79,39 @@ class TransactionMapperTest {
     assertThat(response.getPaymentDetails()).isNull();
   }
 
+  @Test
+  void updateTransactionPatchesAmountDateAndPaidUntil() {
+    UUID transactionId = UUID.randomUUID();
+    Transaction transaction = studentPaymentTransaction(transactionId, UUID.randomUUID());
+    LocalDate newDate = LocalDate.of(2026, 12, 1);
+    LocalDate newPaidUntil = LocalDate.of(2027, 1, 1);
+
+    Transaction updated =
+        transactionMapper.updateTransaction(
+            transaction,
+            Map.of(
+                "amount", "4200.00",
+                "date", newDate.toString(),
+                "paidUntil", newPaidUntil.toString()));
+
+    assertThat(updated).isSameAs(transaction);
+    assertThat(updated.getAmount()).isEqualByComparingTo("4200.00");
+    assertThat(updated.getDate()).isEqualTo(newDate);
+    assertThat(updated.getStudentPayment().getPaidUntil()).isEqualTo(newPaidUntil);
+  }
+
+  @Test
+  void updateTransactionIgnoresPaidUntilWithoutStudentPayment() {
+    UUID transactionId = UUID.randomUUID();
+    Transaction transaction = withoutPaymentDetails(transactionId);
+
+    Transaction updated =
+        transactionMapper.updateTransaction(
+            transaction, Map.of("paidUntil", LocalDate.of(2027, 1, 1).toString()));
+
+    assertThat(updated.getStudentPayment()).isNull();
+  }
+
   private static StudentPaymentDetailsResponse detailsOf(TransactionResponse response) {
     assertThat(response.getPaymentDetails()).isInstanceOf(StudentPaymentDetailsResponse.class);
 
