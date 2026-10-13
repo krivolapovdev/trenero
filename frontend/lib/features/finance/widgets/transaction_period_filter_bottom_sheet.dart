@@ -43,6 +43,7 @@ class _TransactionPeriodFilterBottomSheetState
 
   _PeriodField _activeField = _PeriodField.start;
   bool _isLoading = false;
+  bool _isSyncingFields = false;
 
   DateTime? get _activeDate =>
       _activeField == _PeriodField.start ? _start : _end;
@@ -119,6 +120,8 @@ class _TransactionPeriodFilterBottomSheetState
   void _onEndChanged() => _onTextChanged(_PeriodField.end);
 
   void _onTextChanged(_PeriodField field) {
+    if (_isSyncingFields) return;
+
     final parsed = DateInputField.tryParse(_controllerOf(field).text);
 
     setState(() {
@@ -156,22 +159,40 @@ class _TransactionPeriodFilterBottomSheetState
     if (_isLoading) return;
 
     final date = DateUtils.dateOnly(selectedDay);
-    final field = _activeField;
-    final formatted = DateInputField.format(date);
+    final start = _start;
 
-    if (_controllerOf(field).text != formatted) {
-      _controllerOf(field).text = formatted;
-    }
+    // A tap only grows the range into an end when the calendar is waiting for
+    // one and the tapped day lies after the chosen start. Any other tap starts
+    // a fresh range and drops a previously picked end, so days belonging to an
+    // older range can never linger as unwanted extra days.
+    final picksEnd =
+        _activeField == _PeriodField.end &&
+        start != null &&
+        date.isAfter(start);
+
+    final nextStart = picksEnd ? start : date;
+    final nextEnd = picksEnd ? date : null;
+
+    _setFieldText(_PeriodField.start, nextStart);
+    _setFieldText(_PeriodField.end, nextEnd);
 
     setState(() {
-      if (field == _PeriodField.start) {
-        _start = date;
-      } else {
-        _end = date;
-      }
-
+      _start = nextStart;
+      _end = nextEnd;
+      _activeField = picksEnd ? _PeriodField.start : _PeriodField.end;
       _focusedDay = date;
     });
+  }
+
+  void _setFieldText(_PeriodField field, DateTime? date) {
+    final controller = _controllerOf(field);
+    final text = _format(date);
+
+    if (controller.text == text) return;
+
+    _isSyncingFields = true;
+    controller.text = text;
+    _isSyncingFields = false;
   }
 
   void _shiftMonth(int months) => setState(() {
@@ -180,7 +201,8 @@ class _TransactionPeriodFilterBottomSheetState
     );
   });
 
-  bool _isSelectedDay(DateTime day) => isSameDay(day, _activeDate);
+  bool _isSelectedDay(DateTime day) =>
+      isSameDay(day, _start) || isSameDay(day, _end);
 
   Future<void> _apply() async {
     if (!_canApply) return;

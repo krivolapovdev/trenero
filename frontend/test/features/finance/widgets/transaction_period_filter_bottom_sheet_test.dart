@@ -114,15 +114,66 @@ void main() {
     expect(apply.dy, greaterThan(monthHeader.dy));
   });
 
-  testWidgets('tapping a calendar day fills the focused field', (tester) async {
+  testWidgets('the first calendar tap picks the start and drops the old end', (
+    tester,
+  ) async {
+    seedPeriod();
+
+    await _openSheet(tester, container);
+
+    expect(_fieldText(tester, 1), '13.10.2026');
+
+    await tester.tap(find.text('20'));
+    await tester.pump();
+
+    expect(_fieldText(tester, 0), '20.09.2026');
+    expect(_fieldText(tester, 1), isEmpty);
+  });
+
+  testWidgets('the second calendar tap picks the end', (tester) async {
     seedPeriod();
 
     await _openSheet(tester, container);
 
     await tester.tap(find.text('20'));
     await tester.pump();
+    await tester.tap(find.text('25'));
+    await tester.pump();
 
     expect(_fieldText(tester, 0), '20.09.2026');
+    expect(_fieldText(tester, 1), '25.09.2026');
+  });
+
+  testWidgets('a tap before the start restarts the range', (tester) async {
+    seedPeriod();
+
+    await _openSheet(tester, container);
+
+    await tester.tap(find.text('20'));
+    await tester.pump();
+    await tester.tap(find.text('10'));
+    await tester.pump();
+
+    expect(_fieldText(tester, 0), '10.09.2026');
+    expect(_fieldText(tester, 1), isEmpty);
+  });
+
+  testWidgets('a third tap starts a new range instead of adding extra days', (
+    tester,
+  ) async {
+    seedPeriod();
+
+    await _openSheet(tester, container);
+
+    await tester.tap(find.text('20'));
+    await tester.pump();
+    await tester.tap(find.text('25'));
+    await tester.pump();
+    await tester.tap(find.text('28'));
+    await tester.pump();
+
+    expect(_fieldText(tester, 0), '28.09.2026');
+    expect(_fieldText(tester, 1), isEmpty);
   });
 
   testWidgets('the calendar follows the focused field', (tester) async {
@@ -166,6 +217,8 @@ void main() {
 
     await tester.tap(find.text('20'));
     await tester.pump();
+    await tester.tap(find.text('25'));
+    await tester.pump();
 
     await tester.tap(find.text(t.finance.filter.apply));
     await tester.pumpAndSettle();
@@ -173,7 +226,7 @@ void main() {
     final period = container.read(transactionFilterControllerProvider);
 
     expect(period.start, DateTime(2026, 9, 20));
-    expect(period.end, DateTime(2026, 10, 13));
+    expect(period.end, DateTime(2026, 9, 25));
     expect(find.byType(TransactionPeriodFilterBottomSheet), findsNothing);
   });
 
