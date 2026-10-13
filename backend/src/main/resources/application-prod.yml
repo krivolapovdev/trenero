@@ -14,4 +14,4 @@ management:
       exposure:
         include: health, info
 cors:
-  allowed-origins: https://trenero.org,https://www.trenero.org
+  allowed-origins: https://api.trenerio.ru
