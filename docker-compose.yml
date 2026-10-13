@@ -14,7 +14,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:
-      - trenero-network
+      - trenerio-network
 
   backend:
     image: krivolapovdev/backend:${IMAGE_TAG:-latest}
@@ -45,7 +45,7 @@ services:
       - "traefik.http.middlewares.backend-compress.compress=true"
       - "traefik.http.routers.backend.priority=100"
     networks:
-      - trenero-network
+      - trenerio-network
 
   traefik:
     image: traefik:v3.6.7
@@ -70,12 +70,12 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
-      - trenero-network
+      - trenerio-network
 
 volumes:
   db-data:
-    name: trenero-db-data
+    name: trenerio-db-data
 
 networks:
-  trenero-network:
+  trenerio-network:
     driver: bridge
