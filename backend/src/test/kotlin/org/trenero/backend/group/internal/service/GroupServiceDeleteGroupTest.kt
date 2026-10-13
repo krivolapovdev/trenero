@@ -2,14 +2,12 @@ package org.trenero.backend.group.internal.service
 
 import jakarta.persistence.EntityNotFoundException
 import java.util.UUID
-import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.catchThrowable
+import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.trenero.backend.TestcontainersConfig
-import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.group.internal.repository.GroupRepository
 import org.trenero.backend.group.internal.repository.GroupStudentRepository
 import org.trenero.backend.user.internal.repository.UserRepository
@@ -33,7 +31,7 @@ class GroupServiceDeleteGroupTest {
   @Test
   fun removesTheGroupOfTheCaller() {
     val owner = userRepository.insertOwner()
-    val groupId = createGroup(owner, "Beginners")
+    val groupId = service().createGroup(groupRequest("Beginners"), owner).id
 
     service().deleteGroup(groupId, owner)
 
@@ -53,7 +51,7 @@ class GroupServiceDeleteGroupTest {
   fun hidesTheGroupOfAnotherOwner() {
     val owner = userRepository.insertOwner()
     val stranger = userRepository.insertOwner()
-    val foreignGroupId = createGroup(stranger, "Beginners")
+    val foreignGroupId = service().createGroup(groupRequest("Beginners"), stranger).id
 
     val thrown = catchThrowable { service().deleteGroup(foreignGroupId, owner) }
 
@@ -62,7 +60,4 @@ class GroupServiceDeleteGroupTest {
   }
 
   private fun service() = groupService(groupRepository, groupStudentRepository)
-
-  private fun createGroup(owner: JwtUser, name: String): UUID =
-    service().createGroup(groupRequest(name), owner).id
 }

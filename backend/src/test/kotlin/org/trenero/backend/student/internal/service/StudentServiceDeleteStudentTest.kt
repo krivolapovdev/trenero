@@ -1,10 +1,9 @@
 package org.trenero.backend.student.internal.service
 
 import jakarta.persistence.EntityNotFoundException
-import java.time.LocalDate
+import java.time.LocalDate.of
 import java.util.UUID
-import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.catchThrowable
+import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
@@ -12,8 +11,6 @@ import org.springframework.context.annotation.Import
 import org.trenero.backend.TestcontainersConfig
 import org.trenero.backend.common.domain.VisitStatus
 import org.trenero.backend.common.domain.VisitType
-import org.trenero.backend.common.security.JwtUser
-import org.trenero.backend.student.external.response.StudentResponse
 import org.trenero.backend.student.internal.repository.StudentRepository
 import org.trenero.backend.student.internal.request.CreateStudentRequest
 import org.trenero.backend.user.internal.repository.UserRepository
@@ -32,7 +29,13 @@ class StudentServiceDeleteStudentTest {
   @Test
   fun removesTheStudentOfTheCaller() {
     val owner = userRepository.insertOwner()
-    val studentId = createStudent(owner, "Ivan Petrov").id
+    val studentId =
+      service()
+        .createStudent(
+          CreateStudentRequest("Ivan Petrov", of(2010, 5, 1), null, null, false),
+          owner,
+        )
+        .id
 
     service().deleteStudent(studentId, owner)
 
@@ -43,7 +46,13 @@ class StudentServiceDeleteStudentTest {
   fun keepsTheStudentOfAnotherOwner() {
     val owner = userRepository.insertOwner()
     val stranger = userRepository.insertOwner()
-    val studentId = createStudent(owner, "Ivan Petrov").id
+    val studentId =
+      service()
+        .createStudent(
+          CreateStudentRequest("Ivan Petrov", of(2010, 5, 1), null, null, false),
+          owner,
+        )
+        .id
 
     val thrown = catchThrowable { service().deleteStudent(studentId, stranger) }
 
@@ -70,7 +79,13 @@ class StudentServiceDeleteStudentTest {
   @Test
   fun leavesTheVisitsOfTheDeletedStudentBehind() {
     val owner = userRepository.insertOwner()
-    val studentId = createStudent(owner, "Ivan Petrov").id
+    val studentId =
+      service()
+        .createStudent(
+          CreateStudentRequest("Ivan Petrov", of(2010, 5, 1), null, null, false),
+          owner,
+        )
+        .id
     visitRepository.saveAndFlush(visit(owner.id, studentId))
 
     service().deleteStudent(studentId, owner)
@@ -79,13 +94,6 @@ class StudentServiceDeleteStudentTest {
   }
 
   private fun service() = studentService(studentRepository)
-
-  private fun createStudent(owner: JwtUser, fullName: String): StudentResponse =
-    service()
-      .createStudent(
-        CreateStudentRequest(fullName, LocalDate.of(2010, 5, 1), null, null, false),
-        owner,
-      )
 
   private fun visit(ownerId: UUID, studentId: UUID): Visit =
     Visit.builder()

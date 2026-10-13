@@ -47,7 +47,7 @@ class GroupServiceUpdateGroupStudentsTest {
 
   @Test
   void addsThePickedStudentsAndDropsTheRest() {
-    givenExistingStudents(ANNA_ID, IVAN_ID);
+    givenExistingStudents();
 
     groupService()
         .updateGroup(
@@ -61,7 +61,7 @@ class GroupServiceUpdateGroupStudentsTest {
 
   @Test
   void keepsTheStudentsThatStayPicked() {
-    givenExistingStudents(ANNA_ID, IVAN_ID);
+    givenExistingStudents();
 
     groupService()
         .updateGroup(
@@ -75,7 +75,7 @@ class GroupServiceUpdateGroupStudentsTest {
 
   @Test
   void dropsEveryStudentWhenTheRequestPicksNone() {
-    givenExistingStudents(ANNA_ID, IVAN_ID);
+    givenExistingStudents();
 
     groupService().updateGroup(GROUP_ID, Map.of("studentIds", List.of()), jwtUser);
 
@@ -86,7 +86,7 @@ class GroupServiceUpdateGroupStudentsTest {
 
   @Test
   void leavesTheStudentsUntouchedWhenTheRequestDoesNotPickAny() {
-    givenExistingStudents(ANNA_ID, IVAN_ID);
+    givenExistingStudents();
 
     groupService().updateGroup(GROUP_ID, Map.of("name", "Group B"), jwtUser);
 
@@ -95,7 +95,7 @@ class GroupServiceUpdateGroupStudentsTest {
     verify(groupStudentService, never()).addStudentsToGroup(any(), any(), any());
   }
 
-  private void givenExistingStudents(UUID... studentIds) {
+  private void givenExistingStudents() {
     when(groupRepository.findByIdAndOwnerId(GROUP_ID, jwtUser.id())).thenReturn(Optional.of(group));
     when(groupMapper.updateGroup(any(), any())).thenReturn(group);
     when(self.saveGroup(any())).thenReturn(group);
@@ -109,7 +109,11 @@ class GroupServiceUpdateGroupStudentsTest {
                 OffsetDateTime.of(2026, 10, 8, 0, 0, 0, 0, ZoneOffset.UTC)));
     when(groupStudentService.getStudentsByGroupId(GROUP_ID, jwtUser))
         .thenReturn(
-            Arrays.stream(studentIds)
+            Arrays.stream(
+                    new UUID[] {
+                      GroupServiceUpdateGroupStudentsTest.ANNA_ID,
+                      GroupServiceUpdateGroupStudentsTest.IVAN_ID
+                    })
                 .map(
                     studentId ->
                         new GroupStudentResponse(UUID.randomUUID(), GROUP_ID, studentId, null))

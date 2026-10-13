@@ -47,8 +47,7 @@ public interface TransactionMapper {
     }
 
     UUID studentId = studentDetails.getStudentId();
-    StudentResponse student =
-        (studentsByIds == null || studentId == null) ? null : studentsByIds.get(studentId);
+    StudentResponse student = studentsByIds == null ? null : studentsByIds.get(studentId);
     String studentName = student != null ? student.getFullName() : studentDetails.getStudentName();
 
     StudentPaymentDetailsResponse enrichedDetails =

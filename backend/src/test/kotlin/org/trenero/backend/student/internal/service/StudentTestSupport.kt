@@ -1,7 +1,6 @@
 package org.trenero.backend.student.internal.service
 
 import java.util.UUID
-import java.util.concurrent.Executor
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.trenero.backend.common.domain.OAuth2Provider
@@ -38,8 +37,9 @@ internal fun studentService(
     null,
     null,
     null,
-    Executor { it.run() },
-  )
+  ) {
+    it.run()
+  }
 }
 
 /**
