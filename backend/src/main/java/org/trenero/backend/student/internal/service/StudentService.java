@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trenero.backend.common.async.AsyncUtils;
+import org.trenero.backend.common.exception.ApiErrorCode;
+import org.trenero.backend.common.exception.ConflictException;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.external.response.GroupResponse;
 import org.trenero.backend.group.external.response.GroupStudentResponse;
@@ -178,14 +180,6 @@ public class StudentService implements StudentSpi {
         .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
   }
 
-  /**
-   * The visits of a student, narrowed to the lessons that take place on or after {@code from} and
-   * on or before {@code to} when those bounds are given.
-   *
-   * <p>A {@code null} bound leaves that side of the range open, so the lessons are only narrowed by
-   * the bounds the caller asks for. The client loads a few months at a time, so the bound keeps the
-   * response small instead of shipping every lesson the student ever had.
-   */
   @Transactional(readOnly = true)
   public @NonNull List<VisitWithLessonResponse> getStudentVisits(
       @NonNull UUID studentId, LocalDate from, LocalDate to, @NonNull JwtUser jwtUser) {
@@ -205,7 +199,6 @@ public class StudentService implements StudentSpi {
         .toList();
   }
 
-  /** Whether [date] lies within [from] and [to], the open bounds being left out. */
   private static boolean isWithin(LocalDate date, LocalDate from, LocalDate to) {
     return (from == null || !date.isBefore(from)) && (to == null || !date.isAfter(to));
   }
@@ -233,10 +226,26 @@ public class StudentService implements StudentSpi {
       @NonNull CreateStudentRequest request, @NonNull JwtUser jwtUser) {
     log.info("Creating student: request={}; user={}", request, jwtUser);
 
+    requireFreeFullName(request.fullName(), null, jwtUser);
+
     var student = studentMapper.toStudent(request, jwtUser.id());
     var savedStudent = self.saveStudent(student);
 
     return studentMapper.toResponse(savedStudent);
+  }
+
+  private void requireFreeFullName(String fullName, UUID studentId, JwtUser jwtUser) {
+    boolean taken =
+        studentId == null
+            ? studentRepository.existsByOwnerIdAndFullName(jwtUser.id(), fullName)
+            : studentRepository.existsByOwnerIdAndFullNameAndIdNot(
+                jwtUser.id(), fullName, studentId);
+
+    if (taken) {
+      throw new ConflictException(
+          ApiErrorCode.STUDENT_NAME_NOT_UNIQUE,
+          "A student named \"%s\" already exists".formatted(fullName));
+    }
   }
 
   @Transactional
@@ -261,6 +270,10 @@ public class StudentService implements StudentSpi {
             .findByIdAndOwnerId(studentId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
 
+    if (updates.get("fullName") instanceof String fullName) {
+      requireFreeFullName(fullName, studentId, jwtUser);
+    }
+
     if (updates.containsKey("groupIds") || updates.containsKey("groupId")) {
       reconcileStudentGroups(studentId, updates, jwtUser);
     }
@@ -271,11 +284,6 @@ public class StudentService implements StudentSpi {
     return studentMapper.toResponse(savedStudent);
   }
 
-  /**
-   * Brings the group links of a student in line with the groups the request picked: a link the
-   * request left out is dropped, a requested group the student did not belong to yet is added. The
-   * student is stored as joined today unless the request carries the day they joined.
-   */
   private void reconcileStudentGroups(
       UUID studentId, Map<String, Object> updates, JwtUser jwtUser) {
     var requestedGroupIds = parseRequestedGroupIds(updates);
@@ -293,11 +301,6 @@ public class StudentService implements StudentSpi {
         .forEach(groupId -> groupStudentSpi.addStudentToGroup(studentId, groupId, jwtUser));
   }
 
-  /**
-   * The groups the request wants the student to belong to. The student group page sends the picked
-   * groups as {@code groupIds}; a plain {@code groupId} is still accepted for the older
-   * single-group callers. A blank value leaves the student without any group.
-   */
   private static Set<UUID> parseRequestedGroupIds(Map<String, Object> updates) {
     var requestedGroupIds = new LinkedHashSet<UUID>();
 
@@ -341,11 +344,6 @@ public class StudentService implements StudentSpi {
     return getStudentsWithStatuses(studentIds, groupId, jwtUser);
   }
 
-  /**
-   * The students with their badges. When {@code groupId} is given the visit badge is read from the
-   * lessons of that group, so a group page shows whether a student came to the last lesson of the
-   * group instead of the last lesson of any group the student belongs to.
-   */
   private @NonNull Map<UUID, StudentWithStatusesResponse> getStudentsWithStatuses(
       @NonNull List<UUID> studentIds, UUID groupId, @NonNull JwtUser jwtUser) {
     log.info(

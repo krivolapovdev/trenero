@@ -167,8 +167,15 @@ public class GlobalExceptionHandler {
     return createProblemDetail(
         HttpStatus.CONFLICT,
         "Conflict",
-        "A database integrity constraint violation occurred",
+        "The request clashes with the data that is already saved. Reload the page and try again.",
         request);
+  }
+
+  @ExceptionHandler(ConflictException.class)
+  public ProblemDetail handleConflictException(ConflictException e, HttpServletRequest request) {
+    log.warn("Conflict for request [{}]: {}", request.getRequestURI(), e.getMessage());
+
+    return createProblemDetail(e.getCode(), e.getMessage(), request);
   }
 
   @ExceptionHandler(ResponseStatusException.class)
@@ -206,6 +213,13 @@ public class GlobalExceptionHandler {
       problem.setInstance(URI.create(request.getRequestURI()));
     }
     problem.setProperty("timestamp", Instant.now().toString());
+    return problem;
+  }
+
+  private ProblemDetail createProblemDetail(
+      String code, String detail, HttpServletRequest request) {
+    ProblemDetail problem = createProblemDetail(HttpStatus.CONFLICT, "Conflict", detail, request);
+    problem.setProperty("code", code);
     return problem;
   }
 }

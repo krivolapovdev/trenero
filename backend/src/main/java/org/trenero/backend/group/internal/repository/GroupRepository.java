@@ -41,4 +41,8 @@ public interface GroupRepository extends JpaRepository<@NonNull Group, @NonNull 
           """)
   List<Group> findAllByIdsAndOwnerId(
       @Param("groupIds") List<UUID> groupIds, @Param("ownerId") UUID ownerId);
+
+  boolean existsByOwnerIdAndName(UUID ownerId, String name);
+
+  boolean existsByOwnerIdAndNameAndIdNot(UUID ownerId, String name, UUID groupId);
 }

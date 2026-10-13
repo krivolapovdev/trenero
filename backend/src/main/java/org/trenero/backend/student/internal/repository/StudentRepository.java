@@ -41,4 +41,8 @@ public interface StudentRepository extends JpaRepository<@NonNull Student, @NonN
           """)
   List<Student> findAllByIdsAndOwnerId(
       @Param("studentIds") List<UUID> studentIds, @Param("ownerId") UUID ownerId);
+
+  boolean existsByOwnerIdAndFullName(UUID ownerId, String fullName);
+
+  boolean existsByOwnerIdAndFullNameAndIdNot(UUID ownerId, String fullName, UUID studentId);
 }

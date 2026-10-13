@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.trenero.backend.common.exception.ApiErrorCode;
+import org.trenero.backend.common.exception.ConflictException;
 import org.trenero.backend.common.security.JwtUser;
 import org.trenero.backend.group.external.response.GroupResponse;
 import org.trenero.backend.group.external.response.GroupStudentResponse;
@@ -226,12 +228,27 @@ public class GroupService implements GroupSpi {
       @NonNull CreateGroupRequest request, @NonNull JwtUser jwtUser) {
     log.info("Creating group: request={}; user={}", request, jwtUser);
 
+    requireFreeName(request.name(), null, jwtUser);
+
     Group group = groupMapper.toGroup(request, jwtUser.id());
     Group savedGroup = self.saveGroup(group);
 
     groupStudentService.addStudentsToGroup(savedGroup.getId(), request.studentIds(), jwtUser);
 
     return groupMapper.toResponse(savedGroup);
+  }
+
+  private void requireFreeName(String name, UUID groupId, JwtUser jwtUser) {
+    boolean taken =
+        groupId == null
+            ? groupRepository.existsByOwnerIdAndName(jwtUser.id(), name)
+            : groupRepository.existsByOwnerIdAndNameAndIdNot(jwtUser.id(), name, groupId);
+
+    if (taken) {
+      throw new ConflictException(
+          ApiErrorCode.GROUP_NAME_NOT_UNIQUE,
+          "A group named \"%s\" already exists".formatted(name));
+    }
   }
 
   @Transactional
@@ -244,6 +261,10 @@ public class GroupService implements GroupSpi {
             .findByIdAndOwnerId(groupId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(Group.class, groupId, jwtUser));
 
+    if (updates.get("name") instanceof String name) {
+      requireFreeName(name, groupId, jwtUser);
+    }
+
     if (updates.containsKey("studentIds")) {
       reconcileGroupStudents(groupId, updates, jwtUser);
     }
@@ -254,11 +275,6 @@ public class GroupService implements GroupSpi {
     return groupMapper.toResponse(savedGroup);
   }
 
-  /**
-   * Brings the student links of a group in line with the students the request picked: a student the
-   * request left out is dropped from the group, a picked student the group did not hold yet is
-   * added. An empty pick leaves the group without any student.
-   */
   private void reconcileGroupStudents(UUID groupId, Map<String, Object> updates, JwtUser jwtUser) {
     var requestedStudentIds = parseRequestedStudentIds(updates);
     var currentStudentIds =
@@ -279,10 +295,6 @@ public class GroupService implements GroupSpi {
     }
   }
 
-  /**
-   * The students the request wants the group to hold, sent by the group students page as {@code
-   * studentIds}. A blank value leaves the group without any student.
-   */
   private static Set<UUID> parseRequestedStudentIds(Map<String, Object> updates) {
     var rawStudentIds = updates.get("studentIds");
     var requestedStudentIds = new LinkedHashSet<UUID>();
