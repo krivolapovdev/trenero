@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
-import 'package:phone/core/widgets/calendar_month_navigator.dart';
+import 'package:phone/core/widgets/calendar_month_header.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
@@ -267,13 +267,16 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CalendarMonthNavigator(
-            focusedDay: focusedDay,
-            locale: locale,
-            onPreviousMonth: _canGoBackwards(focusedDay)
-                ? () => _showMonth(-1)
-                : null,
-            onNextMonth: _canGoForward(focusedDay) ? () => _showMonth(1) : null,
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: CalendarMonthHeader(
+              focusedDay: focusedDay,
+              locale: locale,
+              onPreviousMonth: _canGoBackwards(focusedDay)
+                  ? () => _showMonth(-1)
+                  : null,
+              onNextMonth: _canGoForward(focusedDay) ? () => _showMonth(1) : null,
+            ),
           ),
           StudentLessonsBody(
             visitsAsync: visitsAsync,

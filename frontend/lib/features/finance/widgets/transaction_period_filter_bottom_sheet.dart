@@ -1,9 +1,9 @@
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:phone/core/constants/app_colors.dart';
 import 'package:phone/core/constants/app_spacing.dart';
+import 'package:phone/core/widgets/calendar_month_header.dart';
 import 'package:phone/core/widgets/date_input_field.dart';
 import 'package:phone/features/finance/controllers/transaction_filter_controller.dart';
 import 'package:phone/features/finance/controllers/transaction_list_controller.dart';
@@ -282,7 +282,14 @@ class _TransactionPeriodFilterBottomSheetState
                       ],
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    _buildMonthHeader(locale),
+                    CalendarMonthHeader(
+                      focusedDay: _focusedDay,
+                      locale: locale,
+                      onPreviousMonth: _isLoading
+                          ? null
+                          : () => _shiftMonth(-1),
+                      onNextMonth: _isLoading ? null : () => _shiftMonth(1),
+                    ),
                     const SizedBox(height: AppSpacing.xs),
                     _buildCalendar(locale),
                   ],
@@ -330,25 +337,6 @@ class _TransactionPeriodFilterBottomSheetState
     keyboardType: TextInputType.number,
     inputFormatters: const [DateInputFormatter()],
     decoration: InputDecoration(labelText: label),
-  );
-
-  Widget _buildMonthHeader(String locale) => Row(
-    children: [
-      Expanded(
-        child: Text(
-          DateFormat.yMMMM(locale).format(_focusedDay),
-          style: const TextStyle(fontSize: 20, color: Colors.black),
-        ),
-      ),
-      IconButton(
-        icon: const Icon(FluentIcons.chevron_left_24_regular),
-        onPressed: _isLoading ? null : () => _shiftMonth(-1),
-      ),
-      IconButton(
-        icon: const Icon(FluentIcons.chevron_right_24_regular),
-        onPressed: _isLoading ? null : () => _shiftMonth(1),
-      ),
-    ],
   );
 
   Widget _buildCalendar(String locale) => TableCalendar<void>(

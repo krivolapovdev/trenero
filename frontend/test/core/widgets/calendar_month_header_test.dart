@@ -1,18 +1,19 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:phone/core/widgets/calendar_month_navigator.dart';
+import 'package:phone/core/widgets/calendar_month_header.dart';
 
 void main() {
   setUpAll(initializeDateFormatting);
 
-  testWidgets('writes the shown month and year between the arrows', (
+  testWidgets('writes the shown month and year before the arrows', (
     tester,
   ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: CalendarMonthNavigator(
+          body: CalendarMonthHeader(
             focusedDay: DateTime(2026, 10, 8),
             locale: 'en',
             onPreviousMonth: () {},
@@ -23,8 +24,8 @@ void main() {
     );
 
     expect(find.text('October 2026'), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_left), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+    expect(find.byIcon(FluentIcons.chevron_left_24_regular), findsOneWidget);
+    expect(find.byIcon(FluentIcons.chevron_right_24_regular), findsOneWidget);
   });
 
   testWidgets('each arrow steps a month', (tester) async {
@@ -34,7 +35,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: CalendarMonthNavigator(
+          body: CalendarMonthHeader(
             focusedDay: DateTime(2026, 10, 8),
             locale: 'en',
             onPreviousMonth: () => previous++,
@@ -44,8 +45,8 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byIcon(Icons.chevron_left));
-    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.tap(find.byIcon(FluentIcons.chevron_left_24_regular));
+    await tester.tap(find.byIcon(FluentIcons.chevron_right_24_regular));
     await tester.pump();
 
     expect(previous, 1);
@@ -56,7 +57,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: CalendarMonthNavigator(
+          body: CalendarMonthHeader(
             focusedDay: DateTime(2026, 10, 8),
             locale: 'en',
           ),
@@ -68,7 +69,13 @@ void main() {
       find.ancestor(of: find.byIcon(icon), matching: find.byType(IconButton)),
     );
 
-    expect(arrowOf(Icons.chevron_left).onPressed, isNull);
-    expect(arrowOf(Icons.chevron_right).onPressed, isNull);
+    expect(
+      arrowOf(FluentIcons.chevron_left_24_regular).onPressed,
+      isNull,
+    );
+    expect(
+      arrowOf(FluentIcons.chevron_right_24_regular).onPressed,
+      isNull,
+    );
   });
 }

@@ -1,6 +1,8 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:phone/core/widgets/calendar_month_header.dart';
 import 'package:phone/core/widgets/lessons_calendar.dart';
 import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
@@ -201,7 +203,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.tap(find.byIcon(FluentIcons.chevron_right_24_regular));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('15'), warnIfMissed: false);
@@ -301,8 +303,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.chevron_left), findsNothing);
-    expect(find.byIcon(Icons.chevron_right), findsNothing);
+    expect(find.byType(CalendarMonthHeader), findsNothing);
+    expect(find.byIcon(FluentIcons.chevron_left_24_regular), findsNothing);
+    expect(find.byIcon(FluentIcons.chevron_right_24_regular), findsNothing);
   });
 
   testWidgets('an owned month shows the month it is given', (tester) async {
@@ -328,7 +331,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.tap(find.byIcon(FluentIcons.chevron_right_24_regular));
     await tester.pumpAndSettle();
 
     expect(changes, hasLength(1));

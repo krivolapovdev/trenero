@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/constants/app_radius.dart';
+import 'package:phone/core/widgets/calendar_month_header.dart';
 import 'package:phone/core/widgets/day_lessons_sheet.dart';
 import 'package:phone/core/widgets/lesson_day_marker.dart';
 import 'package:phone/generated/models/lesson_response.dart';
@@ -78,6 +79,18 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
     widget.onMonthChanged?.call(focusedDay);
   }
 
+  void _shiftMonth(int months) {
+    final next = DateTime(_shownDay.year, _shownDay.month + months);
+
+    if (widget.focusedDay == null) {
+      setState(() {
+        _focusedDay = next;
+      });
+    }
+
+    widget.onMonthChanged?.call(next);
+  }
+
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     if (widget.focusedDay == null) {
       setState(() {
@@ -131,7 +144,7 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
       lastDay: DateTime.now().add(const Duration(days: 365)),
       focusedDay: _shownDay,
       enabledDayPredicate: _isEnabledDay,
-      headerVisible: widget.headerVisible,
+      headerVisible: false,
       availableGestures: widget.swipeEnabled
           ? AvailableGestures.horizontalSwipe
           : AvailableGestures.none,
@@ -140,10 +153,6 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
       onDaySelected: _onDaySelected,
       eventLoader: _lessonsOf,
       startingDayOfWeek: StartingDayOfWeek.monday,
-      headerStyle: const HeaderStyle(
-        formatButtonVisible: false,
-        titleCentered: true,
-      ),
       calendarBuilders: CalendarBuilders<LessonResponse>(
         todayBuilder: (context, day, focusedDay) => marker(day),
         defaultBuilder: (context, day, focusedDay) => marker(day),
@@ -167,7 +176,7 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
       ),
     );
 
-    if (!widget.surfaceVisible) return calendar;
+    if (!widget.surfaceVisible) return _withHeader(calendar);
 
     return Container(
       clipBehavior: Clip.antiAlias,
@@ -176,7 +185,28 @@ class _LessonsCalendarState extends State<LessonsCalendar> {
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.all(8),
-      child: calendar,
+      child: _withHeader(calendar),
+    );
+  }
+
+  Widget _withHeader(Widget calendar) {
+    if (!widget.headerVisible) return calendar;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: CalendarMonthHeader(
+            focusedDay: _shownDay,
+            locale: widget.locale,
+            onPreviousMonth: () => _shiftMonth(-1),
+            onNextMonth: () => _shiftMonth(1),
+          ),
+        ),
+        calendar,
+      ],
     );
   }
 }

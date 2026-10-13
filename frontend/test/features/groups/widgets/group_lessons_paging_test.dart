@@ -1,3 +1,4 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -114,7 +115,7 @@ void main() {
     await tester.pumpAndSettle();
 
     for (var step = 1; step <= 4; step++) {
-      await tester.tap(find.byIcon(Icons.chevron_left));
+      await tester.tap(find.byIcon(FluentIcons.chevron_left_24_regular));
       await tester.pumpAndSettle();
 
       final shown = DateFormat.yMMMM('en')
