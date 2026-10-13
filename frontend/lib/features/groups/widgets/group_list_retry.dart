@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/retry_view.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
+import 'package:phone/i18n/strings.g.dart';
 
 class GroupListRetry extends ConsumerWidget {
   final Object? error;
@@ -10,7 +12,7 @@ class GroupListRetry extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => RetryView(
-    message: '$error',
+    message: error.userMessage(context.t),
     scrollable: true,
     onRetry: () =>
         ref.read(groupListControllerProvider.notifier).getAllGroups(),

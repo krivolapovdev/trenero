@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/errors/app_exception.dart';
 import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/features/students/controllers/student_mutation_refresh.dart';
-import 'package:phone/features/students/services/student_service.dart';
+import 'package:phone/features/students/repositories/student_repository.dart';
 import 'package:phone/generated/models/create_student_request.dart';
 
 final createStudentControllerProvider =
@@ -28,7 +28,10 @@ class CreateStudentController extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() async {
       final trimmedName = fullName.trim();
       if (trimmedName.isEmpty) {
-        throw const ValidationException('Student name is required.');
+        throw const ValidationException(
+          'Student name is required.',
+          code: AppErrorCode.studentNameRequired,
+        );
       }
 
       final request = CreateStudentRequest(
@@ -39,8 +42,8 @@ class CreateStudentController extends AsyncNotifier<void> {
         free: free,
       );
 
-      final service = ref.read(studentServiceProvider);
-      await service.createStudent(body: request);
+      final repository = ref.read(studentRepositoryProvider);
+      await repository.createStudent(request);
 
       await refreshAfterStudentMutation(ref);
     });

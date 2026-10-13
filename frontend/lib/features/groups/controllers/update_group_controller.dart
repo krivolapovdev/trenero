@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/controllers/group_form_values.dart';
 import 'package:phone/features/groups/controllers/group_mutation_refresh.dart';
-import 'package:phone/features/groups/services/group_service.dart';
+import 'package:phone/features/groups/repositories/group_repository.dart';
 
 final updateGroupControllerProvider =
     AsyncNotifierProvider<UpdateGroupController, void>(
@@ -35,8 +35,8 @@ class UpdateGroupController extends AsyncNotifier<void> {
         'note': values.note,
       };
 
-      final service = ref.read(groupServiceProvider);
-      await service.updateGroup(groupId: groupId, body: body);
+      final repository = ref.read(groupRepositoryProvider);
+      await repository.updateGroup(groupId: groupId, body: body);
 
       refreshAfterGroupMutation(ref);
     });

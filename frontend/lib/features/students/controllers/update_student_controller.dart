@@ -6,7 +6,7 @@ import 'package:phone/core/constants/app_date_formats.dart';
 import 'package:phone/core/errors/app_exception.dart';
 import 'package:phone/core/extensions/string_extension.dart';
 import 'package:phone/features/students/controllers/student_mutation_refresh.dart';
-import 'package:phone/features/students/services/student_service.dart';
+import 'package:phone/features/students/repositories/student_repository.dart';
 
 final updateStudentControllerProvider =
     AsyncNotifierProvider<UpdateStudentController, void>(
@@ -32,7 +32,10 @@ class UpdateStudentController extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() async {
       final trimmedName = fullName.trim();
       if (trimmedName.isEmpty) {
-        throw const ValidationException('Student name is required.');
+        throw const ValidationException(
+          'Student name is required.',
+          code: AppErrorCode.studentNameRequired,
+        );
       }
 
       final body = <String, dynamic>{
@@ -43,8 +46,8 @@ class UpdateStudentController extends AsyncNotifier<void> {
         'free': free,
       };
 
-      final service = ref.read(studentServiceProvider);
-      await service.updateStudent(studentId: studentId, body: body);
+      final repository = ref.read(studentRepositoryProvider);
+      await repository.updateStudent(studentId: studentId, body: body);
 
       await refreshAfterStudentMutation(ref);
     });

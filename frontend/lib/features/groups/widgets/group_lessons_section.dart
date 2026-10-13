@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/create_lesson_button.dart';
@@ -77,7 +78,11 @@ class GroupLessonsSection extends ConsumerWidget {
 
     if (lessonsAsync.hasError && !lessonsAsync.hasValue) {
       return Center(
-        child: Text(context.t.lessons.errorLoading(error: lessonsAsync.error!)),
+        child: Text(
+          context.t.lessons.errorLoading(
+            error: lessonsAsync.error!.userMessage(context.t),
+          ),
+        ),
       );
     }
 

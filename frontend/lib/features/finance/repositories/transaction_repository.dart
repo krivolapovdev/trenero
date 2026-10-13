@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/features/finance/services/transaction_service.dart';
 import 'package:phone/generated/models/create_transaction_request.dart';
 import 'package:phone/generated/models/page_transaction_response.dart';
@@ -19,24 +20,30 @@ class TransactionRepository {
   Future<PageTransactionResponse> getTransactionsByPage({
     int page = 1,
     int size = 20,
-  }) async => _client.getPaginatedTransactions(page: page, size: size);
+  }) async => guardApiCall(
+    () => _client.getPaginatedTransactions(page: page, size: size),
+  );
 
   Future<TransactionResponse> updateTransaction({
     required String transactionId,
     required Map<String, dynamic> body,
-  }) async =>
-      _client.updateTransaction(transactionId: transactionId, body: body);
+  }) async => guardApiCall(
+    () => _client.updateTransaction(transactionId: transactionId, body: body),
+  );
 
-  Future<void> deleteTransaction(String transactionId) async =>
-      _client.deleteTransaction(transactionId: transactionId);
+  Future<void> deleteTransaction(String transactionId) async => guardApiCall(
+    () => _client.deleteTransaction(transactionId: transactionId),
+  );
 
   Future<void> createTransaction({
     required TransactionType type,
     required double amount,
     required DateTime date,
   }) async {
-    await _client.createTransaction(
-      body: CreateTransactionRequest(type: type, amount: amount, date: date),
+    await guardApiCall(
+      () => _client.createTransaction(
+        body: CreateTransactionRequest(type: type, amount: amount, date: date),
+      ),
     );
   }
 }

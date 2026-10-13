@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/features/finance/controllers/payment_metrics_controller.dart';
 import 'package:phone/features/finance/widgets/chart_skeleton.dart';
 import 'package:phone/features/finance/widgets/metrics_message.dart';
@@ -29,8 +30,9 @@ class FinanceMetricsChart extends ConsumerWidget {
         );
       },
       loading: () => const ChartSkeleton(),
-      error: (error, stackTrace) =>
-          MetricsMessage(message: context.t.errorLoadingData(error: error)),
+      error: (error, stackTrace) => MetricsMessage(
+        message: context.t.errorLoadingData(error: error.userMessage(context.t)),
+      ),
     );
   }
 }

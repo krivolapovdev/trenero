@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/core/services/pdf_printer.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
@@ -130,7 +131,12 @@ class _GroupReportBottomSheetState
     } catch (error) {
       if (!mounted) return;
 
-      AppSnackBar.show(context, context.t.error, '$error', SnackBarType.error);
+      AppSnackBar.show(
+        context,
+        context.t.error,
+        error.userMessage(context.t),
+        SnackBarType.error,
+      );
     } finally {
       if (mounted) setState(() => _isPrinting = false);
     }

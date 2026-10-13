@@ -57,6 +57,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get invalidDate => 'Некорректная дата';
 	@override String titleWithCount({required Object title, required Object count}) => '${title} [${count}]';
 	@override String errorLoadingData({required Object error}) => 'Ошибка загрузки данных: ${error}';
+	@override late final _Translations$errors$ru errors = _Translations$errors$ru._(_root);
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
 	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
 	@override late final _Translations$lessons$ru lessons = _Translations$lessons$ru._(_root);
@@ -64,6 +65,32 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$settings$ru settings = _Translations$settings$ru._(_root);
 	@override late final _Translations$reports$ru reports = _Translations$reports$ru._(_root);
 	@override late final _Translations$finance$ru finance = _Translations$finance$ru._(_root);
+}
+
+// Path: errors
+class _Translations$errors$ru implements Translations$errors$en {
+	_Translations$errors$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get network => 'Похоже, нет подключения к интернету. Проверьте соединение и попробуйте снова.';
+	@override String get timeout => 'Сервер слишком долго не отвечает. Попробуйте снова.';
+	@override String get cancelled => 'Запрос отменён.';
+	@override String get unauthorized => 'Сессия истекла. Войдите снова.';
+	@override String get forbidden => 'У вас нет прав на это действие.';
+	@override String get notFound => 'Запись, которую вы искали, больше не существует.';
+	@override String get conflict => 'Запрос конфликтует с уже сохранёнными данными.';
+	@override String get validation => 'Запрос отклонён. Проверьте форму и попробуйте снова.';
+	@override String get badRequest => 'Запрос отклонён. Попробуйте снова.';
+	@override String get server => 'Сервер сейчас недоступен. Попробуйте позже.';
+	@override String get unknown => 'Что-то пошло не так. Попробуйте снова.';
+	@override String get signingIn => 'Не удалось войти. Попробуйте снова.';
+	@override String get studentNameRequired => 'Укажите имя ученика.';
+	@override String get groupNameRequired => 'Укажите название группы.';
+	@override String get invalidPrice => 'Укажите корректную цену.';
+	@override String get studentNameNotUnique => 'Ученик с таким именем уже существует.';
+	@override String get groupNameNotUnique => 'Группа с таким названием уже существует.';
 }
 
 // Path: auth
@@ -300,6 +327,23 @@ extension on TranslationsRu {
 			'invalidDate' => 'Некорректная дата',
 			'titleWithCount' => ({required Object title, required Object count}) => '${title} [${count}]',
 			'errorLoadingData' => ({required Object error}) => 'Ошибка загрузки данных: ${error}',
+			'errors.network' => 'Похоже, нет подключения к интернету. Проверьте соединение и попробуйте снова.',
+			'errors.timeout' => 'Сервер слишком долго не отвечает. Попробуйте снова.',
+			'errors.cancelled' => 'Запрос отменён.',
+			'errors.unauthorized' => 'Сессия истекла. Войдите снова.',
+			'errors.forbidden' => 'У вас нет прав на это действие.',
+			'errors.notFound' => 'Запись, которую вы искали, больше не существует.',
+			'errors.conflict' => 'Запрос конфликтует с уже сохранёнными данными.',
+			'errors.validation' => 'Запрос отклонён. Проверьте форму и попробуйте снова.',
+			'errors.badRequest' => 'Запрос отклонён. Попробуйте снова.',
+			'errors.server' => 'Сервер сейчас недоступен. Попробуйте позже.',
+			'errors.unknown' => 'Что-то пошло не так. Попробуйте снова.',
+			'errors.signingIn' => 'Не удалось войти. Попробуйте снова.',
+			'errors.studentNameRequired' => 'Укажите имя ученика.',
+			'errors.groupNameRequired' => 'Укажите название группы.',
+			'errors.invalidPrice' => 'Укажите корректную цену.',
+			'errors.studentNameNotUnique' => 'Ученик с таким именем уже существует.',
+			'errors.groupNameNotUnique' => 'Группа с таким названием уже существует.',
 			'auth.signInWithGoogle' => 'Войти через Google',
 			'auth.agreePrivacyPolicy' => 'Продолжая, вы соглашаетесь с нашей Политикой конфиденциальности',
 			'auth.login' => 'Войти',

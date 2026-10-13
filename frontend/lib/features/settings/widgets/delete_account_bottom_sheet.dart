@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/constants/app_colors.dart';
 import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/constants/app_spacing.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/settings/controllers/delete_account_controller.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -69,7 +70,12 @@ class _DeleteAccountBottomSheetState
 
     final error = ref.read(deleteAccountControllerProvider).error;
     if (error != null) {
-      AppSnackBar.show(context, context.t.error, '$error', SnackBarType.error);
+      AppSnackBar.show(
+        context,
+        context.t.error,
+        error.userMessage(context.t),
+        SnackBarType.error,
+      );
     }
   }
 

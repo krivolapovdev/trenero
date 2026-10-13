@@ -19,14 +19,20 @@ GroupFormValues validateGroupForm({
 }) {
   final trimmedName = name.trim();
   if (trimmedName.isEmpty) {
-    throw const ValidationException('Group name is required.');
+    throw const ValidationException(
+      'Group name is required.',
+      code: AppErrorCode.groupNameRequired,
+    );
   }
 
   double? parsedPrice;
   if (priceText != null && priceText.trim().isNotEmpty) {
     parsedPrice = double.tryParse(priceText.trim());
     if (parsedPrice == null || parsedPrice < 0) {
-      throw const ValidationException('Price must be a valid positive number.');
+      throw const ValidationException(
+        'Price must be a valid positive number.',
+        code: AppErrorCode.invalidPrice,
+      );
     }
   }
 

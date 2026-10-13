@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/groups/widgets/group_students_card.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
@@ -69,8 +70,11 @@ class GroupStudentsSection extends ConsumerWidget {
           ),
         );
       },
-      error: (error, stack) =>
-          Center(child: Text(context.t.students.errorLoading(error: error))),
+      error: (error, stack) => Center(
+        child: Text(
+          context.t.students.errorLoading(error: error.userMessage(context.t)),
+        ),
+      ),
     );
   }
 }

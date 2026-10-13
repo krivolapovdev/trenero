@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/retry_view.dart';
 import 'package:phone/features/groups/widgets/group_students_empty.dart';
 import 'package:phone/features/groups/widgets/group_students_placeholder.dart';
 import 'package:phone/features/groups/widgets/student_checkbox_tile.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
+import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class GroupStudentsBody extends StatelessWidget {
@@ -29,7 +31,7 @@ class GroupStudentsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (hasError && students.isEmpty) {
-      return RetryView(message: '$error', onRetry: onRetry);
+      return RetryView(message: error.userMessage(context.t), onRetry: onRetry);
     }
 
     if (!isLoading && students.isEmpty) {

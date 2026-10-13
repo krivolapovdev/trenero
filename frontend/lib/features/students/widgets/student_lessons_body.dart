@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/features/students/widgets/lessons_calendar_column.dart';
 import 'package:phone/features/students/widgets/student_lessons_dummy_visits.dart';
 import 'package:phone/generated/models/group_response.dart';
@@ -46,7 +47,11 @@ class StudentLessonsBody extends StatelessWidget {
 
     if (visitsAsync.hasError && visits == null) {
       return Center(
-        child: Text(context.t.lessons.errorLoading(error: visitsAsync.error!)),
+        child: Text(
+          context.t.lessons.errorLoading(
+            error: visitsAsync.error!.userMessage(context.t),
+          ),
+        ),
       );
     }
 

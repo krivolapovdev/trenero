@@ -2,6 +2,7 @@ import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/retry_view.dart';
 import 'package:phone/core/widgets/transaction_list_view.dart';
@@ -65,7 +66,7 @@ class StudentPaymentListPage extends ConsumerWidget {
             emptyText: context.t.students.noPayments,
           ),
           error: (error, stack) => RetryView(
-            message: error.toString(),
+            message: error.userMessage(context.t),
             messageColor: Theme.of(context).colorScheme.error,
             onRetry: refreshPayments,
           ),

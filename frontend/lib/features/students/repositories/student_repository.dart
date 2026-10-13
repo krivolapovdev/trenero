@@ -4,6 +4,8 @@ import 'package:phone/core/constants/app_date_formats.dart';
 import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/models/create_student_payment_request.dart';
+import 'package:phone/generated/models/create_student_request.dart';
+import 'package:phone/generated/models/student_response.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/visit_with_lesson_response.dart';
@@ -38,6 +40,16 @@ class StudentRepository {
       return List.unmodifiable(students);
     });
   }
+
+  Future<StudentResponse> createStudent(CreateStudentRequest request) =>
+      guardApiCall(() => _service.createStudent(body: request));
+
+  Future<StudentResponse> updateStudent({
+    required String studentId,
+    required Map<String, dynamic> body,
+  }) => guardApiCall(
+    () => _service.updateStudent(studentId: studentId, body: body),
+  );
 
   Future<void> deleteStudent(String studentId) => guardApiCall(() async {
     await _service.deleteStudent(studentId: studentId);

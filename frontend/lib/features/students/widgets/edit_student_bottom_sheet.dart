@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/students/controllers/update_student_controller.dart';
 import 'package:phone/features/students/widgets/student_form_sheet.dart';
@@ -47,7 +48,7 @@ class _EditStudentBottomSheetState
         AppSnackBar.show(
           context,
           context.t.error,
-          '$error',
+          error.userMessage(context.t),
           SnackBarType.error,
         );
       }

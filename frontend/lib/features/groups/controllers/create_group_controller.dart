@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/controllers/group_form_values.dart';
 import 'package:phone/features/groups/controllers/group_mutation_refresh.dart';
-import 'package:phone/features/groups/services/group_service.dart';
+import 'package:phone/features/groups/repositories/group_repository.dart';
 import 'package:phone/generated/models/create_group_request.dart';
 
 final createGroupControllerProvider =
@@ -35,8 +35,8 @@ class CreateGroupController extends AsyncNotifier<void> {
         note: values.note,
       );
 
-      final service = ref.read(groupServiceProvider);
-      await service.createGroup(body: request);
+      final repository = ref.read(groupRepositoryProvider);
+      await repository.createGroup(request);
 
       refreshAfterGroupMutation(ref);
     });

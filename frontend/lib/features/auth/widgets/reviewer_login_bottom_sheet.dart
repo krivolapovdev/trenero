@@ -1,6 +1,7 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/core/widgets/outlined_input_field.dart';
 import 'package:phone/features/auth/controllers/reviewer_auth_controller.dart';
@@ -60,7 +61,12 @@ class _ReviewerLoginBottomSheetState
 
     final error = ref.read(reviewerAuthControllerProvider).error;
     if (error != null) {
-      AppSnackBar.show(context, context.t.error, '$error', SnackBarType.error);
+      AppSnackBar.show(
+        context,
+        context.t.error,
+        error.userMessage(context.t),
+        SnackBarType.error,
+      );
     }
   }
 

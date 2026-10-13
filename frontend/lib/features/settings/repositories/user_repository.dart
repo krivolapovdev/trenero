@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/features/settings/services/user_service.dart';
 import 'package:phone/generated/user_controller/user_controller_client.dart';
 
@@ -12,5 +13,6 @@ class UserRepository {
 
   new(this._client);
 
-  Future<void> deleteAccount() async => _client.deleteMyAccount();
+  Future<void> deleteAccount() async =>
+      guardApiCall(() => _client.deleteMyAccount());
 }

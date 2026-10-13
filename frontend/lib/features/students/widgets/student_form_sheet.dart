@@ -138,7 +138,6 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                           ),
                         ),
                         controller: _nameController,
-                        textCapitalization: TextCapitalization.words,
                         enabled: !isLoading,
                       ),
 

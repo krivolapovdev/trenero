@@ -99,6 +99,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Error loading data: $error'
 	String errorLoadingData({required Object error}) => 'Error loading data: ${error}';
 
+	late final Translations$errors$en errors = Translations$errors$en._(_root);
 	late final Translations$auth$en auth = Translations$auth$en._(_root);
 	late final Translations$groups$en groups = Translations$groups$en._(_root);
 	late final Translations$lessons$en lessons = Translations$lessons$en._(_root);
@@ -106,6 +107,66 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$settings$en settings = Translations$settings$en._(_root);
 	late final Translations$reports$en reports = Translations$reports$en._(_root);
 	late final Translations$finance$en finance = Translations$finance$en._(_root);
+}
+
+// Path: errors
+class Translations$errors$en {
+	Translations$errors$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'You appear to be offline. Check your connection and try again.'
+	String get network => 'You appear to be offline. Check your connection and try again.';
+
+	/// en: 'The server took too long to respond. Please try again.'
+	String get timeout => 'The server took too long to respond. Please try again.';
+
+	/// en: 'The request was cancelled.'
+	String get cancelled => 'The request was cancelled.';
+
+	/// en: 'Your session has expired. Please sign in again.'
+	String get unauthorized => 'Your session has expired. Please sign in again.';
+
+	/// en: 'You do not have permission to do this.'
+	String get forbidden => 'You do not have permission to do this.';
+
+	/// en: 'The record you asked for no longer exists.'
+	String get notFound => 'The record you asked for no longer exists.';
+
+	/// en: 'This clashes with the data that is already saved.'
+	String get conflict => 'This clashes with the data that is already saved.';
+
+	/// en: 'The request was rejected. Check the form and try again.'
+	String get validation => 'The request was rejected. Check the form and try again.';
+
+	/// en: 'The request was rejected. Please try again.'
+	String get badRequest => 'The request was rejected. Please try again.';
+
+	/// en: 'The server is not available right now. Please try again later.'
+	String get server => 'The server is not available right now. Please try again later.';
+
+	/// en: 'Something went wrong. Please try again.'
+	String get unknown => 'Something went wrong. Please try again.';
+
+	/// en: 'Signing in failed. Please try again.'
+	String get signingIn => 'Signing in failed. Please try again.';
+
+	/// en: 'Student name is required.'
+	String get studentNameRequired => 'Student name is required.';
+
+	/// en: 'Group name is required.'
+	String get groupNameRequired => 'Group name is required.';
+
+	/// en: 'Enter a valid price.'
+	String get invalidPrice => 'Enter a valid price.';
+
+	/// en: 'A student with this name already exists.'
+	String get studentNameNotUnique => 'A student with this name already exists.';
+
+	/// en: 'A group with this name already exists.'
+	String get groupNameNotUnique => 'A group with this name already exists.';
 }
 
 // Path: auth
@@ -572,6 +633,23 @@ extension on Translations {
 			'invalidDate' => 'Invalid date',
 			'titleWithCount' => ({required Object title, required Object count}) => '${title} [${count}]',
 			'errorLoadingData' => ({required Object error}) => 'Error loading data: ${error}',
+			'errors.network' => 'You appear to be offline. Check your connection and try again.',
+			'errors.timeout' => 'The server took too long to respond. Please try again.',
+			'errors.cancelled' => 'The request was cancelled.',
+			'errors.unauthorized' => 'Your session has expired. Please sign in again.',
+			'errors.forbidden' => 'You do not have permission to do this.',
+			'errors.notFound' => 'The record you asked for no longer exists.',
+			'errors.conflict' => 'This clashes with the data that is already saved.',
+			'errors.validation' => 'The request was rejected. Check the form and try again.',
+			'errors.badRequest' => 'The request was rejected. Please try again.',
+			'errors.server' => 'The server is not available right now. Please try again later.',
+			'errors.unknown' => 'Something went wrong. Please try again.',
+			'errors.signingIn' => 'Signing in failed. Please try again.',
+			'errors.studentNameRequired' => 'Student name is required.',
+			'errors.groupNameRequired' => 'Group name is required.',
+			'errors.invalidPrice' => 'Enter a valid price.',
+			'errors.studentNameNotUnique' => 'A student with this name already exists.',
+			'errors.groupNameNotUnique' => 'A group with this name already exists.',
 			'auth.signInWithGoogle' => 'Sign in with Google',
 			'auth.agreePrivacyPolicy' => 'By signing in, you agree to our Privacy Policy',
 			'auth.login' => 'Login',

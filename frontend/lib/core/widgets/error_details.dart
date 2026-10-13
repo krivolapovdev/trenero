@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/constants/app_spacing.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
+import 'package:phone/i18n/strings.g.dart';
 
 class ErrorDetails extends StatelessWidget {
   static const double _contentPadding = AppSpacing.xxl;
@@ -17,7 +19,7 @@ class ErrorDetails extends StatelessWidget {
       _contentPadding,
     ),
     child: Text(
-      '$error',
+      error.userMessage(context.t),
       textAlign: TextAlign.center,
       style: Theme.of(context).textTheme.bodySmall,
     ),

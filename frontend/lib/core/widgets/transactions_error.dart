@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/constants/app_spacing.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
+import 'package:phone/i18n/strings.g.dart';
 
 class TransactionsError extends StatelessWidget {
   final Object error;
@@ -14,7 +16,7 @@ class TransactionsError extends StatelessWidget {
     ),
     child: Center(
       child: Text(
-        error.toString(),
+        error.userMessage(context.t),
         style: TextStyle(color: Theme.of(context).colorScheme.error),
       ),
     ),

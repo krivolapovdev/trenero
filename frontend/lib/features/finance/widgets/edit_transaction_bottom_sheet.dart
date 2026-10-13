@@ -2,6 +2,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/core/widgets/date_input_field.dart';
 import 'package:phone/features/finance/controllers/update_transaction_controller.dart';
@@ -142,7 +143,12 @@ class _EditTransactionBottomSheetState
 
     final error = ref.read(updateTransactionControllerProvider).error;
     if (error != null) {
-      AppSnackBar.show(context, context.t.error, '$error', SnackBarType.error);
+      AppSnackBar.show(
+        context,
+        context.t.error,
+        error.userMessage(context.t),
+        SnackBarType.error,
+      );
     }
   }
 

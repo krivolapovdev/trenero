@@ -1,6 +1,7 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/core/widgets/date_input_field.dart';
 import 'package:phone/features/finance/controllers/create_transaction_controller.dart';
@@ -202,7 +203,7 @@ class _CreateTransactionBottomSheetState
         AppSnackBar.show(
           context,
           context.t.error,
-          error?.toString() ?? context.t.error,
+          error?.userMessage(context.t) ?? context.t.error,
           SnackBarType.error,
         );
         return;
@@ -211,7 +212,12 @@ class _CreateTransactionBottomSheetState
       Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
-      AppSnackBar.show(context, context.t.error, '$error', SnackBarType.error);
+      AppSnackBar.show(
+        context,
+        context.t.error,
+        error.userMessage(context.t),
+        SnackBarType.error,
+      );
     } finally {
       if (mounted) {
         setState(() {

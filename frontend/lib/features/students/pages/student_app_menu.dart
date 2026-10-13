@@ -52,7 +52,7 @@ class StudentAppMenu extends StatelessWidget {
             children: [
               const Icon(CupertinoIcons.person_2_square_stack, size: 20),
               const SizedBox(width: 12),
-              Text(context.t.students.group),
+              Text(context.t.groups.title),
             ],
           ),
         ),

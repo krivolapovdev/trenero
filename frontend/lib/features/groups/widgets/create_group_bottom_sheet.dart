@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/create_group_controller.dart';
 import 'package:phone/features/groups/widgets/group_form_sheet.dart';
@@ -35,7 +36,7 @@ class _CreateGroupBottomSheetState
         AppSnackBar.show(
           context,
           context.t.error,
-          '$error',
+          error.userMessage(context.t),
           SnackBarType.error,
         );
       }

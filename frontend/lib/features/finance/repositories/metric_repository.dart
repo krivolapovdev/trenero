@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/features/finance/services/metric_service.dart';
 import 'package:phone/generated/metric_controller/metric_controller_client.dart';
 import 'package:phone/generated/models/metric_scope.dart';
@@ -18,9 +19,11 @@ class MetricRepository {
     required DateTime startDate,
     required DateTime endDate,
     MetricScope scope = MetricScope.month,
-  }) => _service.getPaymentStatistics(
-    startDate: startDate,
-    endDate: endDate,
-    scope: scope,
+  }) => guardApiCall(
+    () => _service.getPaymentStatistics(
+      startDate: startDate,
+      endDate: endDate,
+      scope: scope,
+    ),
   );
 }
