@@ -10,7 +10,6 @@ import 'package:phone/features/groups/services/group_report_pdf_service.dart';
 import 'package:phone/features/groups/widgets/month_field.dart';
 import 'package:phone/features/groups/widgets/print_button.dart';
 import 'package:phone/features/groups/widgets/report_error.dart';
-import 'package:phone/features/groups/widgets/report_preview.dart';
 import 'package:phone/features/groups/widgets/year_field.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -174,7 +173,11 @@ class _GroupReportBottomSheetState
 
             if (reportState != null && reportState.hasError) ...[
               const SizedBox(height: 12),
-              ReportError(period: period!, error: reportState.error),
+              ReportError(
+                error: reportState.error,
+                onRepeat: () =>
+                    ref.read(groupReportProvider(period!).notifier).refresh(),
+              ),
             ],
 
             const SizedBox(height: 22),

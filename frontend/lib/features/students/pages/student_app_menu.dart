@@ -7,6 +7,7 @@ class StudentAppMenu extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onCreatePayment;
   final VoidCallback onAssignGroup;
+  final VoidCallback onReport;
   final VoidCallback onDelete;
 
   const new({
@@ -14,6 +15,7 @@ class StudentAppMenu extends StatelessWidget {
     required this.onEdit,
     required this.onCreatePayment,
     required this.onAssignGroup,
+    required this.onReport,
     required this.onDelete,
   });
 
@@ -36,16 +38,7 @@ class StudentAppMenu extends StatelessWidget {
             ],
           ),
         ),
-        PopupMenuItem<String>(
-          onTap: onCreatePayment,
-          child: Row(
-            children: [
-              const Icon(FluentIcons.money_24_regular, size: 20),
-              const SizedBox(width: 12),
-              Text(context.t.students.payment),
-            ],
-          ),
-        ),
+
         PopupMenuItem<String>(
           onTap: onAssignGroup,
           child: Row(
@@ -56,6 +49,29 @@ class StudentAppMenu extends StatelessWidget {
             ],
           ),
         ),
+
+        PopupMenuItem<String>(
+          onTap: onReport,
+          child: Row(
+            children: [
+              const Icon(CupertinoIcons.printer, size: 20),
+              const SizedBox(width: 12),
+              Text(context.t.groups.report),
+            ],
+          ),
+        ),
+
+        PopupMenuItem<String>(
+          onTap: onCreatePayment,
+          child: Row(
+            children: [
+              const Icon(FluentIcons.money_24_regular, size: 20),
+              const SizedBox(width: 12),
+              Text(context.t.students.payment),
+            ],
+          ),
+        ),
+
         PopupMenuItem<String>(
           onTap: onDelete,
           child: Row(

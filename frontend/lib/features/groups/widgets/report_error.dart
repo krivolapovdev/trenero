@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/errors/dio_error_mapper.dart';
-import 'package:phone/features/groups/controllers/group_report_controller.dart';
-import 'package:phone/features/groups/models/group_report_period.dart';
 import 'package:phone/i18n/strings.g.dart';
 
-class ReportError extends ConsumerWidget {
-  final GroupReportPeriod period;
+/// The row that names a failed report and offers to ask for it again.
+class ReportError extends StatelessWidget {
   final Object? error;
+  final VoidCallback onRepeat;
 
-  const new({super.key, required this.period, required this.error});
+  const new({super.key, required this.error, required this.onRepeat});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Row(
+  Widget build(BuildContext context) => Row(
     children: [
       Expanded(
         child: Text(
@@ -24,11 +22,7 @@ class ReportError extends ConsumerWidget {
         ),
       ),
 
-      TextButton(
-        onPressed: () =>
-            ref.read(groupReportProvider(period).notifier).refresh(),
-        child: Text(context.t.repeat),
-      ),
+      TextButton(onPressed: onRepeat, child: Text(context.t.repeat)),
     ],
   );
 }

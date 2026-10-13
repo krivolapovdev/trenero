@@ -7,9 +7,12 @@ import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
+import 'package:phone/features/students/controllers/student_report_controller.dart';
+import 'package:phone/features/students/models/student_report.dart';
 import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/pages/student_page.dart';
 import 'package:phone/features/students/widgets/student_lesson_calendar_section.dart';
+import 'package:phone/features/students/widgets/student_report_bottom_sheet.dart';
 import 'package:phone/generated/models/group_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
@@ -70,6 +73,20 @@ class _FakeGroupListController extends GroupListController {
   Future<List<GroupSummaryResponse>> build() async => const [];
 }
 
+class _FakeStudentReportController extends StudentReportController {
+  new(super.period);
+
+  @override
+  Future<StudentReport> build() async => StudentReport(
+    studentId: period.studentId,
+    fullName: 'Anna Smirnova',
+    year: period.year,
+    month: period.month,
+    groups: const [],
+    individualLessons: const [],
+  );
+}
+
 Future<void> _pumpPage(
   WidgetTester tester,
   StudentSummaryResponse student,
@@ -84,6 +101,7 @@ Future<void> _pumpPage(
         _FakeStudentPaymentsController.new,
       ),
       groupListControllerProvider.overrideWith(_FakeGroupListController.new),
+      studentReportProvider.overrideWith2(_FakeStudentReportController.new),
     ],
   );
   addTearDown(container.dispose);
@@ -143,5 +161,20 @@ void main() {
     await _pumpPage(tester, _studentWithGroup);
 
     expect(find.byType(CreateLessonButton), findsNWidgets(2));
+  });
+
+  testWidgets('the app bar menu opens the report of the student', (
+    tester,
+  ) async {
+    await _pumpPage(tester, _studentWithGroup);
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(t.groups.report));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(StudentReportBottomSheet), findsOneWidget);
+    expect(find.widgetWithText(TextField, t.month), findsOneWidget);
   });
 }

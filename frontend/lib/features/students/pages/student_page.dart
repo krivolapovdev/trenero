@@ -16,6 +16,7 @@ import 'package:phone/features/students/widgets/delete_student_bottom_sheet.dart
 import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_groups_section.dart';
 import 'package:phone/features/students/widgets/student_lessons_section.dart';
+import 'package:phone/features/students/widgets/student_report_bottom_sheet.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -47,6 +48,13 @@ class _StudentPageState extends ConsumerState<StudentPage> {
           initialGroupIds: _studentGroupIds,
         ),
       ),
+    );
+  }
+
+  Future<void> _openReportSheet() async {
+    await AppBottomSheet.show(
+      context: context,
+      child: StudentReportBottomSheet(student: _student),
     );
   }
 
@@ -140,6 +148,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
             onEdit: _openEditStudentSheet,
             onCreatePayment: _openCreatePaymentSheet,
             onAssignGroup: _openAssignGroupPage,
+            onReport: _openReportSheet,
             onDelete: _confirmDelete,
           ),
           const SizedBox(width: 8),
