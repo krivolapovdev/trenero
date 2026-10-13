@@ -28,8 +28,6 @@ services:
     restart: unless-stopped
 
   backend:
-    environment:
-      JAVA_TOOL_OPTIONS: "-Djava.net.preferIPv4Stack=true"
     restart: unless-stopped
 
   traefik:
