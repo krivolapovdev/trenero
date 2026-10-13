@@ -43,7 +43,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd ~/trenero
+            cd ~/trenerio
 
             git fetch origin main
             git checkout origin/main -- docker-compose.yml docker-compose.prod.yml
