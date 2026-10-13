@@ -48,6 +48,11 @@ public class TransactionService implements TransactionSpi {
   public Page<TransactionResponse> getPaginatedTransactions(
       int page, int size, @NonNull JwtUser jwtUser) {
 
+    if (size < 1) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "size must be at least 1, but was " + size);
+    }
+
     int pageIndex = Math.max(0, page - 1);
     Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(Sort.Direction.DESC, "date"));
 
@@ -126,6 +131,7 @@ public class TransactionService implements TransactionSpi {
 
     if (request.getPaymentDetails() instanceof CreateStudentPaymentDetailsRequest studentDetails) {
       studentSpi.getStudentById(studentDetails.getStudentId(), jwtUser);
+      validatePaidUntil(request.getDate(), studentDetails.getPaidUntil());
     }
 
     Transaction transaction = transactionMapper.toEntity(request, jwtUser.id());
@@ -158,10 +164,7 @@ public class TransactionService implements TransactionSpi {
 
     studentSpi.getStudentById(studentId, jwtUser);
 
-    if (paidUntil.isBefore(date)) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "paidUntil must not be before the payment date");
-    }
+    validatePaidUntil(date, paidUntil);
 
     Transaction transaction =
         Transaction.builder()
@@ -197,19 +200,26 @@ public class TransactionService implements TransactionSpi {
             .orElseThrow(entityNotFoundSupplier(Transaction.class, transactionId, jwtUser));
 
     StudentPayment studentPayment = transaction.getStudentPayment();
-    Object paidUntilUpdate = updates.get("paidUntil");
-    boolean updatesPaidUntil = studentPayment != null && paidUntilUpdate != null;
+    boolean patchesDate = updates.get("date") != null;
+    boolean patchesPaidUntil = updates.get("paidUntil") != null;
 
-    if (updatesPaidUntil) {
+    // Only a patch that moves the payment is checked: an amount-only patch of a payment that
+    // predates
+    // this rule must not be rejected because of a pair that is already inconsistent.
+    if (studentPayment != null && (patchesDate || patchesPaidUntil)) {
       LocalDate date =
-          updates.get("date") != null
-              ? LocalDate.parse(updates.get("date").toString())
-              : transaction.getDate();
+          patchesDate ? LocalDate.parse(updates.get("date").toString()) : transaction.getDate();
+      LocalDate paidUntil =
+          patchesPaidUntil
+              ? LocalDate.parse(updates.get("paidUntil").toString())
+              : studentPayment.getPaidUntil();
+
+      validatePaidUntil(date, paidUntil);
     }
 
     transactionMapper.updateTransaction(transaction, updates);
 
-    if (updatesPaidUntil) {
+    if (studentPayment != null && patchesPaidUntil) {
       studentPaymentRepository.saveAndFlush(studentPayment);
     }
 
@@ -239,5 +249,16 @@ public class TransactionService implements TransactionSpi {
   @Transactional
   public void deleteTransactionById(@NonNull UUID transactionId, @NonNull JwtUser jwtUser) {
     deleteTransaction(transactionId, jwtUser);
+  }
+
+  /**
+   * A student payment covers the period that ends with {@code paidUntil}, so the day it was paid
+   * may never be later than the last day it covers.
+   */
+  private static void validatePaidUntil(LocalDate date, LocalDate paidUntil) {
+    if (paidUntil.isBefore(date)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "paidUntil must not be before the payment date");
+    }
   }
 }

@@ -4,6 +4,7 @@ import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFound
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -228,14 +229,55 @@ public class GroupService implements GroupSpi {
       @NonNull CreateGroupRequest request, @NonNull JwtUser jwtUser) {
     log.info("Creating group: request={}; user={}", request, jwtUser);
 
-    requireFreeName(request.name(), null, jwtUser);
+    String name = requireTrimmedName(request.name());
+    requireFreeName(name, null, jwtUser);
+
+    List<UUID> studentIds =
+        request.studentIds().stream().filter(Objects::nonNull).distinct().toList();
+    requireExistingStudents(studentIds, jwtUser);
 
     Group group = groupMapper.toGroup(request, jwtUser.id());
+    // The mapper copies the name as it was sent; the row keeps the trimmed one.
+    group.setName(name);
     Group savedGroup = self.saveGroup(group);
 
-    groupStudentService.addStudentsToGroup(savedGroup.getId(), request.studentIds(), jwtUser);
+    groupStudentService.addStudentsToGroup(savedGroup.getId(), studentIds, jwtUser);
 
     return groupMapper.toResponse(savedGroup);
+  }
+
+  /**
+   * The name of a group is the only handle it has on every page, so a write that carries a name has
+   * to carry a usable one. The value is trimmed, so that two names that differ in nothing but
+   * surrounding blanks are recognized as the same name by {@link #requireFreeName}.
+   */
+  private static @NonNull String requireTrimmedName(Object name) {
+    if (!(name instanceof String text) || text.isBlank()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name must not be blank");
+    }
+
+    return text.trim();
+  }
+
+  /**
+   * Only the students of the caller belong into a group. Nothing references `students(id)`, so a
+   * link to a student that does not exist is accepted by the schema - and then counted by {@link
+   * #getAllGroupsSummary} while the group page can never show it.
+   */
+  private void requireExistingStudents(Collection<UUID> studentIds, JwtUser jwtUser) {
+    if (studentIds.isEmpty()) {
+      return;
+    }
+
+    Map<UUID, StudentResponse> existingStudents =
+        studentSpi.getStudentsByIds(List.copyOf(studentIds), jwtUser);
+    List<UUID> unknownStudentIds =
+        studentIds.stream().filter(studentId -> !existingStudents.containsKey(studentId)).toList();
+
+    if (!unknownStudentIds.isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "unknown students: " + unknownStudentIds);
+    }
   }
 
   private void requireFreeName(String name, UUID groupId, JwtUser jwtUser) {
@@ -261,22 +303,28 @@ public class GroupService implements GroupSpi {
             .findByIdAndOwnerId(groupId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(Group.class, groupId, jwtUser));
 
-    if (updates.get("name") instanceof String name) {
+    Map<String, Object> patch = new LinkedHashMap<>(updates);
+
+    if (patch.containsKey("name")) {
+      String name = requireTrimmedName(patch.get("name"));
       requireFreeName(name, groupId, jwtUser);
+      patch.put("name", name);
     }
 
-    if (updates.containsKey("studentIds")) {
-      reconcileGroupStudents(groupId, updates, jwtUser);
+    if (patch.containsKey("studentIds")) {
+      var requestedStudentIds = parseRequestedStudentIds(patch);
+      requireExistingStudents(requestedStudentIds, jwtUser);
+      reconcileGroupStudents(groupId, requestedStudentIds, jwtUser);
     }
 
-    var updatedGroup = groupMapper.updateGroup(group, updates);
+    var updatedGroup = groupMapper.updateGroup(group, patch);
     var savedGroup = self.saveGroup(updatedGroup);
 
     return groupMapper.toResponse(savedGroup);
   }
 
-  private void reconcileGroupStudents(UUID groupId, Map<String, Object> updates, JwtUser jwtUser) {
-    var requestedStudentIds = parseRequestedStudentIds(updates);
+  private void reconcileGroupStudents(
+      UUID groupId, Set<UUID> requestedStudentIds, JwtUser jwtUser) {
     var currentStudentIds =
         groupStudentService.getStudentsByGroupId(groupId, jwtUser).stream()
             .map(GroupStudentResponse::getStudentId)

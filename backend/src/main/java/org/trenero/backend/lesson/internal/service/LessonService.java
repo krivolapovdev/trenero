@@ -153,6 +153,7 @@ public class LessonService implements LessonSpi {
   }
 
   @Override
+  @Transactional
   public void deleteLesson(@NonNull UUID lessonId, @NonNull JwtUser jwtUser) {
     log.info("Deleting lesson: lessonId={}; user={}", lessonId, jwtUser);
 

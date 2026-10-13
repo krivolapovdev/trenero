@@ -2,6 +2,7 @@ package org.trenero.backend.user.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
+import java.util.Locale;
 import java.util.UUID;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,7 @@ public class UserService implements UserSpi {
         OAuth2User.builder()
             .provider(provider)
             .providerId(providerId)
-            .email(email.toUpperCase().trim())
+            .email(email.trim().toUpperCase(Locale.ROOT))
             .build();
 
     var savedUser = saveUser(newUser);

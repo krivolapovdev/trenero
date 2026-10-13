@@ -24,8 +24,8 @@ public interface StudentMapper {
       return student;
     }
 
-    if (updates.containsKey("fullName")) {
-      student.setFullName((String) updates.get("fullName"));
+    if (updates.get("fullName") instanceof String fullName) {
+      student.setFullName(fullName);
     }
 
     if (updates.containsKey("phone")) {

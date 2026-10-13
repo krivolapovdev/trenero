@@ -92,22 +92,19 @@ public interface TransactionMapper {
 
   default @NonNull Transaction updateTransaction(
       @NonNull Transaction transaction, @NonNull Map<String, Object> updates) {
-    if (updates.containsKey("amount")) {
-      Object amount = updates.get("amount");
-      transaction.setAmount(amount != null ? new BigDecimal(amount.toString()) : null);
+    if (updates.get("amount") != null) {
+      transaction.setAmount(new BigDecimal(updates.get("amount").toString()));
     }
 
-    if (updates.containsKey("date")) {
-      Object date = updates.get("date");
-      transaction.setDate(date != null ? LocalDate.parse(date.toString()) : null);
+    if (updates.get("date") != null) {
+      transaction.setDate(LocalDate.parse(updates.get("date").toString()));
     }
 
-    if (updates.containsKey("paidUntil")) {
+    if (updates.get("paidUntil") != null) {
       StudentPayment studentPayment = transaction.getStudentPayment();
-      Object paidUntil = updates.get("paidUntil");
 
-      if (studentPayment != null && paidUntil != null) {
-        studentPayment.setPaidUntil(LocalDate.parse(paidUntil.toString()));
+      if (studentPayment != null) {
+        studentPayment.setPaidUntil(LocalDate.parse(updates.get("paidUntil").toString()));
       }
     }
 

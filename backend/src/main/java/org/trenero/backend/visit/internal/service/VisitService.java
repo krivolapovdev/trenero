@@ -1,5 +1,6 @@
 package org.trenero.backend.visit.internal.service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -114,27 +115,37 @@ public class VisitService implements VisitSpi {
     Map<UUID, Visit> studentVisitMap =
         lessonVisits.stream().collect(Collectors.toMap(Visit::getStudentId, Function.identity()));
 
-    Set<UUID> incomingStudentIds =
-        requests.stream().map(StudentVisit::studentId).collect(Collectors.toSet());
+    Map<UUID, StudentVisit> requestStudentMap =
+        requests.stream()
+            .collect(
+                Collectors.toMap(
+                    StudentVisit::studentId,
+                    Function.identity(),
+                    (_, last) -> last,
+                    LinkedHashMap::new));
 
-    requests.forEach(
-        req -> {
-          if (studentVisitMap.containsKey(req.studentId())) {
-            Visit visit = studentVisitMap.get(req.studentId());
-            visit.setStatus(req.status());
-            visit.setType(req.type());
-          } else {
-            Visit newVisit =
-                Visit.builder()
-                    .ownerId(jwtUser.id())
-                    .lessonId(lessonId)
-                    .studentId(req.studentId())
-                    .status(req.status())
-                    .type(req.type())
-                    .build();
-            lessonVisits.add(newVisit);
-          }
-        });
+    Set<UUID> incomingStudentIds = requestStudentMap.keySet();
+
+    requestStudentMap
+        .values()
+        .forEach(
+            req -> {
+              if (studentVisitMap.containsKey(req.studentId())) {
+                Visit visit = studentVisitMap.get(req.studentId());
+                visit.setStatus(req.status());
+                visit.setType(req.type());
+              } else {
+                Visit newVisit =
+                    Visit.builder()
+                        .ownerId(jwtUser.id())
+                        .lessonId(lessonId)
+                        .studentId(req.studentId())
+                        .status(req.status())
+                        .type(req.type())
+                        .build();
+                lessonVisits.add(newVisit);
+              }
+            });
 
     List<Visit> visitsToDelete =
         lessonVisits.stream()

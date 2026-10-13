@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,6 +21,8 @@ import org.trenero.backend.group.external.response.GroupStudentResponse;
 import org.trenero.backend.group.internal.domain.Group;
 import org.trenero.backend.group.internal.mapper.GroupMapper;
 import org.trenero.backend.group.internal.repository.GroupRepository;
+import org.trenero.backend.student.external.response.StudentResponse;
+import org.trenero.backend.student.external.spi.StudentSpi;
 
 /**
  * Tests the student reconciliation of {@link GroupService#updateGroup}, which the group students
@@ -37,6 +40,7 @@ class GroupServiceUpdateGroupStudentsTest {
   private final GroupRepository groupRepository = mock(GroupRepository.class);
   private final GroupMapper groupMapper = mock(GroupMapper.class);
   private final GroupStudentService groupStudentService = mock(GroupStudentService.class);
+  private final StudentSpi studentSpi = mock(StudentSpi.class);
   private final GroupService self = mock(GroupService.class);
 
   private final Group group = mock(Group.class);
@@ -110,11 +114,41 @@ class GroupServiceUpdateGroupStudentsTest {
                     studentId ->
                         new GroupStudentResponse(UUID.randomUUID(), GROUP_ID, studentId, null))
                 .toList());
+
+    // Every student the request picks is an existing student of the caller.
+    when(studentSpi.getStudentsByIds(any(), any()))
+        .thenAnswer(
+            invocation -> {
+              List<UUID> requestedStudentIds = invocation.getArgument(0);
+              Map<UUID, StudentResponse> students = new LinkedHashMap<>();
+              requestedStudentIds.forEach(
+                  studentId ->
+                      students.put(
+                          studentId,
+                          new StudentResponse(
+                              studentId,
+                              "Student",
+                              null,
+                              null,
+                              null,
+                              OffsetDateTime.of(2026, 10, 8, 0, 0, 0, 0, ZoneOffset.UTC),
+                              false)));
+
+              return students;
+            });
   }
 
-  /** Only the group and group student collaborators are used by the reconcile. */
+  /** Only the group, the group student and the student collaborators are used by the reconcile. */
   private GroupService groupService() {
     return new GroupService(
-        groupRepository, groupMapper, null, groupStudentService, null, null, null, null, self);
+        groupRepository,
+        groupMapper,
+        null,
+        groupStudentService,
+        null,
+        studentSpi,
+        null,
+        null,
+        self);
   }
 }

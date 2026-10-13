@@ -24,8 +24,8 @@ public interface GroupMapper {
       return group;
     }
 
-    if (updates.containsKey("name")) {
-      group.setName((String) updates.get("name"));
+    if (updates.get("name") instanceof String name) {
+      group.setName(name);
     }
 
     if (updates.containsKey("defaultPrice")) {

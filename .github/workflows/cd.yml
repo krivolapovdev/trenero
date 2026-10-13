@@ -57,6 +57,6 @@ jobs:
             export JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}"
             export REVIEWER_SECRET_KEY="${{ secrets.REVIEWER_SECRET_KEY }}"
 
-            docker compose -p trenero -f docker-compose.yml -f docker-compose.prod.yml pull
-            docker compose -p trenero -f docker-compose.yml -f docker-compose.prod.yml up -d --wait
+            docker compose -p trenerio -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -p trenerio -f docker-compose.yml -f docker-compose.prod.yml up -d --wait
             docker image prune -f

@@ -4,6 +4,7 @@ import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFound
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +18,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import org.trenero.backend.common.async.AsyncUtils;
 import org.trenero.backend.common.exception.ApiErrorCode;
 import org.trenero.backend.common.exception.ConflictException;
@@ -226,12 +229,29 @@ public class StudentService implements StudentSpi {
       @NonNull CreateStudentRequest request, @NonNull JwtUser jwtUser) {
     log.info("Creating student: request={}; user={}", request, jwtUser);
 
-    requireFreeFullName(request.fullName(), null, jwtUser);
+    String fullName = requireTrimmedFullName(request.fullName());
+    requireFreeFullName(fullName, null, jwtUser);
 
     var student = studentMapper.toStudent(request, jwtUser.id());
+    // The mapper copies the name as it was sent; the row keeps the trimmed one.
+    student.setFullName(fullName);
+
     var savedStudent = self.saveStudent(student);
 
     return studentMapper.toResponse(savedStudent);
+  }
+
+  /**
+   * The name of a student is the only handle they have on every page, so a patch that carries a
+   * name has to carry a usable one. The value is trimmed, so that two names that differ in nothing
+   * but surrounding blanks are recognized as the same name by {@link #requireFreeFullName}.
+   */
+  private static @NonNull String requireTrimmedFullName(Object fullName) {
+    if (!(fullName instanceof String text) || text.isBlank()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "fullName must not be blank");
+    }
+
+    return text.trim();
   }
 
   private void requireFreeFullName(String fullName, UUID studentId, JwtUser jwtUser) {
@@ -270,15 +290,19 @@ public class StudentService implements StudentSpi {
             .findByIdAndOwnerId(studentId, jwtUser.id())
             .orElseThrow(entityNotFoundSupplier(Student.class, studentId, jwtUser));
 
-    if (updates.get("fullName") instanceof String fullName) {
+    Map<String, Object> patch = new LinkedHashMap<>(updates);
+
+    if (patch.containsKey("fullName")) {
+      String fullName = requireTrimmedFullName(patch.get("fullName"));
       requireFreeFullName(fullName, studentId, jwtUser);
+      patch.put("fullName", fullName);
     }
 
-    if (updates.containsKey("groupIds") || updates.containsKey("groupId")) {
-      reconcileStudentGroups(studentId, updates, jwtUser);
+    if (patch.containsKey("groupIds") || patch.containsKey("groupId")) {
+      reconcileStudentGroups(studentId, patch, jwtUser);
     }
 
-    var updatedStudent = studentMapper.updateStudent(student, updates);
+    var updatedStudent = studentMapper.updateStudent(student, patch);
     var savedStudent = self.saveStudent(updatedStudent);
 
     return studentMapper.toResponse(savedStudent);
