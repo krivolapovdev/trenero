@@ -351,9 +351,6 @@ class Translations$students$en {
 	/// en: 'Group'
 	String get group => 'Group';
 
-	/// en: 'Joined at'
-	String get joinedAt => 'Joined at';
-
 	/// en: 'No student'
 	String get noStudent => 'No student';
 
@@ -699,7 +696,6 @@ extension on Translations {
 			'students.birthdate' => 'Date of birth',
 			'students.phone' => 'Phone',
 			'students.group' => 'Group',
-			'students.joinedAt' => 'Joined at',
 			'students.noStudent' => 'No student',
 			'students.free' => 'Studies for free',
 			'students.payment' => 'Payment',

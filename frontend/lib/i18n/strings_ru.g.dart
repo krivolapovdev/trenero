@@ -176,7 +176,6 @@ class _Translations$students$ru implements Translations$students$en {
 	@override String get birthdate => 'Дата рождения';
 	@override String get phone => 'Телефон';
 	@override String get group => 'Группа';
-	@override String get joinedAt => 'Дата вступления';
 	@override String get noStudent => 'Без ученика';
 	@override String get free => 'Учится бесплатно';
 	@override String get payment => 'Платёж';
@@ -393,7 +392,6 @@ extension on TranslationsRu {
 			'students.birthdate' => 'Дата рождения',
 			'students.phone' => 'Телефон',
 			'students.group' => 'Группа',
-			'students.joinedAt' => 'Дата вступления',
 			'students.noStudent' => 'Без ученика',
 			'students.free' => 'Учится бесплатно',
 			'students.payment' => 'Платёж',

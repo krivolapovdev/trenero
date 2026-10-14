@@ -1,6 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:phone/core/constants/app_date_formats.dart';
 import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/models/create_student_payment_request.dart';
@@ -17,8 +15,6 @@ final studentRepositoryProvider = Provider<StudentRepository>((ref) {
 });
 
 class StudentRepository {
-  static final DateFormat _isoDate = DateFormat(AppDateFormats.isoDate);
-
   final StudentControllerClient _service;
   List<StudentSummaryResponse>? _cachedStudents;
 
@@ -96,10 +92,7 @@ class StudentRepository {
   }) => guardApiCall(
     () => _service.updateStudent(
       studentId: studentId,
-      body: <String, dynamic>{
-        'groupIds': groupIds.toList(),
-        'joinedAt': _isoDate.format(DateTime.now()),
-      },
+      body: <String, dynamic>{'groupIds': groupIds.toList()},
     ),
   );
 

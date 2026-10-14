@@ -108,16 +108,12 @@ void main() {
     addTearDown(container.dispose);
   });
 
-  testWidgets('lists every group with a checkbox and no join date field', (
-    tester,
-  ) async {
+  testWidgets('lists every group with a checkbox', (tester) async {
     await _pumpPage(tester, container, initialGroupIds: {'group-a'});
 
     expect(find.byType(CheckboxListTile), findsNWidgets(2));
     expect(find.text('Group A'), findsOneWidget);
     expect(find.text('Group B'), findsOneWidget);
-
-    expect(find.text(t.students.joinedAt), findsNothing);
   });
 
   testWidgets('preselects the current groups of the student', (tester) async {
