@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:phone/core/constants/app_date_formats.dart';
+import 'package:phone/core/extensions/date_time_extension.dart';
 import 'package:phone/features/finance/controllers/transaction_mutation_refresh.dart';
 import 'package:phone/features/finance/repositories/transaction_repository.dart';
 import 'package:phone/generated/models/transaction_response.dart';
@@ -13,8 +12,6 @@ final updateTransactionControllerProvider =
     );
 
 class UpdateTransactionController extends AsyncNotifier<void> {
-  static final DateFormat _isoDate = DateFormat(AppDateFormats.isoDate);
-
   @override
   FutureOr<void> build() {}
 
@@ -36,8 +33,8 @@ class UpdateTransactionController extends AsyncNotifier<void> {
             transactionId: transactionId,
             body: {
               'amount': amount,
-              'date': _isoDate.format(date),
-              if (paidUntil != null) 'paidUntil': _isoDate.format(paidUntil),
+              'date': date.toIso8601StringWithOffset(),
+              if (paidUntil != null) 'paidUntil': paidUntil.toIso8601StringWithOffset(),
             },
           );
 

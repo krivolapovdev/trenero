@@ -164,6 +164,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
         clipBehavior: Clip.antiAlias,
         onRefresh: _refresh,
         child: SingleChildScrollView(
+          clipBehavior: Clip.none,
           padding: const EdgeInsets.all(16),
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),

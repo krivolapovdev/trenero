@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:phone/core/extensions/date_time_extension.dart';
 import 'package:phone/core/extensions/number_extension.dart';
 import 'package:phone/core/widgets/transaction_list_view.dart';
 import 'package:phone/core/widgets/transaction_tile.dart';
@@ -295,10 +296,11 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 
+    final expectedDate = DateTime(2025, 8, 22).toIso8601StringWithOffset();
     expect(client.updateBodies, hasLength(1));
     expect(client.updateBodies.single, {
       'amount': 4200.0,
-      'date': '2025-08-22',
+      'date': expectedDate,
     });
     expect(find.byType(EditTransactionBottomSheet), findsNothing);
     expect(find.text(4200.toFormattedAmount()), findsOneWidget);
@@ -356,11 +358,13 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 
+    final expectedDate = DateTime(2025, 8, 22).toIso8601StringWithOffset();
+    final expectedPaidUntil = DateTime(2025, 10).toIso8601StringWithOffset();
     expect(client.updateBodies, hasLength(1));
     expect(client.updateBodies.single, {
       'amount': 3800.0,
-      'date': '2025-08-22',
-      'paidUntil': '2025-10-01',
+      'date': expectedDate,
+      'paidUntil': expectedPaidUntil,
     });
     expect(find.byType(EditTransactionBottomSheet), findsNothing);
   });

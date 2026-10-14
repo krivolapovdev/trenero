@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
-import 'package:phone/core/widgets/outlined_input_field.dart';
 import 'package:phone/features/auth/controllers/reviewer_auth_controller.dart';
 import 'package:phone/i18n/strings.g.dart';
 

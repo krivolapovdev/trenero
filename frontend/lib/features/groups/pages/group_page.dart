@@ -90,6 +90,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
           setState(() => _group = updated);
         },
         child: SingleChildScrollView(
+          clipBehavior: Clip.none,
           padding: const EdgeInsets.all(16),
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),

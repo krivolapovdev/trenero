@@ -59,3 +59,7 @@ swagger_parser:
   output_directory: lib/generated
   language: dart
   json_serializer: json_serializable
+  field_parsers:
+    - apply_to_type: "DateTime"
+      parser_name: "LocalDateTimeConverter"
+      parser_absolute_path: "package:phone/core/network/dates/local_date_time_converter.dart"
