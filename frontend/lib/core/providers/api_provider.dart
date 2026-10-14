@@ -32,7 +32,7 @@ final apiProvider = Provider<Dio>((ref) {
 BaseOptions _baseOptions() => BaseOptions(
   baseUrl: AppEnvironment.baseUrl,
   headers: const {'Content-Type': 'application/json'},
-  receiveTimeout: AppEnvironment.requestTimeout,
-  connectTimeout: AppEnvironment.requestTimeout,
-  sendTimeout: AppEnvironment.requestTimeout,
+  receiveTimeout: AppEnvironment.receiveTimeout,
+  connectTimeout: AppEnvironment.connectTimeout,
+  sendTimeout: AppEnvironment.sendTimeout,
 );
