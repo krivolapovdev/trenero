@@ -74,7 +74,7 @@ public class StudentService implements StudentSpi {
   }
 
   @Transactional(readOnly = true)
-  public @NonNull List<StudentSummaryResponse> getStudentsSummary(@NonNull JwtUser jwtUser) {
+  public @NonNull List<StudentSummaryResponse> getAllStudentsSummary(@NonNull JwtUser jwtUser) {
     log.info("Getting students overview: user={}", jwtUser);
 
     var students = self.getAllStudents(jwtUser);
