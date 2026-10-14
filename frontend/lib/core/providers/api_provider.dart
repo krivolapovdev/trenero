@@ -2,17 +2,20 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/config/app_environment.dart';
+import 'package:phone/core/network/api_date_interceptor.dart';
 import 'package:phone/core/network/auth_interceptor.dart';
 import 'package:phone/core/network/response_log_interceptor.dart';
 import 'package:phone/core/storage/token_storage.dart';
 
-final unauthenticatedDioProvider = Provider<Dio>((ref) => Dio(_baseOptions()));
+final unauthenticatedDioProvider = Provider<Dio>(
+  (ref) => Dio(_baseOptions())..interceptors.add(const ApiDateInterceptor()),
+);
 
 final apiProvider = Provider<Dio>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
   final refreshClient = ref.watch(unauthenticatedDioProvider);
 
-  final dio = Dio(_baseOptions());
+  final dio = Dio(_baseOptions())..interceptors.add(const ApiDateInterceptor());
 
   dio.interceptors.add(
     AuthInterceptor(
