@@ -36,6 +36,8 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _priceController;
   late final TextEditingController _noteController;
+  late final FocusNode _nameFocusNode;
+  late final FocusNode _noteFocusNode;
 
   @override
   void initState() {
@@ -46,9 +48,32 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
     _nameController.addListener(_onFieldChanged);
     _priceController.addListener(_onFieldChanged);
     _noteController.addListener(_onFieldChanged);
+    _nameFocusNode = FocusNode()..addListener(_onFieldChanged);
+    _noteFocusNode = FocusNode()..addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() => setState(() {});
+
+  Widget? _buildCharCounter(
+    int currentLength,
+    int maxLength, {
+    required bool isFocused,
+  }) {
+    if (!isFocused) return null;
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$currentLength/$maxLength',
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
 
   bool get _hasChanges =>
       _nameController.text != (widget.initialName ?? '') ||
@@ -60,6 +85,8 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
     _nameController.dispose();
     _priceController.dispose();
     _noteController.dispose();
+    _nameFocusNode.dispose();
+    _noteFocusNode.dispose();
     super.dispose();
   }
 
@@ -109,13 +136,28 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
                     spacing: 22,
                     children: [
                       TextField(
+                        controller: _nameController,
+                        focusNode: _nameFocusNode,
+                        maxLength: 255,
+                        maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                        buildCounter: (
+                          _, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) => null,
                         decoration: InputDecoration(
                           labelText: '${context.t.name}*',
                           prefixIcon: const Icon(
                             FluentIcons.mention_16_regular,
                           ),
+                          suffixIcon: _buildCharCounter(
+                            _nameController.text.length,
+                            255,
+                            isFocused: _nameFocusNode.hasFocus,
+                          ),
+                          suffixIconConstraints: const BoxConstraints(),
                         ),
-                        controller: _nameController,
                         enabled: !isLoading,
                       ),
 
@@ -138,11 +180,26 @@ class _GroupFormSheetState extends State<GroupFormSheet> {
                       ),
 
                       TextField(
+                        controller: _noteController,
+                        focusNode: _noteFocusNode,
+                        maxLength: 255,
+                        maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                        buildCounter: (
+                          _, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) => null,
                         decoration: InputDecoration(
                           labelText: context.t.note,
                           prefixIcon: const Icon(FluentIcons.note_16_regular),
+                          suffixIcon: _buildCharCounter(
+                            _noteController.text.length,
+                            255,
+                            isFocused: _noteFocusNode.hasFocus,
+                          ),
+                          suffixIconConstraints: const BoxConstraints(),
                         ),
-                        controller: _noteController,
                         enabled: !isLoading,
                       ),
 

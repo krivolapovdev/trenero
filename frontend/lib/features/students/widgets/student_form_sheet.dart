@@ -45,6 +45,8 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _noteController;
+  late final FocusNode _nameFocusNode;
+  late final FocusNode _noteFocusNode;
 
   DateTime? _birthdate;
   late bool _free;
@@ -57,6 +59,8 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
     _nameController = TextEditingController(text: widget.initialFullName);
     _phoneController = TextEditingController(text: widget.initialPhone);
     _noteController = TextEditingController(text: widget.initialNote);
+    _nameFocusNode = FocusNode()..addListener(_onFieldChanged);
+    _noteFocusNode = FocusNode()..addListener(_onFieldChanged);
     _nameController.addListener(_onFieldChanged);
     _phoneController.addListener(_onFieldChanged);
     _noteController.addListener(_onFieldChanged);
@@ -75,11 +79,34 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
 
   void _onFreeChanged(bool? value) => setState(() => _free = value ?? false);
 
+  Widget? _buildCharCounter(
+    int currentLength,
+    int maxLength, {
+    required bool isFocused,
+  }) {
+    if (!isFocused) return null;
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$currentLength/$maxLength',
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
     _noteController.dispose();
+    _nameFocusNode.dispose();
+    _noteFocusNode.dispose();
     super.dispose();
   }
 
@@ -131,13 +158,28 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                     spacing: 22,
                     children: [
                       TextField(
+                        controller: _nameController,
+                        focusNode: _nameFocusNode,
+                        maxLength: 255,
+                        maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                        buildCounter: (
+                          _, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) => null,
                         decoration: InputDecoration(
                           labelText: '${context.t.students.fullName}*',
                           prefixIcon: const Icon(
                             FluentIcons.mention_16_regular,
                           ),
+                          suffixIcon: _buildCharCounter(
+                            _nameController.text.length,
+                            255,
+                            isFocused: _nameFocusNode.hasFocus,
+                          ),
+                          suffixIconConstraints: const BoxConstraints(),
                         ),
-                        controller: _nameController,
                         enabled: !isLoading,
                       ),
 
@@ -169,11 +211,26 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                       ),
 
                       TextField(
+                        controller: _noteController,
+                        focusNode: _noteFocusNode,
+                        maxLength: 255,
+                        maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                        buildCounter: (
+                          _, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) => null,
                         decoration: InputDecoration(
                           labelText: context.t.note,
                           prefixIcon: const Icon(FluentIcons.note_16_regular),
+                          suffixIcon: _buildCharCounter(
+                            _noteController.text.length,
+                            255,
+                            isFocused: _noteFocusNode.hasFocus,
+                          ),
+                          suffixIconConstraints: const BoxConstraints(),
                         ),
-                        controller: _noteController,
                         enabled: !isLoading,
                       ),
 

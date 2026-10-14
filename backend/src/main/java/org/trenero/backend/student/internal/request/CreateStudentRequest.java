@@ -9,5 +9,5 @@ public record CreateStudentRequest(
     @NotBlank @Size(max = 255) String fullName,
     LocalDate birthdate,
     @Size(max = 15) String phone,
-    @Size(max = 1023) String note,
+    @Size(max = 255) String note,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) boolean free) {}

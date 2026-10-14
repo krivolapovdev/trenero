@@ -47,8 +47,8 @@ public class Student {
   @Size(max = 15)
   private String phone;
 
-  @Column(name = "note", length = 1023)
-  @Size(max = 1023)
+  @Column(name = "note")
+  @Size(max = 255)
   private String note;
 
   /** Whether the student studies for free and is therefore never charged for lessons. */

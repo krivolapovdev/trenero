@@ -272,4 +272,32 @@ void main() {
 
     expect(_submit(tester).onPressed, isNotNull);
   });
+
+  testWidgets(
+    'displays length counters only when focused and prohibits extra characters in full name',
+    (tester) async {
+      await tester.pumpWidget(_wrap(_sheet()));
+
+      expect(find.text('0/255'), findsNothing);
+
+      final nameField = find.byType(TextField).first;
+      await tester.tap(nameField);
+      await tester.pump();
+
+      expect(find.text('0/255'), findsOneWidget);
+
+      await tester.enterText(nameField, 'A' * 300);
+      await tester.pump();
+
+      final textField = tester.widget<TextField>(nameField);
+      expect(textField.controller?.text.length, 255);
+      expect(find.text('255/255'), findsOneWidget);
+
+      final noteField = find.byType(TextField).at(3);
+      await tester.tap(noteField);
+      await tester.pump();
+
+      expect(find.text('0/255'), findsOneWidget);
+    },
+  );
 }
