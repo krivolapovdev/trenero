@@ -2,7 +2,6 @@ package org.trenero.backend.transaction.internal.service
 
 import jakarta.persistence.EntityNotFoundException
 import java.math.BigDecimal
-import java.time.LocalDate
 import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
@@ -10,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.Import
+import org.trenero.backend.TestDays
 import org.trenero.backend.TestcontainersConfig
 import org.trenero.backend.common.domain.TransactionType
 import org.trenero.backend.common.security.JwtUser
@@ -33,16 +33,16 @@ class TransactionServiceUpdateTransactionPatchingTest {
 
   private val amount = BigDecimal("3800.00")
   private val studentId = UUID.randomUUID()
-  private val date = LocalDate.of(2026, 10, 8)
-  private val paidUntil = LocalDate.of(2026, 11, 8)
+  private val date = TestDays.day(2026, 10, 8)
+  private val paidUntil = TestDays.day(2026, 11, 8)
 
   @Test
   fun patchesTheAmountTheDateAndThePaidUntil() {
     val owner = userRepository.insertOwner()
     val transactionId = createPayment(owner)
     val newAmount = BigDecimal("4200.00")
-    val newDate = LocalDate.of(2026, 10, 9)
-    val newPaidUntil = LocalDate.of(2026, 12, 9)
+    val newDate = TestDays.day(2026, 10, 9)
+    val newPaidUntil = TestDays.day(2026, 12, 9)
 
     val response =
       service()
@@ -97,7 +97,12 @@ class TransactionServiceUpdateTransactionPatchingTest {
     val transaction =
       service()
         .createTransaction(
-          CreateTransactionRequest(amount, date, TransactionType.EXPENSE, null),
+          CreateTransactionRequest(
+            amount,
+            date,
+            TransactionType.EXPENSE,
+            null,
+          ),
           owner,
         )
 

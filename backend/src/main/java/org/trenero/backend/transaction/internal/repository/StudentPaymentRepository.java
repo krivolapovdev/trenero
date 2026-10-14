@@ -1,6 +1,6 @@
 package org.trenero.backend.transaction.internal.repository;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -56,7 +56,7 @@ public interface StudentPaymentRepository
           ORDER BY sp.paidUntil DESC
           LIMIT 1
           """)
-  Optional<LocalDate> findLatestPaidUntilByStudentId(
+  Optional<OffsetDateTime> findLatestPaidUntilByStudentId(
       @Param("studentId") UUID studentId, @Param("ownerId") UUID ownerId);
 
   @Query(
@@ -68,9 +68,9 @@ public interface StudentPaymentRepository
             AND t.ownerId = :ownerId
             AND sp.paidUntil < :currentPaidUntil
           """)
-  Optional<LocalDate> findLatestPaidUntilBeforeDate(
+  Optional<OffsetDateTime> findLatestPaidUntilBeforeDate(
       @Param("studentId") UUID studentId,
-      @Param("currentPaidUntil") LocalDate currentPaidUntil,
+      @Param("currentPaidUntil") OffsetDateTime currentPaidUntil,
       @Param("ownerId") UUID ownerId);
 
   @Query(

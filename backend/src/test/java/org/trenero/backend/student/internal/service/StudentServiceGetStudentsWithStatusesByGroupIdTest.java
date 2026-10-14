@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -12,6 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import org.junit.jupiter.api.Test;
+import org.trenero.backend.TestDays;
 import org.trenero.backend.common.domain.StudentStatus;
 import org.trenero.backend.common.domain.VisitStatus;
 import org.trenero.backend.common.domain.VisitType;
@@ -100,9 +100,9 @@ class StudentServiceGetStudentsWithStatusesByGroupIdTest {
     when(lessonSpi.getLessonsByIds(List.of(GROUP_LESSON_ID, OTHER_GROUP_LESSON_ID), jwtUser))
         .thenReturn(
             Map.of(
-                GROUP_LESSON_ID, lesson(GROUP_LESSON_ID, GROUP_ID, LocalDate.of(2026, 9, 1)),
+                GROUP_LESSON_ID, lesson(GROUP_LESSON_ID, GROUP_ID, TestDays.day(2026, 9, 1)),
                 OTHER_GROUP_LESSON_ID,
-                    lesson(OTHER_GROUP_LESSON_ID, OTHER_GROUP_ID, LocalDate.of(2026, 10, 8))));
+                    lesson(OTHER_GROUP_LESSON_ID, OTHER_GROUP_ID, TestDays.day(2026, 10, 8))));
   }
 
   /**
@@ -130,7 +130,7 @@ class StudentServiceGetStudentsWithStatusesByGroupIdTest {
         UUID.randomUUID(), status, VisitType.REGULAR, lessonId, STUDENT_ID, CREATED_AT);
   }
 
-  private static LessonResponse lesson(UUID lessonId, UUID groupId, LocalDate date) {
+  private static LessonResponse lesson(UUID lessonId, UUID groupId, OffsetDateTime date) {
     return new LessonResponse(lessonId, date, CREATED_AT, groupId);
   }
 }

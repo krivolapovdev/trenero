@@ -1,7 +1,7 @@
 package org.trenero.backend.lesson.internal.service
 
 import jakarta.persistence.EntityNotFoundException
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.Import
+import org.trenero.backend.TestDays
 import org.trenero.backend.TestcontainersConfig
 import org.trenero.backend.lesson.internal.domain.Lesson
 import org.trenero.backend.lesson.internal.repository.LessonRepository
@@ -30,7 +31,7 @@ class LessonServiceGetLessonsTest {
 
   private val groupId = UUID.randomUUID()
   private val otherGroupId = UUID.randomUUID()
-  private val date = LocalDate.of(2026, 10, 8)
+  private val date = TestDays.day(2026, 10, 8)
 
   @Test
   fun returnsTheLessonOfTheCaller() {
@@ -100,19 +101,19 @@ class LessonServiceGetLessonsTest {
   @Test
   fun returnsTheLessonsOfARangeWithBothEndsIncluded() {
     val owner = userRepository.insertOwner()
-    val first = insertLesson(owner.id, groupId, LocalDate.of(2026, 10, 1))
-    val second = insertLesson(owner.id, groupId, LocalDate.of(2026, 10, 31))
-    insertLesson(owner.id, groupId, LocalDate.of(2026, 9, 30))
-    insertLesson(owner.id, groupId, LocalDate.of(2026, 11, 1))
-    insertLesson(owner.id, otherGroupId, LocalDate.of(2026, 10, 15))
-    insertLesson(userRepository.insertOwner().id, groupId, LocalDate.of(2026, 10, 15))
+    val first = insertLesson(owner.id, groupId, TestDays.day(2026, 10, 1))
+    val second = insertLesson(owner.id, groupId, TestDays.day(2026, 10, 31))
+    insertLesson(owner.id, groupId, TestDays.day(2026, 9, 30))
+    insertLesson(owner.id, groupId, TestDays.day(2026, 11, 1))
+    insertLesson(owner.id, otherGroupId, TestDays.day(2026, 10, 15))
+    insertLesson(userRepository.insertOwner().id, groupId, TestDays.day(2026, 10, 15))
 
     val lessons =
       service()
         .getLessonsByGroupIdAndDateRange(
           groupId,
-          LocalDate.of(2026, 10, 1),
-          LocalDate.of(2026, 10, 31),
+          TestDays.day(2026, 10, 1),
+          TestDays.day(2026, 10, 31),
           owner,
         )
 
@@ -122,7 +123,7 @@ class LessonServiceGetLessonsTest {
 
   private fun service() = lessonService(lessonRepository, visitRepository)
 
-  private fun insertLesson(ownerId: UUID, groupId: UUID?, date: LocalDate): UUID =
+  private fun insertLesson(ownerId: UUID, groupId: UUID?, date: OffsetDateTime): UUID =
     lessonRepository
       .saveAndFlush(Lesson.builder().ownerId(ownerId).groupId(groupId).date(date).build())
       .id

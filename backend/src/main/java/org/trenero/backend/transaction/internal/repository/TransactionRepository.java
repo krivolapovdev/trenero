@@ -1,6 +1,6 @@
 package org.trenero.backend.transaction.internal.repository;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -70,6 +70,6 @@ public interface TransactionRepository extends JpaRepository<@NonNull Transactio
           """)
   List<Transaction> findAllByOwnerIdAndDateBetween(
       @Param("ownerId") UUID ownerId,
-      @Param("startDate") LocalDate startDate,
-      @Param("endDate") LocalDate endDate);
+      @Param("startDate") OffsetDateTime startDate,
+      @Param("endDate") OffsetDateTime endDate);
 }

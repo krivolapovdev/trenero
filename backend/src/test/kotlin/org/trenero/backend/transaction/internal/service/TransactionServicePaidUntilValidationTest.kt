@@ -1,7 +1,7 @@
 package org.trenero.backend.transaction.internal.service
 
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
@@ -11,6 +11,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
+import org.trenero.backend.TestDays
 import org.trenero.backend.TestcontainersConfig
 import org.trenero.backend.common.domain.TransactionType
 import org.trenero.backend.common.security.JwtUser
@@ -40,8 +41,8 @@ class TransactionServicePaidUntilValidationTest {
 
   private val amount = BigDecimal("3800.00")
   private val studentId = UUID.randomUUID()
-  private val date = LocalDate.of(2026, 10, 8)
-  private val paidUntil = LocalDate.of(2026, 11, 8)
+  private val date = TestDays.day(2026, 10, 8)
+  private val paidUntil = TestDays.day(2026, 11, 8)
 
   @Test
   fun rejectsAPaidUntilBeforeTheDateWhenAPaymentIsCreated() {
@@ -74,7 +75,11 @@ class TransactionServicePaidUntilValidationTest {
             amount,
             date,
             TransactionType.INCOME,
-            CreateStudentPaymentDetailsRequest(studentId, date.minusDays(1), null),
+            CreateStudentPaymentDetailsRequest(
+              studentId,
+              date.minusDays(1),
+              null,
+            ),
           ),
           owner,
         )
@@ -110,7 +115,7 @@ class TransactionServicePaidUntilValidationTest {
         .updateTransaction(
           transactionId,
           updates(
-            "date" to LocalDate.of(2026, 12, 1).toString(),
+            "date" to TestDays.day(2026, 12, 1).toString(),
             "paidUntil" to paidUntil.toString(),
           ),
           owner,
@@ -141,7 +146,7 @@ class TransactionServicePaidUntilValidationTest {
   fun acceptsAPaidUntilOnThePatchedDate() {
     val owner = userRepository.insertOwner()
     val transactionId = createPayment(owner)
-    val newDate = LocalDate.of(2026, 12, 1)
+    val newDate = TestDays.day(2026, 12, 1)
 
     val response =
       service()
@@ -159,7 +164,7 @@ class TransactionServicePaidUntilValidationTest {
   fun acceptsAPaidUntilAfterThePatchedDate() {
     val owner = userRepository.insertOwner()
     val transactionId = createPayment(owner)
-    val newPaidUntil = LocalDate.of(2026, 12, 31)
+    val newPaidUntil = TestDays.day(2026, 12, 31)
 
     val response =
       service()
@@ -179,7 +184,7 @@ class TransactionServicePaidUntilValidationTest {
 
   private fun updates(vararg entries: Pair<String, Any?>): Map<String, Any?> = mapOf(*entries)
 
-  private fun paidUntilOf(details: Any?): LocalDate =
+  private fun paidUntilOf(details: Any?): OffsetDateTime =
     (details as StudentPaymentDetailsResponse).paidUntil
 
   private fun assertBadRequest(thrown: Throwable?) {

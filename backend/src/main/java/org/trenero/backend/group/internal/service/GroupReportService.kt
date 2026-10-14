@@ -1,6 +1,6 @@
 package org.trenero.backend.group.internal.service
 
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.time.YearMonth
 import java.util.UUID
 import org.springframework.stereotype.Service
@@ -31,13 +31,15 @@ class GroupReportService {
     lessons: List<LessonResponse>,
     visitsByStudentId: Map<UUID, List<VisitResponse>>,
     paymentsByStudentId: Map<UUID, List<TransactionResponse>>,
-    today: LocalDate,
+    today: OffsetDateTime,
   ): GroupReportResponse {
     val period = YearMonth.of(year, month)
     val dayCount = period.lengthOfMonth()
 
     val lessonIdsByDate =
-      lessons.filter { YearMonth.from(it.date) == period }.groupBy({ it.date }, { it.id })
+      lessons
+        .filter { YearMonth.from(it.date) == period }
+        .groupBy({ it.date.toLocalDate() }, { it.id })
     val lessonDays = lessonIdsByDate.keys.map { it.dayOfMonth }.sorted()
     val statusesByStudentId = visitsByStudentId.mapValues { (_, visits) ->
       visits.groupBy({ it.lessonId }, { it.status })
@@ -86,20 +88,21 @@ class GroupReportService {
   private fun isPaid(
     payments: List<TransactionResponse>,
     period: YearMonth,
-    today: LocalDate,
+    today: OffsetDateTime,
   ): Boolean {
     val maxPaidUntil =
       payments
         .mapNotNull { (it.paymentDetails as? StudentPaymentDetailsResponse)?.paidUntil }
         .maxOrNull() ?: return false
 
+    val todayDay = today.toLocalDate()
     val referenceDate =
       when {
-        period.atDay(1).isAfter(today) -> period.atDay(1)
-        period.atEndOfMonth().isBefore(today) -> period.atEndOfMonth()
-        else -> today
+        period.atDay(1).isAfter(todayDay) -> period.atDay(1)
+        period.atEndOfMonth().isBefore(todayDay) -> period.atEndOfMonth()
+        else -> todayDay
       }
 
-    return !maxPaidUntil.isBefore(referenceDate)
+    return !maxPaidUntil.toLocalDate().isBefore(referenceDate)
   }
 }

@@ -1,11 +1,12 @@
 package org.trenero.backend.student.internal.request
 
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.PastOrPresent
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.OffsetDateTime
 
 data class CreateStudentPaymentRequest(
   @get:NotNull val amount: BigDecimal,
-  @get:NotNull val date: LocalDate,
-  @get:NotNull val paidUntil: LocalDate,
+  @get:NotNull @get:PastOrPresent val date: OffsetDateTime,
+  @get:NotNull val paidUntil: OffsetDateTime,
 )

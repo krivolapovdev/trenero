@@ -7,13 +7,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.trenero.backend.TestDays;
 import org.trenero.backend.common.domain.VisitStatus;
 import org.trenero.backend.common.domain.VisitType;
 import org.trenero.backend.common.security.JwtUser;
@@ -36,7 +36,7 @@ class LessonServiceGetLessonDetailsTest {
 
   private static final OffsetDateTime CREATED_AT =
       OffsetDateTime.of(2026, 10, 8, 0, 0, 0, 0, ZoneOffset.UTC);
-  private static final LocalDate DATE = LocalDate.of(2026, 10, 8);
+  private static final OffsetDateTime DATE = TestDays.day(2026, 10, 8);
 
   private static final UUID LESSON_ID = UUID.randomUUID();
   private static final UUID GROUP_ID = UUID.randomUUID();

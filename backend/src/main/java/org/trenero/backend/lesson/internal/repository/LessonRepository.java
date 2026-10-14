@@ -1,6 +1,6 @@
 package org.trenero.backend.lesson.internal.repository;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -56,6 +56,6 @@ public interface LessonRepository extends JpaRepository<@NonNull Lesson, @NonNul
   List<Lesson> findAllByGroupIdAndOwnerIdAndDateBetween(
       @Param("groupId") UUID groupId,
       @Param("ownerId") UUID ownerId,
-      @Param("from") LocalDate from,
-      @Param("to") LocalDate to);
+      @Param("from") OffsetDateTime from,
+      @Param("to") OffsetDateTime to);
 }

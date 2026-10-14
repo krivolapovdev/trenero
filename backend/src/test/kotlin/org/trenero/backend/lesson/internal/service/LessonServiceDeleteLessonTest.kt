@@ -1,7 +1,6 @@
 package org.trenero.backend.lesson.internal.service
 
 import jakarta.persistence.EntityNotFoundException
-import java.time.LocalDate
 import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
@@ -9,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.Import
+import org.trenero.backend.TestDays
 import org.trenero.backend.TestcontainersConfig
 import org.trenero.backend.common.domain.VisitStatus
 import org.trenero.backend.common.security.JwtUser
@@ -27,7 +27,7 @@ class LessonServiceDeleteLessonTest {
 
   private val groupId = UUID.randomUUID()
   private val annaId = UUID.randomUUID()
-  private val date = LocalDate.of(2026, 10, 8)
+  private val date = TestDays.day(2026, 10, 8)
 
   @Test
   fun removesTheLessonAndItsAttendance() {

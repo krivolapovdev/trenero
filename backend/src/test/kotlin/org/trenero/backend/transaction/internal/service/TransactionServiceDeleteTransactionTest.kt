@@ -2,7 +2,6 @@ package org.trenero.backend.transaction.internal.service
 
 import jakarta.persistence.EntityNotFoundException
 import java.math.BigDecimal
-import java.time.LocalDate
 import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
@@ -10,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.Import
+import org.trenero.backend.TestDays
 import org.trenero.backend.TestcontainersConfig
 import org.trenero.backend.common.domain.TransactionType
 import org.trenero.backend.common.security.JwtUser
@@ -32,7 +32,7 @@ class TransactionServiceDeleteTransactionTest {
   @Autowired private lateinit var userRepository: UserRepository
 
   private val amount = BigDecimal("3800.00")
-  private val date = LocalDate.of(2026, 10, 8)
+  private val date = TestDays.day(2026, 10, 8)
 
   @Test
   fun removesTheTransactionAndItsStudentPayment() {
@@ -52,7 +52,12 @@ class TransactionServiceDeleteTransactionTest {
     val transaction =
       service()
         .createTransaction(
-          CreateTransactionRequest(amount, date, TransactionType.EXPENSE, null),
+          CreateTransactionRequest(
+            amount,
+            date,
+            TransactionType.EXPENSE,
+            null,
+          ),
           owner,
         )
 

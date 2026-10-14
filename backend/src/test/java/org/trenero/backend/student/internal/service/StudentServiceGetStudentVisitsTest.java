@@ -4,13 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.trenero.backend.TestDays;
 import org.trenero.backend.common.domain.VisitStatus;
 import org.trenero.backend.common.domain.VisitType;
 import org.trenero.backend.common.security.JwtUser;
@@ -31,7 +31,7 @@ class StudentServiceGetStudentVisitsTest {
 
   private static final OffsetDateTime CREATED_AT =
       OffsetDateTime.of(2026, 10, 8, 0, 0, 0, 0, ZoneOffset.UTC);
-  private static final LocalDate DATE = LocalDate.of(2026, 10, 8);
+  private static final OffsetDateTime DATE = TestDays.day(2026, 10, 8);
 
   private static final UUID STUDENT_ID = UUID.randomUUID();
   private static final UUID GROUP_ID = UUID.randomUUID();
@@ -94,12 +94,12 @@ class StudentServiceGetStudentVisitsTest {
             Map.of(
                 GROUP_LESSON_ID, lesson(GROUP_LESSON_ID, GROUP_ID, DATE),
                 INDIVIDUAL_LESSON_ID,
-                    lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 6, 1))));
+                    lesson(INDIVIDUAL_LESSON_ID, null, TestDays.day(2026, 6, 1))));
 
     List<VisitWithLessonResponse> visits =
         studentService()
             .getStudentVisits(
-                STUDENT_ID, LocalDate.of(2026, 9, 1), LocalDate.of(2026, 10, 31), jwtUser);
+                STUDENT_ID, TestDays.day(2026, 9, 1), TestDays.day(2026, 10, 31), jwtUser);
 
     assertThat(visits.stream().map(response -> response.getLesson().getId()).toList())
         .containsExactly(GROUP_LESSON_ID);
@@ -112,14 +112,14 @@ class StudentServiceGetStudentVisitsTest {
     when(lessonSpi.getLessonsByIds(List.of(GROUP_LESSON_ID, INDIVIDUAL_LESSON_ID), jwtUser))
         .thenReturn(
             Map.of(
-                GROUP_LESSON_ID, lesson(GROUP_LESSON_ID, GROUP_ID, LocalDate.of(2026, 9, 1)),
+                GROUP_LESSON_ID, lesson(GROUP_LESSON_ID, GROUP_ID, TestDays.day(2026, 9, 1)),
                 INDIVIDUAL_LESSON_ID,
-                    lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 10, 31))));
+                    lesson(INDIVIDUAL_LESSON_ID, null, TestDays.day(2026, 10, 31))));
 
     assertThat(
             studentService()
                 .getStudentVisits(
-                    STUDENT_ID, LocalDate.of(2026, 9, 1), LocalDate.of(2026, 10, 31), jwtUser))
+                    STUDENT_ID, TestDays.day(2026, 9, 1), TestDays.day(2026, 10, 31), jwtUser))
         .hasSize(2);
   }
 
@@ -142,7 +142,7 @@ class StudentServiceGetStudentVisitsTest {
     return lesson(lessonId, groupId, DATE);
   }
 
-  private static LessonResponse lesson(UUID lessonId, UUID groupId, LocalDate date) {
+  private static LessonResponse lesson(UUID lessonId, UUID groupId, OffsetDateTime date) {
     return new LessonResponse(lessonId, date, CREATED_AT, groupId);
   }
 }

@@ -9,7 +9,7 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,7 +34,7 @@ public class StudentPayment {
 
   @Column(name = "paid_until", nullable = false)
   @NotNull
-  private LocalDate paidUntil;
+  private OffsetDateTime paidUntil;
 
   @OneToOne(fetch = FetchType.LAZY)
   @MapsId

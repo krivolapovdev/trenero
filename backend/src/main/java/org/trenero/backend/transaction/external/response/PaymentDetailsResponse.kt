@@ -3,7 +3,7 @@ package org.trenero.backend.transaction.external.response
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.swagger.v3.oas.annotations.media.Schema
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @JsonTypeInfo(
@@ -16,6 +16,6 @@ sealed interface PaymentDetailsResponse
 
 data class StudentPaymentDetailsResponse(
   @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val studentId: UUID,
-  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val paidUntil: LocalDate,
+  @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED) val paidUntil: OffsetDateTime,
   val studentName: String? = null,
 ) : PaymentDetailsResponse

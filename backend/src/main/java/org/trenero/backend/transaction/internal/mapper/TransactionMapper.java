@@ -2,6 +2,10 @@ package org.trenero.backend.transaction.internal.mapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.UUID;
 import lombok.NonNull;
@@ -28,12 +32,6 @@ public interface TransactionMapper {
 
   StudentPaymentDetailsResponse toStudentPaymentDetailsResponse(StudentPayment studentPayment);
 
-  /**
-   * Maps a transaction and resolves the student name of its payment details from {@code
-   * studentsByIds}. The name is not stored next to the payment, so clients that render the title of
-   * a transaction (the list of recent transactions on the finance page, for example) only get it
-   * from this lookup.
-   */
   default TransactionResponse toResponse(
       Transaction transaction, Map<UUID, StudentResponse> studentsByIds) {
     if (transaction == null) {
@@ -67,10 +65,6 @@ public interface TransactionMapper {
   @Mapping(target = "studentPayment", source = "request.paymentDetails")
   Transaction toEntity(CreateTransactionRequest request, UUID ownerId);
 
-  /**
-   * Maps the polymorphic payment details of a transaction request. MapStruct cannot derive this
-   * mapping from the sealed {@link CreatePaymentDetailsRequest} on its own.
-   */
   default StudentPayment toStudentPayment(CreatePaymentDetailsRequest details) {
     if (details instanceof CreateStudentPaymentDetailsRequest studentDetails) {
       return StudentPayment.builder()
@@ -96,17 +90,42 @@ public interface TransactionMapper {
     }
 
     if (updates.get("date") != null) {
-      transaction.setDate(LocalDate.parse(updates.get("date").toString()));
+      transaction.setDate(parseDate(updates.get("date")));
     }
 
     if (updates.get("paidUntil") != null) {
       StudentPayment studentPayment = transaction.getStudentPayment();
 
       if (studentPayment != null) {
-        studentPayment.setPaidUntil(LocalDate.parse(updates.get("paidUntil").toString()));
+        studentPayment.setPaidUntil(parseDate(updates.get("paidUntil")));
       }
     }
 
     return transaction;
+  }
+
+  default OffsetDateTime parseDate(Object value) {
+    if (value == null) {
+      return null;
+    }
+
+    String text = value.toString().trim();
+    if (text.isEmpty()) {
+      return null;
+    }
+
+    try {
+      return OffsetDateTime.parse(text);
+    } catch (DateTimeParseException ignored) {
+      // Not an offset date time, try the local and plain forms below.
+    }
+
+    try {
+      return LocalDateTime.parse(text).atOffset(ZoneOffset.UTC);
+    } catch (DateTimeParseException ignored) {
+      // Not a local date time either, the value is a plain day.
+    }
+
+    return LocalDate.parse(text).atStartOfDay(ZoneOffset.UTC).toOffsetDateTime();
   }
 }

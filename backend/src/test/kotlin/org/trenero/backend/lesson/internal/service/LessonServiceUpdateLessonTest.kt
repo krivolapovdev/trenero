@@ -1,7 +1,6 @@
 package org.trenero.backend.lesson.internal.service
 
 import jakarta.persistence.EntityNotFoundException
-import java.time.LocalDate
 import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
@@ -9,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.Import
+import org.trenero.backend.TestDays
 import org.trenero.backend.TestcontainersConfig
 import org.trenero.backend.common.domain.VisitStatus
 import org.trenero.backend.common.security.JwtUser
@@ -33,13 +33,13 @@ class LessonServiceUpdateLessonTest {
   private val groupId = UUID.randomUUID()
   private val annaId = UUID.randomUUID()
   private val ivanId = UUID.randomUUID()
-  private val date = LocalDate.of(2026, 10, 8)
+  private val date = TestDays.day(2026, 10, 8)
 
   @Test
   fun patchesTheDayOfTheLesson() {
     val owner = userRepository.insertOwner()
     val lessonId = createLesson(owner)
-    val newDate = LocalDate.of(2026, 10, 15)
+    val newDate = TestDays.day(2026, 10, 15)
 
     val response = service().updateLesson(lessonId, UpdateLessonRequest(newDate, null), owner)
 
@@ -55,7 +55,10 @@ class LessonServiceUpdateLessonTest {
     service()
       .updateLesson(
         lessonId,
-        UpdateLessonRequest(date, listOf(studentVisit(ivanId, VisitStatus.ABSENT))),
+        UpdateLessonRequest(
+          date,
+          listOf(studentVisit(ivanId, VisitStatus.ABSENT)),
+        ),
         owner,
       )
 
@@ -90,7 +93,12 @@ class LessonServiceUpdateLessonTest {
     val owner = userRepository.insertOwner()
 
     val thrown = catchThrowable {
-      service().updateLesson(UUID.randomUUID(), UpdateLessonRequest(date, null), owner)
+      service()
+        .updateLesson(
+          UUID.randomUUID(),
+          UpdateLessonRequest(date, null),
+          owner,
+        )
     }
 
     assertThat(thrown).isInstanceOf(EntityNotFoundException::class.java)
@@ -103,7 +111,12 @@ class LessonServiceUpdateLessonTest {
     val foreignLessonId = createLesson(stranger)
 
     val thrown = catchThrowable {
-      service().updateLesson(foreignLessonId, UpdateLessonRequest(date, null), owner)
+      service()
+        .updateLesson(
+          foreignLessonId,
+          UpdateLessonRequest(date, null),
+          owner,
+        )
     }
 
     assertThat(thrown).isInstanceOf(EntityNotFoundException::class.java)

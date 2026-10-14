@@ -4,7 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ class TransactionServiceCreateTransactionTest {
             .createTransaction(
                 new CreateTransactionRequest(
                     new BigDecimal("150.00"),
-                    LocalDate.of(2026, 10, 8),
+                    OffsetDateTime.of(2026, 10, 8, 0, 0, 0, 0, ZoneOffset.UTC),
                     TransactionType.INCOME,
                     null),
                 jwtUser);
@@ -67,16 +68,16 @@ class TransactionServiceCreateTransactionTest {
   void populatesCreatedAtForTransactionWithStudentPaymentDetails() {
     JwtUser jwtUser = insertOwner();
     UUID studentId = UUID.randomUUID();
-    LocalDate paidUntil = LocalDate.of(2026, 11, 8);
+    OffsetDateTime paidUntilInstant = OffsetDateTime.of(2026, 11, 8, 0, 0, 0, 0, ZoneOffset.UTC);
 
     TransactionResponse response =
         transactionService()
             .createTransaction(
                 new CreateTransactionRequest(
                     new BigDecimal("200.00"),
-                    LocalDate.of(2026, 10, 8),
+                    OffsetDateTime.of(2026, 10, 8, 0, 0, 0, 0, ZoneOffset.UTC),
                     TransactionType.INCOME,
-                    new CreateStudentPaymentDetailsRequest(studentId, paidUntil, null)),
+                    new CreateStudentPaymentDetailsRequest(studentId, paidUntilInstant, null)),
                 jwtUser);
 
     assertThat(response.getCreatedAt()).isNotNull();
@@ -86,7 +87,7 @@ class TransactionServiceCreateTransactionTest {
         (StudentPaymentDetailsResponse) response.getPaymentDetails();
     assertThat(details).isNotNull();
     assertThat(details.getStudentId()).isEqualTo(studentId);
-    assertThat(details.getPaidUntil()).isEqualTo(paidUntil);
+    assertThat(details.getPaidUntil()).isEqualTo(paidUntilInstant);
   }
 
   private TransactionService transactionService() {

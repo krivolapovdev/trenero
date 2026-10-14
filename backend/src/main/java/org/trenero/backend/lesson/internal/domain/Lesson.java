@@ -7,7 +7,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -39,7 +38,7 @@ public class Lesson {
   private UUID groupId;
 
   @Column(name = "date", nullable = false)
-  private LocalDate date;
+  private OffsetDateTime date;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)

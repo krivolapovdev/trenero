@@ -1,6 +1,6 @@
 package org.trenero.backend.lesson.internal.service
 
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 import org.mockito.Mockito.mock
 import org.trenero.backend.common.domain.OAuth2Provider
@@ -38,7 +38,7 @@ internal fun lessonService(
 
 internal fun lessonRequest(
   groupId: UUID?,
-  date: LocalDate,
+  date: OffsetDateTime,
   vararg students: StudentVisit,
 ): CreateLessonRequest = CreateLessonRequest(groupId, date, students.toList())
 

@@ -3,13 +3,13 @@ package org.trenero.backend.group.internal.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.trenero.backend.TestDays;
 import org.trenero.backend.common.domain.TransactionType;
 import org.trenero.backend.common.domain.VisitStatus;
 import org.trenero.backend.common.domain.VisitType;
@@ -30,7 +30,7 @@ class GroupReportServiceTest {
 
   private static final OffsetDateTime CREATED_AT =
       OffsetDateTime.of(2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
-  private static final LocalDate TODAY = LocalDate.of(2026, 10, 8);
+  private static final OffsetDateTime TODAY = TestDays.day(2026, 10, 8);
 
   private static final UUID GROUP_ID = UUID.randomUUID();
   private static final UUID ANNA_ID = UUID.randomUUID();
@@ -50,11 +50,11 @@ class GroupReportServiceTest {
 
     List<LessonResponse> lessons =
         List.of(
-            lesson(UUID.randomUUID(), LocalDate.of(2026, 2, 3)),
-            lesson(firstLessonId, LocalDate.of(2026, 2, 5)),
-            lesson(secondLessonId, LocalDate.of(2026, 2, 10)),
+            lesson(UUID.randomUUID(), TestDays.day(2026, 2, 3)),
+            lesson(firstLessonId, TestDays.day(2026, 2, 5)),
+            lesson(secondLessonId, TestDays.day(2026, 2, 10)),
             // A lesson of another month must not leak into the report.
-            lesson(UUID.randomUUID(), LocalDate.of(2026, 3, 3)));
+            lesson(UUID.randomUUID(), TestDays.day(2026, 3, 3)));
 
     Map<UUID, List<VisitResponse>> visits =
         Map.of(
@@ -113,7 +113,7 @@ class GroupReportServiceTest {
             2026,
             2,
             List.of(student(IVAN_ID, "ivan petrov"), student(ANNA_ID, "Anna Smirnova")),
-            List.of(lesson(UUID.randomUUID(), LocalDate.of(2026, 2, 3))),
+            List.of(lesson(UUID.randomUUID(), TestDays.day(2026, 2, 3))),
             Map.of(),
             Map.of(),
             TODAY);
@@ -136,7 +136,7 @@ class GroupReportServiceTest {
 
   @Test
   void marksPaidOnlyWhenTheSubscriptionCoversTheReportedMonth() {
-    List<LessonResponse> lessons = List.of(lesson(UUID.randomUUID(), LocalDate.of(2026, 2, 3)));
+    List<LessonResponse> lessons = List.of(lesson(UUID.randomUUID(), TestDays.day(2026, 2, 3)));
 
     // Past month: the last day of the month is the reference date.
     assertThat(
@@ -176,11 +176,11 @@ class GroupReportServiceTest {
   private static Map<UUID, List<TransactionResponse>> payments() {
     return Map.of(
         EXPIRES_IN_DECEMBER_ID,
-        List.of(payment(EXPIRES_IN_DECEMBER_ID, LocalDate.of(2026, 12, 31))),
+        List.of(payment(EXPIRES_IN_DECEMBER_ID, TestDays.day(2026, 12, 31))),
         EXPIRES_IN_OCTOBER_ID,
-        List.of(payment(EXPIRES_IN_OCTOBER_ID, LocalDate.of(2026, 10, 1))),
+        List.of(payment(EXPIRES_IN_OCTOBER_ID, TestDays.day(2026, 10, 1))),
         PAID_THROUGH_OCTOBER_ID,
-        List.of(payment(PAID_THROUGH_OCTOBER_ID, LocalDate.of(2026, 10, 31))));
+        List.of(payment(PAID_THROUGH_OCTOBER_ID, TestDays.day(2026, 10, 31))));
   }
 
   private static GroupResponse group() {
@@ -191,7 +191,7 @@ class GroupReportServiceTest {
     return new StudentResponse(studentId, fullName, null, null, null, CREATED_AT, false);
   }
 
-  private static LessonResponse lesson(UUID lessonId, LocalDate date) {
+  private static LessonResponse lesson(UUID lessonId, OffsetDateTime date) {
     return new LessonResponse(lessonId, date, CREATED_AT, GROUP_ID);
   }
 
@@ -200,11 +200,11 @@ class GroupReportServiceTest {
         UUID.randomUUID(), status, VisitType.REGULAR, lessonId, studentId, CREATED_AT);
   }
 
-  private static TransactionResponse payment(UUID studentId, LocalDate paidUntil) {
+  private static TransactionResponse payment(UUID studentId, OffsetDateTime paidUntil) {
     return new TransactionResponse(
         UUID.randomUUID(),
         new BigDecimal("3000.00"),
-        LocalDate.of(2026, 1, 1),
+        TestDays.day(2026, 1, 1),
         TransactionType.INCOME,
         CREATED_AT,
         new StudentPaymentDetailsResponse(studentId, paidUntil, null));

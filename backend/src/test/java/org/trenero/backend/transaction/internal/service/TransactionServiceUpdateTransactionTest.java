@@ -4,7 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -32,8 +33,10 @@ import org.trenero.backend.user.internal.repository.UserRepository;
 @Import(TestcontainersConfig.class)
 class TransactionServiceUpdateTransactionTest {
 
-  private static final LocalDate PAYMENT_DATE = LocalDate.of(2026, 10, 8);
-  private static final LocalDate INITIAL_PAID_UNTIL = LocalDate.of(2026, 11, 8);
+  private static final OffsetDateTime PAYMENT_DATE =
+      OffsetDateTime.of(2026, 10, 8, 0, 0, 0, 0, ZoneOffset.UTC);
+  private static final OffsetDateTime INITIAL_PAID_UNTIL =
+      OffsetDateTime.of(2026, 11, 8, 0, 0, 0, 0, ZoneOffset.UTC);
 
   @Autowired private TransactionRepository transactionRepository;
   @Autowired private StudentPaymentRepository studentPaymentRepository;
@@ -43,7 +46,7 @@ class TransactionServiceUpdateTransactionTest {
   void updatesPaidUntilOfAStudentPayment() {
     JwtUser jwtUser = insertOwner();
     TransactionResponse created = createStudentPayment(jwtUser);
-    LocalDate newPaidUntil = LocalDate.of(2026, 12, 8);
+    OffsetDateTime newPaidUntil = OffsetDateTime.of(2026, 12, 8, 0, 0, 0, 0, ZoneOffset.UTC);
 
     TransactionResponse response =
         transactionService()

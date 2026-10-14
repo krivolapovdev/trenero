@@ -2,7 +2,9 @@ package org.trenero.backend.group.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -125,8 +127,8 @@ public class GroupService implements GroupSpi {
   @Transactional(readOnly = true)
   public @NonNull List<LessonResponse> getGroupLessons(
       @NonNull UUID groupId,
-      @NonNull LocalDate from,
-      @NonNull LocalDate to,
+      @NonNull OffsetDateTime from,
+      @NonNull OffsetDateTime to,
       @NonNull JwtUser jwtUser) {
     log.info(
         "Getting lessons for group by date range: groupId={}; from={}; to={}; user={}",
@@ -154,8 +156,9 @@ public class GroupService implements GroupSpi {
 
     GroupResponse group = getGroupById(groupId, jwtUser);
 
-    LocalDate from = LocalDate.of(year, month, 1);
-    LocalDate to = from.withDayOfMonth(from.lengthOfMonth());
+    OffsetDateTime monthStart = OffsetDateTime.of(year, month, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime from = monthStart.minusDays(1);
+    OffsetDateTime to = monthStart.with(TemporalAdjusters.lastDayOfMonth()).plusDays(1);
 
     List<LessonResponse> lessons =
         lessonSpi.getLessonsByGroupIdAndDateRange(groupId, from, to, jwtUser);
@@ -176,7 +179,7 @@ public class GroupService implements GroupSpi {
 
     if (studentIds.isEmpty()) {
       return groupReportService.buildReport(
-          group, year, month, List.of(), lessons, Map.of(), Map.of(), LocalDate.now());
+          group, year, month, List.of(), lessons, Map.of(), Map.of(), OffsetDateTime.now());
     }
 
     List<UUID> distinctStudentIds = List.copyOf(studentIds);
@@ -199,7 +202,7 @@ public class GroupService implements GroupSpi {
         lessons,
         visitsByStudentId,
         paymentsByStudentId,
-        LocalDate.now());
+        OffsetDateTime.now());
   }
 
   private static void validateReportPeriod(int year, int month) {

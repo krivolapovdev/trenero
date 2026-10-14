@@ -1,7 +1,6 @@
 package org.trenero.backend.lesson.internal.service
 
 import jakarta.persistence.EntityNotFoundException
-import java.time.LocalDate
 import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
@@ -12,6 +11,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import org.trenero.backend.TestDays
 import org.trenero.backend.TestcontainersConfig
 import org.trenero.backend.common.domain.VisitStatus
 import org.trenero.backend.common.domain.VisitType
@@ -54,7 +54,7 @@ class LessonServiceWriteTransactionTest {
   @MockitoBean private lateinit var studentSpi: StudentSpi
 
   private val studentId = UUID.randomUUID()
-  private val date = LocalDate.of(2026, 10, 8)
+  private val date = TestDays.day(2026, 10, 8)
 
   @Test
   fun removesTheLessonAndItsAttendance() {

@@ -3,13 +3,13 @@ package org.trenero.backend.student.internal.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.trenero.backend.TestDays;
 import org.trenero.backend.common.domain.StudentStatus;
 import org.trenero.backend.common.domain.TransactionType;
 import org.trenero.backend.common.domain.VisitStatus;
@@ -47,8 +47,8 @@ class StudentStatusServiceGetStudentStatusesTest {
             visit(INDIVIDUAL_LESSON_ID, VisitStatus.PRESENT, VisitType.REGULAR));
     List<LessonResponse> lessons =
         List.of(
-            lesson(GROUP_LESSON_ID, GROUP_ID, LocalDate.of(2026, 9, 1), CREATED_AT),
-            lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 10, 8), CREATED_AT));
+            lesson(GROUP_LESSON_ID, GROUP_ID, TestDays.day(2026, 9, 1), CREATED_AT),
+            lesson(INDIVIDUAL_LESSON_ID, null, TestDays.day(2026, 10, 8), CREATED_AT));
 
     Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons, false);
 
@@ -63,8 +63,8 @@ class StudentStatusServiceGetStudentStatusesTest {
             visit(GROUP_LESSON_ID, VisitStatus.ABSENT, VisitType.REGULAR));
     List<LessonResponse> lessons =
         List.of(
-            lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 9, 1), CREATED_AT),
-            lesson(GROUP_LESSON_ID, GROUP_ID, LocalDate.of(2026, 10, 8), CREATED_AT));
+            lesson(INDIVIDUAL_LESSON_ID, null, TestDays.day(2026, 9, 1), CREATED_AT),
+            lesson(GROUP_LESSON_ID, GROUP_ID, TestDays.day(2026, 10, 8), CREATED_AT));
 
     Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons, false);
 
@@ -73,7 +73,7 @@ class StudentStatusServiceGetStudentStatusesTest {
 
   @Test
   void prefersTheLessonCreatedLastWhenSeveralLessonsShareTheLastDay() {
-    LocalDate day = LocalDate.of(2026, 10, 8);
+    OffsetDateTime day = TestDays.day(2026, 10, 8);
     List<VisitResponse> visits =
         List.of(
             visit(GROUP_LESSON_ID, VisitStatus.ABSENT, VisitType.REGULAR),
@@ -93,7 +93,7 @@ class StudentStatusServiceGetStudentStatusesTest {
     List<VisitResponse> visits =
         List.of(visit(INDIVIDUAL_LESSON_ID, VisitStatus.PRESENT, VisitType.REGULAR));
     List<LessonResponse> lessons =
-        List.of(lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 10, 8), CREATED_AT));
+        List.of(lesson(INDIVIDUAL_LESSON_ID, null, TestDays.day(2026, 10, 8), CREATED_AT));
 
     Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons, false);
 
@@ -110,7 +110,7 @@ class StudentStatusServiceGetStudentStatusesTest {
 
   @Test
   void marksPaidWhenTheSubscriptionCoversTheLastLessonDay() {
-    LocalDate lastLessonDay = LocalDate.of(2026, 10, 8);
+    OffsetDateTime lastLessonDay = TestDays.day(2026, 10, 8);
     List<VisitResponse> visits =
         List.of(visit(INDIVIDUAL_LESSON_ID, VisitStatus.PRESENT, VisitType.REGULAR));
     List<LessonResponse> lessons =
@@ -124,7 +124,7 @@ class StudentStatusServiceGetStudentStatusesTest {
 
   @Test
   void marksUnpaidWhenTheSubscriptionEndsBeforeTheLastLessonDay() {
-    LocalDate lastLessonDay = LocalDate.of(2026, 10, 8);
+    OffsetDateTime lastLessonDay = TestDays.day(2026, 10, 8);
     List<VisitResponse> visits =
         List.of(visit(INDIVIDUAL_LESSON_ID, VisitStatus.PRESENT, VisitType.REGULAR));
     List<LessonResponse> lessons =
@@ -139,7 +139,7 @@ class StudentStatusServiceGetStudentStatusesTest {
 
   @Test
   void marksFreeInsteadOfPaidForAStudentWhoStudiesForFree() {
-    LocalDate lastLessonDay = LocalDate.of(2026, 10, 8);
+    OffsetDateTime lastLessonDay = TestDays.day(2026, 10, 8);
     List<VisitResponse> visits =
         List.of(visit(INDIVIDUAL_LESSON_ID, VisitStatus.PRESENT, VisitType.REGULAR));
     List<LessonResponse> lessons =
@@ -158,7 +158,7 @@ class StudentStatusServiceGetStudentStatusesTest {
     List<VisitResponse> visits =
         List.of(visit(INDIVIDUAL_LESSON_ID, VisitStatus.PRESENT, VisitType.REGULAR));
     List<LessonResponse> lessons =
-        List.of(lesson(INDIVIDUAL_LESSON_ID, null, LocalDate.of(2026, 10, 8), CREATED_AT));
+        List.of(lesson(INDIVIDUAL_LESSON_ID, null, TestDays.day(2026, 10, 8), CREATED_AT));
 
     Set<StudentStatus> statuses = service.getStudentStatuses(visits, List.of(), lessons, true);
 
@@ -176,8 +176,8 @@ class StudentStatusServiceGetStudentStatusesTest {
 
   @Test
   void readsTheVisitBadgeOnlyFromTheGivenLessonsWhileThePaymentBadgeSeesEveryLesson() {
-    LocalDate groupLessonDay = LocalDate.of(2026, 9, 1);
-    LocalDate individualLessonDay = LocalDate.of(2026, 10, 8);
+    OffsetDateTime groupLessonDay = TestDays.day(2026, 9, 1);
+    OffsetDateTime individualLessonDay = TestDays.day(2026, 10, 8);
     List<VisitResponse> visits =
         List.of(
             visit(GROUP_LESSON_ID, VisitStatus.ABSENT, VisitType.REGULAR),
@@ -191,7 +191,7 @@ class StudentStatusServiceGetStudentStatusesTest {
 
     Set<StudentStatus> statuses =
         service.getStudentStatuses(
-            visits, List.of(payment(LocalDate.of(2026, 9, 15))), everyLesson, false, groupLessons);
+            visits, List.of(payment(TestDays.day(2026, 9, 15))), everyLesson, false, groupLessons);
 
     assertThat(statuses)
         .contains(StudentStatus.MISSING, StudentStatus.UNPAID)
@@ -203,11 +203,11 @@ class StudentStatusServiceGetStudentStatusesTest {
   }
 
   private static LessonResponse lesson(
-      UUID lessonId, UUID groupId, LocalDate date, OffsetDateTime createdAt) {
+      UUID lessonId, UUID groupId, OffsetDateTime date, OffsetDateTime createdAt) {
     return new LessonResponse(lessonId, date, createdAt, groupId);
   }
 
-  private static TransactionResponse payment(LocalDate paidUntil) {
+  private static TransactionResponse payment(OffsetDateTime paidUntil) {
     return new TransactionResponse(
         UUID.randomUUID(),
         BigDecimal.TEN,

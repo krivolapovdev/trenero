@@ -1,10 +1,8 @@
 package org.trenero.backend.group.internal.controller
 
 import jakarta.validation.Valid
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
-import org.springframework.format.annotation.DateTimeFormat
-import org.springframework.format.annotation.DateTimeFormat.ISO
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -47,8 +45,8 @@ class GroupController(private val groupService: GroupService) {
   @PreAuthorize("isAuthenticated()")
   fun getGroupLessons(
     @PathVariable groupId: UUID,
-    @RequestParam @DateTimeFormat(iso = ISO.DATE_TIME) from: LocalDate,
-    @RequestParam @DateTimeFormat(iso = ISO.DATE_TIME) to: LocalDate,
+    @RequestParam from: OffsetDateTime,
+    @RequestParam to: OffsetDateTime,
     @AuthenticationPrincipal jwtUser: JwtUser,
   ): List<LessonResponse> = groupService.getGroupLessons(groupId, from, to, jwtUser)
 

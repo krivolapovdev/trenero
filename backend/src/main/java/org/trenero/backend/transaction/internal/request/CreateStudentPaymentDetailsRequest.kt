@@ -3,7 +3,7 @@ package org.trenero.backend.transaction.internal.request
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import jakarta.validation.constraints.NotNull
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @JsonTypeInfo(
@@ -18,6 +18,6 @@ sealed interface CreatePaymentDetailsRequest
 
 data class CreateStudentPaymentDetailsRequest(
   @field:NotNull val studentId: UUID,
-  @field:NotNull val paidUntil: LocalDate,
-  val paidFrom: LocalDate? = null,
+  @field:NotNull val paidUntil: OffsetDateTime,
+  val paidFrom: OffsetDateTime? = null,
 ) : CreatePaymentDetailsRequest

@@ -1,15 +1,15 @@
 package org.trenero.backend.transaction.external.spi
 
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.transaction.external.response.TransactionResponse
 
 interface TransactionSpi {
   fun getTransactionsByDateRange(
-    startDate: LocalDate,
-    endDate: LocalDate,
+    startDate: OffsetDateTime,
+    endDate: OffsetDateTime,
     jwtUser: JwtUser,
   ): List<TransactionResponse>
 
@@ -26,8 +26,8 @@ interface TransactionSpi {
   fun createStudentPayment(
     studentId: UUID,
     amount: BigDecimal,
-    date: LocalDate,
-    paidUntil: LocalDate,
+    date: OffsetDateTime,
+    paidUntil: OffsetDateTime,
     jwtUser: JwtUser,
   ): TransactionResponse
 

@@ -3,7 +3,7 @@ package org.trenero.backend.transaction.internal.service;
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -74,7 +74,9 @@ public class TransactionService implements TransactionSpi {
   @Override
   @Transactional(readOnly = true)
   public @NonNull List<TransactionResponse> getTransactionsByDateRange(
-      @NonNull LocalDate startDate, @NonNull LocalDate endDate, @NonNull JwtUser jwtUser) {
+      @NonNull OffsetDateTime startDate,
+      @NonNull OffsetDateTime endDate,
+      @NonNull JwtUser jwtUser) {
     log.info(
         "Getting transactions by date range: user={}; startDate={}; endDate={}",
         jwtUser,
@@ -156,8 +158,8 @@ public class TransactionService implements TransactionSpi {
   public @NonNull TransactionResponse createStudentPayment(
       @NonNull UUID studentId,
       @NonNull BigDecimal amount,
-      @NonNull LocalDate date,
-      @NonNull LocalDate paidUntil,
+      @NonNull OffsetDateTime date,
+      @NonNull OffsetDateTime paidUntil,
       @NonNull JwtUser jwtUser) {
     log.info(
         "Saving new student payment to database: studentId={}; user={}", studentId, jwtUser.id());
@@ -207,11 +209,11 @@ public class TransactionService implements TransactionSpi {
     // predates
     // this rule must not be rejected because of a pair that is already inconsistent.
     if (studentPayment != null && (patchesDate || patchesPaidUntil)) {
-      LocalDate date =
-          patchesDate ? LocalDate.parse(updates.get("date").toString()) : transaction.getDate();
-      LocalDate paidUntil =
+      OffsetDateTime date =
+          patchesDate ? transactionMapper.parseDate(updates.get("date")) : transaction.getDate();
+      OffsetDateTime paidUntil =
           patchesPaidUntil
-              ? LocalDate.parse(updates.get("paidUntil").toString())
+              ? transactionMapper.parseDate(updates.get("paidUntil"))
               : studentPayment.getPaidUntil();
 
       validatePaidUntil(date, paidUntil);
@@ -255,7 +257,7 @@ public class TransactionService implements TransactionSpi {
    * A student payment covers the period that ends with {@code paidUntil}, so the day it was paid
    * may never be later than the last day it covers.
    */
-  private static void validatePaidUntil(LocalDate date, LocalDate paidUntil) {
+  private static void validatePaidUntil(OffsetDateTime date, OffsetDateTime paidUntil) {
     if (paidUntil.isBefore(date)) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "paidUntil must not be before the payment date");

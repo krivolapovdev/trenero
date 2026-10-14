@@ -1,7 +1,6 @@
 package org.trenero.backend.metric.internal.service
 
 import java.math.BigDecimal
-import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.UUID
@@ -12,6 +11,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
+import org.trenero.backend.TestDays
 import org.trenero.backend.common.domain.TransactionType
 import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.metric.internal.domain.MetricScope
@@ -34,25 +34,25 @@ class MetricServiceGetPaymentStatisticsTest {
   @Test
   fun returnsAPointForEveryPeriodOfTheRange() {
     givenTransactions(
-      LocalDate.of(2026, 6, 1),
-      LocalDate.of(2026, 9, 30),
-      transaction(LocalDate.of(2026, 8, 15), "1000.00", TransactionType.INCOME),
+      TestDays.day(2026, 6, 1),
+      TestDays.day(2026, 9, 30),
+      transaction(TestDays.day(2026, 8, 15), "1000.00", TransactionType.INCOME),
     )
 
     val points =
       service.getPaymentStatistics(
         MetricScope.MONTH,
-        LocalDate.of(2026, 6, 1),
-        LocalDate.of(2026, 9, 30),
+        TestDays.day(2026, 6, 1),
+        TestDays.day(2026, 9, 30),
         jwtUser,
       )
 
     assertThat(points.map { it.date })
       .containsExactly(
-        LocalDate.of(2026, 6, 1),
-        LocalDate.of(2026, 7, 1),
-        LocalDate.of(2026, 8, 1),
-        LocalDate.of(2026, 9, 1),
+        TestDays.day(2026, 6, 1),
+        TestDays.day(2026, 7, 1),
+        TestDays.day(2026, 8, 1),
+        TestDays.day(2026, 9, 1),
       )
     assertThat(totals(points))
       .containsExactly(
@@ -66,18 +66,18 @@ class MetricServiceGetPaymentStatisticsTest {
   @Test
   fun foldsIncomeAndExpenseIntoTheProfitOfThePeriod() {
     givenTransactions(
-      LocalDate.of(2026, 8, 1),
-      LocalDate.of(2026, 8, 31),
-      transaction(LocalDate.of(2026, 8, 1), "1000.00", TransactionType.INCOME),
-      transaction(LocalDate.of(2026, 8, 2), "200.00", TransactionType.EXPENSE),
-      transaction(LocalDate.of(2026, 8, 31), "50.00", TransactionType.INCOME),
+      TestDays.day(2026, 8, 1),
+      TestDays.day(2026, 8, 31),
+      transaction(TestDays.day(2026, 8, 1), "1000.00", TransactionType.INCOME),
+      transaction(TestDays.day(2026, 8, 2), "200.00", TransactionType.EXPENSE),
+      transaction(TestDays.day(2026, 8, 31), "50.00", TransactionType.INCOME),
     )
 
     val points =
       service.getPaymentStatistics(
         MetricScope.MONTH,
-        LocalDate.of(2026, 8, 1),
-        LocalDate.of(2026, 8, 31),
+        TestDays.day(2026, 8, 1),
+        TestDays.day(2026, 8, 31),
         jwtUser,
       )
 
@@ -88,16 +88,16 @@ class MetricServiceGetPaymentStatisticsTest {
   @Test
   fun reportsALossAsANegativePoint() {
     givenTransactions(
-      LocalDate.of(2026, 8, 1),
-      LocalDate.of(2026, 8, 31),
-      transaction(LocalDate.of(2026, 8, 2), "300.00", TransactionType.EXPENSE),
+      TestDays.day(2026, 8, 1),
+      TestDays.day(2026, 8, 31),
+      transaction(TestDays.day(2026, 8, 2), "300.00", TransactionType.EXPENSE),
     )
 
     val points =
       service.getPaymentStatistics(
         MetricScope.MONTH,
-        LocalDate.of(2026, 8, 1),
-        LocalDate.of(2026, 8, 31),
+        TestDays.day(2026, 8, 1),
+        TestDays.day(2026, 8, 31),
         jwtUser,
       )
 
@@ -107,45 +107,45 @@ class MetricServiceGetPaymentStatisticsTest {
   @Test
   fun keepsTheDaysOfARangeInsideOnePeriodTogether() {
     givenTransactions(
-      LocalDate.of(2026, 10, 5),
-      LocalDate.of(2026, 10, 20),
-      transaction(LocalDate.of(2026, 10, 20), "120.00", TransactionType.INCOME),
+      TestDays.day(2026, 10, 5),
+      TestDays.day(2026, 10, 20),
+      transaction(TestDays.day(2026, 10, 20), "120.00", TransactionType.INCOME),
     )
 
     val points =
       service.getPaymentStatistics(
         MetricScope.MONTH,
-        LocalDate.of(2026, 10, 5),
-        LocalDate.of(2026, 10, 20),
+        TestDays.day(2026, 10, 5),
+        TestDays.day(2026, 10, 20),
         jwtUser,
       )
 
-    assertThat(points.map { it.date }).containsExactly(LocalDate.of(2026, 10, 1))
+    assertThat(points.map { it.date }).containsExactly(TestDays.day(2026, 10, 1))
     assertThat(totals(points)).containsExactly(BigDecimal("120.00"))
   }
 
   @Test
   fun foldsAWeekIntoItsMonday() {
     givenTransactions(
-      LocalDate.of(2026, 10, 8),
-      LocalDate.of(2026, 10, 20),
-      transaction(LocalDate.of(2026, 10, 20), "700.00", TransactionType.INCOME),
+      TestDays.day(2026, 10, 8),
+      TestDays.day(2026, 10, 20),
+      transaction(TestDays.day(2026, 10, 20), "700.00", TransactionType.INCOME),
     )
 
     val points =
       service.getPaymentStatistics(
         MetricScope.WEEK,
-        LocalDate.of(2026, 10, 8),
-        LocalDate.of(2026, 10, 20),
+        TestDays.day(2026, 10, 8),
+        TestDays.day(2026, 10, 20),
         jwtUser,
       )
 
     // 2026-10-08 is a Thursday and 2026-10-20 a Tuesday, so the weeks run from 2026-10-05.
     assertThat(points.map { it.date })
       .containsExactly(
-        LocalDate.of(2026, 10, 5),
-        LocalDate.of(2026, 10, 12),
-        LocalDate.of(2026, 10, 19),
+        TestDays.day(2026, 10, 5),
+        TestDays.day(2026, 10, 12),
+        TestDays.day(2026, 10, 19),
       )
     assertThat(totals(points))
       .containsExactly(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal("700.00"))
@@ -153,28 +153,28 @@ class MetricServiceGetPaymentStatisticsTest {
 
   @Test
   fun readsTheTransactionsOfTheCallerForTheWholeRange() {
-    givenTransactions(LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 31))
+    givenTransactions(TestDays.day(2026, 8, 1), TestDays.day(2026, 8, 31))
 
     service.getPaymentStatistics(
       MetricScope.MONTH,
-      LocalDate.of(2026, 8, 1),
-      LocalDate.of(2026, 8, 31),
+      TestDays.day(2026, 8, 1),
+      TestDays.day(2026, 8, 31),
       jwtUser,
     )
 
     Mockito.verify(transactionSpi)
-      .getTransactionsByDateRange(LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 31), jwtUser)
+      .getTransactionsByDateRange(TestDays.day(2026, 8, 1), TestDays.day(2026, 8, 31), jwtUser)
   }
 
   @Test
   fun rejectsAReversedRange() {
-    givenTransactions(LocalDate.of(2026, 8, 1), LocalDate.of(2026, 10, 1))
+    givenTransactions(TestDays.day(2026, 8, 1), TestDays.day(2026, 10, 1))
 
     val thrown = catchThrowable {
       service.getPaymentStatistics(
         MetricScope.MONTH,
-        LocalDate.of(2026, 10, 1),
-        LocalDate.of(2026, 8, 1),
+        TestDays.day(2026, 10, 1),
+        TestDays.day(2026, 8, 1),
         jwtUser,
       )
     }
@@ -189,8 +189,8 @@ class MetricServiceGetPaymentStatisticsTest {
    */
   @Test
   fun rejectsARangeThatCoversTooManyPeriods() {
-    val start = LocalDate.of(-9999, 1, 1)
-    val end = LocalDate.of(9999, 12, 31)
+    val start = TestDays.day(-9999, 1, 1)
+    val end = TestDays.day(9999, 12, 31)
     givenTransactions(start, end)
 
     val thrown = catchThrowable {
@@ -202,8 +202,8 @@ class MetricServiceGetPaymentStatisticsTest {
 
   @Test
   fun acceptsAChartOfGenerousWidth() {
-    val start = LocalDate.of(2026, 1, 1)
-    val end = LocalDate.of(2036, 12, 31)
+    val start = TestDays.day(2026, 1, 1)
+    val end = TestDays.day(2036, 12, 31)
     givenTransactions(start, end)
 
     val points = service.getPaymentStatistics(MetricScope.MONTH, start, end, jwtUser)
@@ -219,14 +219,21 @@ class MetricServiceGetPaymentStatisticsTest {
   private fun totals(points: List<PaymentMetricResponse>) = points.map { it.total }
 
   private fun givenTransactions(
-    start: LocalDate,
-    end: LocalDate,
+    start: OffsetDateTime,
+    end: OffsetDateTime,
     vararg transactions: TransactionResponse,
   ) {
     Mockito.`when`(transactionSpi.getTransactionsByDateRange(start, end, jwtUser))
       .thenReturn(transactions.toList())
   }
 
-  private fun transaction(date: LocalDate, amount: String, type: TransactionType) =
-    TransactionResponse(UUID.randomUUID(), BigDecimal(amount), date, type, createdAt, null)
+  private fun transaction(date: OffsetDateTime, amount: String, type: TransactionType) =
+    TransactionResponse(
+      UUID.randomUUID(),
+      BigDecimal(amount),
+      date,
+      type,
+      createdAt,
+      null,
+    )
 }

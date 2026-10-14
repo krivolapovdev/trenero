@@ -2,7 +2,7 @@ package org.trenero.backend.student.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -185,7 +185,7 @@ public class StudentService implements StudentSpi {
 
   @Transactional(readOnly = true)
   public @NonNull List<VisitWithLessonResponse> getStudentVisits(
-      @NonNull UUID studentId, LocalDate from, LocalDate to, @NonNull JwtUser jwtUser) {
+      @NonNull UUID studentId, OffsetDateTime from, OffsetDateTime to, @NonNull JwtUser jwtUser) {
     log.info(
         "Getting visits for studentId={}; from={}; to={}; user={}", studentId, from, to, jwtUser);
 
@@ -202,7 +202,7 @@ public class StudentService implements StudentSpi {
         .toList();
   }
 
-  private static boolean isWithin(LocalDate date, LocalDate from, LocalDate to) {
+  private static boolean isWithin(OffsetDateTime date, OffsetDateTime from, OffsetDateTime to) {
     return (from == null || !date.isBefore(from)) && (to == null || !date.isAfter(to));
   }
 

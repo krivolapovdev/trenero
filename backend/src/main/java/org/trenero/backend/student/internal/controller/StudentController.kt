@@ -1,9 +1,8 @@
 package org.trenero.backend.student.internal.controller
 
 import jakarta.validation.Valid
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
-import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -39,12 +38,8 @@ class StudentController(private val studentService: StudentService) {
   @PreAuthorize("isAuthenticated()")
   fun getStudentVisits(
     @PathVariable studentId: UUID,
-    @RequestParam(required = false)
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    from: LocalDate?,
-    @RequestParam(required = false)
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    to: LocalDate?,
+    @RequestParam(required = false) from: OffsetDateTime?,
+    @RequestParam(required = false) to: OffsetDateTime?,
     @AuthenticationPrincipal jwtUser: JwtUser,
   ): List<VisitWithLessonResponse> = studentService.getStudentVisits(studentId, from, to, jwtUser)
 

@@ -1,7 +1,6 @@
 package org.trenero.backend.metric.internal.controller
 
-import java.time.LocalDate
-import org.springframework.format.annotation.DateTimeFormat
+import java.time.OffsetDateTime
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,8 +20,8 @@ class MetricController(private val metricService: MetricService) {
   @PreAuthorize("isAuthenticated()")
   fun getPaymentStatistics(
     @RequestParam(defaultValue = "MONTH") scope: MetricScope,
-    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) startDate: LocalDate,
-    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) endDate: LocalDate,
+    @RequestParam startDate: OffsetDateTime,
+    @RequestParam endDate: OffsetDateTime,
     @AuthenticationPrincipal jwtUser: JwtUser,
   ): List<PaymentMetricResponse> =
     metricService.getPaymentStatistics(scope, startDate, endDate, jwtUser)

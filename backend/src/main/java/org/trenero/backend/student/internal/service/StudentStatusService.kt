@@ -1,6 +1,6 @@
 package org.trenero.backend.student.internal.service
 
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.EnumSet
 import org.springframework.stereotype.Service
 import org.trenero.backend.common.domain.StudentStatus
@@ -74,7 +74,7 @@ class StudentStatusService {
     val lastLesson =
       lessons.maxWithOrNull(compareBy<LessonResponse> { it.date }.thenBy { it.createdAt })
 
-    val referenceDate = lastLesson?.date ?: LocalDate.now()
+    val referenceDate = lastLesson?.date ?: OffsetDateTime.now()
 
     val maxPaidUntil =
       payments

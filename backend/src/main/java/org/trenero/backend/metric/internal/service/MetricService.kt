@@ -1,7 +1,7 @@
 package org.trenero.backend.metric.internal.service
 
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
 import org.springframework.http.HttpStatus
@@ -21,8 +21,8 @@ class MetricService(@Lazy private val transactionSpi: TransactionSpi) {
   @Transactional(readOnly = true)
   fun getPaymentStatistics(
     scope: MetricScope,
-    startDate: LocalDate,
-    endDate: LocalDate,
+    startDate: OffsetDateTime,
+    endDate: OffsetDateTime,
     jwtUser: JwtUser,
   ): List<PaymentMetricResponse> {
     log.info(

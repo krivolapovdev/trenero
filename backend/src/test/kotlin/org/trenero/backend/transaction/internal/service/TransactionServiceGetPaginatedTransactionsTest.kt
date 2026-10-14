@@ -1,7 +1,7 @@
 package org.trenero.backend.transaction.internal.service
 
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
@@ -11,6 +11,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
+import org.trenero.backend.TestDays
 import org.trenero.backend.TestcontainersConfig
 import org.trenero.backend.common.domain.TransactionType
 import org.trenero.backend.common.security.JwtUser
@@ -34,17 +35,17 @@ class TransactionServiceGetPaginatedTransactionsTest {
   @Test
   fun returnsTheTransactionsOfTheOwnerNewestFirst() {
     val owner = userRepository.insertOwner()
-    createTransaction(owner, LocalDate.of(2026, 9, 1))
-    createTransaction(owner, LocalDate.of(2026, 10, 1))
-    createTransaction(owner, LocalDate.of(2026, 8, 1))
+    createTransaction(owner, TestDays.day(2026, 9, 1))
+    createTransaction(owner, TestDays.day(2026, 10, 1))
+    createTransaction(owner, TestDays.day(2026, 8, 1))
 
     val response = service().getPaginatedTransactions(1, 20, owner)
 
     assertThat(response.content.map { it.date })
       .containsExactly(
-        LocalDate.of(2026, 10, 1),
-        LocalDate.of(2026, 9, 1),
-        LocalDate.of(2026, 8, 1),
+        TestDays.day(2026, 10, 1),
+        TestDays.day(2026, 9, 1),
+        TestDays.day(2026, 8, 1),
       )
     assertThat(response.totalElements).isEqualTo(3)
   }
@@ -53,24 +54,24 @@ class TransactionServiceGetPaginatedTransactionsTest {
   fun hidesTheTransactionsOfAnotherOwner() {
     val owner = userRepository.insertOwner()
     val stranger = userRepository.insertOwner()
-    createTransaction(owner, LocalDate.of(2026, 10, 1))
-    createTransaction(stranger, LocalDate.of(2026, 10, 2))
+    createTransaction(owner, TestDays.day(2026, 10, 1))
+    createTransaction(stranger, TestDays.day(2026, 10, 2))
 
     val response = service().getPaginatedTransactions(1, 20, owner)
 
-    assertThat(response.content.map { it.date }).containsExactly(LocalDate.of(2026, 10, 1))
+    assertThat(response.content.map { it.date }).containsExactly(TestDays.day(2026, 10, 1))
   }
 
   @Test
   fun appliesTheRequestedPageWindow() {
     val owner = userRepository.insertOwner()
-    createTransaction(owner, LocalDate.of(2026, 8, 1))
-    createTransaction(owner, LocalDate.of(2026, 9, 1))
-    createTransaction(owner, LocalDate.of(2026, 10, 1))
+    createTransaction(owner, TestDays.day(2026, 8, 1))
+    createTransaction(owner, TestDays.day(2026, 9, 1))
+    createTransaction(owner, TestDays.day(2026, 10, 1))
 
     val secondPage = service().getPaginatedTransactions(2, 1, owner)
 
-    assertThat(secondPage.content.map { it.date }).containsExactly(LocalDate.of(2026, 9, 1))
+    assertThat(secondPage.content.map { it.date }).containsExactly(TestDays.day(2026, 9, 1))
     assertThat(secondPage.totalElements).isEqualTo(3)
   }
 
@@ -80,7 +81,7 @@ class TransactionServiceGetPaginatedTransactionsTest {
   @Test
   fun clampsATooSmallPageIndex() {
     val owner = userRepository.insertOwner()
-    createTransaction(owner, LocalDate.of(2026, 10, 1))
+    createTransaction(owner, TestDays.day(2026, 10, 1))
 
     assertThat(service().getPaginatedTransactions(0, 20, owner).content).hasSize(1)
   }
@@ -102,7 +103,7 @@ class TransactionServiceGetPaginatedTransactionsTest {
   @Test
   fun keepsThePaymentDetailsOfAStudentPayment() {
     val owner = userRepository.insertOwner()
-    createTransaction(owner, LocalDate.of(2026, 10, 1))
+    createTransaction(owner, TestDays.day(2026, 10, 1))
 
     val response = service().getPaginatedTransactions(1, 20, owner)
 
@@ -112,7 +113,7 @@ class TransactionServiceGetPaginatedTransactionsTest {
 
   private fun service() = transactionService(transactionRepository, studentPaymentRepository)
 
-  private fun createTransaction(owner: JwtUser, date: LocalDate) {
+  private fun createTransaction(owner: JwtUser, date: OffsetDateTime) {
     service()
       .createTransaction(
         CreateTransactionRequest(

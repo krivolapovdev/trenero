@@ -1,6 +1,6 @@
 package org.trenero.backend.lesson.external.spi
 
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 import org.trenero.backend.common.security.JwtUser
 import org.trenero.backend.lesson.external.response.LessonResponse
@@ -16,8 +16,8 @@ interface LessonSpi {
 
   fun getLessonsByGroupIdAndDateRange(
     groupId: UUID,
-    from: LocalDate,
-    to: LocalDate,
+    from: OffsetDateTime,
+    to: OffsetDateTime,
     jwtUser: JwtUser,
   ): List<LessonResponse>
 }

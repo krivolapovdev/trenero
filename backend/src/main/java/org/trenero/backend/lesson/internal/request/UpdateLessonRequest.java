@@ -1,7 +1,7 @@
 package org.trenero.backend.lesson.internal.request;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import org.trenero.backend.common.domain.StudentVisit;
 
-public record UpdateLessonRequest(LocalDate date, List<StudentVisit> students) {}
+public record UpdateLessonRequest(OffsetDateTime date, List<StudentVisit> students) {}

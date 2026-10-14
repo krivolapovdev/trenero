@@ -11,7 +11,6 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -59,7 +58,7 @@ public class Transaction {
 
   @Column(name = "date", nullable = false)
   @NotNull
-  private LocalDate date;
+  private OffsetDateTime date;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)

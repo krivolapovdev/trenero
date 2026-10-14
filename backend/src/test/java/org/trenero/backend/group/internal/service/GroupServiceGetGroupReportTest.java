@@ -7,7 +7,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -15,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.trenero.backend.TestDays;
 import org.trenero.backend.common.domain.VisitStatus;
 import org.trenero.backend.common.domain.VisitType;
 import org.trenero.backend.common.security.JwtUser;
@@ -52,8 +52,10 @@ class GroupServiceGetGroupReportTest {
   private static final UUID CURRENT_STUDENT_ID = UUID.randomUUID();
   private static final UUID LEFT_STUDENT_ID = UUID.randomUUID();
 
-  private static final LocalDate FEBRUARY_FIRST = LocalDate.of(2026, 2, 1);
-  private static final LocalDate FEBRUARY_LAST = LocalDate.of(2026, 2, 28);
+  // The report reads the month widened by a day on both ends, so that a lesson of the first day of
+  // the month that carries an offset ahead of UTC is not clipped by the range.
+  private static final OffsetDateTime FEBRUARY_RANGE_START = TestDays.day(2026, 1, 31);
+  private static final OffsetDateTime FEBRUARY_RANGE_END = TestDays.day(2026, 3, 1);
 
   private final JwtUser jwtUser = new JwtUser(UUID.randomUUID(), "owner@example.com");
   private final GroupRepository groupRepository = mock(GroupRepository.class);
@@ -74,8 +76,8 @@ class GroupServiceGetGroupReportTest {
     when(groupStudentService.getStudentsByGroupId(GROUP_ID, jwtUser))
         .thenReturn(List.of(groupStudentLink(CURRENT_STUDENT_ID)));
     when(lessonSpi.getLessonsByGroupIdAndDateRange(
-            GROUP_ID, FEBRUARY_FIRST, FEBRUARY_LAST, jwtUser))
-        .thenReturn(List.of(lesson(LESSON_ID, LocalDate.of(2026, 2, 5))));
+            GROUP_ID, FEBRUARY_RANGE_START, FEBRUARY_RANGE_END, jwtUser))
+        .thenReturn(List.of(lesson(LESSON_ID, TestDays.day(2026, 2, 5))));
     // The left student has a visit of the reported month.
     when(visitSpi.getVisitsByLessonIds(List.of(LESSON_ID), jwtUser))
         .thenReturn(List.of(visit(LESSON_ID, LEFT_STUDENT_ID, VisitStatus.PRESENT)));
@@ -120,7 +122,7 @@ class GroupServiceGetGroupReportTest {
     when(groupMapper.toResponse(group)).thenReturn(groupResponse());
     when(groupStudentService.getStudentsByGroupId(GROUP_ID, jwtUser)).thenReturn(List.of());
     when(lessonSpi.getLessonsByGroupIdAndDateRange(
-            GROUP_ID, FEBRUARY_FIRST, FEBRUARY_LAST, jwtUser))
+            GROUP_ID, FEBRUARY_RANGE_START, FEBRUARY_RANGE_END, jwtUser))
         .thenReturn(List.of());
 
     GroupReportResponse report = groupService().getGroupReport(GROUP_ID, 2026, 2, jwtUser);
@@ -157,7 +159,7 @@ class GroupServiceGetGroupReportTest {
     return new StudentResponse(studentId, fullName, null, null, null, CREATED_AT, false);
   }
 
-  private static LessonResponse lesson(UUID lessonId, LocalDate date) {
+  private static LessonResponse lesson(UUID lessonId, OffsetDateTime date) {
     return new LessonResponse(lessonId, date, CREATED_AT, GROUP_ID);
   }
 

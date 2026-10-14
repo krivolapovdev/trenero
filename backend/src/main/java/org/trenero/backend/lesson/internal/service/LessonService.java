@@ -2,7 +2,7 @@ package org.trenero.backend.lesson.internal.service;
 
 import static org.trenero.backend.common.exception.ExceptionUtils.entityNotFoundSupplier;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -170,8 +170,8 @@ public class LessonService implements LessonSpi {
   @Override
   public @NonNull List<LessonResponse> getLessonsByGroupIdAndDateRange(
       @NonNull UUID groupId,
-      @NonNull LocalDate from,
-      @NonNull LocalDate to,
+      @NonNull OffsetDateTime from,
+      @NonNull OffsetDateTime to,
       @NonNull JwtUser jwtUser) {
     log.info(
         "Getting lessons by group id and date range: groupId={}; from={}; to={}; user={}",

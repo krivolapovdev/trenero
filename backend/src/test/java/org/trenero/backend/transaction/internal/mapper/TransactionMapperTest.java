@@ -3,7 +3,6 @@ package org.trenero.backend.transaction.internal.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
@@ -15,6 +14,7 @@ import org.trenero.backend.transaction.external.response.StudentPaymentDetailsRe
 import org.trenero.backend.transaction.external.response.TransactionResponse;
 import org.trenero.backend.transaction.internal.domain.StudentPayment;
 import org.trenero.backend.transaction.internal.domain.Transaction;
+import org.trenero.backend.transaction.internal.request.CreateTransactionRequest;
 
 /**
  * Unit tests for the student name enrichment of {@link TransactionMapper#toResponse(Transaction,
@@ -26,7 +26,10 @@ class TransactionMapperTest {
 
   private static final OffsetDateTime CREATED_AT =
       OffsetDateTime.of(2026, 10, 8, 12, 0, 0, 0, ZoneOffset.UTC);
-  private static final LocalDate PAID_UNTIL = LocalDate.of(2026, 11, 8);
+  private static final OffsetDateTime PAID_AT =
+      OffsetDateTime.of(2026, 10, 8, 0, 0, 0, 0, ZoneOffset.UTC);
+  private static final OffsetDateTime PAID_UNTIL =
+      OffsetDateTime.of(2026, 11, 8, 0, 0, 0, 0, ZoneOffset.UTC);
 
   private final TransactionMapper transactionMapper = new TransactionMapperImpl();
 
@@ -51,7 +54,7 @@ class TransactionMapperTest {
     // The enrichment must not touch the transaction itself.
     assertThat(response.getId()).isEqualTo(transactionId);
     assertThat(response.getAmount()).isEqualByComparingTo("3800.00");
-    assertThat(response.getDate()).isEqualTo(LocalDate.of(2026, 10, 8));
+    assertThat(response.getDate()).isEqualTo(PAID_AT);
     assertThat(response.getType()).isEqualTo(TransactionType.INCOME);
     assertThat(response.getCreatedAt()).isEqualTo(CREATED_AT);
   }
@@ -79,12 +82,27 @@ class TransactionMapperTest {
     assertThat(response.getPaymentDetails()).isNull();
   }
 
+  /** The offset the client sent is the region the payment belongs to, so the mapper keeps it. */
+  @Test
+  void keepsTheOffsetThePaymentWasSentWith() {
+    OffsetDateTime justAfterMidnightInMoscow =
+        OffsetDateTime.of(2026, 10, 8, 0, 30, 0, 0, ZoneOffset.ofHours(3));
+
+    Transaction transaction =
+        transactionMapper.toEntity(
+            new CreateTransactionRequest(
+                new BigDecimal("150.00"), justAfterMidnightInMoscow, TransactionType.INCOME, null),
+            UUID.randomUUID());
+
+    assertThat(transaction.getDate()).isEqualTo(justAfterMidnightInMoscow);
+  }
+
   @Test
   void updateTransactionPatchesAmountDateAndPaidUntil() {
     UUID transactionId = UUID.randomUUID();
     Transaction transaction = studentPaymentTransaction(transactionId, UUID.randomUUID());
-    LocalDate newDate = LocalDate.of(2026, 12, 1);
-    LocalDate newPaidUntil = LocalDate.of(2027, 1, 1);
+    OffsetDateTime newDate = OffsetDateTime.of(2026, 12, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime newPaidUntil = OffsetDateTime.of(2027, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
     Transaction updated =
         transactionMapper.updateTransaction(
@@ -101,13 +119,24 @@ class TransactionMapperTest {
   }
 
   @Test
+  void updateTransactionReadsAPlainDayAsMidnightUtc() {
+    UUID transactionId = UUID.randomUUID();
+    Transaction transaction = studentPaymentTransaction(transactionId, UUID.randomUUID());
+
+    Transaction updated =
+        transactionMapper.updateTransaction(transaction, Map.of("date", "2026-12-01"));
+
+    assertThat(updated.getDate())
+        .isEqualTo(OffsetDateTime.of(2026, 12, 1, 0, 0, 0, 0, ZoneOffset.UTC));
+  }
+
+  @Test
   void updateTransactionIgnoresPaidUntilWithoutStudentPayment() {
     UUID transactionId = UUID.randomUUID();
     Transaction transaction = withoutPaymentDetails(transactionId);
 
     Transaction updated =
-        transactionMapper.updateTransaction(
-            transaction, Map.of("paidUntil", LocalDate.of(2027, 1, 1).toString()));
+        transactionMapper.updateTransaction(transaction, Map.of("paidUntil", "2027-01-01"));
 
     assertThat(updated.getStudentPayment()).isNull();
   }
@@ -131,7 +160,7 @@ class TransactionMapperTest {
         .ownerId(UUID.randomUUID())
         .type(TransactionType.INCOME)
         .amount(new BigDecimal("3800.00"))
-        .date(LocalDate.of(2026, 10, 8))
+        .date(PAID_AT)
         .createdAt(CREATED_AT)
         .studentPayment(studentPayment)
         .build();
@@ -143,7 +172,7 @@ class TransactionMapperTest {
         .ownerId(UUID.randomUUID())
         .type(TransactionType.EXPENSE)
         .amount(new BigDecimal("500.00"))
-        .date(LocalDate.of(2026, 10, 8))
+        .date(PAID_AT)
         .createdAt(CREATED_AT)
         .build();
   }
