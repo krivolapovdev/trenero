@@ -11,14 +11,18 @@ import 'package:phone/features/finance/services/transaction_service.dart';
 import 'package:phone/features/finance/widgets/delete_transaction_bottom_sheet.dart';
 import 'package:phone/features/finance/widgets/edit_transaction_bottom_sheet.dart';
 import 'package:phone/features/finance/widgets/transaction_ticket_card.dart';
+import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
+import 'package:phone/features/students/services/student_service.dart';
 import 'package:phone/generated/metric_controller/metric_controller_client.dart';
 import 'package:phone/generated/models/create_transaction_request.dart';
 import 'package:phone/generated/models/metric_scope.dart';
 import 'package:phone/generated/models/page_transaction_response.dart';
 import 'package:phone/generated/models/payment_metric_response.dart';
 import 'package:phone/generated/models/student_payment_details_response.dart';
+import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';
+import 'package:phone/generated/student_controller/student_controller_client.dart';
 import 'package:phone/generated/transaction_controller/transaction_controller_client.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -86,6 +90,25 @@ class _FakeMetricClient implements MetricControllerClient {
   }) async => const [];
 }
 
+class _CountingStudentClient implements StudentControllerClient {
+  int paymentRequests = 0;
+
+  @override
+  Future<List<TransactionResponse>> getStudentPayments({
+    required String studentId,
+  }) async {
+    paymentRequests++;
+
+    return const [];
+  }
+
+  @override
+  Future<List<StudentSummaryResponse>> getStudentsSummary() async => const [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Widget _wrap(Widget child) => ProviderScope(
   child: TranslationProvider(child: MaterialApp(home: child)),
 );
@@ -102,7 +125,7 @@ Widget _wrapWithApi(
 );
 
 TextButton _editAction(WidgetTester tester) =>
-    tester.widget<TextButton>(find.widgetWithText(TextButton, t.edit));
+    tester.widget<TextButton>(find.widgetWithText(TextButton, t.update));
 
 Finder _paidUntilField() =>
     find.widgetWithText(TextField, '${t.finance.paidUntil}*');
@@ -265,7 +288,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField).first, '4200');
     await tester.pump();
-    await tester.tap(find.text(t.edit));
+    await tester.tap(find.text(t.update));
     await tester.pump();
 
     await tester.pump(const Duration(seconds: 3));
@@ -328,7 +351,7 @@ void main() {
     await tester.enterText(_paidUntilField(), '01102025');
     await tester.pump();
 
-    await tester.tap(find.text(t.edit));
+    await tester.tap(find.text(t.update));
     await tester.pump();
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
@@ -382,5 +405,65 @@ void main() {
     expect(client.deletedIds, [_transactionId]);
     expect(find.byType(TransactionPage), findsNothing);
     expect(find.byType(TransactionListView), findsOneWidget);
+  });
+
+  testWidgets('editing a student payment refreshes the student payments', (
+    tester,
+  ) async {
+    final transaction = _transaction(
+      paymentDetails: StudentPaymentDetailsResponse(
+        detailsType: 'STUDENT',
+        studentId: 'student-1',
+        studentName: 'Ivan Petrov',
+        paidUntil: DateTime(2025, 9),
+      ),
+    );
+    final client = _FakeTransactionClient(transaction: transaction);
+    final studentClient = _CountingStudentClient();
+
+    final container = ProviderContainer(
+      overrides: [
+        transactionServiceProvider.overrideWithValue(client),
+        metricServiceProvider.overrideWithValue(_FakeMetricClient()),
+        studentServiceProvider.overrideWithValue(studentClient),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    // The student page keeps the payments provider alive while it is shown, so
+    // the refresh after an edit reloads the recent transactions right away.
+    container.listen(
+      studentPaymentsControllerProvider('student-1'),
+      (_, _) {},
+      fireImmediately: true,
+    );
+    await container.read(studentPaymentsControllerProvider('student-1').future);
+
+    expect(studentClient.paymentRequests, 1);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: TranslationProvider(
+          child: MaterialApp(home: TransactionPage(transaction: transaction)),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(t.edit));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '4200');
+    await tester.pump();
+
+    await tester.tap(find.widgetWithText(TextButton, t.update));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+
+    expect(client.updateBodies, hasLength(1));
+    expect(studentClient.paymentRequests, 2);
   });
 }

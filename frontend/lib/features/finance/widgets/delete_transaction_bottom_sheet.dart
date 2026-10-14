@@ -19,7 +19,10 @@ class DeleteTransactionBottomSheet extends ConsumerWidget {
 
       final success = await ref
           .read(controller.notifier)
-          .deleteTransaction(transaction.id);
+          .deleteTransaction(
+            transaction.id,
+            studentId: transaction.paymentDetails?.studentId,
+          );
 
       if (success) return null;
 

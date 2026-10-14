@@ -38,7 +38,8 @@ class _EditTransactionBottomSheetState
   DateTime get _defaultPaidUntil =>
       DateTime(_selectedDate.year, _selectedDate.month + 1, _selectedDate.day);
 
-  DateTime get _maxPaidUntil => DateTime.now().add(const Duration(days: 365 * 3));
+  DateTime get _maxPaidUntil =>
+      DateTime.now().add(const Duration(days: 365 * 3));
 
   bool get _hasChanges =>
       _amountController.text != _initialAmountText ||
@@ -56,7 +57,8 @@ class _EditTransactionBottomSheetState
       return initialPaidUntil != paidUntil;
     }
 
-    return DateUtils.dateOnly(paidUntil) != DateUtils.dateOnly(initialPaidUntil);
+    return DateUtils.dateOnly(paidUntil) !=
+        DateUtils.dateOnly(initialPaidUntil);
   }
 
   @override
@@ -127,6 +129,7 @@ class _EditTransactionBottomSheetState
           transactionId: widget.transaction.id,
           amount: amount,
           date: _selectedDate,
+          studentId: widget.transaction.paymentDetails?.studentId,
           paidUntil: _isStudentPayment ? paidUntil : null,
         );
 

@@ -13,7 +13,10 @@ class DeleteTransactionController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
-  Future<bool> deleteTransaction(String transactionId) async {
+  Future<bool> deleteTransaction(
+    String transactionId, {
+    String? studentId,
+  }) async {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
@@ -21,7 +24,11 @@ class DeleteTransactionController extends AsyncNotifier<void> {
           .read(transactionRepositoryProvider)
           .deleteTransaction(transactionId);
 
-      await refreshAfterTransactionMutation(ref, action: 'deleting');
+      await refreshAfterTransactionMutation(
+        ref,
+        action: 'deleting',
+        studentId: studentId,
+      );
     });
 
     return !state.hasError;

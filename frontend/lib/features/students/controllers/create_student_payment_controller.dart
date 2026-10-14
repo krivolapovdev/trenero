@@ -1,7 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/finance/controllers/transaction_mutation_refresh.dart';
-import 'package:phone/features/students/controllers/student_list_controller.dart';
-import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/features/students/repositories/student_repository.dart';
 
 final createStudentPaymentControllerProvider =
@@ -31,13 +29,11 @@ class CreateStudentPaymentController extends AsyncNotifier<void> {
             paidUntil: paidUntil,
           );
 
-      ref.invalidate(studentPaymentsControllerProvider(studentId));
-
-      await ref
-          .read(studentListControllerProvider.notifier)
-          .getAllStudents(forceRefresh: true);
-
-      await refreshAfterTransactionMutation(ref, action: 'creating');
+      await refreshAfterTransactionMutation(
+        ref,
+        action: 'creating',
+        studentId: studentId,
+      );
     });
 
     return !state.hasError;

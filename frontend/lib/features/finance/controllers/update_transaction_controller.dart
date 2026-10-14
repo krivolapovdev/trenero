@@ -22,6 +22,7 @@ class UpdateTransactionController extends AsyncNotifier<void> {
     required String transactionId,
     required num amount,
     required DateTime date,
+    String? studentId,
     DateTime? paidUntil,
   }) async {
     TransactionResponse? updatedTransaction;
@@ -40,7 +41,11 @@ class UpdateTransactionController extends AsyncNotifier<void> {
             },
           );
 
-      await refreshAfterTransactionMutation(ref, action: 'updating');
+      await refreshAfterTransactionMutation(
+        ref,
+        action: 'updating',
+        studentId: studentId,
+      );
     });
 
     return state.hasError ? null : updatedTransaction;
