@@ -168,6 +168,18 @@ class GroupServiceUpdateGroupTest {
     assertThat(groupRepository.findById(foreignGroupId).orElseThrow().name).isEqualTo("Beginners")
   }
 
+  @Test
+  fun rejectsANameExceeding255Characters() {
+    val owner = userRepository.insertOwner()
+    val groupId = createGroup(owner, "Beginners")
+
+    val thrown = catchThrowable {
+      service().updateGroup(groupId, updates("name" to "a".repeat(256)), owner)
+    }
+
+    assertBadRequest(thrown)
+  }
+
   private fun service(studentSpi: StudentSpi = allStudentsExist()) =
     groupService(groupRepository, groupStudentRepository, studentSpi)
 

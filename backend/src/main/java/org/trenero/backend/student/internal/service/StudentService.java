@@ -251,7 +251,12 @@ public class StudentService implements StudentSpi {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "fullName must not be blank");
     }
 
-    return text.trim();
+    String trimmed = text.trim();
+    if (trimmed.length() > 255) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "fullName must not exceed 255 characters");
+    }
+    return trimmed;
   }
 
   private void requireFreeFullName(String fullName, UUID studentId, JwtUser jwtUser) {

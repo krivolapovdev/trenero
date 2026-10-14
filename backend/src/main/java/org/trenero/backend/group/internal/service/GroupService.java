@@ -259,7 +259,12 @@ public class GroupService implements GroupSpi {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name must not be blank");
     }
 
-    return text.trim();
+    String trimmed = text.trim();
+    if (trimmed.length() > 255) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "name must not exceed 255 characters");
+    }
+    return trimmed;
   }
 
   /**

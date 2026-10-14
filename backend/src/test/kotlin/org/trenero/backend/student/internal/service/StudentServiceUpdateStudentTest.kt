@@ -178,6 +178,18 @@ class StudentServiceUpdateStudentTest {
     assertThat(thrown).isInstanceOf(EntityNotFoundException::class.java)
   }
 
+  @Test
+  fun rejectsANameExceeding255Characters() {
+    val owner = userRepository.insertOwner()
+    val studentId = createStudent(owner, "Ivan Petrov").id
+
+    val thrown = catchThrowable {
+      service().updateStudent(studentId, updates("fullName" to "a".repeat(256)), owner)
+    }
+
+    assertBadRequest(thrown)
+  }
+
   private fun service() = studentService(studentRepository)
 
   private fun createStudent(owner: JwtUser, fullName: String): StudentResponse =

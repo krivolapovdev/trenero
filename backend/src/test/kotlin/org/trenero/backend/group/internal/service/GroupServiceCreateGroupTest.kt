@@ -82,6 +82,16 @@ class GroupServiceCreateGroupTest {
   }
 
   @Test
+  fun rejectsANameExceeding255Characters() {
+    val owner = userRepository.insertOwner()
+
+    val thrown = catchThrowable { service().createGroup(groupRequest("a".repeat(256)), owner) }
+
+    assertBadRequest(thrown)
+    assertThat(groupRepository.findAllByOwnerId(owner.id)).isEmpty()
+  }
+
+  @Test
   fun rejectsANameThatIsAlreadyTaken() {
     val owner = userRepository.insertOwner()
     service().createGroup(groupRequest("Beginners"), owner)

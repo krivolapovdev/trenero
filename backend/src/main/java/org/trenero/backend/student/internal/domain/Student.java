@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -36,15 +37,18 @@ public class Student {
 
   @Column(name = "full_name", nullable = false)
   @NotNull
+  @Size(max = 255)
   private String fullName;
 
   @Column(name = "birthdate")
   private LocalDate birthdate;
 
-  @Column(name = "phone")
+  @Column(name = "phone", length = 15)
+  @Size(max = 15)
   private String phone;
 
-  @Column(name = "note")
+  @Column(name = "note", length = 1023)
+  @Size(max = 1023)
   private String note;
 
   /** Whether the student studies for free and is therefore never charged for lessons. */

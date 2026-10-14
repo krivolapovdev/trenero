@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -36,12 +37,14 @@ public class Group {
 
   @Column(name = "name", nullable = false)
   @NotNull
+  @Size(max = 255)
   private String name;
 
   @Column(name = "default_price")
   private BigDecimal defaultPrice;
 
   @Column(name = "note")
+  @Size(max = 255)
   private String note;
 
   @CreationTimestamp

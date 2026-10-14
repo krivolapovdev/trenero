@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -50,6 +51,7 @@ public class OAuth2User {
 
   @Column(name = "email", nullable = false)
   @NotNull
+  @Size(max = 255)
   private String email;
 
   @CreationTimestamp

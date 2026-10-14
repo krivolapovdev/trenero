@@ -69,6 +69,17 @@ class StudentServiceCreateStudentTest {
   }
 
   @Test
+  fun rejectsANameExceeding255Characters() {
+    val owner = userRepository.insertOwner()
+
+    val thrown = catchThrowable { service().createStudent(request("a".repeat(256)), owner) }
+
+    assertThat(thrown).isInstanceOf(ResponseStatusException::class.java)
+    assertThat((thrown as ResponseStatusException).statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+    assertThat(studentRepository.findAllByOwnerId(owner.id)).isEmpty()
+  }
+
+  @Test
   fun trimsTheNameBeforeStoringIt() {
     val owner = userRepository.insertOwner()
 
