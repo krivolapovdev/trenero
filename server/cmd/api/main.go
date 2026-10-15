@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -13,10 +12,13 @@ import (
 
 	"github.com/krivolapovdev/trenerio/internal/db"
 	"github.com/krivolapovdev/trenerio/internal/server"
+	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
 func main() {
+	logger.Init()
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = os.Getenv("SERVER_PORT")
@@ -64,29 +66,34 @@ func main() {
 
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatalf("failed to open database connection: %v", err)
+		logger.Error("failed to open database connection", "error", err)
+		os.Exit(1)
 	}
 	defer dbConn.Close()
 
 	if err := dbConn.Ping(); err != nil {
-		log.Printf("warning: unable to ping database: %v", err)
+		logger.Warn("unable to ping database", "error", err)
 	}
 
 	if err := goose.SetDialect("postgres"); err != nil {
-		log.Fatalf("failed to set goose dialect: %v", err)
+		logger.Error("failed to set goose dialect", "error", err)
+		os.Exit(1)
 	}
 
 	if err := goose.Up(dbConn, migrationsDir); err != nil {
-		log.Printf("warning: goose migrations failed: %v", err)
+		logger.Warn("goose migrations failed", "error", err)
+	} else {
+		logger.Info("database migrations applied successfully", "dir", migrationsDir)
 	}
 
 	queries := db.New(dbConn)
 	tokenProvider := security.NewTokenProvider(jwtSecret, 15*time.Minute, 14*24*time.Hour, reviewerKey)
 	srv := server.NewServer(dbConn, queries, tokenProvider, googleClientID, allowedOrigins)
 
-	log.Printf("Starting server on port %s", port)
+	logger.Info("Starting server", "port", port, "allowed_origins", allowedOrigins)
 	if err := srv.Run(":" + port); err != nil {
-		log.Fatalf("failed to start server: %v", err)
+		logger.Error("failed to start server", "error", err)
+		os.Exit(1)
 	}
 }
 

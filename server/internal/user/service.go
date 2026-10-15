@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
@@ -23,6 +24,7 @@ func NewUserService(queries *db.Queries) *UserService {
 }
 
 func (s *UserService) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (UserResponse, error) {
+	logger.InfoContext(ctx, "Get or create user from OAuth2", "provider", string(provider), "email", email)
 	u, err := s.db.GetUserByProviderAndProviderID(ctx, db.GetUserByProviderAndProviderIDParams{
 		Provider:   provider,
 		ProviderID: providerID,
@@ -38,6 +40,7 @@ func (s *UserService) GetOrCreateUserFromOAuth2(ctx context.Context, provider db
 	}
 
 	normalizedEmail := strings.ToUpper(strings.TrimSpace(email))
+	logger.InfoContext(ctx, "Creating new user", "provider", string(provider), "email", normalizedEmail)
 	created, err := s.db.CreateUser(ctx, db.CreateUserParams{
 		Provider:   provider,
 		ProviderID: providerID,
@@ -54,10 +57,12 @@ func (s *UserService) GetOrCreateUserFromOAuth2(ctx context.Context, provider db
 }
 
 func (s *UserService) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+	logger.DebugContext(ctx, "Checking whether user exists", "id", id.String())
 	return s.db.ExistsUserByID(ctx, id)
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, jwtUser security.JwtUser) error {
+	logger.InfoContext(ctx, "Deleting user", "user_id", jwtUser.ID.String())
 	exists, err := s.db.ExistsUserByID(ctx, jwtUser.ID)
 	if err != nil {
 		return err

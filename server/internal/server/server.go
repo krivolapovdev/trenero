@@ -69,7 +69,8 @@ func NewServer(
 }
 
 func (s *Server) setupRoutes(allowedOrigins []string) {
-	s.engine.Use(gin.Logger())
+	s.engine.Use(RequestIDMiddleware())
+	s.engine.Use(LoggingMiddleware())
 	s.engine.Use(RecoveryMiddleware())
 	s.engine.Use(CorsMiddleware(allowedOrigins))
 

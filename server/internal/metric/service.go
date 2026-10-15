@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 )
 
@@ -23,15 +24,21 @@ func NewMetricService(queries *db.Queries) *MetricService {
 }
 
 func (s *MetricService) GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
+	scope := strings.ToUpper(strings.TrimSpace(scopeStr))
+	if scope == "" {
+		scope = "MONTH"
+	}
+	logger.InfoContext(ctx, "Getting payment statistics",
+		"scope", scope,
+		"start_date", startDate.Format(time.RFC3339),
+		"end_date", endDate.Format(time.RFC3339),
+		"user_id", ownerID.String(),
+	)
+
 	if endDate.Before(startDate) {
 		return nil, &pkgerrors.BadRequestError{
 			Message: "endDate must not be before startDate",
 		}
-	}
-
-	scope := strings.ToUpper(strings.TrimSpace(scopeStr))
-	if scope == "" {
-		scope = "MONTH"
 	}
 
 	truncate := func(t time.Time) time.Time {

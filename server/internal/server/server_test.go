@@ -150,3 +150,70 @@ func TestRecoveryMiddleware(t *testing.T) {
 	assert.Equal(t, "Internal Server Error", pd.Title)
 	assert.Contains(t, pd.Detail, "something went completely wrong")
 }
+
+func TestRequestIDMiddleware(t *testing.T) {
+	r := gin.New()
+	r.Use(RequestIDMiddleware())
+	r.GET("/test", func(c *gin.Context) {
+		reqID, exists := c.Get("requestID")
+		assert.True(t, exists)
+		assert.NotEmpty(t, reqID)
+		c.String(http.StatusOK, "ok")
+	})
+
+	t.Run("GeneratesNewRequestID", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		respReqID := w.Header().Get("X-Request-ID")
+		assert.NotEmpty(t, respReqID)
+	})
+
+	t.Run("PreservesIncomingRequestID", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.Header.Set("X-Request-ID", "custom-trace-id-12345")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, "custom-trace-id-12345", w.Header().Get("X-Request-ID"))
+	})
+}
+
+func TestLoggingMiddleware(t *testing.T) {
+	r := gin.New()
+	r.Use(RequestIDMiddleware())
+	r.Use(LoggingMiddleware())
+	r.GET("/ok", func(c *gin.Context) {
+		c.String(http.StatusOK, "success")
+	})
+	r.GET("/client-err", func(c *gin.Context) {
+		c.String(http.StatusBadRequest, "bad input")
+	})
+	r.GET("/server-err", func(c *gin.Context) {
+		c.String(http.StatusInternalServerError, "error")
+	})
+
+	t.Run("SuccessLogging", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/ok", nil)
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("ClientErrorLogging", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/client-err", nil)
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("ServerErrorLogging", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/server-err", nil)
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+}

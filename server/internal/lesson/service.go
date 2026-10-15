@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
@@ -39,6 +40,7 @@ func (s *LessonService) withTx(ctx context.Context, fn func(qtx *db.Queries) err
 }
 
 func (s *LessonService) GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonResponse, error) {
+	logger.InfoContext(ctx, "Getting lesson by id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	l, err := s.db.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
 		ID:      lessonID,
 		OwnerID: ownerID,
@@ -57,6 +59,7 @@ func (s *LessonService) GetLessonByID(ctx context.Context, lessonID, ownerID uui
 }
 
 func (s *LessonService) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonDetailsResponse, error) {
+	logger.InfoContext(ctx, "Getting lesson details", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	lessonResp, err := s.GetLessonByID(ctx, lessonID, ownerID)
 	if err != nil {
 		return models.LessonDetailsResponse{}, err
@@ -140,6 +143,7 @@ func (s *LessonService) GetLessonDetailsByID(ctx context.Context, lessonID, owne
 }
 
 func (s *LessonService) CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error) {
+	logger.InfoContext(ctx, "Creating lesson", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
 	var createdLesson db.LessonsModuleLesson
 
 	err := s.withTx(ctx, func(qtx *db.Queries) error {
@@ -186,6 +190,7 @@ func (s *LessonService) CreateLesson(ctx context.Context, req models.CreateLesso
 }
 
 func (s *LessonService) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error) {
+	logger.InfoContext(ctx, "Updating lesson", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	var updatedLesson db.LessonsModuleLesson
 
 	err := s.withTx(ctx, func(qtx *db.Queries) error {
@@ -284,6 +289,7 @@ func (s *LessonService) UpdateLesson(ctx context.Context, lessonID, ownerID uuid
 }
 
 func (s *LessonService) DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID) error {
+	logger.InfoContext(ctx, "Deleting lesson", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	return s.withTx(ctx, func(qtx *db.Queries) error {
 		_, err := qtx.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
 			ID:      lessonID,
@@ -315,6 +321,7 @@ func (s *LessonService) DeleteLesson(ctx context.Context, lessonID, ownerID uuid
 }
 
 func (s *LessonService) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error) {
+	logger.InfoContext(ctx, "Getting lessons by group id and date range", "group_id", groupID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindLessonsByGroupIDAndDateBetween(ctx, db.FindLessonsByGroupIDAndDateBetweenParams{
 		GroupID: uuid.NullUUID{UUID: groupID, Valid: true},
 		OwnerID: ownerID,

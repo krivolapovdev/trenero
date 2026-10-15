@@ -14,6 +14,7 @@ import (
 	"github.com/krivolapovdev/trenerio/internal/db"
 	"github.com/krivolapovdev/trenerio/internal/student"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
@@ -44,6 +45,7 @@ func (s *GroupService) withTx(ctx context.Context, fn func(qtx *db.Queries) erro
 }
 
 func (s *GroupService) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.GroupSummaryResponse, error) {
+	logger.InfoContext(ctx, "Getting all groups summary", "user_id", ownerID.String())
 	groups, err := s.db.FindAllGroupsByOwnerID(ctx, ownerID)
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (s *GroupService) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUI
 }
 
 func (s *GroupService) GetGroupByID(ctx context.Context, groupID, ownerID uuid.UUID) (models.GroupResponse, error) {
+	logger.InfoContext(ctx, "Getting group by id", "group_id", groupID.String(), "user_id", ownerID.String())
 	g, err := s.db.FindGroupByIDAndOwnerID(ctx, db.FindGroupByIDAndOwnerIDParams{
 		ID:      groupID,
 		OwnerID: ownerID,
@@ -113,6 +116,7 @@ func (s *GroupService) GetGroupByID(ctx context.Context, groupID, ownerID uuid.U
 }
 
 func (s *GroupService) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]models.GroupStudentSummaryResponse, error) {
+	logger.InfoContext(ctx, "Getting students for group", "group_id", groupID.String(), "user_id", ownerID.String())
 	_, err := s.GetGroupByID(ctx, groupID, ownerID)
 	if err != nil {
 		return nil, err
@@ -275,6 +279,7 @@ func (s *GroupService) GetGroupStudents(ctx context.Context, groupID, ownerID uu
 }
 
 func (s *GroupService) GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error) {
+	logger.InfoContext(ctx, "Getting lessons for group", "group_id", groupID.String(), "user_id", ownerID.String())
 	_, err := s.GetGroupByID(ctx, groupID, ownerID)
 	if err != nil {
 		return nil, err
@@ -307,6 +312,7 @@ func (s *GroupService) GetGroupLessons(ctx context.Context, groupID, ownerID uui
 }
 
 func (s *GroupService) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (models.GroupReportResponse, error) {
+	logger.InfoContext(ctx, "Getting group report", "group_id", groupID.String(), "year", year, "month", month, "user_id", ownerID.String())
 	group, err := s.GetGroupByID(ctx, groupID, ownerID)
 	if err != nil {
 		return models.GroupReportResponse{}, err
@@ -573,6 +579,7 @@ func isPaid(payments []models.TransactionResponse, year, month int, today time.T
 }
 
 func (s *GroupService) CreateGroup(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error) {
+	logger.InfoContext(ctx, "Creating group", "name", req.Name, "user_id", ownerID.String())
 	name := strings.TrimSpace(req.Name)
 	if name == "" {
 		return models.GroupResponse{}, &pkgerrors.BadRequestError{Message: "name must not be blank"}
@@ -672,6 +679,7 @@ func (s *GroupService) CreateGroup(ctx context.Context, req models.CreateGroupRe
 }
 
 func (s *GroupService) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]interface{}) (models.GroupResponse, error) {
+	logger.InfoContext(ctx, "Updating group", "group_id", groupID.String(), "user_id", ownerID.String())
 	var updated db.GroupsModuleGroup
 
 	err := s.withTx(ctx, func(qtx *db.Queries) error {
@@ -828,6 +836,7 @@ func (s *GroupService) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UU
 }
 
 func (s *GroupService) DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) error {
+	logger.InfoContext(ctx, "Deleting group", "group_id", groupID.String(), "user_id", ownerID.String())
 	_, err := s.db.FindGroupByIDAndOwnerID(ctx, db.FindGroupByIDAndOwnerIDParams{
 		ID:      groupID,
 		OwnerID: ownerID,

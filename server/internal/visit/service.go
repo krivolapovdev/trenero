@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
+	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
@@ -22,6 +23,7 @@ func NewVisitService(queries *db.Queries, sqlDB *sql.DB) *VisitService {
 }
 
 func (s *VisitService) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) ([]VisitResponse, error) {
+	logger.InfoContext(ctx, "Getting visits by lesson id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindVisitsByLessonIDAndOwnerID(ctx, db.FindVisitsByLessonIDAndOwnerIDParams{
 		LessonID: lessonID,
 		OwnerID:  ownerID,
@@ -37,6 +39,7 @@ func (s *VisitService) GetVisitsByLessonID(ctx context.Context, lessonID, ownerI
 }
 
 func (s *VisitService) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]VisitResponse, error) {
+	logger.InfoContext(ctx, "Getting visits by lesson ids", "count", len(lessonIDs), "user_id", ownerID.String())
 	if len(lessonIDs) == 0 {
 		return []VisitResponse{}, nil
 	}
@@ -55,6 +58,7 @@ func (s *VisitService) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uui
 }
 
 func (s *VisitService) GetVisitsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]VisitResponse, error) {
+	logger.InfoContext(ctx, "Getting visits by student id", "student_id", studentID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindVisitsByStudentIDAndOwnerID(ctx, db.FindVisitsByStudentIDAndOwnerIDParams{
 		StudentID: studentID,
 		OwnerID:   ownerID,
@@ -70,6 +74,7 @@ func (s *VisitService) GetVisitsByStudentID(ctx context.Context, studentID, owne
 }
 
 func (s *VisitService) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]VisitResponse, error) {
+	logger.InfoContext(ctx, "Getting visits by student ids", "count", len(studentIDs), "user_id", ownerID.String())
 	if len(studentIDs) == 0 {
 		return map[uuid.UUID][]VisitResponse{}, nil
 	}
@@ -104,6 +109,7 @@ func (s *VisitService) withTx(ctx context.Context, fn func(qtx *db.Queries) erro
 }
 
 func (s *VisitService) CreateVisits(ctx context.Context, lessonID uuid.UUID, studentVisits []StudentVisit, ownerID uuid.UUID) error {
+	logger.InfoContext(ctx, "Creating visits", "lesson_id", lessonID.String(), "count", len(studentVisits), "user_id", ownerID.String())
 	return s.withTx(ctx, func(qtx *db.Queries) error {
 		for _, sv := range studentVisits {
 			_, err := qtx.CreateVisit(ctx, db.CreateVisitParams{
@@ -122,6 +128,7 @@ func (s *VisitService) CreateVisits(ctx context.Context, lessonID uuid.UUID, stu
 }
 
 func (s *VisitService) RemoveVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) error {
+	logger.InfoContext(ctx, "Removing visits by lesson id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	return s.db.DeleteVisitsByLessonIDAndOwnerID(ctx, db.DeleteVisitsByLessonIDAndOwnerIDParams{
 		LessonID: lessonID,
 		OwnerID:  ownerID,
@@ -129,6 +136,7 @@ func (s *VisitService) RemoveVisitsByLessonID(ctx context.Context, lessonID, own
 }
 
 func (s *VisitService) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID, requests []StudentVisit, ownerID uuid.UUID) error {
+	logger.InfoContext(ctx, "Updating visits by lesson id", "lesson_id", lessonID.String(), "count", len(requests), "user_id", ownerID.String())
 	return s.withTx(ctx, func(qtx *db.Queries) error {
 		existingVisits, err := qtx.FindVisitsByLessonIDAndOwnerID(ctx, db.FindVisitsByLessonIDAndOwnerIDParams{
 			LessonID: lessonID,

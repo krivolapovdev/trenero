@@ -6,6 +6,7 @@ import (
 	"github.com/krivolapovdev/trenerio/internal/db"
 	"github.com/krivolapovdev/trenerio/internal/user"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 	"google.golang.org/api/idtoken"
 )
@@ -25,6 +26,7 @@ func NewAuthService(userService *user.UserService, tokenProvider *security.Token
 }
 
 func (s *AuthService) LoginGoogle(ctx context.Context, token string) (LoginResponse, error) {
+	logger.InfoContext(ctx, "Processing Google login")
 	payload, err := idtoken.Validate(ctx, token, s.googleClientID)
 	if err != nil {
 		return LoginResponse{}, &pkgerrors.BadRequestError{Message: "Invalid or expired Google identity token"}
@@ -73,6 +75,7 @@ func (s *AuthService) LoginGoogle(ctx context.Context, token string) (LoginRespo
 }
 
 func (s *AuthService) LoginReviewer(ctx context.Context, reviewerKey string) (LoginResponse, error) {
+	logger.InfoContext(ctx, "Processing reviewer login")
 	if !s.tokenProvider.ValidateReviewerKey(reviewerKey) {
 		return LoginResponse{}, &pkgerrors.BadRequestError{Message: "Invalid reviewer key"}
 	}
@@ -106,6 +109,7 @@ func (s *AuthService) LoginReviewer(ctx context.Context, reviewerKey string) (Lo
 }
 
 func (s *AuthService) RefreshTokens(ctx context.Context, refreshToken string) (JwtResponse, error) {
+	logger.InfoContext(ctx, "Refreshing tokens")
 	if !s.tokenProvider.IsTokenValid(refreshToken, "REFRESH") {
 		return JwtResponse{}, &pkgerrors.BadRequestError{Message: "Invalid or expired refresh token"}
 	}

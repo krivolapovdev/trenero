@@ -1,13 +1,14 @@
 package errors
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/krivolapovdev/trenerio/pkg/logger"
 )
 
 type ProblemDetail struct {
@@ -48,25 +49,54 @@ func (e *BadRequestError) Error() string {
 	return e.Message
 }
 
-func RespondProblem(c *gin.Context, status int, title, detail string) {
-	if status >= 500 {
-		log.Printf("[ERROR] %d %s: %s", status, title, detail)
+func getContextAndPath(c *gin.Context) (context.Context, string, string) {
+	if c == nil || c.Request == nil {
+		return context.Background(), "", ""
 	}
+	return c.Request.Context(), c.Request.RequestURI, c.Request.URL.Path
+}
+
+func RespondProblem(c *gin.Context, status int, title, detail string) {
+	ctx, uri, path := getContextAndPath(c)
+	if status >= 500 {
+		logger.ErrorContext(ctx, "HTTP internal server error",
+			"status", status,
+			"title", title,
+			"detail", detail,
+			"path", path,
+		)
+	} else {
+		logger.WarnContext(ctx, "HTTP client error",
+			"status", status,
+			"title", title,
+			"detail", detail,
+			"path", path,
+		)
+	}
+
 	c.JSON(status, ProblemDetail{
 		Title:     title,
 		Status:    status,
 		Detail:    detail,
-		Instance:  c.Request.RequestURI,
+		Instance:  uri,
 		Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
 	})
 }
 
 func RespondConflict(c *gin.Context, code, detail string) {
+	ctx, uri, path := getContextAndPath(c)
+	logger.WarnContext(ctx, "Conflict",
+		"status", http.StatusConflict,
+		"code", code,
+		"detail", detail,
+		"path", path,
+	)
+
 	c.JSON(http.StatusConflict, ProblemDetail{
 		Title:     "Conflict",
 		Status:    http.StatusConflict,
 		Detail:    detail,
-		Instance:  c.Request.RequestURI,
+		Instance:  uri,
 		Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
 		Code:      code,
 	})
@@ -88,11 +118,18 @@ func RespondUnauthorized(c *gin.Context, detail string) {
 }
 
 func RespondValidationFailed(c *gin.Context, errs []map[string]interface{}) {
+	ctx, uri, path := getContextAndPath(c)
+	logger.WarnContext(ctx, "Validation Failed",
+		"status", http.StatusBadRequest,
+		"errors", errs,
+		"path", path,
+	)
+
 	c.JSON(http.StatusBadRequest, ProblemDetail{
 		Title:     "Validation Failed",
 		Status:    http.StatusBadRequest,
 		Detail:    "One or more fields in the request failed validation",
-		Instance:  c.Request.RequestURI,
+		Instance:  uri,
 		Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
 		Errors:    errs,
 	})
@@ -110,7 +147,11 @@ func HandleError(c *gin.Context, err error) {
 	case *BadRequestError:
 		RespondBadRequest(c, e.Message)
 	default:
-		log.Printf("[ERROR] Unhandled error: %v", err)
+		ctx, _, path := getContextAndPath(c)
+		logger.ErrorContext(ctx, "Unhandled internal server error",
+			"error", err.Error(),
+			"path", path,
+		)
 		RespondProblem(c, http.StatusInternalServerError, "Internal Server Error", "An unexpected error occurred. Please contact support or try again later.")
 	}
 }
