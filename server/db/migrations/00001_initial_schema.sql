@@ -100,6 +100,7 @@ CREATE TABLE payments_module.student_payments
     paid_until     TIMESTAMPTZ NOT NULL
 );
 
+-- +goose StatementBegin
 CREATE
 OR REPLACE FUNCTION public.set_current_timestamp_updated_at()
 RETURNS TRIGGER AS $$
@@ -110,7 +111,9 @@ RETURN NEW;
 END;
 $$
 LANGUAGE plpgsql;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE FUNCTION public.normalize_email_to_uppercase() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
@@ -122,6 +125,7 @@ END IF;
 RETURN NEW;
 END;
 $$;
+-- +goose StatementEnd
 
 CREATE TRIGGER trg_email_uppercase
     BEFORE INSERT OR
@@ -131,44 +135,37 @@ UPDATE ON users_module.oauth2_users
 CREATE TRIGGER trg_oauth2_users_updated_at
     BEFORE UPDATE
     ON users_module.oauth2_users
-    FOR EACH ROW
-    EXECUTE FUNCTION public.set_current_timestamp_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();
 
 CREATE TRIGGER trg_groups_updated_at
     BEFORE UPDATE
     ON groups_module.groups
-    FOR EACH ROW
-    EXECUTE FUNCTION public.set_current_timestamp_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();
 
 CREATE TRIGGER trg_group_students_updated_at
     BEFORE UPDATE
     ON groups_module.group_students
-    FOR EACH ROW
-    EXECUTE FUNCTION public.set_current_timestamp_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();
 
 CREATE TRIGGER trg_students_updated_at
     BEFORE UPDATE
     ON students_module.students
-    FOR EACH ROW
-    EXECUTE FUNCTION public.set_current_timestamp_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();
 
 CREATE TRIGGER trg_lessons_updated_at
     BEFORE UPDATE
     ON lessons_module.lessons
-    FOR EACH ROW
-    EXECUTE FUNCTION public.set_current_timestamp_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();
 
 CREATE TRIGGER trg_visits_updated_at
     BEFORE UPDATE
     ON visits_module.visits
-    FOR EACH ROW
-    EXECUTE FUNCTION public.set_current_timestamp_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();
 
 CREATE TRIGGER trg_transactions_updated_at
     BEFORE UPDATE
     ON payments_module.transactions
-    FOR EACH ROW
-    EXECUTE FUNCTION public.set_current_timestamp_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();
 
 CREATE INDEX idx_groups_owner_name_unique ON groups_module.groups USING btree (owner_id, name);
 CREATE UNIQUE INDEX idx_group_students_unique ON groups_module.group_students USING btree (owner_id, group_id, student_id);

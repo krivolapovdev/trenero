@@ -4,3 +4,6 @@ up:
 
 down:
 	docker compose -p trenerio down --remove-orphans
+
+sqlc:
+	cd ./server && sqlc generate

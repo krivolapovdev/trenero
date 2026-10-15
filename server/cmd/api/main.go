@@ -81,7 +81,8 @@ func main() {
 	}
 
 	if err := goose.Up(dbConn, migrationsDir); err != nil {
-		logger.Warn("goose migrations failed", "error", err)
+		logger.Error("goose migrations failed", "error", err)
+		os.Exit(1)
 	} else {
 		logger.Info("database migrations applied successfully", "dir", migrationsDir)
 	}
@@ -110,7 +111,7 @@ func buildDatabaseURL() string {
 
 	rawURL := os.Getenv("DB_URL")
 	if rawURL == "" {
-		return fmt.Sprintf("postgres://%s:%s@localhost:5432/trenero?sslmode=disable", user, pass)
+		return fmt.Sprintf("postgres://%s:%s@localhost:5432/trenerio?sslmode=disable", user, pass)
 	}
 
 	return rawURL
