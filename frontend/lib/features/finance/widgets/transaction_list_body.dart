@@ -47,8 +47,6 @@ class _TransactionListBodyState extends ConsumerState<TransactionListBody> {
     );
   }
 
-  /// The period is applied on the already loaded pages, so the next page is
-  /// requested while the selected period has no matches yet.
   void _loadMoreWhilePeriodIsEmpty({
     required bool hasPeriod,
     required bool isRetry,

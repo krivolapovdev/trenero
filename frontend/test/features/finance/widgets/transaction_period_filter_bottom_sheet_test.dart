@@ -28,8 +28,9 @@ String _fieldText(WidgetTester tester, int index) =>
 
 Future<void> _openSheet(
   WidgetTester tester,
-  ProviderContainer container,
-) async {
+  ProviderContainer container, {
+  DateTime? today,
+}) async {
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
@@ -40,7 +41,9 @@ Future<void> _openSheet(
               builder: (context) => TextButton(
                 onPressed: () => AppBottomSheet.show(
                   context: context,
-                  child: const TransactionPeriodFilterBottomSheet(),
+                  child: TransactionPeriodFilterBottomSheet(
+                    today: today ?? DateTime(2026, 10, 15),
+                  ),
                 ),
                 child: const Text('open sheet'),
               ),
@@ -279,5 +282,92 @@ void main() {
       container.read(transactionFilterControllerProvider).start,
       DateTime(2026, 9, 16),
     );
+  });
+
+  testWidgets('cannot select future days from calendar but can select today', (
+    tester,
+  ) async {
+    seedPeriod();
+
+    await _openSheet(tester, container, today: DateTime(2026, 10, 15));
+
+    // Focus end field to show October 2026
+    await tester.tap(find.byType(TextField).at(1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('October 2026'), findsOneWidget);
+
+    // Tapping on day 16 (tomorrow) should not select it
+    await tester.tap(find.text('16'));
+    await tester.pump();
+
+    expect(_fieldText(tester, 1), '13.10.2026');
+
+    // Tapping on day 15 (today) should select it
+    await tester.tap(find.text('15'));
+    await tester.pump();
+
+    expect(_fieldText(tester, 1), '15.10.2026');
+  });
+
+  testWidgets('cannot navigate past the current month', (tester) async {
+    seedPeriod();
+
+    await _openSheet(tester, container, today: DateTime(2026, 10, 15));
+
+    // Focus end field to show October 2026
+    await tester.tap(find.byType(TextField).at(1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('October 2026'), findsOneWidget);
+
+    final nextButton = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, FluentIcons.chevron_right_24_regular),
+    );
+    expect(nextButton.onPressed, isNull);
+  });
+
+  testWidgets('a future date typed manually into start or end field shows error and disables apply', (
+    tester,
+  ) async {
+    seedPeriod();
+
+    await _openSheet(tester, container, today: DateTime(2026, 10, 15));
+
+    expect(find.text(t.invalidDate), findsNothing);
+
+    // Type tomorrow's date into end field
+    await tester.enterText(find.byType(TextField).at(1), '16102026');
+    await tester.pump();
+
+    expect(find.text(t.invalidDate), findsOneWidget);
+
+    var button = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, t.finance.filter.apply),
+    );
+    expect(button.onPressed, isNull);
+
+    // Clear end and type tomorrow's date into start field
+    await tester.enterText(find.byType(TextField).at(1), '');
+    await tester.enterText(find.byType(TextField).at(0), '16102026');
+    await tester.pump();
+
+    expect(find.text(t.invalidDate), findsOneWidget);
+
+    button = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, t.finance.filter.apply),
+    );
+    expect(button.onPressed, isNull);
+
+    await tester.tap(find.text(t.finance.filter.apply));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TransactionPeriodFilterBottomSheet), findsOneWidget);
+
+    // Enter valid date (today)
+    await tester.enterText(find.byType(TextField).at(0), '15102026');
+    await tester.pump();
+
+    expect(find.text(t.invalidDate), findsNothing);
   });
 }
