@@ -1,0 +1,22 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "db/migrations/"
+    queries:
+      - "db/queries/auth"
+      - "db/queries/user"
+      - "db/queries/group"
+      - "db/queries/student"
+      - "db/queries/lesson"
+      - "db/queries/visit"
+      - "db/queries/transaction"
+    gen:
+      go:
+        package: "db"
+        out: "internal/db"
+        sql_package: "database/sql"
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: "uuid"
+            go_type: "github.com/google/uuid.UUID"

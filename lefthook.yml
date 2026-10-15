@@ -2,7 +2,7 @@ pre-commit:
   parallel: true
   jobs:
     - name: phone
-      root: frontend/phone
+      root: frontend
       stage_fixed: true
       run: dart fix --apply && dart format .
 
@@ -10,3 +10,8 @@ pre-commit:
       root: backend
       stage_fixed: true
       run: ./gradlew spotlessApply
+
+    - name: server
+      root: server
+      stage_fixed: true
+      run: go fmt ./... && go vet ./...

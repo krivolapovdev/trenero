@@ -1,0 +1,76 @@
+package types
+
+import (
+	"strings"
+	"time"
+)
+
+type StudentStatus string
+
+const (
+	StudentStatusInactive StudentStatus = "INACTIVE"
+	StudentStatusPresent  StudentStatus = "PRESENT"
+	StudentStatusMissing  StudentStatus = "MISSING"
+	StudentStatusPaid     StudentStatus = "PAID"
+	StudentStatusUnpaid   StudentStatus = "UNPAID"
+	StudentStatusFree     StudentStatus = "FREE"
+)
+
+type VisitStatus string
+
+const (
+	VisitStatusPresent VisitStatus = "PRESENT"
+	VisitStatusAbsent  VisitStatus = "ABSENT"
+	VisitStatusExcused VisitStatus = "EXCUSED"
+)
+
+type VisitType string
+
+const (
+	VisitTypeRegular VisitType = "REGULAR"
+	VisitTypeFree    VisitType = "FREE"
+)
+
+type TransactionType string
+
+const (
+	TransactionTypeIncome  TransactionType = "INCOME"
+	TransactionTypeExpense TransactionType = "EXPENSE"
+)
+
+type OAuth2Provider string
+
+const (
+	OAuth2ProviderGoogle OAuth2Provider = "GOOGLE"
+	OAuth2ProviderApple  OAuth2Provider = "APPLE"
+)
+
+const (
+	ErrStudentNameNotUnique = "STUDENT_NAME_NOT_UNIQUE"
+	ErrGroupNameNotUnique   = "GROUP_NAME_NOT_UNIQUE"
+)
+
+type Date struct {
+	time.Time
+}
+
+func (d Date) MarshalJSON() ([]byte, error) {
+	if d.IsZero() {
+		return []byte("null"), nil
+	}
+	return []byte(`"` + d.Format("2006-01-02") + `"`), nil
+}
+
+func (d *Date) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), "\"")
+	if s == "null" || s == "" {
+		d.Time = time.Time{}
+		return nil
+	}
+	t, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		return err
+	}
+	d.Time = t
+	return nil
+}
