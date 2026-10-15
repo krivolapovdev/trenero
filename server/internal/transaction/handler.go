@@ -11,17 +11,17 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type TransactionHandler struct {
-	service *TransactionService
+type Handler struct {
+	service *Service
 }
 
-func NewTransactionHandler(service *TransactionService) *TransactionHandler {
-	return &TransactionHandler{
+func NewHandler(service *Service) *Handler {
+	return &Handler{
 		service: service,
 	}
 }
 
-func (h *TransactionHandler) GetPaginatedTransactions(c *gin.Context) {
+func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -51,7 +51,7 @@ func (h *TransactionHandler) GetPaginatedTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
+func (h *Handler) CreateTransaction(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -73,7 +73,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
-func (h *TransactionHandler) UpdateTransaction(c *gin.Context) {
+func (h *Handler) UpdateTransaction(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -101,7 +101,7 @@ func (h *TransactionHandler) UpdateTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *TransactionHandler) DeleteTransaction(c *gin.Context) {
+func (h *Handler) DeleteTransaction(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")

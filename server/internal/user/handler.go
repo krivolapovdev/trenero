@@ -8,17 +8,17 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type UserHandler struct {
-	service *UserService
+type Handler struct {
+	service *Service
 }
 
-func NewUserHandler(service *UserService) *UserHandler {
-	return &UserHandler{
+func NewHandler(service *Service) *Handler {
+	return &Handler{
 		service: service,
 	}
 }
 
-func (h *UserHandler) DeleteMyAccount(c *gin.Context) {
+func (h *Handler) DeleteMyAccount(c *gin.Context) {
 	val, exists := c.Get("jwtUser")
 	if !exists {
 		pkgerrors.RespondUnauthorized(c, "")

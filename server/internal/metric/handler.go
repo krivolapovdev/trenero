@@ -9,17 +9,17 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type MetricHandler struct {
-	service *MetricService
+type Handler struct {
+	service *Service
 }
 
-func NewMetricHandler(service *MetricService) *MetricHandler {
-	return &MetricHandler{
+func NewHandler(service *Service) *Handler {
+	return &Handler{
 		service: service,
 	}
 }
 
-func (h *MetricHandler) GetPaymentStatistics(c *gin.Context) {
+func (h *Handler) GetPaymentStatistics(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -35,7 +35,7 @@ func (h *MetricHandler) GetPaymentStatistics(c *gin.Context) {
 		return
 	}
 
-	startDate, err := time.Parse(time.RFC3339Nano, startDateStr)
+	startDate, err := time.Parse(time.RFC3339, startDateStr)
 	if err != nil {
 		startDate, err = time.Parse(time.RFC3339, startDateStr)
 		if err != nil {
@@ -44,7 +44,7 @@ func (h *MetricHandler) GetPaymentStatistics(c *gin.Context) {
 		}
 	}
 
-	endDate, err := time.Parse(time.RFC3339Nano, endDateStr)
+	endDate, err := time.Parse(time.RFC3339, endDateStr)
 	if err != nil {
 		endDate, err = time.Parse(time.RFC3339, endDateStr)
 		if err != nil {

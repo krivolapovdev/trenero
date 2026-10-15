@@ -7,17 +7,17 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 )
 
-type AuthHandler struct {
-	service *AuthService
+type Handler struct {
+	service *Service
 }
 
-func NewAuthHandler(service *AuthService) *AuthHandler {
-	return &AuthHandler{
+func NewHandler(service *Service) *Handler {
+	return &Handler{
 		service: service,
 	}
 }
 
-func (h *AuthHandler) GoogleLogin(c *gin.Context) {
+func (h *Handler) GoogleLogin(c *gin.Context) {
 	var req OAuth2LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
@@ -33,7 +33,7 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *AuthHandler) RefreshTokens(c *gin.Context) {
+func (h *Handler) RefreshTokens(c *gin.Context) {
 	var req RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
@@ -49,7 +49,7 @@ func (h *AuthHandler) RefreshTokens(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *AuthHandler) ReviewerLogin(c *gin.Context) {
+func (h *Handler) ReviewerLogin(c *gin.Context) {
 	reviewerKey := c.GetHeader("X-Reviewer-Key")
 	if reviewerKey == "" {
 		pkgerrors.RespondUnauthorized(c, "Authentication failed or token is invalid")

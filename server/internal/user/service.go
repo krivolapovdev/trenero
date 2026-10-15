@@ -13,17 +13,17 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type UserService struct {
+type Service struct {
 	db *db.Queries
 }
 
-func NewUserService(queries *db.Queries) *UserService {
-	return &UserService{
+func NewService(queries *db.Queries) *Service {
+	return &Service{
 		db: queries,
 	}
 }
 
-func (s *UserService) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (UserResponse, error) {
+func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (UserResponse, error) {
 	logger.InfoContext(ctx, "Get or create user from OAuth2", "provider", string(provider), "email", email)
 	u, err := s.db.GetUserByProviderAndProviderID(ctx, db.GetUserByProviderAndProviderIDParams{
 		Provider:   provider,
@@ -56,12 +56,12 @@ func (s *UserService) GetOrCreateUserFromOAuth2(ctx context.Context, provider db
 	}, nil
 }
 
-func (s *UserService) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+func (s *Service) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
 	logger.DebugContext(ctx, "Checking whether user exists", "id", id.String())
 	return s.db.ExistsUserByID(ctx, id)
 }
 
-func (s *UserService) DeleteUser(ctx context.Context, jwtUser security.JwtUser) error {
+func (s *Service) DeleteUser(ctx context.Context, jwtUser security.JwtUser) error {
 	logger.InfoContext(ctx, "Deleting user", "user_id", jwtUser.ID.String())
 	exists, err := s.db.ExistsUserByID(ctx, jwtUser.ID)
 	if err != nil {

@@ -11,17 +11,17 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type StudentHandler struct {
-	service *StudentService
+type Handler struct {
+	service *Service
 }
 
-func NewStudentHandler(service *StudentService) *StudentHandler {
-	return &StudentHandler{
+func NewHandler(service *Service) *Handler {
+	return &Handler{
 		service: service,
 	}
 }
 
-func (h *StudentHandler) GetAllStudentsSummary(c *gin.Context) {
+func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -37,7 +37,7 @@ func (h *StudentHandler) GetAllStudentsSummary(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *StudentHandler) GetStudentVisits(c *gin.Context) {
+func (h *Handler) GetStudentVisits(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -75,7 +75,7 @@ func (h *StudentHandler) GetStudentVisits(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *StudentHandler) GetStudentPayments(c *gin.Context) {
+func (h *Handler) GetStudentPayments(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -97,7 +97,7 @@ func (h *StudentHandler) GetStudentPayments(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *StudentHandler) CreateStudent(c *gin.Context) {
+func (h *Handler) CreateStudent(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -119,7 +119,7 @@ func (h *StudentHandler) CreateStudent(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
-func (h *StudentHandler) CreateStudentPayment(c *gin.Context) {
+func (h *Handler) CreateStudentPayment(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -147,7 +147,7 @@ func (h *StudentHandler) CreateStudentPayment(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
-func (h *StudentHandler) UpdateStudent(c *gin.Context) {
+func (h *Handler) UpdateStudent(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -175,7 +175,7 @@ func (h *StudentHandler) UpdateStudent(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *StudentHandler) DeleteStudent(c *gin.Context) {
+func (h *Handler) DeleteStudent(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")

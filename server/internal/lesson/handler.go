@@ -10,17 +10,17 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type LessonHandler struct {
-	service *LessonService
+type Handler struct {
+	service *Service
 }
 
-func NewLessonHandler(service *LessonService) *LessonHandler {
-	return &LessonHandler{
+func NewHandler(service *Service) *Handler {
+	return &Handler{
 		service: service,
 	}
 }
 
-func (h *LessonHandler) GetLessonDetails(c *gin.Context) {
+func (h *Handler) GetLessonDetails(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -42,7 +42,7 @@ func (h *LessonHandler) GetLessonDetails(c *gin.Context) {
 	c.JSON(http.StatusOK, details)
 }
 
-func (h *LessonHandler) CreateLesson(c *gin.Context) {
+func (h *Handler) CreateLesson(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -64,7 +64,7 @@ func (h *LessonHandler) CreateLesson(c *gin.Context) {
 	c.JSON(http.StatusCreated, created)
 }
 
-func (h *LessonHandler) UpdateLesson(c *gin.Context) {
+func (h *Handler) UpdateLesson(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -92,7 +92,7 @@ func (h *LessonHandler) UpdateLesson(c *gin.Context) {
 	c.JSON(http.StatusOK, updated)
 }
 
-func (h *LessonHandler) DeleteLesson(c *gin.Context) {
+func (h *Handler) DeleteLesson(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")

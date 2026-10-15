@@ -16,19 +16,19 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
-type TransactionService struct {
+type Service struct {
 	db    *db.Queries
 	sqlDB *sql.DB
 }
 
-func NewTransactionService(queries *db.Queries, sqlDB *sql.DB) *TransactionService {
-	return &TransactionService{
+func NewService(queries *db.Queries, sqlDB *sql.DB) *Service {
+	return &Service{
 		db:    queries,
 		sqlDB: sqlDB,
 	}
 }
 
-func (s *TransactionService) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
+func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
 	tx, err := s.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -41,7 +41,7 @@ func (s *TransactionService) withTx(ctx context.Context, fn func(qtx *db.Queries
 	return tx.Commit()
 }
 
-func (s *TransactionService) GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error) {
+func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting paginated transactions", "page", page, "size", size, "user_id", ownerID.String())
 	if size < 1 {
 		return models.PageTransactionResponse{}, &pkgerrors.BadRequestError{
@@ -160,7 +160,7 @@ func (s *TransactionService) GetPaginatedTransactions(ctx context.Context, page,
 	}, nil
 }
 
-func (s *TransactionService) GetTransactionsBetween(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+func (s *Service) GetTransactionsBetween(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting transactions between dates", "start_date", startDate.Format(time.RFC3339), "end_date", endDate.Format(time.RFC3339), "user_id", ownerID.String())
 	rows, err := s.db.FindTransactionsByOwnerIDAndDateBetween(ctx, db.FindTransactionsByOwnerIDAndDateBetweenParams{
 		OwnerID: ownerID,
@@ -185,7 +185,7 @@ func (s *TransactionService) GetTransactionsBetween(ctx context.Context, startDa
 	return res, nil
 }
 
-func (s *TransactionService) GetTransactionsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+func (s *Service) GetTransactionsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting transactions by student id", "student_id", studentID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindStudentPaymentsByStudentIDAndOwnerID(ctx, db.FindStudentPaymentsByStudentIDAndOwnerIDParams{
 		StudentID: studentID,
@@ -214,7 +214,7 @@ func (s *TransactionService) GetTransactionsByStudentID(ctx context.Context, stu
 	return res, nil
 }
 
-func (s *TransactionService) GetTransactionsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.TransactionResponse, error) {
+func (s *Service) GetTransactionsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting transactions by student ids", "count", len(studentIDs), "user_id", ownerID.String())
 	if len(studentIDs) == 0 {
 		return map[uuid.UUID][]models.TransactionResponse{}, nil
@@ -250,7 +250,7 @@ func (s *TransactionService) GetTransactionsByStudentIDs(ctx context.Context, st
 	return res, nil
 }
 
-func (s *TransactionService) CreateTransaction(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error) {
+func (s *Service) CreateTransaction(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Creating transaction", "amount", req.Amount, "type", string(req.Type), "user_id", ownerID.String())
 	if req.Amount <= 0 {
 		return models.TransactionResponse{}, &pkgerrors.BadRequestError{
@@ -336,7 +336,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, req models.C
 	}, nil
 }
 
-func (s *TransactionService) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (models.TransactionResponse, error) {
+func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Creating student payment transaction", "student_id", studentID.String(), "user_id", ownerID.String())
 	_, err := s.db.FindStudentByIDAndOwnerID(ctx, db.FindStudentByIDAndOwnerIDParams{
 		ID:      studentID,
@@ -401,7 +401,7 @@ func (s *TransactionService) CreateStudentPayment(ctx context.Context, studentID
 	}, nil
 }
 
-func (s *TransactionService) UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]interface{}) (models.TransactionResponse, error) {
+func (s *Service) UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]interface{}) (models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Updating transaction", "transaction_id", transactionID.String(), "user_id", ownerID.String())
 	var updatedTx db.PaymentsModuleTransaction
 	var pd *models.StudentPaymentDetailsResponse
@@ -508,7 +508,7 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, transactionI
 	}, nil
 }
 
-func (s *TransactionService) DeleteTransaction(ctx context.Context, transactionID, ownerID uuid.UUID) error {
+func (s *Service) DeleteTransaction(ctx context.Context, transactionID, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Deleting transaction", "transaction_id", transactionID.String(), "user_id", ownerID.String())
 	return s.withTx(ctx, func(qtx *db.Queries) error {
 		_, err := qtx.FindTransactionByIDAndOwnerID(ctx, db.FindTransactionByIDAndOwnerIDParams{

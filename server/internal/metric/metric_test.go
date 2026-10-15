@@ -12,7 +12,7 @@ import (
 )
 
 func TestMetricService_InvalidDateRange(t *testing.T) {
-	service := NewMetricService(nil)
+	service := NewService(nil)
 
 	startDate := time.Date(2026, 10, 15, 0, 0, 0, 0, time.UTC)
 	endDate := time.Date(2026, 10, 10, 0, 0, 0, 0, time.UTC)

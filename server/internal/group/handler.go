@@ -12,17 +12,17 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type GroupHandler struct {
-	service *GroupService
+type Handler struct {
+	service *Service
 }
 
-func NewGroupHandler(service *GroupService) *GroupHandler {
-	return &GroupHandler{
+func NewHandler(service *Service) *Handler {
+	return &Handler{
 		service: service,
 	}
 }
 
-func (h *GroupHandler) GetAllGroupsSummary(c *gin.Context) {
+func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -38,7 +38,7 @@ func (h *GroupHandler) GetAllGroupsSummary(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *GroupHandler) GetGroupStudents(c *gin.Context) {
+func (h *Handler) GetGroupStudents(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -60,7 +60,7 @@ func (h *GroupHandler) GetGroupStudents(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *GroupHandler) GetGroupLessons(c *gin.Context) {
+func (h *Handler) GetGroupLessons(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -107,7 +107,7 @@ func (h *GroupHandler) GetGroupLessons(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *GroupHandler) GetGroupReport(c *gin.Context) {
+func (h *Handler) GetGroupReport(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -148,7 +148,7 @@ func (h *GroupHandler) GetGroupReport(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *GroupHandler) CreateGroup(c *gin.Context) {
+func (h *Handler) CreateGroup(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -170,7 +170,7 @@ func (h *GroupHandler) CreateGroup(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
-func (h *GroupHandler) UpdateGroup(c *gin.Context) {
+func (h *Handler) UpdateGroup(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
@@ -198,7 +198,7 @@ func (h *GroupHandler) UpdateGroup(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *GroupHandler) DeleteGroup(c *gin.Context) {
+func (h *Handler) DeleteGroup(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")

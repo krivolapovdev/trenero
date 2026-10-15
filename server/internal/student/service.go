@@ -18,19 +18,19 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
-type StudentService struct {
+type Service struct {
 	db    *db.Queries
 	sqlDB *sql.DB
 }
 
-func NewStudentService(queries *db.Queries, sqlDB *sql.DB) *StudentService {
-	return &StudentService{
+func NewService(queries *db.Queries, sqlDB *sql.DB) *Service {
+	return &Service{
 		db:    queries,
 		sqlDB: sqlDB,
 	}
 }
 
-func (s *StudentService) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
+func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
 	tx, err := s.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func (s *StudentService) withTx(ctx context.Context, fn func(qtx *db.Queries) er
 	return tx.Commit()
 }
 
-func (s *StudentService) GetAllStudents(ctx context.Context, ownerID uuid.UUID) ([]models.StudentResponse, error) {
+func (s *Service) GetAllStudents(ctx context.Context, ownerID uuid.UUID) ([]models.StudentResponse, error) {
 	logger.InfoContext(ctx, "Getting all students", "user_id", ownerID.String())
 	rows, err := s.db.FindAllStudentsByOwnerID(ctx, ownerID)
 	if err != nil {
@@ -56,7 +56,7 @@ func (s *StudentService) GetAllStudents(ctx context.Context, ownerID uuid.UUID) 
 	return res, nil
 }
 
-func (s *StudentService) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error) {
+func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error) {
 	logger.InfoContext(ctx, "Getting students overview", "user_id", ownerID.String())
 	students, err := s.GetAllStudents(ctx, ownerID)
 	if err != nil {
@@ -227,7 +227,7 @@ func (s *StudentService) GetAllStudentsSummary(ctx context.Context, ownerID uuid
 	return res, nil
 }
 
-func (s *StudentService) GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error) {
+func (s *Service) GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error) {
 	logger.InfoContext(ctx, "Getting student by id", "student_id", studentID.String(), "user_id", ownerID.String())
 	st, err := s.db.FindStudentByIDAndOwnerID(ctx, db.FindStudentByIDAndOwnerIDParams{
 		ID:      studentID,
@@ -246,7 +246,7 @@ func (s *StudentService) GetStudentDetailsByID(ctx context.Context, studentID, o
 	return toStudentResponse(st), nil
 }
 
-func (s *StudentService) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error) {
+func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error) {
 	logger.InfoContext(ctx, "Getting student visits", "student_id", studentID.String(), "user_id", ownerID.String())
 	_, err := s.GetStudentDetailsByID(ctx, studentID, ownerID)
 	if err != nil {
@@ -324,7 +324,7 @@ func (s *StudentService) GetStudentVisits(ctx context.Context, studentID, ownerI
 	return res, nil
 }
 
-func (s *StudentService) GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+func (s *Service) GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting payments for student", "student_id", studentID.String(), "user_id", ownerID.String())
 	_, err := s.GetStudentDetailsByID(ctx, studentID, ownerID)
 	if err != nil {
@@ -357,7 +357,7 @@ func (s *StudentService) GetStudentPayments(ctx context.Context, studentID, owne
 	return res, nil
 }
 
-func (s *StudentService) CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
+func (s *Service) CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
 	logger.InfoContext(ctx, "Creating student", "name", req.FullName, "user_id", ownerID.String())
 	fullName := strings.TrimSpace(req.FullName)
 	if fullName == "" {
@@ -409,7 +409,7 @@ func (s *StudentService) CreateStudent(ctx context.Context, req models.CreateStu
 	return toStudentResponse(st), nil
 }
 
-func (s *StudentService) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
+func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Creating student payment", "student_id", studentID.String(), "user_id", ownerID.String())
 	_, err := s.db.FindStudentByIDAndOwnerID(ctx, db.FindStudentByIDAndOwnerIDParams{
 		ID:      studentID,
@@ -474,7 +474,7 @@ func (s *StudentService) CreateStudentPayment(ctx context.Context, studentID uui
 	}, nil
 }
 
-func (s *StudentService) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]interface{}) (models.StudentResponse, error) {
+func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]interface{}) (models.StudentResponse, error) {
 	logger.InfoContext(ctx, "Updating student", "student_id", studentID.String(), "user_id", ownerID.String())
 	var updated db.StudentsModuleStudent
 
@@ -634,7 +634,7 @@ func reconcileStudentGroups(ctx context.Context, qtx *db.Queries, studentID, own
 	return nil
 }
 
-func (s *StudentService) DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error {
+func (s *Service) DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Deleting student", "student_id", studentID.String(), "user_id", ownerID.String())
 	_, err := s.db.FindStudentByIDAndOwnerID(ctx, db.FindStudentByIDAndOwnerIDParams{
 		ID:      studentID,

@@ -11,21 +11,21 @@ import (
 	"google.golang.org/api/idtoken"
 )
 
-type AuthService struct {
-	userService    *user.UserService
+type Service struct {
+	userService    *user.Service
 	tokenProvider  *security.TokenProvider
 	googleClientID string
 }
 
-func NewAuthService(userService *user.UserService, tokenProvider *security.TokenProvider, googleClientID string) *AuthService {
-	return &AuthService{
+func NewService(userService *user.Service, tokenProvider *security.TokenProvider, googleClientID string) *Service {
+	return &Service{
 		userService:    userService,
 		tokenProvider:  tokenProvider,
 		googleClientID: googleClientID,
 	}
 }
 
-func (s *AuthService) LoginGoogle(ctx context.Context, token string) (LoginResponse, error) {
+func (s *Service) LoginGoogle(ctx context.Context, token string) (LoginResponse, error) {
 	logger.InfoContext(ctx, "Processing Google login")
 	payload, err := idtoken.Validate(ctx, token, s.googleClientID)
 	if err != nil {
@@ -74,7 +74,7 @@ func (s *AuthService) LoginGoogle(ctx context.Context, token string) (LoginRespo
 	}, nil
 }
 
-func (s *AuthService) LoginReviewer(ctx context.Context, reviewerKey string) (LoginResponse, error) {
+func (s *Service) LoginReviewer(ctx context.Context, reviewerKey string) (LoginResponse, error) {
 	logger.InfoContext(ctx, "Processing reviewer login")
 	if !s.tokenProvider.ValidateReviewerKey(reviewerKey) {
 		return LoginResponse{}, &pkgerrors.BadRequestError{Message: "Invalid reviewer key"}
@@ -108,7 +108,7 @@ func (s *AuthService) LoginReviewer(ctx context.Context, reviewerKey string) (Lo
 	}, nil
 }
 
-func (s *AuthService) RefreshTokens(ctx context.Context, refreshToken string) (JwtResponse, error) {
+func (s *Service) RefreshTokens(ctx context.Context, refreshToken string) (JwtResponse, error) {
 	logger.InfoContext(ctx, "Refreshing tokens")
 	if !s.tokenProvider.IsTokenValid(refreshToken, "REFRESH") {
 		return JwtResponse{}, &pkgerrors.BadRequestError{Message: "Invalid or expired refresh token"}

@@ -14,19 +14,19 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
-type LessonService struct {
+type Service struct {
 	db    *db.Queries
 	sqlDB *sql.DB
 }
 
-func NewLessonService(queries *db.Queries, sqlDB *sql.DB) *LessonService {
-	return &LessonService{
+func NewService(queries *db.Queries, sqlDB *sql.DB) *Service {
+	return &Service{
 		db:    queries,
 		sqlDB: sqlDB,
 	}
 }
 
-func (s *LessonService) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
+func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
 	tx, err := s.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func (s *LessonService) withTx(ctx context.Context, fn func(qtx *db.Queries) err
 	return tx.Commit()
 }
 
-func (s *LessonService) GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonResponse, error) {
+func (s *Service) GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Getting lesson by id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	l, err := s.db.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
 		ID:      lessonID,
@@ -58,7 +58,7 @@ func (s *LessonService) GetLessonByID(ctx context.Context, lessonID, ownerID uui
 	return toLessonResponse(l), nil
 }
 
-func (s *LessonService) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonDetailsResponse, error) {
+func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonDetailsResponse, error) {
 	logger.InfoContext(ctx, "Getting lesson details", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	lessonResp, err := s.GetLessonByID(ctx, lessonID, ownerID)
 	if err != nil {
@@ -142,7 +142,7 @@ func (s *LessonService) GetLessonDetailsByID(ctx context.Context, lessonID, owne
 	}, nil
 }
 
-func (s *LessonService) CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error) {
+func (s *Service) CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Creating lesson", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
 	var createdLesson db.LessonsModuleLesson
 
@@ -189,7 +189,7 @@ func (s *LessonService) CreateLesson(ctx context.Context, req models.CreateLesso
 	return toLessonResponse(createdLesson), nil
 }
 
-func (s *LessonService) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error) {
+func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Updating lesson", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	var updatedLesson db.LessonsModuleLesson
 
@@ -288,7 +288,7 @@ func (s *LessonService) UpdateLesson(ctx context.Context, lessonID, ownerID uuid
 	return toLessonResponse(updatedLesson), nil
 }
 
-func (s *LessonService) DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID) error {
+func (s *Service) DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Deleting lesson", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	return s.withTx(ctx, func(qtx *db.Queries) error {
 		_, err := qtx.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
@@ -320,7 +320,7 @@ func (s *LessonService) DeleteLesson(ctx context.Context, lessonID, ownerID uuid
 	})
 }
 
-func (s *LessonService) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error) {
+func (s *Service) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Getting lessons by group id and date range", "group_id", groupID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindLessonsByGroupIDAndDateBetween(ctx, db.FindLessonsByGroupIDAndDateBetweenParams{
 		GroupID: uuid.NullUUID{UUID: groupID, Valid: true},

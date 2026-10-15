@@ -13,21 +13,28 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/models"
 )
 
-type MetricService struct {
+type Service struct {
 	db *db.Queries
 }
 
-func NewMetricService(queries *db.Queries) *MetricService {
-	return &MetricService{
+func NewService(queries *db.Queries) *Service {
+	return &Service{
 		db: queries,
 	}
 }
 
-func (s *MetricService) GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
+func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
+	if endDate.Before(startDate) {
+		return nil, &pkgerrors.BadRequestError{
+			Message: "endDate must not be before startDate",
+		}
+	}
+
 	scope := strings.ToUpper(strings.TrimSpace(scopeStr))
 	if scope == "" {
 		scope = "MONTH"
 	}
+
 	logger.InfoContext(ctx, "Getting payment statistics",
 		"scope", scope,
 		"start_date", startDate.Format(time.RFC3339),
@@ -35,14 +42,9 @@ func (s *MetricService) GetPaymentStatistics(ctx context.Context, scopeStr strin
 		"user_id", ownerID.String(),
 	)
 
-	if endDate.Before(startDate) {
-		return nil, &pkgerrors.BadRequestError{
-			Message: "endDate must not be before startDate",
-		}
-	}
-
+	loc := startDate.Location()
 	truncate := func(t time.Time) time.Time {
-		loc := t.Location()
+		t = t.In(loc)
 		switch scope {
 		case "WEEK":
 			weekday := int(t.Weekday())
@@ -58,7 +60,6 @@ func (s *MetricService) GetPaymentStatistics(ctx context.Context, scopeStr strin
 			return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, loc)
 		}
 	}
-
 	next := func(t time.Time) time.Time {
 		switch scope {
 		case "WEEK":
@@ -69,7 +70,6 @@ func (s *MetricService) GetPaymentStatistics(ctx context.Context, scopeStr strin
 			return t.AddDate(0, 1, 0)
 		}
 	}
-
 	rows, err := s.db.FindTransactionsByOwnerIDAndDateBetween(ctx, db.FindTransactionsByOwnerIDAndDateBetweenParams{
 		OwnerID: ownerID,
 		Date:    startDate,
@@ -79,29 +79,26 @@ func (s *MetricService) GetPaymentStatistics(ctx context.Context, scopeStr strin
 		return nil, err
 	}
 
-	totalsByBucket := make(map[time.Time]float64)
+	totalsByBucket := make(map[int64]float64)
 	for _, r := range rows {
 		bucket := truncate(r.Date)
 		amt, _ := strconv.ParseFloat(r.Amount, 64)
 		if r.Type == db.PaymentsModuleTransactionTypeINCOME {
-			totalsByBucket[bucket] += amt
+			totalsByBucket[bucket.Unix()] += amt
 		} else {
-			totalsByBucket[bucket] -= amt
+			totalsByBucket[bucket.Unix()] -= amt
 		}
 	}
-
 	res := make([]models.PaymentMetricResponse, 0)
 	current := truncate(startDate)
 	limit := truncate(endDate)
-
 	for !current.After(limit) {
-		amount := totalsByBucket[current]
+		amount := totalsByBucket[current.Unix()]
 		res = append(res, models.PaymentMetricResponse{
 			Date:  current,
 			Total: amount,
 		})
 		current = next(current)
 	}
-
 	return res, nil
 }

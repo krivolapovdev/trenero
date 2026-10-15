@@ -23,13 +23,13 @@ type Server struct {
 	queries       *db.Queries
 	tokenProvider *security.TokenProvider
 
-	authHandler    *auth.AuthHandler
-	userHandler    *user.UserHandler
-	groupHandler   *group.GroupHandler
-	studentHandler *student.StudentHandler
-	lessonHandler  *lesson.LessonHandler
-	txHandler      *transaction.TransactionHandler
-	metricHandler  *metric.MetricHandler
+	authHandler    *auth.Handler
+	userHandler    *user.Handler
+	groupHandler   *group.Handler
+	studentHandler *student.Handler
+	lessonHandler  *lesson.Handler
+	txHandler      *transaction.Handler
+	metricHandler  *metric.Handler
 }
 
 func NewServer(
@@ -39,13 +39,13 @@ func NewServer(
 	googleClientID string,
 	allowedOrigins []string,
 ) *Server {
-	userService := user.NewUserService(queries)
-	authService := auth.NewAuthService(userService, tokenProvider, googleClientID)
-	groupService := group.NewGroupService(queries, dbConn)
-	studentService := student.NewStudentService(queries, dbConn)
-	lessonService := lesson.NewLessonService(queries, dbConn)
-	txService := transaction.NewTransactionService(queries, dbConn)
-	metricService := metric.NewMetricService(queries)
+	userService := user.NewService(queries)
+	authService := auth.NewService(userService, tokenProvider, googleClientID)
+	groupService := group.NewService(queries, dbConn)
+	studentService := student.NewService(queries, dbConn)
+	lessonService := lesson.NewService(queries, dbConn)
+	txService := transaction.NewService(queries, dbConn)
+	metricService := metric.NewService(queries)
 
 	engine := gin.New()
 
@@ -54,13 +54,13 @@ func NewServer(
 		dbConn:         dbConn,
 		queries:        queries,
 		tokenProvider:  tokenProvider,
-		authHandler:    auth.NewAuthHandler(authService),
-		userHandler:    user.NewUserHandler(userService),
-		groupHandler:   group.NewGroupHandler(groupService),
-		studentHandler: student.NewStudentHandler(studentService),
-		lessonHandler:  lesson.NewLessonHandler(lessonService),
-		txHandler:      transaction.NewTransactionHandler(txService),
-		metricHandler:  metric.NewMetricHandler(metricService),
+		authHandler:    auth.NewHandler(authService),
+		userHandler:    user.NewHandler(userService),
+		groupHandler:   group.NewHandler(groupService),
+		studentHandler: student.NewHandler(studentService),
+		lessonHandler:  lesson.NewHandler(lessonService),
+		txHandler:      transaction.NewHandler(txService),
+		metricHandler:  metric.NewHandler(metricService),
 	}
 
 	s.setupRoutes(allowedOrigins)
