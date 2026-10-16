@@ -86,9 +86,7 @@ class _ReviewerLoginBottomSheetState
             TextField(
               decoration: InputDecoration(
                 labelText: context.t.auth.reviewerKey,
-                prefixIcon: const Icon(
-                  FluentIcons.key_24_regular,
-                ),
+                prefixIcon: const Icon(FluentIcons.key_24_regular),
               ),
               controller: _reviewerKeyController,
               enabled: !_isLoading,

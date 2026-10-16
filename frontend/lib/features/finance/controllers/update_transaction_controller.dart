@@ -34,7 +34,8 @@ class UpdateTransactionController extends AsyncNotifier<void> {
             body: {
               'amount': amount,
               'date': date.toIso8601StringWithOffset(),
-              if (paidUntil != null) 'paidUntil': paidUntil.toIso8601StringWithOffset(),
+              if (paidUntil != null)
+                'paidUntil': paidUntil.toIso8601StringWithOffset(),
             },
           );
 

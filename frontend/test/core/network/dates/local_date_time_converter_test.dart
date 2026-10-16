@@ -20,15 +20,18 @@ void main() {
       expect(parsed.isAtSameMomentAs(DateTime.utc(2026, 10, 8, 12, 0)), isTrue);
     });
 
-    test('fromJson converts timestamp with foreign offset into device local time', () {
-      final parsed = converter.fromJson('2026-10-08T12:00:00+03:00');
+    test(
+      'fromJson converts timestamp with foreign offset into device local time',
+      () {
+        final parsed = converter.fromJson('2026-10-08T12:00:00+03:00');
 
-      expect(parsed.isUtc, isFalse);
-      expect(
-        parsed.isAtSameMomentAs(DateTime.parse('2026-10-08T12:00:00+03:00')),
-        isTrue,
-      );
-    });
+        expect(parsed.isUtc, isFalse);
+        expect(
+          parsed.isAtSameMomentAs(DateTime.parse('2026-10-08T12:00:00+03:00')),
+          isTrue,
+        );
+      },
+    );
   });
 
   group('LocalDateConverter', () {

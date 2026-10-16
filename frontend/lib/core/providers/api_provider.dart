@@ -15,7 +15,8 @@ final apiProvider = Provider<Dio>((ref) {
   final tokenStorage = ref.watch(tokenStorageProvider);
   final refreshClient = ref.watch(unauthenticatedDioProvider);
 
-  final dio = Dio(_baseOptions())..interceptors.add(const QueryDateInterceptor());
+  final dio = Dio(_baseOptions())
+    ..interceptors.add(const QueryDateInterceptor());
 
   dio.interceptors.add(
     AuthInterceptor(

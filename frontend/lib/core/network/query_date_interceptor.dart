@@ -15,7 +15,8 @@ class QueryDateInterceptor extends Interceptor {
     if (options.queryParameters.isNotEmpty) {
       options.queryParameters = <String, dynamic>{
         for (final entry in options.queryParameters.entries)
-          entry.key: entry.value is String &&
+          entry.key:
+              entry.value is String &&
                   _deviceTimestamp.hasMatch(entry.value as String)
               ? '${entry.value}${DateTime.parse(entry.value as String).timeZoneOffsetFormatted}'
               : entry.value,

@@ -114,8 +114,9 @@ class _StudentFilterBottomSheetState
               children: [
                 TextButton(
                   onPressed: _draft.isEmpty ? null : _reset,
-                  child: Text(context.t.students.filter.reset,
-                      style: const TextStyle(fontSize: 18),
+                  child: Text(
+                    context.t.students.filter.reset,
+                    style: const TextStyle(fontSize: 18),
                   ),
                 ),
 

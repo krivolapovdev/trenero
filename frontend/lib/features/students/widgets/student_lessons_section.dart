@@ -275,7 +275,9 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
               onPreviousMonth: _canGoBackwards(focusedDay)
                   ? () => _showMonth(-1)
                   : null,
-              onNextMonth: _canGoForward(focusedDay) ? () => _showMonth(1) : null,
+              onNextMonth: _canGoForward(focusedDay)
+                  ? () => _showMonth(1)
+                  : null,
             ),
           ),
           StudentLessonsBody(

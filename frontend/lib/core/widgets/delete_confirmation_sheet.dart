@@ -89,4 +89,3 @@ class _DeleteConfirmationSheetState extends State<DeleteConfirmationSheet> {
     ),
   );
 }
-

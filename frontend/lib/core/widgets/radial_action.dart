@@ -36,10 +36,7 @@ class RadialAction extends StatelessWidget {
       child: Listener(
         behavior: HitTestBehavior.translucent,
         onPointerUp: (_) => onCollapse(),
-        child: Container(
-          decoration: radialFabShadowDecoration,
-          child: child,
-        ),
+        child: Container(decoration: radialFabShadowDecoration, child: child),
       ),
     );
   }

@@ -29,7 +29,9 @@ const Color _darkRed = Color(0xFFB71C1C);
     return (background: _lightRedAlpha, foreground: _darkRed);
   }
 
-  final hasIndividualLesson = dayLessons.any((lesson) => lesson.groupId == null);
+  final hasIndividualLesson = dayLessons.any(
+    (lesson) => lesson.groupId == null,
+  );
 
   return hasIndividualLesson
       ? (background: _lightBlueAlpha, foreground: _darkBlue)

@@ -327,47 +327,48 @@ void main() {
     expect(nextButton.onPressed, isNull);
   });
 
-  testWidgets('a future date typed manually into start or end field shows error and disables apply', (
-    tester,
-  ) async {
-    seedPeriod();
+  testWidgets(
+    'a future date typed manually into start or end field shows error and disables apply',
+    (tester) async {
+      seedPeriod();
 
-    await _openSheet(tester, container, today: DateTime(2026, 10, 15));
+      await _openSheet(tester, container, today: DateTime(2026, 10, 15));
 
-    expect(find.text(t.invalidDate), findsNothing);
+      expect(find.text(t.invalidDate), findsNothing);
 
-    // Type tomorrow's date into end field
-    await tester.enterText(find.byType(TextField).at(1), '16102026');
-    await tester.pump();
+      // Type tomorrow's date into end field
+      await tester.enterText(find.byType(TextField).at(1), '16102026');
+      await tester.pump();
 
-    expect(find.text(t.invalidDate), findsOneWidget);
+      expect(find.text(t.invalidDate), findsOneWidget);
 
-    var button = tester.widget<TextButton>(
-      find.widgetWithText(TextButton, t.finance.filter.apply),
-    );
-    expect(button.onPressed, isNull);
+      var button = tester.widget<TextButton>(
+        find.widgetWithText(TextButton, t.finance.filter.apply),
+      );
+      expect(button.onPressed, isNull);
 
-    // Clear end and type tomorrow's date into start field
-    await tester.enterText(find.byType(TextField).at(1), '');
-    await tester.enterText(find.byType(TextField).at(0), '16102026');
-    await tester.pump();
+      // Clear end and type tomorrow's date into start field
+      await tester.enterText(find.byType(TextField).at(1), '');
+      await tester.enterText(find.byType(TextField).at(0), '16102026');
+      await tester.pump();
 
-    expect(find.text(t.invalidDate), findsOneWidget);
+      expect(find.text(t.invalidDate), findsOneWidget);
 
-    button = tester.widget<TextButton>(
-      find.widgetWithText(TextButton, t.finance.filter.apply),
-    );
-    expect(button.onPressed, isNull);
+      button = tester.widget<TextButton>(
+        find.widgetWithText(TextButton, t.finance.filter.apply),
+      );
+      expect(button.onPressed, isNull);
 
-    await tester.tap(find.text(t.finance.filter.apply));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text(t.finance.filter.apply));
+      await tester.pumpAndSettle();
 
-    expect(find.byType(TransactionPeriodFilterBottomSheet), findsOneWidget);
+      expect(find.byType(TransactionPeriodFilterBottomSheet), findsOneWidget);
 
-    // Enter valid date (today)
-    await tester.enterText(find.byType(TextField).at(0), '15102026');
-    await tester.pump();
+      // Enter valid date (today)
+      await tester.enterText(find.byType(TextField).at(0), '15102026');
+      await tester.pump();
 
-    expect(find.text(t.invalidDate), findsNothing);
-  });
+      expect(find.text(t.invalidDate), findsNothing);
+    },
+  );
 }

@@ -17,9 +17,8 @@ class GroupedTransactions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final groupedTransactions = TransactionDateFormatter.groupTransactionsByDate(
-      transactions,
-    );
+    final groupedTransactions =
+        TransactionDateFormatter.groupTransactionsByDate(transactions);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

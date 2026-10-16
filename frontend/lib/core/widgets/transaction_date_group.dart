@@ -44,9 +44,7 @@ class TransactionDateGroup extends StatelessWidget {
           key: ValueKey(transaction.id),
           transaction: transaction,
           overrideTitle: overrideTitle,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           borderRadius: BorderRadius.zero,
           onTap: isTappable
               ? () => Navigator.of(context).push(

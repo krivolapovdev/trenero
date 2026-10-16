@@ -69,9 +69,8 @@ class _TransactionListViewState extends State<TransactionListView> {
       );
     }
 
-    final groupedTransactions = TransactionDateFormatter.groupTransactionsByDate(
-      widget.transactions,
-    );
+    final groupedTransactions =
+        TransactionDateFormatter.groupTransactionsByDate(widget.transactions);
     final sections = groupedTransactions.entries.toList();
     final footerCount = widget.isLoadingMore ? 1 : 0;
 

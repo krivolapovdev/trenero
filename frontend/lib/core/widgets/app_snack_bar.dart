@@ -4,10 +4,12 @@ import 'package:toastification/toastification.dart';
 enum SnackBarType { success, error, warning, info }
 
 abstract final class AppSnackBar {
-  static void show(BuildContext context,
-      String title,
-      String message,
-      SnackBarType type,) {
+  static void show(
+    BuildContext context,
+    String title,
+    String message,
+    SnackBarType type,
+  ) {
     toastification.dismissAll(delayForAnimation: false);
 
     toastification.show(
@@ -22,8 +24,7 @@ abstract final class AppSnackBar {
       style: ToastificationStyle.flatColored,
       title: Text(title),
       description: Text(message),
-      autoCloseDuration: Duration(
-          seconds: type == SnackBarType.error ? 12 : 4),
+      autoCloseDuration: Duration(seconds: type == SnackBarType.error ? 12 : 4),
       closeOnClick: true,
       pauseOnHover: true,
     );

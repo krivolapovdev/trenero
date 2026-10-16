@@ -43,9 +43,7 @@ class GroupRepository {
   Future<GroupResponse> updateGroup({
     required String groupId,
     required Map<String, dynamic> body,
-  }) => guardApiCall(
-    () => _service.updateGroup(groupId: groupId, body: body),
-  );
+  }) => guardApiCall(() => _service.updateGroup(groupId: groupId, body: body));
 
   Future<void> deleteGroup(String groupId) => guardApiCall(() async {
     await _service.deleteGroup(groupId: groupId);

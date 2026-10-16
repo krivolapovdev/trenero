@@ -24,10 +24,7 @@ class RecentTransactionsHeader extends StatelessWidget {
           if (onSeeAllPressed != null)
             TextButton(
               onPressed: onSeeAllPressed,
-              child: Text(
-                context.t.all,
-                style: const TextStyle(fontSize: 16),
-              ),
+              child: Text(context.t.all, style: const TextStyle(fontSize: 16)),
             ),
         ],
       ),

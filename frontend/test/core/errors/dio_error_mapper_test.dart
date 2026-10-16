@@ -153,18 +153,21 @@ void main() {
     expect(mapped.localizedMessage(t), t.errors.validation);
   });
 
-  test('a status the app does not name on its own is worded as a bad request', () {
-    final error = _failedRequest(
-      422,
-      data: _problemDetail(
-        status: 422,
-        title: 'Unprocessable Entity',
-        detail: 'The lesson is not on the day of the group',
-      ),
-    );
+  test(
+    'a status the app does not name on its own is worded as a bad request',
+    () {
+      final error = _failedRequest(
+        422,
+        data: _problemDetail(
+          status: 422,
+          title: 'Unprocessable Entity',
+          detail: 'The lesson is not on the day of the group',
+        ),
+      );
 
-    expect(error.toAppException().localizedMessage(t), t.errors.badRequest);
-  });
+      expect(error.toAppException().localizedMessage(t), t.errors.badRequest);
+    },
+  );
 
   test('an expired session is worded as unauthorized', () {
     final error = _failedRequest(

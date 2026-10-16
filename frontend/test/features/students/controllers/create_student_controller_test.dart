@@ -115,26 +115,31 @@ Future<bool> _save(ProviderContainer container, {String fullName = 'Odin'}) =>
 void main() {
   setUpAll(() => LocaleSettings.setLocaleSync(AppLocale.en));
 
-  test('a taken name fails the save with a message a person can read', () async {
-    final client = _FakeStudentClient()..error = _takenNameError();
-    final container = _container(client);
+  test(
+    'a taken name fails the save with a message a person can read',
+    () async {
+      final client = _FakeStudentClient()..error = _takenNameError();
+      final container = _container(client);
 
-    final saved = await _save(container);
-    final Object? failure = container.read(createStudentControllerProvider).error;
+      final saved = await _save(container);
+      final Object? failure = container
+          .read(createStudentControllerProvider)
+          .error;
 
-    expect(saved, isFalse);
-    expect(client.createBodies, hasLength(1));
-    expect(failure, isA<ConflictException>());
+      expect(saved, isFalse);
+      expect(client.createBodies, hasLength(1));
+      expect(failure, isA<ConflictException>());
 
-    final error = failure as AppException;
+      final error = failure as AppException;
 
-    expect(error.code, AppErrorCode.studentNameNotUnique);
-    expect(error.userMessage(t), 'A student with this name already exists.');
-    expect(
-      error.userMessage(TranslationsRu()),
-      'Ученик с таким именем уже существует.',
-    );
-  });
+      expect(error.code, AppErrorCode.studentNameNotUnique);
+      expect(error.userMessage(t), 'A student with this name already exists.');
+      expect(
+        error.userMessage(TranslationsRu()),
+        'Ученик с таким именем уже существует.',
+      );
+    },
+  );
 
   test('the save trims the name before the request is sent', () async {
     final client = _FakeStudentClient();
@@ -155,7 +160,9 @@ void main() {
     expect(saved, isFalse);
     expect(client.createBodies, isEmpty);
 
-    final Object? failure = container.read(createStudentControllerProvider).error;
+    final Object? failure = container
+        .read(createStudentControllerProvider)
+        .error;
 
     expect(failure, isA<ValidationException>());
     expect(

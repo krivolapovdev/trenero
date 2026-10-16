@@ -28,8 +28,7 @@ class _TransactionPeriodFilterBottomSheetState
     extends ConsumerState<TransactionPeriodFilterBottomSheet> {
   static final DateTime _firstDay = DateTime(2000);
 
-  DateTime get _today =>
-      DateUtils.dateOnly(widget.today ?? DateTime.now());
+  DateTime get _today => DateUtils.dateOnly(widget.today ?? DateTime.now());
   DateTime get _lastDay => _today;
 
   static const double _rowHeight = 44;
@@ -63,10 +62,7 @@ class _TransactionPeriodFilterBottomSheetState
       _start != null && _end != null && _start!.isAfter(_end!);
 
   bool get _canApply =>
-      !_isLoading &&
-      !_isInvertedRange &&
-      !_hasUnparsedInput &&
-      !_hasFutureDate;
+      !_isLoading && !_isInvertedRange && !_hasUnparsedInput && !_hasFutureDate;
 
   bool get _hasUnparsedInput =>
       _isUnparsed(_PeriodField.start) || _isUnparsed(_PeriodField.end);
@@ -90,9 +86,7 @@ class _TransactionPeriodFilterBottomSheetState
     final period = ref.read(transactionFilterControllerProvider);
     _start = period.start;
     _end = period.end;
-    _focusedDay = _clampToRange(
-      _start ?? _end ?? _today,
-    );
+    _focusedDay = _clampToRange(_start ?? _end ?? _today);
 
     _startController = TextEditingController(text: _format(_start));
     _endController = TextEditingController(text: _format(_end));
@@ -315,10 +309,12 @@ class _TransactionPeriodFilterBottomSheetState
                     CalendarMonthHeader(
                       focusedDay: _focusedDay,
                       locale: locale,
-                      onPreviousMonth:
-                          _canGoToPreviousMonth ? () => _shiftMonth(-1) : null,
-                      onNextMonth:
-                          _canGoToNextMonth ? () => _shiftMonth(1) : null,
+                      onPreviousMonth: _canGoToPreviousMonth
+                          ? () => _shiftMonth(-1)
+                          : null,
+                      onNextMonth: _canGoToNextMonth
+                          ? () => _shiftMonth(1)
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     _buildCalendar(locale),
@@ -373,10 +369,7 @@ class _TransactionPeriodFilterBottomSheetState
     enabled: !_isLoading,
     keyboardType: TextInputType.number,
     inputFormatters: const [DateInputFormatter()],
-    decoration: InputDecoration(
-      labelText: label,
-      errorText: _errorText(field),
-    ),
+    decoration: InputDecoration(labelText: label, errorText: _errorText(field)),
   );
 
   Widget _buildCalendar(String locale) => TableCalendar<void>(
@@ -415,10 +408,7 @@ class _TransactionPeriodFilterBottomSheetState
       isTodayHighlighted: false,
       cellMargin: EdgeInsets.all(4),
       defaultTextStyle: TextStyle(fontSize: 16, color: Colors.black),
-      disabledTextStyle: TextStyle(
-        fontSize: 16,
-        color: AppColors.mutedText,
-      ),
+      disabledTextStyle: TextStyle(fontSize: 16, color: AppColors.mutedText),
       rangeHighlightColor: AppColors.badgeSurface,
       rangeHighlightScale: 0.72,
       selectedDecoration: BoxDecoration(

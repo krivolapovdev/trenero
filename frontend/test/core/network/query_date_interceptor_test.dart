@@ -14,9 +14,12 @@ void main() {
 
     interceptor.onRequest(options, handler);
 
-    final expectedOffset =
-        DateTime.parse('2026-10-01T00:00:00.000').timeZoneOffsetFormatted;
-    expect(options.queryParameters['from'], '2026-10-01T00:00:00.000$expectedOffset');
+    final expectedOffset = DateTime.parse('2026-10-01T00:00:00.000')
+        .timeZoneOffsetFormatted;
+    expect(
+      options.queryParameters['from'],
+      '2026-10-01T00:00:00.000$expectedOffset',
+    );
   });
 
   test('leaves plain dates alone (e.g. birthdate)', () {
@@ -50,11 +53,7 @@ void main() {
 
   test('leaves non-date parameters alone', () {
     final options = RequestOptions(
-      queryParameters: {
-        'page': 1,
-        'name': 'Ivan',
-        'active': true,
-      },
+      queryParameters: {'page': 1, 'name': 'Ivan', 'active': true},
     );
     final handler = RequestInterceptorHandler();
 

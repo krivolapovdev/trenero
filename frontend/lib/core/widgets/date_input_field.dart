@@ -171,7 +171,8 @@ class _DateInputFieldState extends State<DateInputField> {
       hintText: DateInputField.hint,
       prefixIcon: widget.icon == null ? null : Icon(widget.icon),
       errorText: _errorText,
-      suffixIcon: widget.allowClear && widget.enabled && _controller.text.isNotEmpty
+      suffixIcon:
+          widget.allowClear && widget.enabled && _controller.text.isNotEmpty
           ? _ClearButton(onClear: _clear)
           : null,
     ),

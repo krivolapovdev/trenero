@@ -113,4 +113,3 @@ class _TapToCloseOverlay extends StatelessWidget {
     );
   }
 }
-

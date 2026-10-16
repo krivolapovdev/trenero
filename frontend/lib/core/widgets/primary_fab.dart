@@ -17,10 +17,7 @@ class PrimaryFab extends StatelessWidget {
       focusElevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       onPressed: onPressed,
-      child: AnimatedIcon(
-        icon: AnimatedIcons.menu_close,
-        progress: animation,
-      ),
+      child: AnimatedIcon(icon: AnimatedIcons.menu_close, progress: animation),
     ),
   );
 }

@@ -69,13 +69,7 @@ void main() {
       find.ancestor(of: find.byIcon(icon), matching: find.byType(IconButton)),
     );
 
-    expect(
-      arrowOf(FluentIcons.chevron_left_24_regular).onPressed,
-      isNull,
-    );
-    expect(
-      arrowOf(FluentIcons.chevron_right_24_regular).onPressed,
-      isNull,
-    );
+    expect(arrowOf(FluentIcons.chevron_left_24_regular).onPressed, isNull);
+    expect(arrowOf(FluentIcons.chevron_right_24_regular).onPressed, isNull);
   });
 }

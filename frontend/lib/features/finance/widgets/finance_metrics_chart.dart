@@ -31,7 +31,9 @@ class FinanceMetricsChart extends ConsumerWidget {
       },
       loading: () => const ChartSkeleton(),
       error: (error, stackTrace) => MetricsMessage(
-        message: context.t.errorLoadingData(error: error.userMessage(context.t)),
+        message: context.t.errorLoadingData(
+          error: error.userMessage(context.t),
+        ),
       ),
     );
   }

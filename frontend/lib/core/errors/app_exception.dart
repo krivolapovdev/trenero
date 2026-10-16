@@ -81,7 +81,8 @@ final class ServerException extends AppException {
     AppErrorCode? code,
     super.cause,
   }) : super(
-         message ?? 'The server rejected the request ($statusCode). Please try again.',
+         message ??
+             'The server rejected the request ($statusCode). Please try again.',
          code: code ?? AppErrorCode.server,
        );
 

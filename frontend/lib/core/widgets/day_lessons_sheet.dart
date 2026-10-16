@@ -6,11 +6,7 @@ class DayLessonsSheet extends StatelessWidget {
   final DateTime selectedDay;
   final List<LessonResponse> dayLessons;
 
-  const new({
-    super.key,
-    required this.selectedDay,
-    required this.dayLessons,
-  });
+  const new({super.key, required this.selectedDay, required this.dayLessons});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -21,8 +17,7 @@ class DayLessonsSheet extends StatelessWidget {
       children: [
         Text(
           context.t.lessons.forDate(
-            date:
-                '${selectedDay.day}/${selectedDay.month}/${selectedDay.year}',
+            date: '${selectedDay.day}/${selectedDay.month}/${selectedDay.year}',
           ),
           style: Theme.of(context).textTheme.titleMedium
               ?.copyWith(fontWeight: FontWeight.bold),
