@@ -56,7 +56,7 @@ type GroupSummaryResponse struct {
 type GroupStudentSummaryResponse struct {
 	ID        uuid.UUID             `json:"id"`
 	FullName  string                `json:"fullName"`
-	Birthdate *types.Date           `json:"birthdate,omitempty"`
+	Birthdate *types.Date           `json:"birthdate,omitempty" swaggertype:"string" format:"date"`
 	Phone     *string               `json:"phone,omitempty"`
 	Note      *string               `json:"note,omitempty"`
 	CreatedAt time.Time             `json:"createdAt"`
@@ -95,7 +95,7 @@ type CreateGroupRequest struct {
 type StudentResponse struct {
 	ID        uuid.UUID   `json:"id"`
 	FullName  string      `json:"fullName"`
-	Birthdate *types.Date `json:"birthdate,omitempty"`
+	Birthdate *types.Date `json:"birthdate,omitempty" swaggertype:"string" format:"date"`
 	Phone     *string     `json:"phone,omitempty"`
 	Note      *string     `json:"note,omitempty"`
 	CreatedAt time.Time   `json:"createdAt"`
@@ -105,7 +105,7 @@ type StudentResponse struct {
 type StudentSummaryResponse struct {
 	ID            uuid.UUID             `json:"id"`
 	FullName      string                `json:"fullName"`
-	Birthdate     *types.Date           `json:"birthdate,omitempty"`
+	Birthdate     *types.Date           `json:"birthdate,omitempty" swaggertype:"string" format:"date"`
 	Phone         *string               `json:"phone,omitempty"`
 	Note          *string               `json:"note,omitempty"`
 	CreatedAt     time.Time             `json:"createdAt"`
@@ -116,7 +116,7 @@ type StudentSummaryResponse struct {
 
 type CreateStudentRequest struct {
 	FullName  string      `json:"fullName"`
-	Birthdate *types.Date `json:"birthdate"`
+	Birthdate *types.Date `json:"birthdate" swaggertype:"string" format:"date"`
 	Phone     *string     `json:"phone"`
 	Note      *string     `json:"note"`
 	Free      bool        `json:"free"`

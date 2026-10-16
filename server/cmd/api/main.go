@@ -28,6 +28,15 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
+// @title                       Trenerio API
+// @version                     1.0
+// @description                 Trenerio backend REST API
+// @host                        localhost:8080
+// @BasePath                    /
+// @securityDefinitions.apikey  BearerAuth
+// @in                          header
+// @name                        Authorization
+// @description                 Type "Bearer" followed by a space and JWT token.
 func main() {
 	logger.Init()
 

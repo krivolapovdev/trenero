@@ -19,6 +19,15 @@ func NewHandler(service *Service) *Handler {
 	}
 }
 
+// GetPaymentStatistics
+// @ID           getPaymentStatistics
+// @Tags         metric-controller
+// @Security     BearerAuth
+// @Param        scope      query     string  false  "Aggregation scope"      Enums(WEEK, MONTH, YEAR)  default(MONTH)
+// @Param        startDate  query     string  true   "Start date (RFC3339)"   Format(date-time)
+// @Param        endDate    query     string  true   "End date (RFC3339)"     Format(date-time)
+// @Success      200        {array}   models.PaymentMetricResponse
+// @Router       /api/v1/metrics/payments [get]
 func (h *Handler) GetPaymentStatistics(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {

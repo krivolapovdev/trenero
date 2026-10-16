@@ -21,6 +21,12 @@ func NewHandler(service *Service) *Handler {
 	}
 }
 
+// GetAllStudentsSummary
+// @ID           getStudentsSummary
+// @Tags         student-controller
+// @Security     BearerAuth
+// @Success      200  {array}   models.StudentSummaryResponse
+// @Router       /api/v1/students/overview [get]
 func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -37,6 +43,15 @@ func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// GetStudentVisits
+// @ID           getStudentVisits
+// @Tags         student-controller
+// @Security     BearerAuth
+// @Param        studentId  path      string  true   "Student ID"             Format(uuid)
+// @Param        from       query     string  false  "Start date (RFC3339)"   Format(date-time)
+// @Param        to         query     string  false  "End date (RFC3339)"     Format(date-time)
+// @Success      200        {array}   models.VisitWithLessonResponse
+// @Router       /api/v1/students/{studentId}/visits [get]
 func (h *Handler) GetStudentVisits(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -71,6 +86,13 @@ func (h *Handler) GetStudentVisits(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// GetStudentPayments
+// @ID           getStudentPayments
+// @Tags         student-controller
+// @Security     BearerAuth
+// @Param        studentId  path      string  true  "Student ID"  Format(uuid)
+// @Success      200        {array}   models.TransactionResponse
+// @Router       /api/v1/students/{studentId}/payments [get]
 func (h *Handler) GetStudentPayments(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -93,6 +115,13 @@ func (h *Handler) GetStudentPayments(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// CreateStudent
+// @ID           createStudent
+// @Tags         student-controller
+// @Security     BearerAuth
+// @Param        request  body      models.CreateStudentRequest  true  "Create student request"
+// @Success      201      {object}  models.StudentResponse
+// @Router       /api/v1/students [post]
 func (h *Handler) CreateStudent(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -115,6 +144,14 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
+// CreateStudentPayment
+// @ID           createStudentPayment
+// @Tags         student-controller
+// @Security     BearerAuth
+// @Param        studentId  path      string                              true  "Student ID"              Format(uuid)
+// @Param        request    body      models.CreateStudentPaymentRequest  true  "Student payment request"
+// @Success      201        {object}  models.TransactionResponse
+// @Router       /api/v1/students/{studentId}/payments [post]
 func (h *Handler) CreateStudentPayment(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -143,6 +180,14 @@ func (h *Handler) CreateStudentPayment(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
+// UpdateStudent
+// @ID           updateStudent
+// @Tags         student-controller
+// @Security     BearerAuth
+// @Param        studentId  path      string                  true  "Student ID"        Format(uuid)
+// @Param        updates    body      map[string]interface{}  true  "Fields to update"
+// @Success      200        {object}  models.StudentResponse
+// @Router       /api/v1/students/{studentId} [patch]
 func (h *Handler) UpdateStudent(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -171,6 +216,13 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// DeleteStudent
+// @ID           deleteStudent
+// @Tags         student-controller
+// @Security     BearerAuth
+// @Param        studentId  path  string  true  "Student ID"  Format(uuid)
+// @Success      204        "No Content"
+// @Router       /api/v1/students/{studentId} [delete]
 func (h *Handler) DeleteStudent(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {

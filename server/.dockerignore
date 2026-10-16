@@ -1,0 +1,7 @@
+*
+!cmd/
+!db/
+!internal/
+!pkg/
+!go.mod
+!go.sum

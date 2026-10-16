@@ -18,6 +18,12 @@ func NewHandler(service *Service) *Handler {
 	}
 }
 
+// DeleteMyAccount
+// @ID           deleteMyAccount
+// @Tags         user-controller
+// @Security     BearerAuth
+// @Success      204  "No Content"
+// @Router       /api/v1/users/me [delete]
 func (h *Handler) DeleteMyAccount(c *gin.Context) {
 	val, exists := c.Get("jwtUser")
 	if !exists {

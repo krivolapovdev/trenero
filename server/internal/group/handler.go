@@ -22,6 +22,12 @@ func NewHandler(service *Service) *Handler {
 	}
 }
 
+// GetAllGroupsSummary
+// @ID           getAllGroupsSummary
+// @Tags         group-controller
+// @Security     BearerAuth
+// @Success      200  {array}   models.GroupSummaryResponse
+// @Router       /api/v1/groups [get]
 func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -38,6 +44,13 @@ func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// GetGroupStudents
+// @ID           getGroupStudents
+// @Tags         group-controller
+// @Security     BearerAuth
+// @Param        groupId  path      string  true  "Group ID"  Format(uuid)
+// @Success      200      {array}   models.GroupStudentSummaryResponse
+// @Router       /api/v1/groups/{groupId}/students [get]
 func (h *Handler) GetGroupStudents(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -60,6 +73,15 @@ func (h *Handler) GetGroupStudents(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// GetGroupLessons
+// @ID           getGroupLessons
+// @Tags         group-controller
+// @Security     BearerAuth
+// @Param        groupId  path      string  true  "Group ID"               Format(uuid)
+// @Param        from     query     string  true  "Start date (RFC3339)"   Format(date-time)
+// @Param        to       query     string  true  "End date (RFC3339)"     Format(date-time)
+// @Success      200      {array}   models.LessonResponse
+// @Router       /api/v1/groups/{groupId}/lessons [get]
 func (h *Handler) GetGroupLessons(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -101,6 +123,15 @@ func (h *Handler) GetGroupLessons(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// GetGroupReport
+// @ID           getGroupReport
+// @Tags         group-controller
+// @Security     BearerAuth
+// @Param        groupId  path      string  true  "Group ID"  Format(uuid)
+// @Param        year     query     int     true  "Year"
+// @Param        month    query     int     true  "Month"
+// @Success      200      {object}  models.GroupReportResponse
+// @Router       /api/v1/groups/{groupId}/report [get]
 func (h *Handler) GetGroupReport(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -142,6 +173,13 @@ func (h *Handler) GetGroupReport(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// CreateGroup
+// @ID           createGroup
+// @Tags         group-controller
+// @Security     BearerAuth
+// @Param        request  body      models.CreateGroupRequest  true  "Create group request"
+// @Success      201      {object}  models.GroupResponse
+// @Router       /api/v1/groups [post]
 func (h *Handler) CreateGroup(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -164,6 +202,14 @@ func (h *Handler) CreateGroup(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
+// UpdateGroup
+// @ID           updateGroup
+// @Tags         group-controller
+// @Security     BearerAuth
+// @Param        groupId  path      string                  true  "Group ID"              Format(uuid)
+// @Param        updates  body      map[string]interface{}  true  "Fields to update"
+// @Success      200      {object}  models.GroupResponse
+// @Router       /api/v1/groups/{groupId} [patch]
 func (h *Handler) UpdateGroup(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -192,6 +238,13 @@ func (h *Handler) UpdateGroup(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// DeleteGroup
+// @ID           deleteGroup
+// @Tags         group-controller
+// @Security     BearerAuth
+// @Param        groupId  path  string  true  "Group ID"  Format(uuid)
+// @Success      204      "No Content"
+// @Router       /api/v1/groups/{groupId} [delete]
 func (h *Handler) DeleteGroup(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {

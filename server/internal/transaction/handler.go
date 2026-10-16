@@ -21,6 +21,14 @@ func NewHandler(service *Service) *Handler {
 	}
 }
 
+// GetPaginatedTransactions
+// @ID           getPaginatedTransactions
+// @Tags         transaction-controller
+// @Security     BearerAuth
+// @Param        page  query     int  false  "Page number (1-indexed)"  default(1)
+// @Param        size  query     int  false  "Page size"                default(20)
+// @Success      200   {object}  models.PageTransactionResponse
+// @Router       /api/v1/transactions [get]
 func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -51,6 +59,13 @@ func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// CreateTransaction
+// @ID           createTransaction
+// @Tags         transaction-controller
+// @Security     BearerAuth
+// @Param        request  body      models.CreateTransactionRequest  true  "Create transaction request"
+// @Success      201      {object}  models.TransactionResponse
+// @Router       /api/v1/transactions [post]
 func (h *Handler) CreateTransaction(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -73,6 +88,14 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
+// UpdateTransaction
+// @ID           updateTransaction
+// @Tags         transaction-controller
+// @Security     BearerAuth
+// @Param        transactionId  path      string                  true  "Transaction ID"    Format(uuid)
+// @Param        updates        body      map[string]interface{}  true  "Fields to update"
+// @Success      200            {object}  models.TransactionResponse
+// @Router       /api/v1/transactions/{transactionId} [patch]
 func (h *Handler) UpdateTransaction(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {
@@ -101,6 +124,13 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// DeleteTransaction
+// @ID           deleteTransaction
+// @Tags         transaction-controller
+// @Security     BearerAuth
+// @Param        transactionId  path  string  true  "Transaction ID"  Format(uuid)
+// @Success      204            "No Content"
+// @Router       /api/v1/transactions/{transactionId} [delete]
 func (h *Handler) DeleteTransaction(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
 	if !ok {

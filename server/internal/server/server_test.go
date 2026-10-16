@@ -217,3 +217,16 @@ func TestLoggingMiddleware(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
+
+func TestSwaggerEndpoint(t *testing.T) {
+	tokenProvider := security.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
+	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/swagger/doc.json", nil)
+	srv.Engine().ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), `"title": "Trenerio API"`)
+	assert.Contains(t, w.Body.String(), `"/api/v1/groups"`)
+}
