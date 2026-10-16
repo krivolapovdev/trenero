@@ -79,7 +79,7 @@ func RespondProblem(c *gin.Context, status int, title, detail string) {
 		Status:    status,
 		Detail:    detail,
 		Instance:  uri,
-		Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
 	})
 }
 
@@ -97,7 +97,7 @@ func RespondConflict(c *gin.Context, code, detail string) {
 		Status:    http.StatusConflict,
 		Detail:    detail,
 		Instance:  uri,
-		Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
 		Code:      code,
 	})
 }
@@ -130,7 +130,7 @@ func RespondValidationFailed(c *gin.Context, errs []map[string]interface{}) {
 		Status:    http.StatusBadRequest,
 		Detail:    "One or more fields in the request failed validation",
 		Instance:  uri,
-		Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
 		Errors:    errs,
 	})
 }

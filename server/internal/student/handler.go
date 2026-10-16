@@ -52,16 +52,12 @@ func (h *Handler) GetStudentVisits(c *gin.Context) {
 
 	var fromPtr, toPtr *time.Time
 	if fromStr := c.Query("from"); fromStr != "" {
-		if t, err := time.Parse(time.RFC3339Nano, fromStr); err == nil {
-			fromPtr = &t
-		} else if t, err := time.Parse(time.RFC3339, fromStr); err == nil {
+		if t, err := time.Parse(time.RFC3339, fromStr); err == nil {
 			fromPtr = &t
 		}
 	}
 	if toStr := c.Query("to"); toStr != "" {
-		if t, err := time.Parse(time.RFC3339Nano, toStr); err == nil {
-			toPtr = &t
-		} else if t, err := time.Parse(time.RFC3339, toStr); err == nil {
+		if t, err := time.Parse(time.RFC3339, toStr); err == nil {
 			toPtr = &t
 		}
 	}

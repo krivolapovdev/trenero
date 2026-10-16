@@ -37,20 +37,14 @@ func (h *Handler) GetPaymentStatistics(c *gin.Context) {
 
 	startDate, err := time.Parse(time.RFC3339, startDateStr)
 	if err != nil {
-		startDate, err = time.Parse(time.RFC3339, startDateStr)
-		if err != nil {
-			pkgerrors.RespondBadRequest(c, "Invalid startDate format")
-			return
-		}
+		pkgerrors.RespondBadRequest(c, "Invalid startDate format")
+		return
 	}
 
 	endDate, err := time.Parse(time.RFC3339, endDateStr)
 	if err != nil {
-		endDate, err = time.Parse(time.RFC3339, endDateStr)
-		if err != nil {
-			pkgerrors.RespondBadRequest(c, "Invalid endDate format")
-			return
-		}
+		pkgerrors.RespondBadRequest(c, "Invalid endDate format")
+		return
 	}
 
 	stats, err := h.service.GetPaymentStatistics(c.Request.Context(), scope, startDate, endDate, jwtUser.ID)

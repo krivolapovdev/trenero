@@ -80,22 +80,16 @@ func (h *Handler) GetGroupLessons(c *gin.Context) {
 		return
 	}
 
-	from, err := time.Parse(time.RFC3339Nano, fromStr)
+	from, err := time.Parse(time.RFC3339, fromStr)
 	if err != nil {
-		from, err = time.Parse(time.RFC3339, fromStr)
-		if err != nil {
-			pkgerrors.RespondBadRequest(c, "Invalid from date format")
-			return
-		}
+		pkgerrors.RespondBadRequest(c, "Invalid from date format")
+		return
 	}
 
-	to, err := time.Parse(time.RFC3339Nano, toStr)
+	to, err := time.Parse(time.RFC3339, toStr)
 	if err != nil {
-		to, err = time.Parse(time.RFC3339, toStr)
-		if err != nil {
-			pkgerrors.RespondBadRequest(c, "Invalid to date format")
-			return
-		}
+		pkgerrors.RespondBadRequest(c, "Invalid to date format")
+		return
 	}
 
 	resp, err := h.service.GetGroupLessons(c.Request.Context(), groupID, jwtUser.ID, from, to)

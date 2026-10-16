@@ -527,9 +527,6 @@ func (s *Service) DeleteTransaction(ctx context.Context, transactionID, ownerID 
 func parseTime(v interface{}) (time.Time, error) {
 	switch val := v.(type) {
 	case string:
-		if t, err := time.Parse(time.RFC3339Nano, val); err == nil {
-			return t, nil
-		}
 		return time.Parse(time.RFC3339, val)
 	case time.Time:
 		return val, nil
