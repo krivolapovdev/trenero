@@ -6,7 +6,9 @@ import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/retry_view.dart';
 import 'package:phone/core/widgets/transaction_list_view.dart';
+import 'package:phone/features/finance/controllers/transaction_filter_controller.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
+import 'package:phone/features/finance/widgets/transaction_filter_button.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/features/students/widgets/student_payments_skeleton.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
@@ -22,6 +24,7 @@ class StudentPaymentListPage extends ConsumerWidget {
     final paymentsAsync = ref.watch(
       studentPaymentsControllerProvider(student.id),
     );
+    final period = ref.watch(transactionFilterControllerProvider);
 
     Future<void> refreshPayments() => ref
         .read(studentPaymentsControllerProvider(student.id).notifier)
@@ -32,6 +35,7 @@ class StudentPaymentListPage extends ConsumerWidget {
         title: Text(context.t.students.paymentTitle(name: student.fullName)),
         elevation: 0,
         actions: [
+          const TransactionFilterButton(),
           IconButton(
             icon: const Icon(FluentIcons.savings_24_regular),
             tooltip: context.t.students.payment,
@@ -55,7 +59,7 @@ class StudentPaymentListPage extends ConsumerWidget {
         onRefresh: refreshPayments,
         child: paymentsAsync.when(
           data: (transactions) => TransactionListView(
-            transactions: transactions,
+            transactions: period.filter(transactions),
             overrideTitle: student.fullName,
             emptyText: context.t.students.noPayments,
             onRefresh: refreshPayments,

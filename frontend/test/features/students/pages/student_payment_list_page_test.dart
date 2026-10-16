@@ -6,7 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:phone/core/widgets/transaction_list_view.dart';
+import 'package:phone/features/finance/controllers/transaction_filter_controller.dart';
+import 'package:phone/features/finance/models/transaction_period_filter.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
+import 'package:phone/features/finance/widgets/transaction_period_filter_bottom_sheet.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
@@ -126,6 +129,56 @@ void main() {
     await _pumpPage(tester, container);
 
     expect(find.byIcon(FluentIcons.savings_24_regular), findsOneWidget);
+  });
+
+  testWidgets('the app bar offers filtering the payments', (tester) async {
+    await _pumpPage(tester, container);
+
+    expect(find.byIcon(FluentIcons.filter_28_regular), findsOneWidget);
+  });
+
+  testWidgets('tapping the app bar filter opens the period sheet', (
+    tester,
+  ) async {
+    await _pumpPage(tester, container);
+
+    await tester.tap(find.byIcon(FluentIcons.filter_28_regular));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TransactionPeriodFilterBottomSheet), findsOneWidget);
+    expect(find.text(t.finance.filter.title), findsOneWidget);
+  });
+
+  testWidgets('the payments list applies the period filter', (tester) async {
+    payments = [_payment];
+
+    await _pumpPage(tester, container);
+
+    expect(find.text(t.students.noPayments), findsNothing);
+
+    container
+        .read(transactionFilterControllerProvider.notifier)
+        .setPeriod(
+          TransactionPeriodFilter(
+            start: DateTime(2025, 9, 1),
+            end: DateTime(2025, 9, 30),
+          ),
+        );
+    await tester.pumpAndSettle();
+
+    expect(find.text(t.students.noPayments), findsOneWidget);
+
+    container
+        .read(transactionFilterControllerProvider.notifier)
+        .setPeriod(
+          TransactionPeriodFilter(
+            start: DateTime(2025, 8, 1),
+            end: DateTime(2025, 8, 31),
+          ),
+        );
+    await tester.pumpAndSettle();
+
+    expect(find.text(t.students.noPayments), findsNothing);
   });
 
   testWidgets('tapping the app bar action opens the create payment sheet', (
