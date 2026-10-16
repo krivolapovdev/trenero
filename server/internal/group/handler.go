@@ -177,8 +177,8 @@ func (h *Handler) GetGroupReport(c *gin.Context) {
 // @ID           createGroup
 // @Tags         group-controller
 // @Security     BearerAuth
-// @Param        request  body      models.CreateGroupRequest  true  "Create group request"
-// @Success      201      {object}  models.GroupResponse
+// @Param        body  body      models.CreateGroupRequest  true  "Create group request"
+// @Success      201   {object}  models.GroupResponse
 // @Router       /api/v1/groups [post]
 func (h *Handler) CreateGroup(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
@@ -206,8 +206,8 @@ func (h *Handler) CreateGroup(c *gin.Context) {
 // @ID           updateGroup
 // @Tags         group-controller
 // @Security     BearerAuth
-// @Param        groupId  path      string                  true  "Group ID"              Format(uuid)
-// @Param        updates  body      map[string]interface{}  true  "Fields to update"
+// @Param        groupId  path      string             true  "Group ID"          Format(uuid)
+// @Param        body     body      map[string]object  true  "Fields to update"
 // @Success      200      {object}  models.GroupResponse
 // @Router       /api/v1/groups/{groupId} [patch]
 func (h *Handler) UpdateGroup(c *gin.Context) {

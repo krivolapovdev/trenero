@@ -53,8 +53,8 @@ func (h *Handler) GetLessonDetails(c *gin.Context) {
 // @ID           createLesson
 // @Tags         lesson-controller
 // @Security     BearerAuth
-// @Param        request  body      models.CreateLessonRequest  true  "Create lesson request"
-// @Success      201      {object}  models.LessonResponse
+// @Param        body  body      models.CreateLessonRequest  true  "Create lesson request"
+// @Success      201   {object}  models.LessonResponse
 // @Router       /api/v1/lessons [post]
 func (h *Handler) CreateLesson(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
@@ -83,7 +83,7 @@ func (h *Handler) CreateLesson(c *gin.Context) {
 // @Tags         lesson-controller
 // @Security     BearerAuth
 // @Param        lessonId  path      string                      true  "Lesson ID"              Format(uuid)
-// @Param        request   body      models.UpdateLessonRequest  true  "Update lesson request"
+// @Param        body      body      models.UpdateLessonRequest  true  "Update lesson request"
 // @Success      200       {object}  models.LessonResponse
 // @Router       /api/v1/lessons/{lessonId} [patch]
 func (h *Handler) UpdateLesson(c *gin.Context) {

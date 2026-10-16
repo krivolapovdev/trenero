@@ -20,8 +20,8 @@ func NewHandler(service *Service) *Handler {
 // GoogleLogin
 // @ID           googleLogin
 // @Tags         o-auth-2-controller
-// @Param        request  body      models.OAuth2LoginRequest  true  "Google OAuth2 login request"
-// @Success      200      {object}  models.LoginResponse
+// @Param        body  body      models.OAuth2LoginRequest  true  "Google OAuth2 login request"
+// @Success      200   {object}  models.LoginResponse
 // @Router       /api/v1/oauth2/google [post]
 func (h *Handler) GoogleLogin(c *gin.Context) {
 	var req OAuth2LoginRequest
@@ -42,8 +42,8 @@ func (h *Handler) GoogleLogin(c *gin.Context) {
 // RefreshTokens
 // @ID           refreshTokens
 // @Tags         jwt-controller
-// @Param        request  body      models.RefreshTokenRequest  true  "Refresh token request"
-// @Success      200      {object}  models.JwtResponse
+// @Param        body  body      models.RefreshTokenRequest  true  "Refresh token request"
+// @Success      200   {object}  models.JwtResponse
 // @Router       /api/v1/jwt/refresh [post]
 func (h *Handler) RefreshTokens(c *gin.Context) {
 	var req RefreshTokenRequest
@@ -62,7 +62,7 @@ func (h *Handler) RefreshTokens(c *gin.Context) {
 }
 
 // ReviewerLogin
-// @ID           reviewerLogin
+// @ID           login
 // @Tags         reviewer-auth-controller
 // @Param        X-Reviewer-Key  header    string  true  "Reviewer secret key"
 // @Success      200             {object}  models.LoginResponse

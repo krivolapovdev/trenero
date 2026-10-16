@@ -63,8 +63,8 @@ func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
 // @ID           createTransaction
 // @Tags         transaction-controller
 // @Security     BearerAuth
-// @Param        request  body      models.CreateTransactionRequest  true  "Create transaction request"
-// @Success      201      {object}  models.TransactionResponse
+// @Param        body  body      models.CreateTransactionRequest  true  "Create transaction request"
+// @Success      201   {object}  models.TransactionResponse
 // @Router       /api/v1/transactions [post]
 func (h *Handler) CreateTransaction(c *gin.Context) {
 	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
@@ -92,8 +92,8 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 // @ID           updateTransaction
 // @Tags         transaction-controller
 // @Security     BearerAuth
-// @Param        transactionId  path      string                  true  "Transaction ID"    Format(uuid)
-// @Param        updates        body      map[string]interface{}  true  "Fields to update"
+// @Param        transactionId  path      string             true  "Transaction ID"    Format(uuid)
+// @Param        body           body      map[string]object  true  "Fields to update"
 // @Success      200            {object}  models.TransactionResponse
 // @Router       /api/v1/transactions/{transactionId} [patch]
 func (h *Handler) UpdateTransaction(c *gin.Context) {
