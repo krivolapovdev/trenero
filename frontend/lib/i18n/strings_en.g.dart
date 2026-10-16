@@ -252,6 +252,9 @@ class Translations$lessons$en {
 	/// en: 'Group lesson'
 	String get groupLesson => 'Group lesson';
 
+	/// en: 'Group lesson: $name'
+	String groupLessonTitle({required Object name}) => 'Group lesson: ${name}';
+
 	/// en: 'Group lessons'
 	String get groupLessons => 'Group lessons';
 
@@ -666,6 +669,7 @@ extension on Translations {
 			'lessons.individualLesson' => 'Individual lesson',
 			'lessons.individualLessons' => 'Individual lessons',
 			'lessons.groupLesson' => 'Group lesson',
+			'lessons.groupLessonTitle' => ({required Object name}) => 'Group lesson: ${name}',
 			'lessons.groupLessons' => 'Group lessons',
 			'lessons.date' => 'Date',
 			'lessons.selectAll' => 'Select all',

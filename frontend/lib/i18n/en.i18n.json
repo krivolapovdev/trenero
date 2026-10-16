@@ -61,6 +61,7 @@
     "individualLesson": "Individual lesson",
     "individualLessons": "Individual lessons",
     "groupLesson": "Group lesson",
+    "groupLessonTitle": "Group lesson: $name",
     "groupLessons": "Group lessons",
     "date": "Date",
     "selectAll": "Select all",

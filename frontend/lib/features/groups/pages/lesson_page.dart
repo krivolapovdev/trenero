@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
+import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/groups/controllers/lesson_details_controller.dart';
 import 'package:phone/features/groups/controllers/lesson_mutation_controller.dart';
@@ -24,6 +25,8 @@ import 'package:phone/i18n/strings.g.dart';
 class LessonPage extends ConsumerStatefulWidget {
   final String groupId;
 
+  final String? groupName;
+
   final DateTime date;
 
   final LessonResponse? lesson;
@@ -31,6 +34,7 @@ class LessonPage extends ConsumerStatefulWidget {
   const new({
     super.key,
     required this.groupId,
+    this.groupName,
     required this.date,
     this.lesson,
   });
@@ -309,9 +313,22 @@ class _LessonPageState extends ConsumerState<LessonPage> {
     final hasChanges = _hasChanges(attendance, storedAttendance);
     final canEdit = _isEditing && !isLoading && !isAttendanceLoading;
 
+    final groupName =
+        widget.groupName ??
+        ref
+            .watch(groupListControllerProvider)
+            .value
+            ?.where((g) => g.id == widget.groupId)
+            .firstOrNull
+            ?.name;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.t.lessons.groupLesson),
+        title: Text(
+          groupName != null && groupName.isNotEmpty
+              ? context.t.lessons.groupLessonTitle(name: groupName)
+              : context.t.lessons.groupLesson,
+        ),
         actions: [
           if (lesson == null || _isEditing)
             SaveLessonAction(

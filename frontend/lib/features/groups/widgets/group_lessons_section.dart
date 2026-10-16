@@ -15,7 +15,9 @@ import 'package:skeletonizer/skeletonizer.dart';
 class GroupLessonsSection extends ConsumerWidget {
   final String groupId;
 
-  const new({super.key, required this.groupId});
+  final String? groupName;
+
+  const new({super.key, required this.groupId, this.groupName});
 
   static final List<LessonResponse> _dummyLessons = List.generate(6, (index) {
     final date = DateTime.now().add(Duration(days: index * 3));
@@ -61,8 +63,12 @@ class GroupLessonsSection extends ConsumerWidget {
   ) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) =>
-            LessonPage(groupId: groupId, date: selectedDay, lesson: lesson),
+        builder: (context) => LessonPage(
+          groupId: groupId,
+          groupName: groupName,
+          date: selectedDay,
+          lesson: lesson,
+        ),
       ),
     );
   }

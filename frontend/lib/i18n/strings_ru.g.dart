@@ -137,10 +137,11 @@ class _Translations$lessons$ru implements Translations$lessons$en {
 	@override String get individualLesson => 'Индивидуальный урок';
 	@override String get individualLessons => 'Индивидуальные уроки';
 	@override String get groupLesson => 'Групповой урок';
+	@override String groupLessonTitle({required Object name}) => 'Групповой урок: ${name}';
 	@override String get groupLessons => 'Групповые уроки';
 	@override String get date => 'Дата';
 	@override String get selectAll => 'Выбрать всех';
-	@override String get deselectAll => 'Снять выбор';
+	@override String get deselectAll => 'Сбросить всех';
 	@override String get noStudents => 'В группе пока нет учеников';
 	@override String get present => 'Присутствовал';
 	@override String get missed => 'Пропустил';
@@ -362,10 +363,11 @@ extension on TranslationsRu {
 			'lessons.individualLesson' => 'Индивидуальный урок',
 			'lessons.individualLessons' => 'Индивидуальные уроки',
 			'lessons.groupLesson' => 'Групповой урок',
+			'lessons.groupLessonTitle' => ({required Object name}) => 'Групповой урок: ${name}',
 			'lessons.groupLessons' => 'Групповые уроки',
 			'lessons.date' => 'Дата',
 			'lessons.selectAll' => 'Выбрать всех',
-			'lessons.deselectAll' => 'Снять выбор',
+			'lessons.deselectAll' => 'Сбросить всех',
 			'lessons.noStudents' => 'В группе пока нет учеников',
 			'lessons.present' => 'Присутствовал',
 			'lessons.missed' => 'Пропустил',

@@ -61,6 +61,7 @@
     "individualLesson": "Индивидуальный урок",
     "individualLessons": "Индивидуальные уроки",
     "groupLesson": "Групповой урок",
+    "groupLessonTitle": "Групповой урок: $name",
     "groupLessons": "Групповые уроки",
     "date": "Дата",
     "selectAll": "Выбрать всех",

@@ -30,8 +30,11 @@ class GroupPopupMenu extends StatelessWidget {
   void _openCreateLessonPage(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) =>
-            LessonPage(groupId: group.id, date: DateTime.now()),
+        builder: (context) => LessonPage(
+          groupId: group.id,
+          groupName: group.name,
+          date: DateTime.now(),
+        ),
       ),
     );
   }

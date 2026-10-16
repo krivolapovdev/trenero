@@ -107,7 +107,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
                 ),
               ),
 
-              GroupLessonsSection(groupId: _group.id),
+              GroupLessonsSection(groupId: _group.id, groupName: _group.name),
 
               GroupStudentsSection(
                 groupId: _group.id,

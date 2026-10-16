@@ -9,11 +9,13 @@ import 'package:phone/features/students/controllers/student_list_controller.dart
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/features/students/controllers/student_report_controller.dart';
 import 'package:phone/features/students/models/student_report.dart';
+import 'package:phone/features/groups/controllers/group_students_controller.dart';
+import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/pages/student_page.dart';
-import 'package:phone/features/students/widgets/student_lesson_calendar_section.dart';
 import 'package:phone/features/students/widgets/student_report_bottom_sheet.dart';
 import 'package:phone/generated/models/group_response.dart';
+import 'package:phone/generated/models/group_student_summary_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/models/transaction_response.dart';
@@ -87,6 +89,13 @@ class _FakeStudentReportController extends StudentReportController {
   );
 }
 
+class _FakeGroupStudentsController extends GroupStudentsController {
+  new(super.groupId);
+
+  @override
+  Future<List<GroupStudentSummaryResponse>> build() async => const [];
+}
+
 Future<void> _pumpPage(
   WidgetTester tester,
   StudentSummaryResponse student,
@@ -101,6 +110,7 @@ Future<void> _pumpPage(
         _FakeStudentPaymentsController.new,
       ),
       groupListControllerProvider.overrideWith(_FakeGroupListController.new),
+      groupStudentsProvider.overrideWith2(_FakeGroupStudentsController.new),
       studentReportProvider.overrideWith2(_FakeStudentReportController.new),
     ],
   );
@@ -117,51 +127,47 @@ Future<void> _pumpPage(
   await tester.pumpAndSettle();
 }
 
-Finder _appBarAction() => find.descendant(
-  of: find.byType(AppBar),
-  matching: find.byType(CreateLessonButton),
-);
-
 void main() {
   setUpAll(() async {
     await initializeDateFormatting();
     LocaleSettings.setLocaleSync(AppLocale.en);
   });
 
-  testWidgets('the app bar creates the individual lesson of the student', (
-    tester,
-  ) async {
-    await _pumpPage(tester, _studentWithoutGroup);
+  testWidgets(
+    'the create button creates the individual lesson of the student',
+    (tester) async {
+      await _pumpPage(tester, _studentWithoutGroup);
 
-    expect(_appBarAction(), findsOneWidget);
+      expect(find.byType(CreateLessonButton), findsOneWidget);
 
-    await tester.tap(_appBarAction());
-    await tester.pumpAndSettle();
+      await tester.tap(find.byType(CreateLessonButton));
+      await tester.pumpAndSettle();
 
-    final page = tester.widget<StudentLessonPage>(
-      find.byType(StudentLessonPage),
-    );
-    expect(page.studentId, _studentId);
-    expect(page.lesson, isNull);
-  });
+      final page = tester.widget<StudentLessonPage>(
+        find.byType(StudentLessonPage),
+      );
+      expect(page.studentId, _studentId);
+      expect(page.lesson, isNull);
+    },
+  );
 
-  testWidgets('the calendar of the individual lessons carries no button', (
-    tester,
-  ) async {
-    await _pumpPage(tester, _studentWithoutGroup);
+  testWidgets(
+    'the calendar of a group keeps the button of its lessons and opens the group lesson with the group name in the title',
+    (tester) async {
+      await _pumpPage(tester, _studentWithGroup);
 
-    expect(find.byType(StudentLessonCalendarSection), findsOneWidget);
+      expect(find.byType(CreateLessonButton), findsOneWidget);
 
-    expect(find.byType(CreateLessonButton), findsOneWidget);
-  });
+      await tester.tap(find.byType(CreateLessonButton));
+      await tester.pumpAndSettle();
 
-  testWidgets('the calendar of a group keeps the button of its lessons', (
-    tester,
-  ) async {
-    await _pumpPage(tester, _studentWithGroup);
-
-    expect(find.byType(CreateLessonButton), findsNWidgets(2));
-  });
+      expect(find.byType(LessonPage), findsOneWidget);
+      expect(
+        find.text(t.lessons.groupLessonTitle(name: _group.name)),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('the app bar menu opens the report of the student', (
     tester,

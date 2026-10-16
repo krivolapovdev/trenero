@@ -160,7 +160,7 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
   }
 
   Future<void> _createGroupLesson(GroupResponse group) async {
-    await _openGroupLessonPage(group.id, DateTime.now(), null);
+    await _openGroupLessonPage(group, DateTime.now(), null);
   }
 
   Future<void> _createIndividualLesson() async {
@@ -199,7 +199,7 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
     final dayVisits = StudentLessonsSection.dayVisitsOf(visits, selectedDay);
 
     if (StudentLessonsSection.opensCreatePageDirectly(dayVisits)) {
-      await _openGroupLessonPage(group.id, selectedDay, null);
+      await _openGroupLessonPage(group, selectedDay, null);
       return;
     }
 
@@ -215,7 +215,7 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
 
     if (selection == null || !context.mounted) return;
 
-    await _openGroupLessonPage(group.id, selectedDay, selection.lesson);
+    await _openGroupLessonPage(group, selectedDay, selection.lesson);
   }
 
   Future<void> _openIndividualLessonPage(
@@ -235,14 +235,18 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
   }
 
   Future<void> _openGroupLessonPage(
-    String groupId,
+    GroupResponse group,
     DateTime selectedDay,
     LessonResponse? lesson,
   ) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) =>
-            LessonPage(groupId: groupId, date: selectedDay, lesson: lesson),
+        builder: (context) => LessonPage(
+          groupId: group.id,
+          groupName: group.name,
+          date: selectedDay,
+          lesson: lesson,
+        ),
       ),
     );
   }

@@ -188,7 +188,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LessonPage), findsOneWidget);
-    expect(find.text(t.lessons.groupLesson), findsOneWidget);
+    expect(
+      find.text(t.lessons.groupLessonTitle(name: _group.name)),
+      findsOneWidget,
+    );
   });
 
   testWidgets('the create button of the calendar opens the add lesson page', (
@@ -201,7 +204,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LessonPage), findsOneWidget);
-    expect(find.text(t.lessons.groupLesson), findsOneWidget);
+    expect(
+      find.text(t.lessons.groupLessonTitle(name: _group.name)),
+      findsOneWidget,
+    );
   });
 
   testWidgets(
@@ -217,7 +223,10 @@ void main() {
 
       expect(find.byType(GroupDayLessonsBottomSheet), findsNothing);
       expect(find.byType(LessonPage), findsOneWidget);
-      expect(find.text(t.lessons.groupLesson), findsOneWidget);
+      expect(
+        find.text(t.lessons.groupLessonTitle(name: _group.name)),
+        findsOneWidget,
+      );
       expect(find.text(_formatDate(today)), findsOneWidget);
     },
   );
@@ -250,7 +259,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LessonPage), findsOneWidget);
-    expect(find.text(t.lessons.groupLesson), findsOneWidget);
+    expect(
+      find.text(t.lessons.groupLessonTitle(name: _group.name)),
+      findsOneWidget,
+    );
     expect(find.text(_formatDate(today)), findsOneWidget);
   });
 
