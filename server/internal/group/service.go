@@ -79,9 +79,11 @@ func (s *Service) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([
 	logger.InfoContext(ctx, "Getting all groups summary", "user_id", ownerID.String())
 	groups, err := s.db.FindAllGroupsByOwnerID(ctx, ownerID)
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to get all groups", "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 	if len(groups) == 0 {
+		logger.InfoContext(ctx, "No groups found for summary", "user_id", ownerID.String())
 		return []models.GroupSummaryResponse{}, nil
 	}
 
@@ -95,6 +97,7 @@ func (s *Service) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([
 		Column2: groupIDs,
 	})
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to count students by group IDs", "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 
@@ -124,6 +127,7 @@ func (s *Service) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([
 		})
 	}
 
+	logger.InfoContext(ctx, "Retrieved groups summary", "count", len(res), "user_id", ownerID.String())
 	return res, nil
 }
 
@@ -135,14 +139,17 @@ func (s *Service) GetGroupByID(ctx context.Context, groupID, ownerID uuid.UUID) 
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			logger.WarnContext(ctx, "Group not found", "group_id", groupID.String(), "user_id", ownerID.String())
 			return models.GroupResponse{}, &pkgerrors.NotFoundError{
 				Entity:  "Group",
 				ID:      groupID,
 				OwnerID: ownerID,
 			}
 		}
+		logger.ErrorContext(ctx, "Failed to get group by id", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return models.GroupResponse{}, err
 	}
+	logger.DebugContext(ctx, "Retrieved group by id", "group_id", groupID.String(), "user_id", ownerID.String())
 	return toGroupResponse(g), nil
 }
 
@@ -150,6 +157,7 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 	logger.InfoContext(ctx, "Getting students for group", "group_id", groupID.String(), "user_id", ownerID.String())
 	_, err := s.GetGroupByID(ctx, groupID, ownerID)
 	if err != nil {
+		logger.WarnContext(ctx, "Group not found for getting students", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 
@@ -158,9 +166,11 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 		OwnerID: ownerID,
 	})
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch student links for group", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 	if len(studentLinks) == 0 {
+		logger.InfoContext(ctx, "No students enrolled in group", "group_id", groupID.String(), "user_id", ownerID.String())
 		return []models.GroupStudentSummaryResponse{}, nil
 	}
 
@@ -175,6 +185,7 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 
 	stRows, err := s.fetchStudentsByIDs(ctx, studentIDs, ownerID)
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch students by IDs for group", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 	studentsMap := make(map[uuid.UUID]models.StudentResponse)
@@ -184,6 +195,7 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 
 	visitsByStudentID, err := s.fetchVisitsByStudentIDs(ctx, studentIDs, ownerID)
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch visits for group students", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 
@@ -196,6 +208,7 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 
 	paymentsByStudentID, err := s.fetchPaymentsByStudentIDs(ctx, studentIDs, ownerID)
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch payments for group students", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 
@@ -207,12 +220,21 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 	lessonsMap := make(map[uuid.UUID]models.LessonResponse)
 	if len(allLessonIDs) > 0 {
 		lRows, err := s.fetchLessonsByIDs(ctx, allLessonIDs, ownerID)
-		if err == nil {
+		if err != nil {
+			logger.WarnContext(ctx, "Failed to fetch lessons for group students", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
+		} else {
 			for _, lr := range lRows {
 				lessonsMap[lr.ID] = lr
 			}
 		}
 	}
+
+	logger.DebugContext(ctx, "Computing statuses for group students",
+		"group_id", groupID.String(),
+		"students_count", len(studentIDs),
+		"lessons_count", len(lessonsMap),
+		"user_id", ownerID.String(),
+	)
 
 	today := time.Now().UTC()
 	res := make([]models.GroupStudentSummaryResponse, 0, len(studentIDs))
@@ -243,6 +265,7 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 		})
 	}
 
+	logger.InfoContext(ctx, "Retrieved group students", "group_id", groupID.String(), "count", len(res), "user_id", ownerID.String())
 	return res, nil
 }
 
@@ -250,16 +273,24 @@ func (s *Service) GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUI
 	logger.InfoContext(ctx, "Getting lessons for group", "group_id", groupID.String(), "user_id", ownerID.String())
 	_, err := s.GetGroupByID(ctx, groupID, ownerID)
 	if err != nil {
+		logger.WarnContext(ctx, "Group not found for getting lessons", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 
-	return s.fetchLessonsByGroup(ctx, groupID, ownerID, from, to)
+	lessons, err := s.fetchLessonsByGroup(ctx, groupID, ownerID, from, to)
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch lessons for group", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
+		return nil, err
+	}
+	logger.DebugContext(ctx, "Retrieved group lessons", "group_id", groupID.String(), "count", len(lessons), "user_id", ownerID.String())
+	return lessons, nil
 }
 
 func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (models.GroupReportResponse, error) {
 	logger.InfoContext(ctx, "Getting group report", "group_id", groupID.String(), "year", year, "month", month, "user_id", ownerID.String())
 	group, err := s.GetGroupByID(ctx, groupID, ownerID)
 	if err != nil {
+		logger.WarnContext(ctx, "Group not found for report", "group_id", groupID.String(), "user_id", ownerID.String())
 		return models.GroupReportResponse{}, err
 	}
 
@@ -268,6 +299,7 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 
 	lessons, err := s.fetchLessonsByGroup(ctx, groupID, ownerID, firstDay, lastDay)
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch lessons for group report", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return models.GroupReportResponse{}, err
 	}
 
@@ -279,15 +311,20 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 	var lessonVisits []models.VisitResponse
 	if len(lessonIDs) > 0 {
 		lv, err := s.fetchVisitsByLessonIDs(ctx, lessonIDs, ownerID)
-		if err == nil {
+		if err != nil {
+			logger.WarnContext(ctx, "Failed to fetch visits for group report lessons", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
+		} else {
 			lessonVisits = lv
 		}
 	}
 
-	studentLinks, _ := s.db.FindGroupStudentsByGroupIDAndOwnerID(ctx, db.FindGroupStudentsByGroupIDAndOwnerIDParams{
+	studentLinks, err := s.db.FindGroupStudentsByGroupIDAndOwnerID(ctx, db.FindGroupStudentsByGroupIDAndOwnerIDParams{
 		GroupID: groupID,
 		OwnerID: ownerID,
 	})
+	if err != nil {
+		logger.WarnContext(ctx, "Failed to fetch group student links for report", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
+	}
 
 	studentIDSet := make(map[uuid.UUID]bool)
 	studentIDOrder := make([]uuid.UUID, 0)
@@ -316,6 +353,7 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 	if len(studentIDOrder) > 0 {
 		stRows, err := s.fetchStudentsByIDs(ctx, studentIDOrder, ownerID)
 		if err != nil {
+			logger.ErrorContext(ctx, "Failed to fetch students for group report", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 			return models.GroupReportResponse{}, err
 		}
 		stMap := make(map[uuid.UUID]models.StudentResponse)
@@ -331,14 +369,35 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 
 	paymentsByStudentID, err := s.fetchPaymentsByStudentIDs(ctx, studentIDOrder, ownerID)
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch payments for group report", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return models.GroupReportResponse{}, err
 	}
 
-	return BuildGroupReport(group, year, month, studentsList, lessons, visitsByStudentID, paymentsByStudentID, time.Now().UTC()), nil
+	logger.DebugContext(ctx, "Compiling group report data",
+		"group_id", groupID.String(),
+		"year", year,
+		"month", month,
+		"lessons_count", len(lessons),
+		"students_count", len(studentsList),
+		"user_id", ownerID.String(),
+	)
+
+	report := BuildGroupReport(group, year, month, studentsList, lessons, visitsByStudentID, paymentsByStudentID, time.Now().UTC())
+	logger.InfoContext(ctx, "Group report generated successfully",
+		"group_id", groupID.String(),
+		"year", year,
+		"month", month,
+		"students_count", len(report.Students),
+		"total_lessons", report.TotalLessons,
+		"total_present", report.TotalPresent,
+		"user_id", ownerID.String(),
+	)
+	return report, nil
 }
 
 func (s *Service) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.GroupResponse, error) {
 	if len(studentIDs) == 0 {
+		logger.DebugContext(ctx, "No student IDs provided to get groups", "user_id", ownerID.String())
 		return map[uuid.UUID][]models.GroupResponse{}, nil
 	}
 	groupStudentRows, err := s.db.FindGroupStudentsByStudentIDsAndOwnerID(ctx, db.FindGroupStudentsByStudentIDsAndOwnerIDParams{
@@ -346,6 +405,7 @@ func (s *Service) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 		Column2: studentIDs,
 	})
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch student group links", "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 
@@ -368,6 +428,7 @@ func (s *Service) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 			Column2: allGroupIDs,
 		})
 		if err != nil {
+			logger.ErrorContext(ctx, "Failed to fetch groups by IDs", "count", len(allGroupIDs), "error", err, "user_id", ownerID.String())
 			return nil, err
 		}
 		for _, gr := range gRows {
@@ -387,16 +448,19 @@ func (s *Service) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 		res[sid] = stGroups
 	}
 
+	logger.DebugContext(ctx, "Retrieved groups by student IDs", "student_count", len(studentIDs), "group_count", len(groupsMap), "user_id", ownerID.String())
 	return res, nil
 }
 
 func (s *Service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.UUID, groupIDs []uuid.UUID) error {
-	return s.withTx(ctx, func(qtx *db.Queries) error {
+	logger.InfoContext(ctx, "Setting student groups", "student_id", studentID.String(), "groups_count", len(groupIDs), "user_id", ownerID.String())
+	err := s.withTx(ctx, func(qtx *db.Queries) error {
 		currentLinks, err := qtx.FindGroupStudentsByStudentIDAndOwnerID(ctx, db.FindGroupStudentsByStudentIDAndOwnerIDParams{
 			StudentID: studentID,
 			OwnerID:   ownerID,
 		})
 		if err != nil {
+			logger.ErrorContext(ctx, "Failed to find current student groups", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 			return err
 		}
 
@@ -405,6 +469,7 @@ func (s *Service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.
 			reqMap[gid] = true
 		}
 
+		deletedCount := 0
 		for _, cl := range currentLinks {
 			if !reqMap[cl.GroupID] {
 				if err := qtx.DeleteGroupStudentByStudentAndGroupID(ctx, db.DeleteGroupStudentByStudentAndGroupIDParams{
@@ -412,8 +477,10 @@ func (s *Service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.
 					StudentID: studentID,
 					OwnerID:   ownerID,
 				}); err != nil {
+					logger.ErrorContext(ctx, "Failed to unlink student from group", "student_id", studentID.String(), "group_id", cl.GroupID.String(), "error", err, "user_id", ownerID.String())
 					return err
 				}
+				deletedCount++
 			}
 		}
 
@@ -422,6 +489,7 @@ func (s *Service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.
 			curMap[cl.GroupID] = true
 		}
 
+		createdCount := 0
 		for _, gid := range groupIDs {
 			if !curMap[gid] {
 				_, err := qtx.CreateGroupStudent(ctx, db.CreateGroupStudentParams{
@@ -430,13 +498,22 @@ func (s *Service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.
 					StudentID: studentID,
 				})
 				if err != nil {
+					logger.ErrorContext(ctx, "Failed to link student to group", "student_id", studentID.String(), "group_id", gid.String(), "error", err, "user_id", ownerID.String())
 					return err
 				}
+				createdCount++
 			}
 		}
 
+		logger.DebugContext(ctx, "Student groups sync details", "student_id", studentID.String(), "unlinked", deletedCount, "linked", createdCount, "user_id", ownerID.String())
 		return nil
 	})
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to set student groups in database", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
+		return err
+	}
+	logger.InfoContext(ctx, "Student groups set successfully", "student_id", studentID.String(), "groups_count", len(groupIDs), "user_id", ownerID.String())
+	return nil
 }
 
 func BuildGroupReport(group models.GroupResponse, year, month int, students []models.StudentResponse, lessons []models.LessonResponse, visitsByStudentID map[uuid.UUID][]models.VisitResponse, paymentsByStudentID map[uuid.UUID][]models.TransactionResponse, today time.Time) models.GroupReportResponse {
@@ -561,9 +638,11 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 	logger.InfoContext(ctx, "Creating group", "name", req.Name, "user_id", ownerID.String())
 	name := strings.TrimSpace(req.Name)
 	if name == "" {
+		logger.WarnContext(ctx, "Group name must not be blank", "user_id", ownerID.String())
 		return models.GroupResponse{}, &pkgerrors.BadRequestError{Message: "name must not be blank"}
 	}
 	if len(name) > 255 {
+		logger.WarnContext(ctx, "Group name exceeds limit", "length", len(name), "user_id", ownerID.String())
 		return models.GroupResponse{}, &pkgerrors.BadRequestError{Message: "name must not exceed 255 characters"}
 	}
 
@@ -572,9 +651,11 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 		Name:    name,
 	})
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to check group name uniqueness", "name", name, "error", err, "user_id", ownerID.String())
 		return models.GroupResponse{}, err
 	}
 	if taken {
+		logger.WarnContext(ctx, "Group with name already exists", "name", name, "user_id", ownerID.String())
 		return models.GroupResponse{}, &pkgerrors.ConflictError{
 			Code:    types.ErrGroupNameNotUnique,
 			Message: fmt.Sprintf("A group named \"%s\" already exists", name),
@@ -593,6 +674,7 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 
 		stRows, err := s.fetchStudentsByIDs(ctx, uniqueStudentIDs, ownerID)
 		if err != nil {
+			logger.ErrorContext(ctx, "Failed to fetch students by IDs for group creation", "count", len(uniqueStudentIDs), "error", err, "user_id", ownerID.String())
 			return models.GroupResponse{}, err
 		}
 		foundMap := make(map[uuid.UUID]bool)
@@ -606,6 +688,7 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 			}
 		}
 		if len(unknown) > 0 {
+			logger.WarnContext(ctx, "Unknown student IDs provided for group creation", "unknown", unknown, "user_id", ownerID.String())
 			return models.GroupResponse{}, &pkgerrors.BadRequestError{
 				Message: fmt.Sprintf("unknown students: %v", unknown),
 			}
@@ -631,6 +714,7 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 			Note:         note,
 		})
 		if err != nil {
+			logger.ErrorContext(ctx, "Failed to create group record", "name", name, "error", err, "user_id", ownerID.String())
 			return err
 		}
 
@@ -641,6 +725,7 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 				StudentID: sid,
 			})
 			if err != nil {
+				logger.ErrorContext(ctx, "Failed to link student to group", "group_id", created.ID.String(), "student_id", sid.String(), "error", err, "user_id", ownerID.String())
 				return err
 			}
 		}
@@ -648,9 +733,11 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 		return nil
 	})
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to create group in database", "name", name, "error", err, "user_id", ownerID.String())
 		return models.GroupResponse{}, err
 	}
 
+	logger.InfoContext(ctx, "Group created successfully", "group_id", created.ID.String(), "name", created.Name, "students_count", len(uniqueStudentIDs), "user_id", ownerID.String())
 	return toGroupResponse(created), nil
 }
 
@@ -665,12 +752,14 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 		})
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
+				logger.WarnContext(ctx, "Group to update not found", "group_id", groupID.String(), "user_id", ownerID.String())
 				return &pkgerrors.NotFoundError{
 					Entity:  "Group",
 					ID:      groupID,
 					OwnerID: ownerID,
 				}
 			}
+			logger.ErrorContext(ctx, "Failed to find group for update", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 			return err
 		}
 
@@ -678,10 +767,12 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 		if rawName, ok := updates["name"]; ok && rawName != nil {
 			nameStr, isStr := rawName.(string)
 			if !isStr || strings.TrimSpace(nameStr) == "" {
+				logger.WarnContext(ctx, "Updated group name must not be blank", "group_id", groupID.String(), "user_id", ownerID.String())
 				return &pkgerrors.BadRequestError{Message: "name must not be blank"}
 			}
 			trimmed := strings.TrimSpace(nameStr)
 			if len(trimmed) > 255 {
+				logger.WarnContext(ctx, "Updated group name exceeds limit", "length", len(trimmed), "group_id", groupID.String(), "user_id", ownerID.String())
 				return &pkgerrors.BadRequestError{Message: "name must not exceed 255 characters"}
 			}
 			taken, err := qtx.ExistsGroupByOwnerIDAndNameAndIDNot(ctx, db.ExistsGroupByOwnerIDAndNameAndIDNotParams{
@@ -690,9 +781,11 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 				ID:      groupID,
 			})
 			if err != nil {
+				logger.ErrorContext(ctx, "Failed to check group name uniqueness for update", "name", trimmed, "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 				return err
 			}
 			if taken {
+				logger.WarnContext(ctx, "Group name already exists for update", "name", trimmed, "group_id", groupID.String(), "user_id", ownerID.String())
 				return &pkgerrors.ConflictError{
 					Code:    types.ErrGroupNameNotUnique,
 					Message: fmt.Sprintf("A group named \"%s\" already exists", trimmed),
@@ -729,6 +822,7 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 			if len(requestedStudentIDs) > 0 {
 				stRows, err := s.fetchStudentsByIDs(ctx, requestedStudentIDs, ownerID)
 				if err != nil {
+					logger.ErrorContext(ctx, "Failed to fetch students by IDs for group update", "count", len(requestedStudentIDs), "error", err, "user_id", ownerID.String())
 					return err
 				}
 				foundMap := make(map[uuid.UUID]bool)
@@ -742,6 +836,7 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 					}
 				}
 				if len(unknown) > 0 {
+					logger.WarnContext(ctx, "Unknown students provided for group update", "group_id", groupID.String(), "unknown", unknown, "user_id", ownerID.String())
 					return &pkgerrors.BadRequestError{
 						Message: fmt.Sprintf("unknown students: %v", unknown),
 					}
@@ -753,6 +848,7 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 				OwnerID: ownerID,
 			})
 			if err != nil {
+				logger.ErrorContext(ctx, "Failed to find current group students for update", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 				return err
 			}
 
@@ -761,6 +857,7 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 				reqMap[sid] = true
 			}
 
+			deletedCount := 0
 			for _, cl := range currentLinks {
 				if !reqMap[cl.StudentID] {
 					if err := qtx.DeleteGroupStudentByStudentAndGroupID(ctx, db.DeleteGroupStudentByStudentAndGroupIDParams{
@@ -768,8 +865,10 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 						StudentID: cl.StudentID,
 						OwnerID:   ownerID,
 					}); err != nil {
+						logger.ErrorContext(ctx, "Failed to unlink student during group update", "group_id", groupID.String(), "student_id", cl.StudentID.String(), "error", err, "user_id", ownerID.String())
 						return err
 					}
+					deletedCount++
 				}
 			}
 
@@ -778,6 +877,7 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 				curMap[cl.StudentID] = true
 			}
 
+			createdCount := 0
 			for _, sid := range requestedStudentIDs {
 				if !curMap[sid] {
 					_, err := qtx.CreateGroupStudent(ctx, db.CreateGroupStudentParams{
@@ -786,10 +886,14 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 						StudentID: sid,
 					})
 					if err != nil {
+						logger.ErrorContext(ctx, "Failed to link student during group update", "group_id", groupID.String(), "student_id", sid.String(), "error", err, "user_id", ownerID.String())
 						return err
 					}
+					createdCount++
 				}
 			}
+
+			logger.DebugContext(ctx, "Group students synced during update", "group_id", groupID.String(), "unlinked", deletedCount, "linked", createdCount, "user_id", ownerID.String())
 		}
 
 		updated, err = qtx.UpdateGroup(ctx, db.UpdateGroupParams{
@@ -799,12 +903,18 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 			DefaultPrice: defaultPrice,
 			Note:         note,
 		})
-		return err
+		if err != nil {
+			logger.ErrorContext(ctx, "Failed to update group record", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
+			return err
+		}
+		return nil
 	})
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to update group in database", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return models.GroupResponse{}, err
 	}
 
+	logger.InfoContext(ctx, "Group updated successfully", "group_id", updated.ID.String(), "name", updated.Name, "user_id", ownerID.String())
 	return toGroupResponse(updated), nil
 }
 
@@ -816,18 +926,25 @@ func (s *Service) DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) e
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			logger.WarnContext(ctx, "Group to delete not found", "group_id", groupID.String(), "user_id", ownerID.String())
 			return &pkgerrors.NotFoundError{
 				Entity:  "Group",
 				ID:      groupID,
 				OwnerID: ownerID,
 			}
 		}
+		logger.ErrorContext(ctx, "Failed to find group for deletion", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return err
 	}
-	return s.db.DeleteGroupByIDAndOwnerID(ctx, db.DeleteGroupByIDAndOwnerIDParams{
+	if err := s.db.DeleteGroupByIDAndOwnerID(ctx, db.DeleteGroupByIDAndOwnerIDParams{
 		ID:      groupID,
 		OwnerID: ownerID,
-	})
+	}); err != nil {
+		logger.ErrorContext(ctx, "Failed to delete group record", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
+		return err
+	}
+	logger.InfoContext(ctx, "Group deleted successfully", "group_id", groupID.String(), "user_id", ownerID.String())
+	return nil
 }
 
 func toGroupResponse(g db.GroupsModuleGroup) models.GroupResponse {

@@ -12,14 +12,14 @@ import (
 )
 
 type ProblemDetail struct {
-	Type      string                   `json:"type,omitempty"`
-	Title     string                   `json:"title"`
-	Status    int                      `json:"status"`
-	Detail    string                   `json:"detail"`
-	Instance  string                   `json:"instance,omitempty"`
-	Timestamp string                   `json:"timestamp"`
-	Code      string                   `json:"code,omitempty"`
-	Errors    []map[string]interface{} `json:"errors,omitempty"`
+	Type      string           `json:"type,omitempty"`
+	Title     string           `json:"title"`
+	Status    int              `json:"status"`
+	Detail    string           `json:"detail"`
+	Instance  string           `json:"instance,omitempty"`
+	Timestamp string           `json:"timestamp"`
+	Code      string           `json:"code,omitempty"`
+	Errors    []map[string]any `json:"errors,omitempty"`
 }
 
 type ConflictError struct {

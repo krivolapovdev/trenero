@@ -6,11 +6,6 @@ pre-commit:
       stage_fixed: true
       run: dart fix --apply && dart format .
 
-    - name: backend
-      root: backend
-      stage_fixed: true
-      run: ./gradlew spotlessApply
-
     - name: server
       root: server
       stage_fixed: true

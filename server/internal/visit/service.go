@@ -33,18 +33,21 @@ func (s *Service) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uui
 		OwnerID:  ownerID,
 	})
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to get visits by lesson id", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 	res := make([]VisitResponse, 0, len(rows))
 	for _, r := range rows {
 		res = append(res, toVisitResponse(r))
 	}
+	logger.DebugContext(ctx, "Retrieved visits by lesson id", "lesson_id", lessonID.String(), "count", len(res), "user_id", ownerID.String())
 	return res, nil
 }
 
 func (s *Service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]VisitResponse, error) {
 	logger.InfoContext(ctx, "Getting visits by lesson ids", "count", len(lessonIDs), "user_id", ownerID.String())
 	if len(lessonIDs) == 0 {
+		logger.DebugContext(ctx, "No lesson IDs provided to get visits", "user_id", ownerID.String())
 		return []VisitResponse{}, nil
 	}
 	rows, err := s.db.FindVisitsByLessonIDsAndOwnerID(ctx, db.FindVisitsByLessonIDsAndOwnerIDParams{
@@ -52,12 +55,14 @@ func (s *Service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUI
 		Column2: lessonIDs,
 	})
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to get visits by lesson ids", "count", len(lessonIDs), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 	res := make([]VisitResponse, 0, len(rows))
 	for _, r := range rows {
 		res = append(res, toVisitResponse(r))
 	}
+	logger.DebugContext(ctx, "Retrieved visits by lesson ids", "count", len(res), "user_id", ownerID.String())
 	return res, nil
 }
 
@@ -68,18 +73,21 @@ func (s *Service) GetVisitsByStudentID(ctx context.Context, studentID, ownerID u
 		OwnerID:   ownerID,
 	})
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to get visits by student id", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 	res := make([]VisitResponse, 0, len(rows))
 	for _, r := range rows {
 		res = append(res, toVisitResponse(r))
 	}
+	logger.DebugContext(ctx, "Retrieved visits by student id", "student_id", studentID.String(), "count", len(res), "user_id", ownerID.String())
 	return res, nil
 }
 
 func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]VisitResponse, error) {
 	logger.InfoContext(ctx, "Getting visits by student ids", "count", len(studentIDs), "user_id", ownerID.String())
 	if len(studentIDs) == 0 {
+		logger.DebugContext(ctx, "No student IDs provided to get visits", "user_id", ownerID.String())
 		return map[uuid.UUID][]VisitResponse{}, nil
 	}
 	rows, err := s.db.FindVisitsByStudentIDsAndOwnerID(ctx, db.FindVisitsByStudentIDsAndOwnerIDParams{
@@ -87,6 +95,7 @@ func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 		Column2: studentIDs,
 	})
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to get visits by student ids", "count", len(studentIDs), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 	res := make(map[uuid.UUID][]VisitResponse)
@@ -96,6 +105,7 @@ func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 	for _, r := range rows {
 		res[r.StudentID] = append(res[r.StudentID], toVisitResponse(r))
 	}
+	logger.DebugContext(ctx, "Retrieved visits by student ids", "student_count", len(studentIDs), "total_visits", len(rows), "user_id", ownerID.String())
 	return res, nil
 }
 
@@ -114,7 +124,7 @@ func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) er
 
 func (s *Service) CreateVisits(ctx context.Context, lessonID uuid.UUID, studentVisits []StudentVisit, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Creating visits", "lesson_id", lessonID.String(), "count", len(studentVisits), "user_id", ownerID.String())
-	return s.withTx(ctx, func(qtx *db.Queries) error {
+	err := s.withTx(ctx, func(qtx *db.Queries) error {
 		for _, sv := range studentVisits {
 			_, err := qtx.CreateVisit(ctx, db.CreateVisitParams{
 				OwnerID:   ownerID,
@@ -124,29 +134,43 @@ func (s *Service) CreateVisits(ctx context.Context, lessonID uuid.UUID, studentV
 				Type:      db.VisitsModuleVisitType(sv.Type),
 			})
 			if err != nil {
+				logger.ErrorContext(ctx, "Failed to create visit record", "lesson_id", lessonID.String(), "student_id", sv.StudentID.String(), "error", err, "user_id", ownerID.String())
 				return err
 			}
 		}
 		return nil
 	})
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to create visits in transaction", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
+		return err
+	}
+	logger.InfoContext(ctx, "Visits created successfully", "lesson_id", lessonID.String(), "count", len(studentVisits), "user_id", ownerID.String())
+	return nil
 }
 
 func (s *Service) RemoveVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Removing visits by lesson id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
-	return s.db.DeleteVisitsByLessonIDAndOwnerID(ctx, db.DeleteVisitsByLessonIDAndOwnerIDParams{
+	err := s.db.DeleteVisitsByLessonIDAndOwnerID(ctx, db.DeleteVisitsByLessonIDAndOwnerIDParams{
 		LessonID: lessonID,
 		OwnerID:  ownerID,
 	})
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to remove visits by lesson id", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
+		return err
+	}
+	logger.InfoContext(ctx, "Visits removed successfully", "lesson_id", lessonID.String(), "user_id", ownerID.String())
+	return nil
 }
 
 func (s *Service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID, requests []StudentVisit, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Updating visits by lesson id", "lesson_id", lessonID.String(), "count", len(requests), "user_id", ownerID.String())
-	return s.withTx(ctx, func(qtx *db.Queries) error {
+	err := s.withTx(ctx, func(qtx *db.Queries) error {
 		existingVisits, err := qtx.FindVisitsByLessonIDAndOwnerID(ctx, db.FindVisitsByLessonIDAndOwnerIDParams{
 			LessonID: lessonID,
 			OwnerID:  ownerID,
 		})
 		if err != nil {
+			logger.ErrorContext(ctx, "Failed to fetch existing visits for lesson update", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 			return err
 		}
 
@@ -160,17 +184,22 @@ func (s *Service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID
 			reqMap[req.StudentID] = req
 		}
 
+		deletedCount := 0
 		for studentID, ev := range existingMap {
 			if _, ok := reqMap[studentID]; !ok {
 				if err := qtx.DeleteVisitByIDAndOwnerID(ctx, db.DeleteVisitByIDAndOwnerIDParams{
 					ID:      ev.ID,
 					OwnerID: ownerID,
 				}); err != nil {
+					logger.ErrorContext(ctx, "Failed to delete removed visit", "visit_id", ev.ID.String(), "error", err, "user_id", ownerID.String())
 					return err
 				}
+				deletedCount++
 			}
 		}
 
+		updatedCount := 0
+		createdCount := 0
 		for studentID, req := range reqMap {
 			if ev, ok := existingMap[studentID]; ok {
 				_, err := qtx.UpdateVisit(ctx, db.UpdateVisitParams{
@@ -180,8 +209,10 @@ func (s *Service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID
 					Type:    db.VisitsModuleVisitType(req.Type),
 				})
 				if err != nil {
+					logger.ErrorContext(ctx, "Failed to update visit", "visit_id", ev.ID.String(), "error", err, "user_id", ownerID.String())
 					return err
 				}
+				updatedCount++
 			} else {
 				_, err := qtx.CreateVisit(ctx, db.CreateVisitParams{
 					OwnerID:   ownerID,
@@ -191,13 +222,22 @@ func (s *Service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID
 					Type:      db.VisitsModuleVisitType(req.Type),
 				})
 				if err != nil {
+					logger.ErrorContext(ctx, "Failed to create new visit during update", "student_id", req.StudentID.String(), "error", err, "user_id", ownerID.String())
 					return err
 				}
+				createdCount++
 			}
 		}
 
+		logger.DebugContext(ctx, "Visits sync details", "lesson_id", lessonID.String(), "deleted", deletedCount, "updated", updatedCount, "created", createdCount, "user_id", ownerID.String())
 		return nil
 	})
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to update visits in transaction", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
+		return err
+	}
+	logger.InfoContext(ctx, "Visits updated successfully", "lesson_id", lessonID.String(), "user_id", ownerID.String())
+	return nil
 }
 
 func toVisitResponse(v db.VisitsModuleVisit) VisitResponse {

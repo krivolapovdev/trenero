@@ -58,10 +58,10 @@ jobs:
             cd ~/trenerio
 
             export IMAGE_TAG="${{ github.sha }}"
-            export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
             export DB_USERNAME="${{ secrets.DB_USERNAME }}"
-            export DOCKERHUB_TOKEN="${{ secrets.DOCKERHUB_TOKEN }}"
+            export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
             export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+            export DOCKERHUB_TOKEN="${{ secrets.DOCKERHUB_TOKEN }}"
             export GOOGLE_WEB_CLIENT_ID="${{ secrets.GOOGLE_WEB_CLIENT_ID }}"
             export JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}"
             export REVIEWER_SECRET_KEY="${{ secrets.REVIEWER_SECRET_KEY }}"

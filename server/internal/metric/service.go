@@ -26,6 +26,11 @@ func NewService(fetchTransactions FetchTransactionsBetweenFunc) *Service {
 
 func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
 	if endDate.Before(startDate) {
+		logger.WarnContext(ctx, "Invalid date range for payment statistics",
+			"start_date", startDate.Format(time.RFC3339),
+			"end_date", endDate.Format(time.RFC3339),
+			"user_id", ownerID.String(),
+		)
 		return nil, &pkgerrors.BadRequestError{
 			Message: "endDate must not be before startDate",
 		}
@@ -73,6 +78,12 @@ func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, sta
 	}
 	rows, err := s.fetchTransactions(ctx, startDate, endDate, ownerID)
 	if err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch transactions for payment statistics",
+			"error", err,
+			"start_date", startDate.Format(time.RFC3339),
+			"end_date", endDate.Format(time.RFC3339),
+			"user_id", ownerID.String(),
+		)
 		return nil, err
 	}
 
@@ -97,5 +108,12 @@ func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, sta
 		})
 		current = next(current)
 	}
+
+	logger.InfoContext(ctx, "Payment statistics computed successfully",
+		"scope", scope,
+		"transactions_count", len(rows),
+		"buckets_count", len(res),
+		"user_id", ownerID.String(),
+	)
 	return res, nil
 }
