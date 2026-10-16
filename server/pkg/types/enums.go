@@ -1,7 +1,6 @@
 package types
 
 import (
-	"strings"
 	"time"
 )
 
@@ -70,25 +69,4 @@ const (
 
 type Date struct {
 	time.Time
-}
-
-func (d Date) MarshalJSON() ([]byte, error) {
-	if d.IsZero() {
-		return []byte("null"), nil
-	}
-	return []byte(`"` + d.Format("2006-01-02") + `"`), nil
-}
-
-func (d *Date) UnmarshalJSON(b []byte) error {
-	s := strings.Trim(string(b), "\"")
-	if s == "null" || s == "" {
-		d.Time = time.Time{}
-		return nil
-	}
-	t, err := time.Parse("2006-01-02", s)
-	if err != nil {
-		return err
-	}
-	d.Time = t
-	return nil
 }

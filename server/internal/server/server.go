@@ -44,6 +44,15 @@ func NewServer(
 ) *Server {
 	engine := gin.New()
 
+	err := engine.SetTrustedProxies([]string{
+		"10.0.0.0/8",
+		"172.16.0.0/12",
+		"192.168.0.0/16",
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	s := &Server{
 		engine:         engine,
 		tokenProvider:  tokenProvider,

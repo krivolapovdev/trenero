@@ -395,7 +395,7 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 			if rawBD == nil {
 				birthdate = sql.NullTime{Valid: false}
 			} else if s, ok := rawBD.(string); ok && s != "" {
-				if t, err := time.Parse("2006-01-02", s); err == nil {
+				if t, err := time.Parse(time.DateOnly, s); err == nil {
 					birthdate = sql.NullTime{Time: t, Valid: true}
 				}
 			}

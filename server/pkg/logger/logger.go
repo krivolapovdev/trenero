@@ -52,23 +52,6 @@ func Init(cfgs ...Config) *slog.Logger {
 		cfg = cfgs[0]
 	}
 
-	if cfg.Level == "" {
-		cfg.Level = os.Getenv("LOG_LEVEL")
-	}
-	if cfg.Format == "" {
-		cfg.Format = os.Getenv("LOG_FORMAT")
-		if cfg.Format == "" {
-			env := strings.ToLower(os.Getenv("APP_ENV"))
-			if env == "" {
-				env = strings.ToLower(os.Getenv("ENV"))
-			}
-			if env == "prod" || env == "production" {
-				cfg.Format = "json"
-			} else {
-				cfg.Format = "text"
-			}
-		}
-	}
 	if cfg.Output == nil {
 		cfg.Output = os.Stdout
 	}
