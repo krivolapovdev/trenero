@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -8,11 +9,15 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type Handler struct {
-	service *Service
+type UserService interface {
+	DeleteUser(ctx context.Context, user security.JwtUser) error
 }
 
-func NewHandler(service *Service) *Handler {
+type Handler struct {
+	service UserService
+}
+
+func NewHandler(service UserService) *Handler {
 	return &Handler{
 		service: service,
 	}
@@ -28,11 +33,13 @@ func (h *Handler) DeleteMyAccount(c *gin.Context) {
 	val, exists := c.Get("jwtUser")
 	if !exists {
 		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
 		return
 	}
 	jwtUser, ok := val.(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
 		return
 	}
 

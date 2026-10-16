@@ -1,6 +1,7 @@
 package lesson
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,14 +11,37 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type Handler struct {
-	service *Service
+type LessonService interface {
+	GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonDetailsResponse, error)
+	CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error)
+	UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error)
+	DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID) error
 }
 
-func NewHandler(service *Service) *Handler {
+type Handler struct {
+	service LessonService
+}
+
+func NewHandler(service LessonService) *Handler {
 	return &Handler{
 		service: service,
 	}
+}
+
+func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
+	val, exists := c.Get("jwtUser")
+	if !exists {
+		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
+		return security.JwtUser{}, false
+	}
+	u, ok := val.(security.JwtUser)
+	if !ok {
+		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
+		return security.JwtUser{}, false
+	}
+	return u, true
 }
 
 // GetLessonDetails
@@ -28,9 +52,8 @@ func NewHandler(service *Service) *Handler {
 // @Success      200       {object}  models.LessonDetailsResponse
 // @Router       /api/v1/lessons/{lessonId}/details [get]
 func (h *Handler) GetLessonDetails(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -57,9 +80,8 @@ func (h *Handler) GetLessonDetails(c *gin.Context) {
 // @Success      201   {object}  models.LessonResponse
 // @Router       /api/v1/lessons [post]
 func (h *Handler) CreateLesson(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -87,9 +109,8 @@ func (h *Handler) CreateLesson(c *gin.Context) {
 // @Success      200       {object}  models.LessonResponse
 // @Router       /api/v1/lessons/{lessonId} [patch]
 func (h *Handler) UpdateLesson(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -122,9 +143,8 @@ func (h *Handler) UpdateLesson(c *gin.Context) {
 // @Success      204       "No Content"
 // @Router       /api/v1/lessons/{lessonId} [delete]
 func (h *Handler) DeleteLesson(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 

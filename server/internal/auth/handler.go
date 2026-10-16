@@ -1,17 +1,25 @@
 package auth
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/models"
 )
 
-type Handler struct {
-	service *Service
+type AuthService interface {
+	LoginGoogle(ctx context.Context, token string) (models.LoginResponse, error)
+	RefreshTokens(ctx context.Context, refreshToken string) (models.JwtResponse, error)
+	LoginReviewer(ctx context.Context, reviewerKey string) (models.LoginResponse, error)
 }
 
-func NewHandler(service *Service) *Handler {
+type Handler struct {
+	service AuthService
+}
+
+func NewHandler(service AuthService) *Handler {
 	return &Handler{
 		service: service,
 	}

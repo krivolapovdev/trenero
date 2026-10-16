@@ -50,7 +50,6 @@ services:
       db:
         condition: service_healthy
     environment:
-      GIN_MODE: release
       DB_URL: postgres://${DB_USERNAME:-username}:${DB_PASSWORD:-password}@db:5432/trenero?sslmode=disable
       GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-ultra-secure-and-ultra-long-secret}

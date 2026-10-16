@@ -15,6 +15,7 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
+	"github.com/krivolapovdev/trenerio/pkg/timeutil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
@@ -630,8 +631,7 @@ func isPaid(payments []models.TransactionResponse, year, month int, today time.T
 		referenceDate = todayDay
 	}
 
-	paidUntilDate := time.Date(maxPaidUntil.Year(), maxPaidUntil.Month(), maxPaidUntil.Day(), 0, 0, 0, 0, time.UTC)
-	return !paidUntilDate.Before(referenceDate)
+	return timeutil.IsSubscriptionActive(maxPaidUntil, referenceDate)
 }
 
 func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error) {

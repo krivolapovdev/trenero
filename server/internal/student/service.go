@@ -14,6 +14,7 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
+	"github.com/krivolapovdev/trenerio/pkg/timeutil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
@@ -378,7 +379,7 @@ func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID,
 		return models.TransactionResponse{}, err
 	}
 
-	if req.PaidUntil.Before(req.Date) {
+	if timeutil.IsPaidUntilBeforeDate(req.PaidUntil, req.Date) {
 		logger.WarnContext(ctx, "paidUntil must not be before payment date", "student_id", studentID.String(), "paid_until", req.PaidUntil.Format(time.RFC3339), "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
 		return models.TransactionResponse{}, &pkgerrors.BadRequestError{
 			Message: "paidUntil must not be before the payment date",
@@ -644,10 +645,7 @@ func ComputeStudentStatusesWithVisitLessons(
 		}
 	}
 
-	isSubscriptionActive := false
-	if maxPaidUntil != nil && !maxPaidUntil.Before(referenceDate) {
-		isSubscriptionActive = true
-	}
+	isSubscriptionActive := timeutil.IsSubscriptionActive(maxPaidUntil, referenceDate)
 
 	if isSubscriptionActive {
 		statuses = append(statuses, types.StudentStatusPaid)

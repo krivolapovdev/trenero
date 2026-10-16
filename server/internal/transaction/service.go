@@ -13,6 +13,7 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
+	"github.com/krivolapovdev/trenerio/pkg/timeutil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
@@ -301,7 +302,7 @@ func (s *Service) CreateTransaction(ctx context.Context, req models.CreateTransa
 			return models.TransactionResponse{}, err
 		}
 
-		if req.PaymentDetails.PaidUntil.Before(req.Date) {
+		if timeutil.IsPaidUntilBeforeDate(req.PaymentDetails.PaidUntil, req.Date) {
 			logger.WarnContext(ctx, "paidUntil must not be before payment date", "paid_until", req.PaymentDetails.PaidUntil.Format(time.RFC3339), "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
 			return models.TransactionResponse{}, &pkgerrors.BadRequestError{
 				Message: "paidUntil must not be before the payment date",
@@ -369,7 +370,7 @@ func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID,
 		return models.TransactionResponse{}, err
 	}
 
-	if paidUntil.Before(date) {
+	if timeutil.IsPaidUntilBeforeDate(paidUntil, date) {
 		logger.WarnContext(ctx, "paidUntil must not be before payment date", "student_id", studentID.String(), "paid_until", paidUntil.Format(time.RFC3339), "date", date.Format(time.RFC3339), "user_id", ownerID.String())
 		return models.TransactionResponse{}, &pkgerrors.BadRequestError{
 			Message: "paidUntil must not be before the payment date",

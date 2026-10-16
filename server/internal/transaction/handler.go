@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -11,14 +12,37 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type Handler struct {
-	service *Service
+type TransactionService interface {
+	GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error)
+	CreateTransaction(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error)
+	UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]interface{}) (models.TransactionResponse, error)
+	DeleteTransaction(ctx context.Context, transactionID, ownerID uuid.UUID) error
 }
 
-func NewHandler(service *Service) *Handler {
+type Handler struct {
+	service TransactionService
+}
+
+func NewHandler(service TransactionService) *Handler {
 	return &Handler{
 		service: service,
 	}
+}
+
+func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
+	val, exists := c.Get("jwtUser")
+	if !exists {
+		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
+		return security.JwtUser{}, false
+	}
+	u, ok := val.(security.JwtUser)
+	if !ok {
+		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
+		return security.JwtUser{}, false
+	}
+	return u, true
 }
 
 // GetPaginatedTransactions
@@ -30,9 +54,8 @@ func NewHandler(service *Service) *Handler {
 // @Success      200   {object}  models.PageTransactionResponse
 // @Router       /api/v1/transactions [get]
 func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -67,9 +90,8 @@ func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
 // @Success      201   {object}  models.TransactionResponse
 // @Router       /api/v1/transactions [post]
 func (h *Handler) CreateTransaction(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -97,9 +119,8 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 // @Success      200            {object}  models.TransactionResponse
 // @Router       /api/v1/transactions/{transactionId} [patch]
 func (h *Handler) UpdateTransaction(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -132,9 +153,8 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 // @Success      204            "No Content"
 // @Router       /api/v1/transactions/{transactionId} [delete]
 func (h *Handler) DeleteTransaction(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 

@@ -1,19 +1,26 @@
 package metric
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type Handler struct {
-	service *Service
+type MetricService interface {
+	GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error)
 }
 
-func NewHandler(service *Service) *Handler {
+type Handler struct {
+	service MetricService
+}
+
+func NewHandler(service MetricService) *Handler {
 	return &Handler{
 		service: service,
 	}
@@ -29,9 +36,16 @@ func NewHandler(service *Service) *Handler {
 // @Success      200        {array}   models.PaymentMetricResponse
 // @Router       /api/v1/metrics/payments [get]
 func (h *Handler) GetPaymentStatistics(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	val, exists := c.Get("jwtUser")
+	if !exists {
+		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
+		return
+	}
+	jwtUser, ok := val.(security.JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
 		return
 	}
 
@@ -41,18 +55,21 @@ func (h *Handler) GetPaymentStatistics(c *gin.Context) {
 
 	if startDateStr == "" || endDateStr == "" {
 		pkgerrors.RespondBadRequest(c, "startDate and endDate are required")
+		c.Abort()
 		return
 	}
 
 	startDate, err := time.Parse(time.RFC3339, startDateStr)
 	if err != nil {
 		pkgerrors.RespondBadRequest(c, "Invalid startDate format")
+		c.Abort()
 		return
 	}
 
 	endDate, err := time.Parse(time.RFC3339, endDateStr)
 	if err != nil {
 		pkgerrors.RespondBadRequest(c, "Invalid endDate format")
+		c.Abort()
 		return
 	}
 

@@ -1,6 +1,7 @@
 package student
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -11,14 +12,40 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type Handler struct {
-	service *Service
+type StudentService interface {
+	GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error)
+	GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error)
+	GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error)
+	CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error)
+	CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error)
+	UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]interface{}) (models.StudentResponse, error)
+	DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error
 }
 
-func NewHandler(service *Service) *Handler {
+type Handler struct {
+	service StudentService
+}
+
+func NewHandler(service StudentService) *Handler {
 	return &Handler{
 		service: service,
 	}
+}
+
+func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
+	val, exists := c.Get("jwtUser")
+	if !exists {
+		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
+		return security.JwtUser{}, false
+	}
+	u, ok := val.(security.JwtUser)
+	if !ok {
+		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
+		return security.JwtUser{}, false
+	}
+	return u, true
 }
 
 // GetAllStudentsSummary
@@ -28,9 +55,8 @@ func NewHandler(service *Service) *Handler {
 // @Success      200  {array}   models.StudentSummaryResponse
 // @Router       /api/v1/students/overview [get]
 func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -53,9 +79,8 @@ func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
 // @Success      200        {array}   models.VisitWithLessonResponse
 // @Router       /api/v1/students/{studentId}/visits [get]
 func (h *Handler) GetStudentVisits(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -94,9 +119,8 @@ func (h *Handler) GetStudentVisits(c *gin.Context) {
 // @Success      200        {array}   models.TransactionResponse
 // @Router       /api/v1/students/{studentId}/payments [get]
 func (h *Handler) GetStudentPayments(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -123,9 +147,8 @@ func (h *Handler) GetStudentPayments(c *gin.Context) {
 // @Success      201   {object}  models.StudentResponse
 // @Router       /api/v1/students [post]
 func (h *Handler) CreateStudent(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -153,9 +176,8 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 // @Success      201        {object}  models.TransactionResponse
 // @Router       /api/v1/students/{studentId}/payments [post]
 func (h *Handler) CreateStudentPayment(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -189,9 +211,8 @@ func (h *Handler) CreateStudentPayment(c *gin.Context) {
 // @Success      200        {object}  models.StudentResponse
 // @Router       /api/v1/students/{studentId} [patch]
 func (h *Handler) UpdateStudent(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -224,9 +245,8 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 // @Success      204        "No Content"
 // @Router       /api/v1/students/{studentId} [delete]
 func (h *Handler) DeleteStudent(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
@@ -76,35 +77,37 @@ func LoggingMiddleware() gin.HandlerFunc {
 
 func CorsMiddleware(allowedOrigins []string) gin.HandlerFunc {
 	allowAll := len(allowedOrigins) == 0 || (len(allowedOrigins) == 1 && allowedOrigins[0] == "*")
-	originMap := make(map[string]bool)
+	originMap := make(map[string]bool, len(allowedOrigins))
 	for _, o := range allowedOrigins {
 		originMap[o] = true
 	}
 
+	config := cors.Config{
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Authorization", "Content-Type", "X-Reviewer-Key", "X-Request-ID", "Origin", "Accept"},
+		ExposeHeaders:    []string{"X-Request-ID", "*"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}
+
+	if allowAll {
+		config.AllowAllOrigins = true
+	} else {
+		config.AllowOrigins = allowedOrigins
+	}
+
+	corsHandler := cors.New(config)
 	return func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
-		if origin != "" {
-			if allowAll {
-				c.Header("Access-Control-Allow-Origin", "*")
-			} else if originMap[origin] {
-				c.Header("Access-Control-Allow-Origin", origin)
-				c.Header("Vary", "Origin")
-			}
-		} else if allowAll {
-			c.Header("Access-Control-Allow-Origin", "*")
-		}
-
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Reviewer-Key, X-Request-ID, Origin, Accept")
-		c.Header("Access-Control-Expose-Headers", "X-Request-ID, *")
-		c.Header("Access-Control-Allow-Credentials", "true")
-
-		if c.Request.Method == http.MethodOptions {
-			c.AbortWithStatus(http.StatusNoContent)
+		if origin != "" && !allowAll && !originMap[origin] {
+			c.Next()
 			return
 		}
 
-		c.Next()
+		corsHandler(c)
+		if c.Request.Method == http.MethodOptions && !c.IsAborted() {
+			c.AbortWithStatus(http.StatusNoContent)
+		}
 	}
 }
 

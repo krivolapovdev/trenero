@@ -200,5 +200,10 @@ func buildDatabaseURL() string {
 		pass = "password"
 	}
 
-	return fmt.Sprintf("postgres://%s:%s@localhost:5432/trenerio?sslmode=disable", user, pass)
+	rawURL := os.Getenv("DB_URL")
+	if rawURL == "" {
+		return fmt.Sprintf("postgres://%s:%s@localhost:5432/trenero?sslmode=disable", user, pass)
+	}
+
+	return rawURL
 }

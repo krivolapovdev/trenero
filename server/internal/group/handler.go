@@ -1,6 +1,7 @@
 package group
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,14 +13,40 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type Handler struct {
-	service *Service
+type GroupService interface {
+	GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.GroupSummaryResponse, error)
+	GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]models.GroupStudentSummaryResponse, error)
+	GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error)
+	GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (models.GroupReportResponse, error)
+	CreateGroup(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error)
+	UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]interface{}) (models.GroupResponse, error)
+	DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) error
 }
 
-func NewHandler(service *Service) *Handler {
+type Handler struct {
+	service GroupService
+}
+
+func NewHandler(service GroupService) *Handler {
 	return &Handler{
 		service: service,
 	}
+}
+
+func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
+	val, exists := c.Get("jwtUser")
+	if !exists {
+		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
+		return security.JwtUser{}, false
+	}
+	u, ok := val.(security.JwtUser)
+	if !ok {
+		pkgerrors.RespondUnauthorized(c, "")
+		c.Abort()
+		return security.JwtUser{}, false
+	}
+	return u, true
 }
 
 // GetAllGroupsSummary
@@ -29,9 +56,8 @@ func NewHandler(service *Service) *Handler {
 // @Success      200  {array}   models.GroupSummaryResponse
 // @Router       /api/v1/groups [get]
 func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -52,9 +78,8 @@ func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
 // @Success      200      {array}   models.GroupStudentSummaryResponse
 // @Router       /api/v1/groups/{groupId}/students [get]
 func (h *Handler) GetGroupStudents(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -83,9 +108,8 @@ func (h *Handler) GetGroupStudents(c *gin.Context) {
 // @Success      200      {array}   models.LessonResponse
 // @Router       /api/v1/groups/{groupId}/lessons [get]
 func (h *Handler) GetGroupLessons(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -133,9 +157,8 @@ func (h *Handler) GetGroupLessons(c *gin.Context) {
 // @Success      200      {object}  models.GroupReportResponse
 // @Router       /api/v1/groups/{groupId}/report [get]
 func (h *Handler) GetGroupReport(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -181,9 +204,8 @@ func (h *Handler) GetGroupReport(c *gin.Context) {
 // @Success      201   {object}  models.GroupResponse
 // @Router       /api/v1/groups [post]
 func (h *Handler) CreateGroup(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -211,9 +233,8 @@ func (h *Handler) CreateGroup(c *gin.Context) {
 // @Success      200      {object}  models.GroupResponse
 // @Router       /api/v1/groups/{groupId} [patch]
 func (h *Handler) UpdateGroup(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
@@ -246,9 +267,8 @@ func (h *Handler) UpdateGroup(c *gin.Context) {
 // @Success      204      "No Content"
 // @Router       /api/v1/groups/{groupId} [delete]
 func (h *Handler) DeleteGroup(c *gin.Context) {
-	jwtUser, ok := c.MustGet("jwtUser").(security.JwtUser)
+	jwtUser, ok := getAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
 		return
 	}
 
