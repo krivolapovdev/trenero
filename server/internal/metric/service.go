@@ -14,6 +14,56 @@ import (
 
 type FetchTransactionsBetweenFunc func(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.TransactionResponse, error)
 
+type ScopeStrategy interface {
+	Truncate(t time.Time, loc *time.Location) time.Time
+	Next(t time.Time) time.Time
+}
+
+type weekStrategy struct{}
+
+func (weekStrategy) Truncate(t time.Time, loc *time.Location) time.Time {
+	t = t.In(loc)
+	weekday := int(t.Weekday())
+	if weekday == 0 {
+		weekday = 7
+	}
+	daysToMonday := weekday - 1
+	d := t.AddDate(0, 0, -daysToMonday)
+	return time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, loc)
+}
+
+func (weekStrategy) Next(t time.Time) time.Time {
+	return t.AddDate(0, 0, 7)
+}
+
+type monthStrategy struct{}
+
+func (monthStrategy) Truncate(t time.Time, loc *time.Location) time.Time {
+	t = t.In(loc)
+	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, loc)
+}
+
+func (monthStrategy) Next(t time.Time) time.Time {
+	return t.AddDate(0, 1, 0)
+}
+
+type yearStrategy struct{}
+
+func (yearStrategy) Truncate(t time.Time, loc *time.Location) time.Time {
+	t = t.In(loc)
+	return time.Date(t.Year(), 1, 1, 0, 0, 0, 0, loc)
+}
+
+func (yearStrategy) Next(t time.Time) time.Time {
+	return t.AddDate(1, 0, 0)
+}
+
+var scopeStrategies = map[types.MetricScope]ScopeStrategy{
+	types.MetricScopeWeek:  weekStrategy{},
+	types.MetricScopeMonth: monthStrategy{},
+	types.MetricScopeYear:  yearStrategy{},
+}
+
 type Service struct {
 	fetchTransactions FetchTransactionsBetweenFunc
 }
@@ -31,14 +81,17 @@ func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, sta
 			"end_date", endDate.Format(time.RFC3339),
 			"user_id", ownerID.String(),
 		)
-		return nil, &pkgerrors.BadRequestError{
-			Message: "endDate must not be before startDate",
-		}
+		return nil, pkgerrors.NewBadRequest("endDate must not be before startDate")
 	}
 
 	scope := strings.ToUpper(strings.TrimSpace(scopeStr))
 	if scope == "" {
-		scope = "MONTH"
+		scope = string(types.MetricScopeMonth)
+	}
+
+	strategy, ok := scopeStrategies[types.MetricScope(scope)]
+	if !ok {
+		strategy = scopeStrategies[types.MetricScopeMonth]
 	}
 
 	logger.InfoContext(ctx, "Getting payment statistics",
@@ -48,35 +101,7 @@ func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, sta
 		"user_id", ownerID.String(),
 	)
 
-	loc := startDate.Location()
-	truncate := func(t time.Time) time.Time {
-		t = t.In(loc)
-		switch scope {
-		case "WEEK":
-			weekday := int(t.Weekday())
-			if weekday == 0 {
-				weekday = 7
-			}
-			daysToMonday := weekday - 1
-			d := t.AddDate(0, 0, -daysToMonday)
-			return time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, loc)
-		case "YEAR":
-			return time.Date(t.Year(), 1, 1, 0, 0, 0, 0, loc)
-		default:
-			return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, loc)
-		}
-	}
-	next := func(t time.Time) time.Time {
-		switch scope {
-		case "WEEK":
-			return t.AddDate(0, 0, 7)
-		case "YEAR":
-			return t.AddDate(1, 0, 0)
-		default:
-			return t.AddDate(0, 1, 0)
-		}
-	}
-	rows, err := s.fetchTransactions(ctx, startDate, endDate, ownerID)
+	txList, err := s.fetchTransactions(ctx, startDate, endDate, ownerID)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to fetch transactions for payment statistics",
 			"error", err,
@@ -87,33 +112,34 @@ func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, sta
 		return nil, err
 	}
 
+	loc := startDate.Location()
 	totalsByBucket := make(map[int64]float64)
-	for _, r := range rows {
-		bucket := truncate(r.Date)
-		amt := r.Amount
-		if r.Type == types.TransactionTypeIncome {
-			totalsByBucket[bucket.Unix()] += amt
+	for _, tx := range txList {
+		bucket := strategy.Truncate(tx.Date, loc)
+		if tx.Type == types.TransactionTypeIncome {
+			totalsByBucket[bucket.Unix()] += tx.Amount
 		} else {
-			totalsByBucket[bucket.Unix()] -= amt
+			totalsByBucket[bucket.Unix()] -= tx.Amount
 		}
 	}
-	res := make([]models.PaymentMetricResponse, 0)
-	current := truncate(startDate)
-	limit := truncate(endDate)
+
+	metrics := make([]models.PaymentMetricResponse, 0)
+	current := strategy.Truncate(startDate, loc)
+	limit := strategy.Truncate(endDate, loc)
 	for !current.After(limit) {
 		amount := totalsByBucket[current.Unix()]
-		res = append(res, models.PaymentMetricResponse{
+		metrics = append(metrics, models.PaymentMetricResponse{
 			Date:  current,
 			Total: amount,
 		})
-		current = next(current)
+		current = strategy.Next(current)
 	}
 
 	logger.InfoContext(ctx, "Payment statistics computed successfully",
 		"scope", scope,
-		"transactions_count", len(rows),
-		"buckets_count", len(res),
+		"transactions_count", len(txList),
+		"buckets_count", len(metrics),
 		"user_id", ownerID.String(),
 	)
-	return res, nil
+	return metrics, nil
 }

@@ -1,23 +1,19 @@
 package user
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/security"
+	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
-type UserService interface {
-	DeleteUser(ctx context.Context, user security.JwtUser) error
-}
-
 type Handler struct {
-	service UserService
+	service *Service
 }
 
-func NewHandler(service UserService) *Handler {
+func NewHandler(service *Service) *Handler {
 	return &Handler{
 		service: service,
 	}
@@ -30,7 +26,7 @@ func NewHandler(service UserService) *Handler {
 // @Success      204  "No Content"
 // @Router       /api/v1/users/me [delete]
 func (h *Handler) DeleteMyAccount(c *gin.Context) {
-	val, exists := c.Get("jwtUser")
+	val, exists := c.Get(types.ContextKeyJWTUser)
 	if !exists {
 		pkgerrors.RespondUnauthorized(c, "")
 		c.Abort()
@@ -43,8 +39,7 @@ func (h *Handler) DeleteMyAccount(c *gin.Context) {
 		return
 	}
 
-	err := h.service.DeleteUser(c.Request.Context(), jwtUser)
-	if err != nil {
+	if err := h.service.DeleteUser(c.Request.Context(), jwtUser); err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}

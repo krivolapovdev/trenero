@@ -26,6 +26,26 @@ func NewVisitService(queries *db.Queries, sqlDB *sql.DB) *Service {
 	return NewService(queries, sqlDB)
 }
 
+func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (err error) {
+	tx, err := s.sqlDB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			panic(p)
+		} else if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+	qtx := s.db.WithTx(tx)
+	if err = fn(qtx); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 func (s *Service) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) ([]VisitResponse, error) {
 	logger.InfoContext(ctx, "Getting visits by lesson id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindVisitsByLessonIDAndOwnerID(ctx, db.FindVisitsByLessonIDAndOwnerIDParams{
@@ -36,12 +56,13 @@ func (s *Service) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uui
 		logger.ErrorContext(ctx, "Failed to get visits by lesson id", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
-	res := make([]VisitResponse, 0, len(rows))
+
+	visits := make([]VisitResponse, 0, len(rows))
 	for _, r := range rows {
-		res = append(res, toVisitResponse(r))
+		visits = append(visits, toVisitResponse(r))
 	}
-	logger.DebugContext(ctx, "Retrieved visits by lesson id", "lesson_id", lessonID.String(), "count", len(res), "user_id", ownerID.String())
-	return res, nil
+	logger.DebugContext(ctx, "Retrieved visits by lesson id", "lesson_id", lessonID.String(), "count", len(visits), "user_id", ownerID.String())
+	return visits, nil
 }
 
 func (s *Service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]VisitResponse, error) {
@@ -50,6 +71,7 @@ func (s *Service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUI
 		logger.DebugContext(ctx, "No lesson IDs provided to get visits", "user_id", ownerID.String())
 		return []VisitResponse{}, nil
 	}
+
 	rows, err := s.db.FindVisitsByLessonIDsAndOwnerID(ctx, db.FindVisitsByLessonIDsAndOwnerIDParams{
 		OwnerID: ownerID,
 		Column2: lessonIDs,
@@ -58,12 +80,13 @@ func (s *Service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUI
 		logger.ErrorContext(ctx, "Failed to get visits by lesson ids", "count", len(lessonIDs), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
-	res := make([]VisitResponse, 0, len(rows))
+
+	visits := make([]VisitResponse, 0, len(rows))
 	for _, r := range rows {
-		res = append(res, toVisitResponse(r))
+		visits = append(visits, toVisitResponse(r))
 	}
-	logger.DebugContext(ctx, "Retrieved visits by lesson ids", "count", len(res), "user_id", ownerID.String())
-	return res, nil
+	logger.DebugContext(ctx, "Retrieved visits by lesson ids", "count", len(visits), "user_id", ownerID.String())
+	return visits, nil
 }
 
 func (s *Service) GetVisitsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]VisitResponse, error) {
@@ -76,12 +99,13 @@ func (s *Service) GetVisitsByStudentID(ctx context.Context, studentID, ownerID u
 		logger.ErrorContext(ctx, "Failed to get visits by student id", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
-	res := make([]VisitResponse, 0, len(rows))
+
+	visits := make([]VisitResponse, 0, len(rows))
 	for _, r := range rows {
-		res = append(res, toVisitResponse(r))
+		visits = append(visits, toVisitResponse(r))
 	}
-	logger.DebugContext(ctx, "Retrieved visits by student id", "student_id", studentID.String(), "count", len(res), "user_id", ownerID.String())
-	return res, nil
+	logger.DebugContext(ctx, "Retrieved visits by student id", "student_id", studentID.String(), "count", len(visits), "user_id", ownerID.String())
+	return visits, nil
 }
 
 func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]VisitResponse, error) {
@@ -90,6 +114,7 @@ func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 		logger.DebugContext(ctx, "No student IDs provided to get visits", "user_id", ownerID.String())
 		return map[uuid.UUID][]VisitResponse{}, nil
 	}
+
 	rows, err := s.db.FindVisitsByStudentIDsAndOwnerID(ctx, db.FindVisitsByStudentIDsAndOwnerIDParams{
 		OwnerID: ownerID,
 		Column2: studentIDs,
@@ -98,28 +123,16 @@ func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 		logger.ErrorContext(ctx, "Failed to get visits by student ids", "count", len(studentIDs), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
-	res := make(map[uuid.UUID][]VisitResponse)
+
+	visitsByStudent := make(map[uuid.UUID][]VisitResponse, len(studentIDs))
 	for _, sid := range studentIDs {
-		res[sid] = []VisitResponse{}
+		visitsByStudent[sid] = []VisitResponse{}
 	}
 	for _, r := range rows {
-		res[r.StudentID] = append(res[r.StudentID], toVisitResponse(r))
+		visitsByStudent[r.StudentID] = append(visitsByStudent[r.StudentID], toVisitResponse(r))
 	}
 	logger.DebugContext(ctx, "Retrieved visits by student ids", "student_count", len(studentIDs), "total_visits", len(rows), "user_id", ownerID.String())
-	return res, nil
-}
-
-func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
-	tx, err := s.sqlDB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	qtx := s.db.WithTx(tx)
-	if err := fn(qtx); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+	return visitsByStudent, nil
 }
 
 func (s *Service) CreateVisits(ctx context.Context, lessonID uuid.UUID, studentVisits []StudentVisit, ownerID uuid.UUID) error {
@@ -174,12 +187,12 @@ func (s *Service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID
 			return err
 		}
 
-		existingMap := make(map[uuid.UUID]db.VisitsModuleVisit)
+		existingMap := make(map[uuid.UUID]db.VisitsModuleVisit, len(existingVisits))
 		for _, ev := range existingVisits {
 			existingMap[ev.StudentID] = ev
 		}
 
-		reqMap := make(map[uuid.UUID]StudentVisit)
+		reqMap := make(map[uuid.UUID]StudentVisit, len(requests))
 		for _, req := range requests {
 			reqMap[req.StudentID] = req
 		}

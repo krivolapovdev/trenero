@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/krivolapovdev/trenerio/docs"
 	"github.com/krivolapovdev/trenerio/internal/auth"
 	"github.com/krivolapovdev/trenerio/internal/group"
 	"github.com/krivolapovdev/trenerio/internal/lesson"
@@ -74,6 +75,7 @@ func (s *Server) setupRoutes(allowedOrigins []string) {
 	s.engine.Use(LoggingMiddleware())
 	s.engine.Use(RecoveryMiddleware())
 	s.engine.Use(CorsMiddleware(allowedOrigins))
+	s.engine.Use(ErrorHandlerMiddleware())
 
 	s.engine.NoRoute(func(c *gin.Context) {
 		pkgerrors.RespondNotFound(c, "Endpoint not found")

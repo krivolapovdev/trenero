@@ -2,10 +2,10 @@ package types
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
-// StudentStatus represents the status of a student
-// @name StudentStatus
 type StudentStatus string
 
 const (
@@ -17,8 +17,6 @@ const (
 	StudentStatusFree     StudentStatus = "FREE"
 )
 
-// VisitStatus represents the attendance status of a visit
-// @name VisitStatus
 type VisitStatus string
 
 const (
@@ -27,8 +25,6 @@ const (
 	VisitStatusExcused VisitStatus = "EXCUSED"
 )
 
-// VisitType represents the billing type of a visit
-// @name VisitType
 type VisitType string
 
 const (
@@ -36,8 +32,6 @@ const (
 	VisitTypeFree    VisitType = "FREE"
 )
 
-// TransactionType represents the type of transaction
-// @name TransactionType
 type TransactionType string
 
 const (
@@ -45,8 +39,6 @@ const (
 	TransactionTypeExpense TransactionType = "EXPENSE"
 )
 
-// MetricScope represents the aggregation scope for payment statistics
-// @name MetricScope
 type MetricScope string
 
 const (
@@ -63,10 +55,65 @@ const (
 )
 
 const (
+	TokenTypeAccess  = "ACCESS"
+	TokenTypeRefresh = "REFRESH"
+)
+
+const (
+	DetailsTypeStudent = "STUDENT"
+)
+
+const (
+	ContextKeyJWTUser   = "jwtUser"
+	ContextKeyRequestID = "requestID"
+)
+
+const (
+	HeaderAuthorization = "Authorization"
+	HeaderXRequestID    = "X-Request-ID"
+	HeaderRequestID     = "Request-ID"
+	HeaderXReviewerKey  = "X-Reviewer-Key"
+	BearerPrefix        = "Bearer "
+)
+
+const (
 	ErrStudentNameNotUnique = "STUDENT_NAME_NOT_UNIQUE"
 	ErrGroupNameNotUnique   = "GROUP_NAME_NOT_UNIQUE"
 )
 
 type Date struct {
 	time.Time
+}
+
+func ParseUUIDSlice(raw any) []uuid.UUID {
+	if raw == nil {
+		return nil
+	}
+	switch v := raw.(type) {
+	case []uuid.UUID:
+		return v
+	case []string:
+		ids := make([]uuid.UUID, 0, len(v))
+		for _, str := range v {
+			if id, err := uuid.Parse(str); err == nil {
+				ids = append(ids, id)
+			}
+		}
+		return ids
+	case []any:
+		ids := make([]uuid.UUID, 0, len(v))
+		for _, item := range v {
+			if str, ok := item.(string); ok {
+				if id, err := uuid.Parse(str); err == nil {
+					ids = append(ids, id)
+				}
+			}
+		}
+		return ids
+	case string:
+		if id, err := uuid.Parse(v); err == nil {
+			return []uuid.UUID{id}
+		}
+	}
+	return nil
 }

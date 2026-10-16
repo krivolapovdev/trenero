@@ -1,7 +1,6 @@
 package group
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,30 +10,21 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
+	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
-type GroupService interface {
-	GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.GroupSummaryResponse, error)
-	GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]models.GroupStudentSummaryResponse, error)
-	GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error)
-	GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (models.GroupReportResponse, error)
-	CreateGroup(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error)
-	UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]interface{}) (models.GroupResponse, error)
-	DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) error
-}
-
 type Handler struct {
-	service GroupService
+	service *Service
 }
 
-func NewHandler(service GroupService) *Handler {
+func NewHandler(service *Service) *Handler {
 	return &Handler{
 		service: service,
 	}
 }
 
 func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
-	val, exists := c.Get("jwtUser")
+	val, exists := c.Get(types.ContextKeyJWTUser)
 	if !exists {
 		pkgerrors.RespondUnauthorized(c, "")
 		c.Abort()
@@ -61,13 +51,13 @@ func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.GetAllGroupsSummary(c.Request.Context(), jwtUser.ID)
+	summaries, err := h.service.GetAllGroupsSummary(c.Request.Context(), jwtUser.ID)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, summaries)
 }
 
 // GetGroupStudents
@@ -89,13 +79,13 @@ func (h *Handler) GetGroupStudents(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.GetGroupStudents(c.Request.Context(), groupID, jwtUser.ID)
+	students, err := h.service.GetGroupStudents(c.Request.Context(), groupID, jwtUser.ID)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, students)
 }
 
 // GetGroupLessons
@@ -138,13 +128,13 @@ func (h *Handler) GetGroupLessons(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.GetGroupLessons(c.Request.Context(), groupID, jwtUser.ID, from, to)
+	lessons, err := h.service.GetGroupLessons(c.Request.Context(), groupID, jwtUser.ID, from, to)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, lessons)
 }
 
 // GetGroupReport
@@ -187,13 +177,13 @@ func (h *Handler) GetGroupReport(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.GetGroupReport(c.Request.Context(), groupID, jwtUser.ID, year, month)
+	report, err := h.service.GetGroupReport(c.Request.Context(), groupID, jwtUser.ID, year, month)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, report)
 }
 
 // CreateGroup
@@ -215,13 +205,13 @@ func (h *Handler) CreateGroup(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.CreateGroup(c.Request.Context(), req, jwtUser.ID)
+	createdGroup, err := h.service.CreateGroup(c.Request.Context(), req, jwtUser.ID)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, resp)
+	c.JSON(http.StatusCreated, createdGroup)
 }
 
 // UpdateGroup
@@ -244,19 +234,19 @@ func (h *Handler) UpdateGroup(c *gin.Context) {
 		return
 	}
 
-	var updates map[string]interface{}
+	var updates map[string]any
 	if err := c.ShouldBindJSON(&updates); err != nil {
 		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
 		return
 	}
 
-	resp, err := h.service.UpdateGroup(c.Request.Context(), groupID, jwtUser.ID, updates)
+	updatedGroup, err := h.service.UpdateGroup(c.Request.Context(), groupID, jwtUser.ID, updates)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, updatedGroup)
 }
 
 // DeleteGroup

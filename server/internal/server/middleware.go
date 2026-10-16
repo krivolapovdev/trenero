@@ -13,20 +13,21 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/security"
+	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
 func RequestIDMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		reqID := c.GetHeader("X-Request-ID")
+		reqID := c.GetHeader(types.HeaderXRequestID)
 		if reqID == "" {
-			reqID = c.GetHeader("Request-ID")
+			reqID = c.GetHeader(types.HeaderRequestID)
 		}
 		if reqID == "" {
 			reqID = uuid.New().String()
 		}
 
-		c.Header("X-Request-ID", reqID)
-		c.Set("requestID", reqID)
+		c.Header(types.HeaderXRequestID, reqID)
+		c.Set(types.ContextKeyRequestID, reqID)
 		c.Request = c.Request.WithContext(logger.WithRequestID(c.Request.Context(), reqID))
 
 		c.Next()
@@ -55,7 +56,7 @@ func LoggingMiddleware() gin.HandlerFunc {
 			attrs = append(attrs, "query", query)
 		}
 
-		if userVal, exists := c.Get("jwtUser"); exists {
+		if userVal, exists := c.Get(types.ContextKeyJWTUser); exists {
 			if u, ok := userVal.(security.JwtUser); ok {
 				attrs = append(attrs, "user_id", u.ID.String(), "user_email", u.Email)
 			}
@@ -65,9 +66,9 @@ func LoggingMiddleware() gin.HandlerFunc {
 			attrs = append(attrs, "gin_errors", c.Errors.String())
 		}
 
-		if status >= 500 {
+		if status >= http.StatusInternalServerError {
 			logger.ErrorContext(ctx, "HTTP request failed", attrs...)
-		} else if status >= 400 {
+		} else if status >= http.StatusBadRequest {
 			logger.WarnContext(ctx, "HTTP request client error", attrs...)
 		} else {
 			logger.InfoContext(ctx, "HTTP request completed", attrs...)
@@ -78,14 +79,14 @@ func LoggingMiddleware() gin.HandlerFunc {
 func CorsMiddleware(allowedOrigins []string) gin.HandlerFunc {
 	allowAll := len(allowedOrigins) == 0 || (len(allowedOrigins) == 1 && allowedOrigins[0] == "*")
 	originMap := make(map[string]bool, len(allowedOrigins))
-	for _, o := range allowedOrigins {
-		originMap[o] = true
+	for _, origin := range allowedOrigins {
+		originMap[origin] = true
 	}
 
 	config := cors.Config{
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Authorization", "Content-Type", "X-Reviewer-Key", "X-Request-ID", "Origin", "Accept"},
-		ExposeHeaders:    []string{"X-Request-ID", "*"},
+		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions},
+		AllowHeaders:     []string{types.HeaderAuthorization, "Content-Type", types.HeaderXReviewerKey, types.HeaderXRequestID, "Origin", "Accept"},
+		ExposeHeaders:    []string{types.HeaderXRequestID, "*"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}
@@ -113,8 +114,8 @@ func CorsMiddleware(allowedOrigins []string) gin.HandlerFunc {
 
 func AuthMiddleware(tokenProvider *security.TokenProvider) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		authHeader := c.GetHeader(types.HeaderAuthorization)
+		if authHeader == "" || !strings.HasPrefix(authHeader, types.BearerPrefix) {
 			logger.WarnContext(c.Request.Context(), "Missing or invalid Bearer token",
 				"path", c.Request.URL.Path,
 				"ip", c.ClientIP(),
@@ -124,8 +125,8 @@ func AuthMiddleware(tokenProvider *security.TokenProvider) gin.HandlerFunc {
 			return
 		}
 
-		token := strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
-		if token == "" || !tokenProvider.IsTokenValid(token, "ACCESS") {
+		token := strings.TrimSpace(strings.TrimPrefix(authHeader, types.BearerPrefix))
+		if token == "" || !tokenProvider.IsTokenValid(token, types.TokenTypeAccess) {
 			logger.WarnContext(c.Request.Context(), "Token is invalid or expired",
 				"path", c.Request.URL.Path,
 				"ip", c.ClientIP(),
@@ -146,7 +147,7 @@ func AuthMiddleware(tokenProvider *security.TokenProvider) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("jwtUser", user)
+		c.Set(types.ContextKeyJWTUser, user)
 		c.Request = c.Request.WithContext(logger.WithUserID(c.Request.Context(), user.ID.String()))
 		c.Next()
 	}
@@ -168,5 +169,15 @@ func RecoveryMiddleware() gin.HandlerFunc {
 			}
 		}()
 		c.Next()
+	}
+}
+
+func ErrorHandlerMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+		if len(c.Errors) > 0 && !c.Writer.Written() {
+			lastErr := c.Errors.Last().Err
+			pkgerrors.HandleError(c, lastErr)
+		}
 	}
 }

@@ -17,10 +17,11 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/timeutil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
+	"golang.org/x/sync/errgroup"
 )
 
 type FetchStudentsByIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error)
-type ComputeStudentStatusesFunc func(student models.StudentResponse, visits []models.VisitResponse, payments []models.TransactionResponse, lessonsMap map[uuid.UUID]models.LessonResponse, groupLessonsMap map[uuid.UUID]models.LessonResponse, today time.Time) []types.StudentStatus
+type ComputeStudentStatusesFunc func(st models.StudentResponse, visits []models.VisitResponse, payments []models.TransactionResponse, lessonsMap map[uuid.UUID]models.LessonResponse, groupLessonsMap map[uuid.UUID]models.LessonResponse, today time.Time) []types.StudentStatus
 type FetchVisitsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.VisitResponse, error)
 type FetchVisitsByLessonIDsFunc func(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.VisitResponse, error)
 type FetchPaymentsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.TransactionResponse, error)
@@ -63,14 +64,21 @@ func NewService(
 	}
 }
 
-func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
+func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (err error) {
 	tx, err := s.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			panic(p)
+		} else if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
 	qtx := s.db.WithTx(tx)
-	if err := fn(qtx); err != nil {
-		_ = tx.Rollback()
+	if err = fn(qtx); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -102,12 +110,12 @@ func (s *Service) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([
 		return nil, err
 	}
 
-	countMap := make(map[uuid.UUID]int64)
+	countMap := make(map[uuid.UUID]int64, len(counts))
 	for _, c := range counts {
 		countMap[c.GroupID] = c.StudentCount
 	}
 
-	res := make([]models.GroupSummaryResponse, 0, len(groups))
+	summaries := make([]models.GroupSummaryResponse, 0, len(groups))
 	for _, g := range groups {
 		var defPrice *float64
 		if g.DefaultPrice.Valid {
@@ -118,7 +126,7 @@ func (s *Service) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([
 		if g.Note.Valid {
 			note = &g.Note.String
 		}
-		res = append(res, models.GroupSummaryResponse{
+		summaries = append(summaries, models.GroupSummaryResponse{
 			ID:              g.ID,
 			Name:            g.Name,
 			DefaultPrice:    defPrice,
@@ -128,8 +136,8 @@ func (s *Service) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([
 		})
 	}
 
-	logger.InfoContext(ctx, "Retrieved groups summary", "count", len(res), "user_id", ownerID.String())
-	return res, nil
+	logger.InfoContext(ctx, "Retrieved groups summary", "count", len(summaries), "user_id", ownerID.String())
+	return summaries, nil
 }
 
 func (s *Service) GetGroupByID(ctx context.Context, groupID, ownerID uuid.UUID) (models.GroupResponse, error) {
@@ -141,11 +149,7 @@ func (s *Service) GetGroupByID(ctx context.Context, groupID, ownerID uuid.UUID) 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.WarnContext(ctx, "Group not found", "group_id", groupID.String(), "user_id", ownerID.String())
-			return models.GroupResponse{}, &pkgerrors.NotFoundError{
-				Entity:  "Group",
-				ID:      groupID,
-				OwnerID: ownerID,
-			}
+			return models.GroupResponse{}, pkgerrors.NewNotFound("Group", groupID, ownerID)
 		}
 		logger.ErrorContext(ctx, "Failed to get group by id", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return models.GroupResponse{}, err
@@ -156,8 +160,7 @@ func (s *Service) GetGroupByID(ctx context.Context, groupID, ownerID uuid.UUID) 
 
 func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]models.GroupStudentSummaryResponse, error) {
 	logger.InfoContext(ctx, "Getting students for group", "group_id", groupID.String(), "user_id", ownerID.String())
-	_, err := s.GetGroupByID(ctx, groupID, ownerID)
-	if err != nil {
+	if _, err := s.GetGroupByID(ctx, groupID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Group not found for getting students", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
@@ -176,7 +179,7 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 	}
 
 	studentIDs := make([]uuid.UUID, 0, len(studentLinks))
-	seenStudentIDs := make(map[uuid.UUID]bool)
+	seenStudentIDs := make(map[uuid.UUID]bool, len(studentLinks))
 	for _, sl := range studentLinks {
 		if !seenStudentIDs[sl.StudentID] {
 			seenStudentIDs[sl.StudentID] = true
@@ -184,20 +187,52 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 		}
 	}
 
-	stRows, err := s.fetchStudentsByIDs(ctx, studentIDs, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch students by IDs for group", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
-		return nil, err
+	var (
+		stRows              []models.StudentResponse
+		visitsByStudentID   map[uuid.UUID][]models.VisitResponse
+		paymentsByStudentID map[uuid.UUID][]models.TransactionResponse
+	)
+
+	g, gCtx := errgroup.WithContext(ctx)
+	if s.fetchStudentsByIDs != nil {
+		g.Go(func() error {
+			rows, err := s.fetchStudentsByIDs(gCtx, studentIDs, ownerID)
+			if err != nil {
+				return err
+			}
+			stRows = rows
+			return nil
+		})
 	}
-	studentsMap := make(map[uuid.UUID]models.StudentResponse)
-	for _, sr := range stRows {
-		studentsMap[sr.ID] = sr
+	if s.fetchVisitsByStudentIDs != nil {
+		g.Go(func() error {
+			vm, err := s.fetchVisitsByStudentIDs(gCtx, studentIDs, ownerID)
+			if err != nil {
+				return err
+			}
+			visitsByStudentID = vm
+			return nil
+		})
+	}
+	if s.fetchPaymentsByStudentIDs != nil {
+		g.Go(func() error {
+			pm, err := s.fetchPaymentsByStudentIDs(gCtx, studentIDs, ownerID)
+			if err != nil {
+				return err
+			}
+			paymentsByStudentID = pm
+			return nil
+		})
 	}
 
-	visitsByStudentID, err := s.fetchVisitsByStudentIDs(ctx, studentIDs, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch visits for group students", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
+	if err := g.Wait(); err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch group student dependencies concurrently", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
+	}
+
+	studentsMap := make(map[uuid.UUID]models.StudentResponse, len(stRows))
+	for _, sr := range stRows {
+		studentsMap[sr.ID] = sr
 	}
 
 	allLessonIDsMap := make(map[uuid.UUID]bool)
@@ -207,19 +242,13 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 		}
 	}
 
-	paymentsByStudentID, err := s.fetchPaymentsByStudentIDs(ctx, studentIDs, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch payments for group students", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
-		return nil, err
-	}
-
 	allLessonIDs := make([]uuid.UUID, 0, len(allLessonIDsMap))
 	for lid := range allLessonIDsMap {
 		allLessonIDs = append(allLessonIDs, lid)
 	}
 
-	lessonsMap := make(map[uuid.UUID]models.LessonResponse)
-	if len(allLessonIDs) > 0 {
+	lessonsMap := make(map[uuid.UUID]models.LessonResponse, len(allLessonIDs))
+	if len(allLessonIDs) > 0 && s.fetchLessonsByIDs != nil {
 		lRows, err := s.fetchLessonsByIDs(ctx, allLessonIDs, ownerID)
 		if err != nil {
 			logger.WarnContext(ctx, "Failed to fetch lessons for group students", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
@@ -238,7 +267,7 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 	)
 
 	today := time.Now().UTC()
-	res := make([]models.GroupStudentSummaryResponse, 0, len(studentIDs))
+	groupStudents := make([]models.GroupStudentSummaryResponse, 0, len(studentIDs))
 	for _, sid := range studentIDs {
 		st, ok := studentsMap[sid]
 		if !ok {
@@ -252,13 +281,17 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 				groupLessonsMap[lid] = l
 			}
 		}
-		statuses := s.computeStudentStatuses(st, stVisits, stPayments, lessonsMap, groupLessonsMap, today)
 
-		res = append(res, models.GroupStudentSummaryResponse{
+		var statuses []types.StudentStatus
+		if s.computeStudentStatuses != nil {
+			statuses = s.computeStudentStatuses(st, stVisits, stPayments, lessonsMap, groupLessonsMap, today)
+		}
+
+		groupStudents = append(groupStudents, models.GroupStudentSummaryResponse{
 			ID:        st.ID,
 			FullName:  st.FullName,
 			Birthdate: st.Birthdate,
-			Phone:     st.Phone,
+			Phone:     phonePtr(st.Phone),
 			Note:      st.Note,
 			CreatedAt: st.CreatedAt,
 			Free:      st.Free,
@@ -266,14 +299,20 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 		})
 	}
 
-	logger.InfoContext(ctx, "Retrieved group students", "group_id", groupID.String(), "count", len(res), "user_id", ownerID.String())
-	return res, nil
+	logger.InfoContext(ctx, "Retrieved group students", "group_id", groupID.String(), "count", len(groupStudents), "user_id", ownerID.String())
+	return groupStudents, nil
+}
+
+func phonePtr(p *string) *string {
+	if p == nil || *p == "" {
+		return nil
+	}
+	return p
 }
 
 func (s *Service) GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Getting lessons for group", "group_id", groupID.String(), "user_id", ownerID.String())
-	_, err := s.GetGroupByID(ctx, groupID, ownerID)
-	if err != nil {
+	if _, err := s.GetGroupByID(ctx, groupID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Group not found for getting lessons", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
@@ -289,7 +328,7 @@ func (s *Service) GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUI
 
 func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (models.GroupReportResponse, error) {
 	logger.InfoContext(ctx, "Getting group report", "group_id", groupID.String(), "year", year, "month", month, "user_id", ownerID.String())
-	group, err := s.GetGroupByID(ctx, groupID, ownerID)
+	grp, err := s.GetGroupByID(ctx, groupID, ownerID)
 	if err != nil {
 		logger.WarnContext(ctx, "Group not found for report", "group_id", groupID.String(), "user_id", ownerID.String())
 		return models.GroupReportResponse{}, err
@@ -298,9 +337,37 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 	firstDay := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
 	lastDay := time.Date(year, time.Month(month)+1, 0, 23, 59, 59, 999999999, time.UTC)
 
-	lessons, err := s.fetchLessonsByGroup(ctx, groupID, ownerID, firstDay, lastDay)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch lessons for group report", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
+	var (
+		lessons      []models.LessonResponse
+		studentLinks []db.GroupsModuleGroupStudent
+	)
+
+	g, gCtx := errgroup.WithContext(ctx)
+	if s.fetchLessonsByGroup != nil {
+		g.Go(func() error {
+			lList, err := s.fetchLessonsByGroup(gCtx, groupID, ownerID, firstDay, lastDay)
+			if err != nil {
+				return err
+			}
+			lessons = lList
+			return nil
+		})
+	}
+	g.Go(func() error {
+		sl, err := s.db.FindGroupStudentsByGroupIDAndOwnerID(gCtx, db.FindGroupStudentsByGroupIDAndOwnerIDParams{
+			GroupID: groupID,
+			OwnerID: ownerID,
+		})
+		if err != nil {
+			logger.WarnContext(gCtx, "Failed to fetch group student links for report", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
+		} else {
+			studentLinks = sl
+		}
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch group report base dependencies", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return models.GroupReportResponse{}, err
 	}
 
@@ -310,21 +377,13 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 	}
 
 	var lessonVisits []models.VisitResponse
-	if len(lessonIDs) > 0 {
+	if len(lessonIDs) > 0 && s.fetchVisitsByLessonIDs != nil {
 		lv, err := s.fetchVisitsByLessonIDs(ctx, lessonIDs, ownerID)
 		if err != nil {
 			logger.WarnContext(ctx, "Failed to fetch visits for group report lessons", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		} else {
 			lessonVisits = lv
 		}
-	}
-
-	studentLinks, err := s.db.FindGroupStudentsByGroupIDAndOwnerID(ctx, db.FindGroupStudentsByGroupIDAndOwnerIDParams{
-		GroupID: groupID,
-		OwnerID: ownerID,
-	})
-	if err != nil {
-		logger.WarnContext(ctx, "Failed to fetch group student links for report", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 	}
 
 	studentIDSet := make(map[uuid.UUID]bool)
@@ -342,7 +401,7 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 		}
 	}
 
-	visitsByStudentID := make(map[uuid.UUID][]models.VisitResponse)
+	visitsByStudentID := make(map[uuid.UUID][]models.VisitResponse, len(studentIDOrder))
 	for _, sid := range studentIDOrder {
 		visitsByStudentID[sid] = []models.VisitResponse{}
 	}
@@ -350,28 +409,46 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 		visitsByStudentID[lv.StudentID] = append(visitsByStudentID[lv.StudentID], lv)
 	}
 
-	studentsList := make([]models.StudentResponse, 0, len(studentIDOrder))
+	var (
+		studentsList        []models.StudentResponse
+		paymentsByStudentID map[uuid.UUID][]models.TransactionResponse
+	)
+
 	if len(studentIDOrder) > 0 {
-		stRows, err := s.fetchStudentsByIDs(ctx, studentIDOrder, ownerID)
-		if err != nil {
-			logger.ErrorContext(ctx, "Failed to fetch students for group report", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
+		g2, g2Ctx := errgroup.WithContext(ctx)
+		if s.fetchStudentsByIDs != nil {
+			g2.Go(func() error {
+				stRows, err := s.fetchStudentsByIDs(g2Ctx, studentIDOrder, ownerID)
+				if err != nil {
+					return err
+				}
+				stMap := make(map[uuid.UUID]models.StudentResponse, len(stRows))
+				for _, sr := range stRows {
+					stMap[sr.ID] = sr
+				}
+				studentsList = make([]models.StudentResponse, 0, len(studentIDOrder))
+				for _, sid := range studentIDOrder {
+					if st, ok := stMap[sid]; ok {
+						studentsList = append(studentsList, st)
+					}
+				}
+				return nil
+			})
+		}
+		if s.fetchPaymentsByStudentIDs != nil {
+			g2.Go(func() error {
+				pm, err := s.fetchPaymentsByStudentIDs(g2Ctx, studentIDOrder, ownerID)
+				if err != nil {
+					return err
+				}
+				paymentsByStudentID = pm
+				return nil
+			})
+		}
+		if err := g2.Wait(); err != nil {
+			logger.ErrorContext(ctx, "Failed to fetch students or payments for group report", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 			return models.GroupReportResponse{}, err
 		}
-		stMap := make(map[uuid.UUID]models.StudentResponse)
-		for _, sr := range stRows {
-			stMap[sr.ID] = sr
-		}
-		for _, sid := range studentIDOrder {
-			if st, ok := stMap[sid]; ok {
-				studentsList = append(studentsList, st)
-			}
-		}
-	}
-
-	paymentsByStudentID, err := s.fetchPaymentsByStudentIDs(ctx, studentIDOrder, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch payments for group report", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
-		return models.GroupReportResponse{}, err
 	}
 
 	logger.DebugContext(ctx, "Compiling group report data",
@@ -383,7 +460,7 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 		"user_id", ownerID.String(),
 	)
 
-	report := BuildGroupReport(group, year, month, studentsList, lessons, visitsByStudentID, paymentsByStudentID, time.Now().UTC())
+	report := BuildGroupReport(grp, year, month, studentsList, lessons, visitsByStudentID, paymentsByStudentID, time.Now().UTC())
 	logger.InfoContext(ctx, "Group report generated successfully",
 		"group_id", groupID.String(),
 		"year", year,
@@ -422,7 +499,7 @@ func (s *Service) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 		allGroupIDs = append(allGroupIDs, gid)
 	}
 
-	groupsMap := make(map[uuid.UUID]models.GroupResponse)
+	groupsMap := make(map[uuid.UUID]models.GroupResponse, len(allGroupIDs))
 	if len(allGroupIDs) > 0 {
 		gRows, err := s.db.FindGroupsByIDsAndOwnerID(ctx, db.FindGroupsByIDsAndOwnerIDParams{
 			OwnerID: ownerID,
@@ -437,7 +514,7 @@ func (s *Service) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 		}
 	}
 
-	res := make(map[uuid.UUID][]models.GroupResponse)
+	groupsByStudent := make(map[uuid.UUID][]models.GroupResponse, len(studentIDs))
 	for _, sid := range studentIDs {
 		gIDs := studentGroupIDsMap[sid]
 		stGroups := make([]models.GroupResponse, 0, len(gIDs))
@@ -446,11 +523,11 @@ func (s *Service) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 				stGroups = append(stGroups, grp)
 			}
 		}
-		res[sid] = stGroups
+		groupsByStudent[sid] = stGroups
 	}
 
 	logger.DebugContext(ctx, "Retrieved groups by student IDs", "student_count", len(studentIDs), "group_count", len(groupsMap), "user_id", ownerID.String())
-	return res, nil
+	return groupsByStudent, nil
 }
 
 func (s *Service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.UUID, groupIDs []uuid.UUID) error {
@@ -465,7 +542,7 @@ func (s *Service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.
 			return err
 		}
 
-		reqMap := make(map[uuid.UUID]bool)
+		reqMap := make(map[uuid.UUID]bool, len(groupIDs))
 		for _, gid := range groupIDs {
 			reqMap[gid] = true
 		}
@@ -485,7 +562,7 @@ func (s *Service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.
 			}
 		}
 
-		curMap := make(map[uuid.UUID]bool)
+		curMap := make(map[uuid.UUID]bool, len(currentLinks))
 		for _, cl := range currentLinks {
 			curMap[cl.GroupID] = true
 		}
@@ -517,7 +594,7 @@ func (s *Service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.
 	return nil
 }
 
-func BuildGroupReport(group models.GroupResponse, year, month int, students []models.StudentResponse, lessons []models.LessonResponse, visitsByStudentID map[uuid.UUID][]models.VisitResponse, paymentsByStudentID map[uuid.UUID][]models.TransactionResponse, today time.Time) models.GroupReportResponse {
+func BuildGroupReport(grp models.GroupResponse, year, month int, students []models.StudentResponse, lessons []models.LessonResponse, visitsByStudentID map[uuid.UUID][]models.VisitResponse, paymentsByStudentID map[uuid.UUID][]models.TransactionResponse, today time.Time) models.GroupReportResponse {
 	lastDay := time.Date(year, time.Month(month)+1, 0, 0, 0, 0, 0, time.UTC)
 	dayCount := lastDay.Day()
 
@@ -535,9 +612,9 @@ func BuildGroupReport(group models.GroupResponse, year, month int, students []mo
 	}
 	sort.Ints(lessonDays)
 
-	statusesByStudentID := make(map[uuid.UUID]map[uuid.UUID][]types.VisitStatus)
+	statusesByStudentID := make(map[uuid.UUID]map[uuid.UUID][]types.VisitStatus, len(visitsByStudentID))
 	for sid, visits := range visitsByStudentID {
-		byLesson := make(map[uuid.UUID][]types.VisitStatus)
+		byLesson := make(map[uuid.UUID][]types.VisitStatus, len(visits))
 		for _, v := range visits {
 			byLesson[v.LessonID] = append(byLesson[v.LessonID], v.Status)
 		}
@@ -591,8 +668,8 @@ func BuildGroupReport(group models.GroupResponse, year, month int, students []mo
 	}
 
 	return models.GroupReportResponse{
-		GroupID:      group.ID,
-		GroupName:    group.Name,
+		GroupID:      grp.ID,
+		GroupName:    grp.Name,
 		Year:         year,
 		Month:        month,
 		DayCount:     dayCount,
@@ -639,11 +716,11 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 	name := strings.TrimSpace(req.Name)
 	if name == "" {
 		logger.WarnContext(ctx, "Group name must not be blank", "user_id", ownerID.String())
-		return models.GroupResponse{}, &pkgerrors.BadRequestError{Message: "name must not be blank"}
+		return models.GroupResponse{}, pkgerrors.NewBadRequest("name must not be blank")
 	}
 	if len(name) > 255 {
 		logger.WarnContext(ctx, "Group name exceeds limit", "length", len(name), "user_id", ownerID.String())
-		return models.GroupResponse{}, &pkgerrors.BadRequestError{Message: "name must not exceed 255 characters"}
+		return models.GroupResponse{}, pkgerrors.NewBadRequest("name must not exceed 255 characters")
 	}
 
 	taken, err := s.db.ExistsGroupByOwnerIDAndName(ctx, db.ExistsGroupByOwnerIDAndNameParams{
@@ -656,15 +733,15 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 	}
 	if taken {
 		logger.WarnContext(ctx, "Group with name already exists", "name", name, "user_id", ownerID.String())
-		return models.GroupResponse{}, &pkgerrors.ConflictError{
-			Code:    types.ErrGroupNameNotUnique,
-			Message: fmt.Sprintf("A group named \"%s\" already exists", name),
-		}
+		return models.GroupResponse{}, pkgerrors.NewConflict(
+			types.ErrGroupNameNotUnique,
+			fmt.Sprintf("A group named \"%s\" already exists", name),
+		)
 	}
 
 	var uniqueStudentIDs []uuid.UUID
-	if len(req.StudentIds) > 0 {
-		seen := make(map[uuid.UUID]bool)
+	if len(req.StudentIds) > 0 && s.fetchStudentsByIDs != nil {
+		seen := make(map[uuid.UUID]bool, len(req.StudentIds))
 		for _, sid := range req.StudentIds {
 			if !seen[sid] {
 				seen[sid] = true
@@ -677,7 +754,7 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 			logger.ErrorContext(ctx, "Failed to fetch students by IDs for group creation", "count", len(uniqueStudentIDs), "error", err, "user_id", ownerID.String())
 			return models.GroupResponse{}, err
 		}
-		foundMap := make(map[uuid.UUID]bool)
+		foundMap := make(map[uuid.UUID]bool, len(stRows))
 		for _, sr := range stRows {
 			foundMap[sr.ID] = true
 		}
@@ -689,9 +766,7 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 		}
 		if len(unknown) > 0 {
 			logger.WarnContext(ctx, "Unknown student IDs provided for group creation", "unknown", unknown, "user_id", ownerID.String())
-			return models.GroupResponse{}, &pkgerrors.BadRequestError{
-				Message: fmt.Sprintf("unknown students: %v", unknown),
-			}
+			return models.GroupResponse{}, pkgerrors.NewBadRequest(fmt.Sprintf("unknown students: %v", unknown))
 		}
 	}
 
@@ -741,7 +816,7 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 	return toGroupResponse(created), nil
 }
 
-func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]interface{}) (models.GroupResponse, error) {
+func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]any) (models.GroupResponse, error) {
 	logger.InfoContext(ctx, "Updating group", "group_id", groupID.String(), "user_id", ownerID.String())
 	var updated db.GroupsModuleGroup
 
@@ -753,11 +828,7 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				logger.WarnContext(ctx, "Group to update not found", "group_id", groupID.String(), "user_id", ownerID.String())
-				return &pkgerrors.NotFoundError{
-					Entity:  "Group",
-					ID:      groupID,
-					OwnerID: ownerID,
-				}
+				return pkgerrors.NewNotFound("Group", groupID, ownerID)
 			}
 			logger.ErrorContext(ctx, "Failed to find group for update", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 			return err
@@ -768,12 +839,12 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 			nameStr, isStr := rawName.(string)
 			if !isStr || strings.TrimSpace(nameStr) == "" {
 				logger.WarnContext(ctx, "Updated group name must not be blank", "group_id", groupID.String(), "user_id", ownerID.String())
-				return &pkgerrors.BadRequestError{Message: "name must not be blank"}
+				return pkgerrors.NewBadRequest("name must not be blank")
 			}
 			trimmed := strings.TrimSpace(nameStr)
 			if len(trimmed) > 255 {
 				logger.WarnContext(ctx, "Updated group name exceeds limit", "length", len(trimmed), "group_id", groupID.String(), "user_id", ownerID.String())
-				return &pkgerrors.BadRequestError{Message: "name must not exceed 255 characters"}
+				return pkgerrors.NewBadRequest("name must not exceed 255 characters")
 			}
 			taken, err := qtx.ExistsGroupByOwnerIDAndNameAndIDNot(ctx, db.ExistsGroupByOwnerIDAndNameAndIDNotParams{
 				OwnerID: ownerID,
@@ -786,10 +857,10 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 			}
 			if taken {
 				logger.WarnContext(ctx, "Group name already exists for update", "name", trimmed, "group_id", groupID.String(), "user_id", ownerID.String())
-				return &pkgerrors.ConflictError{
-					Code:    types.ErrGroupNameNotUnique,
-					Message: fmt.Sprintf("A group named \"%s\" already exists", trimmed),
-				}
+				return pkgerrors.NewConflict(
+					types.ErrGroupNameNotUnique,
+					fmt.Sprintf("A group named \"%s\" already exists", trimmed),
+				)
 			}
 			name = trimmed
 		}
@@ -812,20 +883,20 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 		if rawNote, ok := updates["note"]; ok {
 			if rawNote == nil {
 				note = sql.NullString{Valid: false}
-			} else if s, ok := rawNote.(string); ok {
-				note = sql.NullString{String: s, Valid: true}
+			} else if str, ok := rawNote.(string); ok {
+				note = sql.NullString{String: str, Valid: true}
 			}
 		}
 
-		if rawSIDs, ok := updates["studentIds"]; ok {
-			requestedStudentIDs := parseUUIDSlice(rawSIDs)
+		if rawSIDs, ok := updates["studentIds"]; ok && s.fetchStudentsByIDs != nil {
+			requestedStudentIDs := types.ParseUUIDSlice(rawSIDs)
 			if len(requestedStudentIDs) > 0 {
 				stRows, err := s.fetchStudentsByIDs(ctx, requestedStudentIDs, ownerID)
 				if err != nil {
 					logger.ErrorContext(ctx, "Failed to fetch students by IDs for group update", "count", len(requestedStudentIDs), "error", err, "user_id", ownerID.String())
 					return err
 				}
-				foundMap := make(map[uuid.UUID]bool)
+				foundMap := make(map[uuid.UUID]bool, len(stRows))
 				for _, sr := range stRows {
 					foundMap[sr.ID] = true
 				}
@@ -837,9 +908,7 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 				}
 				if len(unknown) > 0 {
 					logger.WarnContext(ctx, "Unknown students provided for group update", "group_id", groupID.String(), "unknown", unknown, "user_id", ownerID.String())
-					return &pkgerrors.BadRequestError{
-						Message: fmt.Sprintf("unknown students: %v", unknown),
-					}
+					return pkgerrors.NewBadRequest(fmt.Sprintf("unknown students: %v", unknown))
 				}
 			}
 
@@ -852,7 +921,7 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 				return err
 			}
 
-			reqMap := make(map[uuid.UUID]bool)
+			reqMap := make(map[uuid.UUID]bool, len(requestedStudentIDs))
 			for _, sid := range requestedStudentIDs {
 				reqMap[sid] = true
 			}
@@ -872,7 +941,7 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 				}
 			}
 
-			curMap := make(map[uuid.UUID]bool)
+			curMap := make(map[uuid.UUID]bool, len(currentLinks))
 			for _, cl := range currentLinks {
 				curMap[cl.StudentID] = true
 			}
@@ -927,11 +996,7 @@ func (s *Service) DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) e
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.WarnContext(ctx, "Group to delete not found", "group_id", groupID.String(), "user_id", ownerID.String())
-			return &pkgerrors.NotFoundError{
-				Entity:  "Group",
-				ID:      groupID,
-				OwnerID: ownerID,
-			}
+			return pkgerrors.NewNotFound("Group", groupID, ownerID)
 		}
 		logger.ErrorContext(ctx, "Failed to find group for deletion", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return err
@@ -964,34 +1029,4 @@ func toGroupResponse(g db.GroupsModuleGroup) models.GroupResponse {
 		Note:         note,
 		CreatedAt:    g.CreatedAt,
 	}
-}
-
-func parseUUIDSlice(raw interface{}) []uuid.UUID {
-	if raw == nil {
-		return nil
-	}
-	var res []uuid.UUID
-	switch v := raw.(type) {
-	case []uuid.UUID:
-		return v
-	case []string:
-		for _, s := range v {
-			if id, err := uuid.Parse(s); err == nil {
-				res = append(res, id)
-			}
-		}
-	case []interface{}:
-		for _, item := range v {
-			if s, ok := item.(string); ok {
-				if id, err := uuid.Parse(s); err == nil {
-					res = append(res, id)
-				}
-			}
-		}
-	case string:
-		if id, err := uuid.Parse(v); err == nil {
-			res = append(res, id)
-		}
-	}
-	return res
 }

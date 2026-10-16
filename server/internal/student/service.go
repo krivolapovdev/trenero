@@ -16,6 +16,7 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/timeutil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
+	"golang.org/x/sync/errgroup"
 )
 
 type FetchVisitsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.VisitResponse, error)
@@ -66,14 +67,21 @@ func NewService(
 	}
 }
 
-func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
+func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (err error) {
 	tx, err := s.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			panic(p)
+		} else if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
 	qtx := s.db.WithTx(tx)
-	if err := fn(qtx); err != nil {
-		_ = tx.Rollback()
+	if err = fn(qtx); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -86,12 +94,12 @@ func (s *Service) GetAllStudents(ctx context.Context, ownerID uuid.UUID) ([]mode
 		logger.ErrorContext(ctx, "Failed to get all students", "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
-	res := make([]models.StudentResponse, 0, len(rows))
+	students := make([]models.StudentResponse, 0, len(rows))
 	for _, r := range rows {
-		res = append(res, toStudentResponse(r))
+		students = append(students, toStudentResponse(r))
 	}
-	logger.DebugContext(ctx, "Retrieved all students", "count", len(res), "user_id", ownerID.String())
-	return res, nil
+	logger.DebugContext(ctx, "Retrieved all students", "count", len(students), "user_id", ownerID.String())
+	return students, nil
 }
 
 func (s *Service) GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error) {
@@ -107,12 +115,12 @@ func (s *Service) GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, 
 		logger.ErrorContext(ctx, "Failed to get students by IDs", "count", len(studentIDs), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
-	res := make([]models.StudentResponse, 0, len(rows))
+	students := make([]models.StudentResponse, 0, len(rows))
 	for _, r := range rows {
-		res = append(res, toStudentResponse(r))
+		students = append(students, toStudentResponse(r))
 	}
-	logger.DebugContext(ctx, "Retrieved students by IDs", "count", len(res), "user_id", ownerID.String())
-	return res, nil
+	logger.DebugContext(ctx, "Retrieved students by IDs", "count", len(students), "user_id", ownerID.String())
+	return students, nil
 }
 
 func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error) {
@@ -132,9 +140,46 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 		studentIDs = append(studentIDs, st.ID)
 	}
 
-	visitsMap, err := s.fetchVisitsByStudentIDs(ctx, studentIDs, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch visits for students overview", "error", err, "user_id", ownerID.String())
+	var (
+		visitsMap        map[uuid.UUID][]models.VisitResponse
+		paymentsMap      map[uuid.UUID][]models.TransactionResponse
+		studentGroupsMap map[uuid.UUID][]models.GroupResponse
+	)
+
+	g, gCtx := errgroup.WithContext(ctx)
+	if s.fetchVisitsByStudentIDs != nil {
+		g.Go(func() error {
+			vm, err := s.fetchVisitsByStudentIDs(gCtx, studentIDs, ownerID)
+			if err != nil {
+				return err
+			}
+			visitsMap = vm
+			return nil
+		})
+	}
+	if s.fetchPaymentsByStudentIDs != nil {
+		g.Go(func() error {
+			pm, err := s.fetchPaymentsByStudentIDs(gCtx, studentIDs, ownerID)
+			if err != nil {
+				return err
+			}
+			paymentsMap = pm
+			return nil
+		})
+	}
+	if s.fetchStudentGroups != nil {
+		g.Go(func() error {
+			gm, err := s.fetchStudentGroups(gCtx, studentIDs, ownerID)
+			if err != nil {
+				return err
+			}
+			studentGroupsMap = gm
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		logger.ErrorContext(ctx, "Failed to fetch student overview dependencies", "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 
@@ -145,25 +190,13 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 		}
 	}
 
-	paymentsMap, err := s.fetchPaymentsByStudentIDs(ctx, studentIDs, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch payments for students overview", "error", err, "user_id", ownerID.String())
-		return nil, err
-	}
-
-	studentGroupsMap, err := s.fetchStudentGroups(ctx, studentIDs, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch student groups for overview", "error", err, "user_id", ownerID.String())
-		return nil, err
-	}
-
 	allLessonIDs := make([]uuid.UUID, 0, len(lessonIDsMap))
 	for lid := range lessonIDsMap {
 		allLessonIDs = append(allLessonIDs, lid)
 	}
 
-	lessonsMap := make(map[uuid.UUID]models.LessonResponse)
-	if len(allLessonIDs) > 0 {
+	lessonsMap := make(map[uuid.UUID]models.LessonResponse, len(allLessonIDs))
+	if len(allLessonIDs) > 0 && s.fetchLessonsByIDs != nil {
 		lRows, err := s.fetchLessonsByIDs(ctx, allLessonIDs, ownerID)
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to fetch lessons for students overview", "error", err, "user_id", ownerID.String())
@@ -181,7 +214,7 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 	)
 
 	today := time.Now().UTC()
-	res := make([]models.StudentSummaryResponse, 0, len(students))
+	summaries := make([]models.StudentSummaryResponse, 0, len(students))
 	for _, st := range students {
 		stVisits := visitsMap[st.ID]
 		stPayments := paymentsMap[st.ID]
@@ -192,7 +225,7 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 			stGroups = []models.GroupResponse{}
 		}
 
-		res = append(res, models.StudentSummaryResponse{
+		summaries = append(summaries, models.StudentSummaryResponse{
 			ID:            st.ID,
 			FullName:      st.FullName,
 			Birthdate:     st.Birthdate,
@@ -205,8 +238,8 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 		})
 	}
 
-	logger.InfoContext(ctx, "Students overview generated successfully", "count", len(res), "user_id", ownerID.String())
-	return res, nil
+	logger.InfoContext(ctx, "Students overview generated successfully", "count", len(summaries), "user_id", ownerID.String())
+	return summaries, nil
 }
 
 func (s *Service) GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error) {
@@ -218,11 +251,7 @@ func (s *Service) GetStudentDetailsByID(ctx context.Context, studentID, ownerID 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.WarnContext(ctx, "Student not found", "student_id", studentID.String(), "user_id", ownerID.String())
-			return models.StudentResponse{}, &pkgerrors.NotFoundError{
-				Entity:  "Student",
-				ID:      studentID,
-				OwnerID: ownerID,
-			}
+			return models.StudentResponse{}, pkgerrors.NewNotFound("Student", studentID, ownerID)
 		}
 		logger.ErrorContext(ctx, "Failed to get student by id", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return models.StudentResponse{}, err
@@ -233,8 +262,7 @@ func (s *Service) GetStudentDetailsByID(ctx context.Context, studentID, ownerID 
 
 func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error) {
 	logger.InfoContext(ctx, "Getting student visits", "student_id", studentID.String(), "user_id", ownerID.String())
-	_, err := s.GetStudentDetailsByID(ctx, studentID, ownerID)
-	if err != nil {
+	if _, err := s.GetStudentDetailsByID(ctx, studentID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Student not found for visits", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
@@ -253,8 +281,8 @@ func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.
 		lessonIDs = append(lessonIDs, vr.LessonID)
 	}
 
-	lessonsMap := make(map[uuid.UUID]models.LessonResponse)
-	if len(lessonIDs) > 0 {
+	lessonsMap := make(map[uuid.UUID]models.LessonResponse, len(lessonIDs))
+	if len(lessonIDs) > 0 && s.fetchLessonsByIDs != nil {
 		lRows, err := s.fetchLessonsByIDs(ctx, lessonIDs, ownerID)
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to fetch lessons for student visits", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
@@ -265,7 +293,7 @@ func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.
 		}
 	}
 
-	res := make([]models.VisitWithLessonResponse, 0, len(vRows))
+	visitsWithLessons := make([]models.VisitWithLessonResponse, 0, len(vRows))
 	for _, vr := range vRows {
 		lResp, ok := lessonsMap[vr.LessonID]
 		if !ok {
@@ -277,29 +305,28 @@ func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.
 		if to != nil && lResp.Date.After(*to) {
 			continue
 		}
-		res = append(res, models.VisitWithLessonResponse{
+		visitsWithLessons = append(visitsWithLessons, models.VisitWithLessonResponse{
 			Visit:  vr,
 			Lesson: lResp,
 		})
 	}
 
-	sort.Slice(res, func(i, j int) bool {
-		return res[i].Lesson.Date.After(res[j].Lesson.Date)
+	sort.Slice(visitsWithLessons, func(i, j int) bool {
+		return visitsWithLessons[i].Lesson.Date.After(visitsWithLessons[j].Lesson.Date)
 	})
 
 	logger.InfoContext(ctx, "Retrieved student visits",
 		"student_id", studentID.String(),
 		"total_visits", len(vRows),
-		"filtered_visits", len(res),
+		"filtered_visits", len(visitsWithLessons),
 		"user_id", ownerID.String(),
 	)
-	return res, nil
+	return visitsWithLessons, nil
 }
 
 func (s *Service) GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting payments for student", "student_id", studentID.String(), "user_id", ownerID.String())
-	_, err := s.GetStudentDetailsByID(ctx, studentID, ownerID)
-	if err != nil {
+	if _, err := s.GetStudentDetailsByID(ctx, studentID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Student not found for payments", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
@@ -318,11 +345,11 @@ func (s *Service) CreateStudent(ctx context.Context, req models.CreateStudentReq
 	fullName := strings.TrimSpace(req.FullName)
 	if fullName == "" {
 		logger.WarnContext(ctx, "Student full name must not be blank", "user_id", ownerID.String())
-		return models.StudentResponse{}, &pkgerrors.BadRequestError{Message: "fullName must not be blank"}
+		return models.StudentResponse{}, pkgerrors.NewBadRequest("fullName must not be blank")
 	}
 	if len(fullName) > 255 {
 		logger.WarnContext(ctx, "Student full name exceeds limit", "length", len(fullName), "user_id", ownerID.String())
-		return models.StudentResponse{}, &pkgerrors.BadRequestError{Message: "fullName must not exceed 255 characters"}
+		return models.StudentResponse{}, pkgerrors.NewBadRequest("fullName must not exceed 255 characters")
 	}
 
 	taken, err := s.db.ExistsStudentByOwnerIDAndFullName(ctx, db.ExistsStudentByOwnerIDAndFullNameParams{
@@ -335,10 +362,10 @@ func (s *Service) CreateStudent(ctx context.Context, req models.CreateStudentReq
 	}
 	if taken {
 		logger.WarnContext(ctx, "Student with name already exists", "name", fullName, "user_id", ownerID.String())
-		return models.StudentResponse{}, &pkgerrors.ConflictError{
-			Code:    types.ErrStudentNameNotUnique,
-			Message: fmt.Sprintf("A student named \"%s\" already exists", fullName),
-		}
+		return models.StudentResponse{}, pkgerrors.NewConflict(
+			types.ErrStudentNameNotUnique,
+			fmt.Sprintf("A student named \"%s\" already exists", fullName),
+		)
 	}
 
 	var birthdate sql.NullTime
@@ -346,15 +373,15 @@ func (s *Service) CreateStudent(ctx context.Context, req models.CreateStudentReq
 		birthdate = sql.NullTime{Time: req.Birthdate.Time, Valid: true}
 	}
 	var phone sql.NullString
-	if req.Phone != nil {
+	if req.Phone != nil && *req.Phone != "" {
 		phone = sql.NullString{String: *req.Phone, Valid: true}
 	}
 	var note sql.NullString
-	if req.Note != nil {
+	if req.Note != nil && *req.Note != "" {
 		note = sql.NullString{String: *req.Note, Valid: true}
 	}
 
-	st, err := s.db.CreateStudent(ctx, db.CreateStudentParams{
+	created, err := s.db.CreateStudent(ctx, db.CreateStudentParams{
 		OwnerID:   ownerID,
 		FullName:  fullName,
 		Birthdate: birthdate,
@@ -367,35 +394,28 @@ func (s *Service) CreateStudent(ctx context.Context, req models.CreateStudentReq
 		return models.StudentResponse{}, err
 	}
 
-	logger.InfoContext(ctx, "Student created successfully", "student_id", st.ID.String(), "name", st.FullName, "user_id", ownerID.String())
-	return toStudentResponse(st), nil
+	logger.InfoContext(ctx, "Student created successfully", "student_id", created.ID.String(), "name", created.FullName, "user_id", ownerID.String())
+	return toStudentResponse(created), nil
 }
 
-func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
-	logger.InfoContext(ctx, "Creating student payment", "student_id", studentID.String(), "amount", req.Amount, "user_id", ownerID.String())
-	_, err := s.GetStudentDetailsByID(ctx, studentID, ownerID)
-	if err != nil {
-		logger.WarnContext(ctx, "Student not found for payment", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
+func (s *Service) CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
+	logger.InfoContext(ctx, "Creating payment for student", "student_id", studentID.String(), "amount", req.Amount, "user_id", ownerID.String())
+	if _, err := s.GetStudentDetailsByID(ctx, studentID, ownerID); err != nil {
+		logger.WarnContext(ctx, "Student not found for creating payment", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return models.TransactionResponse{}, err
 	}
 
-	if timeutil.IsPaidUntilBeforeDate(req.PaidUntil, req.Date) {
-		logger.WarnContext(ctx, "paidUntil must not be before payment date", "student_id", studentID.String(), "paid_until", req.PaidUntil.Format(time.RFC3339), "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
-		return models.TransactionResponse{}, &pkgerrors.BadRequestError{
-			Message: "paidUntil must not be before the payment date",
-		}
-	}
-
-	res, err := s.createStudentPayment(ctx, studentID, req.Amount, req.Date, req.PaidUntil, ownerID)
+	payment, err := s.createStudentPayment(ctx, studentID, req.Amount, req.Date, req.PaidUntil, ownerID)
 	if err != nil {
-		logger.ErrorContext(ctx, "Failed to create student payment", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
+		logger.ErrorContext(ctx, "Failed to create payment for student", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return models.TransactionResponse{}, err
 	}
-	logger.InfoContext(ctx, "Student payment created successfully", "student_id", studentID.String(), "amount", req.Amount, "user_id", ownerID.String())
-	return res, nil
+
+	logger.InfoContext(ctx, "Student payment created successfully", "student_id", studentID.String(), "transaction_id", payment.ID.String(), "user_id", ownerID.String())
+	return payment, nil
 }
 
-func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]interface{}) (models.StudentResponse, error) {
+func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error) {
 	logger.InfoContext(ctx, "Updating student", "student_id", studentID.String(), "user_id", ownerID.String())
 	var updated db.StudentsModuleStudent
 
@@ -407,11 +427,7 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				logger.WarnContext(ctx, "Student to update not found", "student_id", studentID.String(), "user_id", ownerID.String())
-				return &pkgerrors.NotFoundError{
-					Entity:  "Student",
-					ID:      studentID,
-					OwnerID: ownerID,
-				}
+				return pkgerrors.NewNotFound("Student", studentID, ownerID)
 			}
 			logger.ErrorContext(ctx, "Failed to find student for update", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 			return err
@@ -421,13 +437,13 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 		if rawName, ok := updates["fullName"]; ok && rawName != nil {
 			nameStr, isStr := rawName.(string)
 			if !isStr || strings.TrimSpace(nameStr) == "" {
-				logger.WarnContext(ctx, "Updated student full name must not be blank", "student_id", studentID.String(), "user_id", ownerID.String())
-				return &pkgerrors.BadRequestError{Message: "fullName must not be blank"}
+				logger.WarnContext(ctx, "Updated student name must not be blank", "student_id", studentID.String(), "user_id", ownerID.String())
+				return pkgerrors.NewBadRequest("fullName must not be blank")
 			}
 			trimmed := strings.TrimSpace(nameStr)
 			if len(trimmed) > 255 {
-				logger.WarnContext(ctx, "Updated student full name exceeds limit", "length", len(trimmed), "student_id", studentID.String(), "user_id", ownerID.String())
-				return &pkgerrors.BadRequestError{Message: "fullName must not exceed 255 characters"}
+				logger.WarnContext(ctx, "Updated student name exceeds limit", "length", len(trimmed), "student_id", studentID.String(), "user_id", ownerID.String())
+				return pkgerrors.NewBadRequest("fullName must not exceed 255 characters")
 			}
 			taken, err := qtx.ExistsStudentByOwnerIDAndFullNameAndIDNot(ctx, db.ExistsStudentByOwnerIDAndFullNameAndIDNotParams{
 				OwnerID:  ownerID,
@@ -440,10 +456,10 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 			}
 			if taken {
 				logger.WarnContext(ctx, "Student name already exists for update", "name", trimmed, "student_id", studentID.String(), "user_id", ownerID.String())
-				return &pkgerrors.ConflictError{
-					Code:    types.ErrStudentNameNotUnique,
-					Message: fmt.Sprintf("A student named \"%s\" already exists", trimmed),
-				}
+				return pkgerrors.NewConflict(
+					types.ErrStudentNameNotUnique,
+					fmt.Sprintf("A student named \"%s\" already exists", trimmed),
+				)
 			}
 			fullName = trimmed
 		}
@@ -484,16 +500,17 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 			}
 		}
 
+		groupKey := ""
 		if _, ok := updates["groupIds"]; ok {
-			requestedGroupIDs := parseUUIDSlice(updates["groupIds"])
+			groupKey = "groupIds"
+		} else if _, ok := updates["groupId"]; ok {
+			groupKey = "groupId"
+		}
+
+		if groupKey != "" && s.setStudentGroups != nil {
+			requestedGroupIDs := types.ParseUUIDSlice(updates[groupKey])
 			if err := s.setStudentGroups(ctx, studentID, ownerID, requestedGroupIDs); err != nil {
 				logger.ErrorContext(ctx, "Failed to set student groupIds", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
-				return err
-			}
-		} else if _, ok := updates["groupId"]; ok {
-			requestedGroupIDs := parseUUIDSlice(updates["groupId"])
-			if err := s.setStudentGroups(ctx, studentID, ownerID, requestedGroupIDs); err != nil {
-				logger.ErrorContext(ctx, "Failed to set student groupId", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 				return err
 			}
 		}
@@ -531,11 +548,7 @@ func (s *Service) DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUI
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.WarnContext(ctx, "Student to delete not found", "student_id", studentID.String(), "user_id", ownerID.String())
-			return &pkgerrors.NotFoundError{
-				Entity:  "Student",
-				ID:      studentID,
-				OwnerID: ownerID,
-			}
+			return pkgerrors.NewNotFound("Student", studentID, ownerID)
 		}
 		logger.ErrorContext(ctx, "Failed to find student for deletion", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return err
@@ -591,10 +604,7 @@ func ComputeStudentStatusesWithVisitLessons(
 
 	var lastVisitLesson *models.LessonResponse
 	for _, l := range visitLessonsMap {
-		if lastVisitLesson == nil {
-			cur := l
-			lastVisitLesson = &cur
-		} else if l.Date.After(lastVisitLesson.Date) || (l.Date.Equal(lastVisitLesson.Date) && l.CreatedAt.After(lastVisitLesson.CreatedAt)) {
+		if lastVisitLesson == nil || l.Date.After(lastVisitLesson.Date) || (l.Date.Equal(lastVisitLesson.Date) && l.CreatedAt.After(lastVisitLesson.CreatedAt)) {
 			cur := l
 			lastVisitLesson = &cur
 		}
@@ -620,10 +630,7 @@ func ComputeStudentStatusesWithVisitLessons(
 
 	var lastLesson *models.LessonResponse
 	for _, l := range lessonsMap {
-		if lastLesson == nil {
-			cur := l
-			lastLesson = &cur
-		} else if l.Date.After(lastLesson.Date) || (l.Date.Equal(lastLesson.Date) && l.CreatedAt.After(lastLesson.CreatedAt)) {
+		if lastLesson == nil || l.Date.After(lastLesson.Date) || (l.Date.Equal(lastLesson.Date) && l.CreatedAt.After(lastLesson.CreatedAt)) {
 			cur := l
 			lastLesson = &cur
 		}
@@ -645,9 +652,7 @@ func ComputeStudentStatusesWithVisitLessons(
 		}
 	}
 
-	isSubscriptionActive := timeutil.IsSubscriptionActive(maxPaidUntil, referenceDate)
-
-	if isSubscriptionActive {
+	if timeutil.IsSubscriptionActive(maxPaidUntil, referenceDate) {
 		statuses = append(statuses, types.StudentStatusPaid)
 	} else {
 		statuses = append(statuses, types.StudentStatusUnpaid)
@@ -678,30 +683,4 @@ func toStudentResponse(s db.StudentsModuleStudent) models.StudentResponse {
 		CreatedAt: s.CreatedAt,
 		Free:      s.Free,
 	}
-}
-
-func parseUUIDSlice(raw interface{}) []uuid.UUID {
-	if raw == nil {
-		return nil
-	}
-	var res []uuid.UUID
-	switch v := raw.(type) {
-	case []uuid.UUID:
-		return v
-	case []string:
-		for _, s := range v {
-			if id, err := uuid.Parse(s); err == nil {
-				res = append(res, id)
-			}
-		}
-	case []interface{}:
-		for _, item := range v {
-			if s, ok := item.(string); ok {
-				if id, err := uuid.Parse(s); err == nil {
-					res = append(res, id)
-				}
-			}
-		}
-	}
-	return res
 }

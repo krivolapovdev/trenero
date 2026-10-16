@@ -1,7 +1,6 @@
 package lesson
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,27 +8,21 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
+	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
-type LessonService interface {
-	GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonDetailsResponse, error)
-	CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error)
-	UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error)
-	DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID) error
-}
-
 type Handler struct {
-	service LessonService
+	service *Service
 }
 
-func NewHandler(service LessonService) *Handler {
+func NewHandler(service *Service) *Handler {
 	return &Handler{
 		service: service,
 	}
 }
 
 func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
-	val, exists := c.Get("jwtUser")
+	val, exists := c.Get(types.ContextKeyJWTUser)
 	if !exists {
 		pkgerrors.RespondUnauthorized(c, "")
 		c.Abort()
@@ -91,13 +84,13 @@ func (h *Handler) CreateLesson(c *gin.Context) {
 		return
 	}
 
-	created, err := h.service.CreateLesson(c.Request.Context(), req, jwtUser.ID)
+	createdLesson, err := h.service.CreateLesson(c.Request.Context(), req, jwtUser.ID)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, created)
+	c.JSON(http.StatusCreated, createdLesson)
 }
 
 // UpdateLesson
@@ -126,13 +119,13 @@ func (h *Handler) UpdateLesson(c *gin.Context) {
 		return
 	}
 
-	updated, err := h.service.UpdateLesson(c.Request.Context(), lessonID, jwtUser.ID, req)
+	updatedLesson, err := h.service.UpdateLesson(c.Request.Context(), lessonID, jwtUser.ID, req)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, updated)
+	c.JSON(http.StatusOK, updatedLesson)
 }
 
 // DeleteLesson

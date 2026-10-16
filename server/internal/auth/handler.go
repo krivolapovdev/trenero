@@ -1,25 +1,18 @@
 package auth
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
+	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
-type AuthService interface {
-	LoginGoogle(ctx context.Context, token string) (models.LoginResponse, error)
-	RefreshTokens(ctx context.Context, refreshToken string) (models.JwtResponse, error)
-	LoginReviewer(ctx context.Context, reviewerKey string) (models.LoginResponse, error)
-}
-
 type Handler struct {
-	service AuthService
+	service *Service
 }
 
-func NewHandler(service AuthService) *Handler {
+func NewHandler(service *Service) *Handler {
 	return &Handler{
 		service: service,
 	}
@@ -38,13 +31,13 @@ func (h *Handler) GoogleLogin(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.LoginGoogle(c.Request.Context(), req.Token)
+	loginResponse, err := h.service.LoginGoogle(c.Request.Context(), req.Token)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, loginResponse)
 }
 
 // RefreshTokens
@@ -60,13 +53,13 @@ func (h *Handler) RefreshTokens(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.RefreshTokens(c.Request.Context(), req.RefreshToken)
+	jwtTokens, err := h.service.RefreshTokens(c.Request.Context(), req.RefreshToken)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, jwtTokens)
 }
 
 // ReviewerLogin
@@ -76,17 +69,17 @@ func (h *Handler) RefreshTokens(c *gin.Context) {
 // @Success      200             {object}  models.LoginResponse
 // @Router       /api/v1/reviewer/login [post]
 func (h *Handler) ReviewerLogin(c *gin.Context) {
-	reviewerKey := c.GetHeader("X-Reviewer-Key")
+	reviewerKey := c.GetHeader(types.HeaderXReviewerKey)
 	if reviewerKey == "" {
 		pkgerrors.RespondUnauthorized(c, "Authentication failed or token is invalid")
 		return
 	}
 
-	resp, err := h.service.LoginReviewer(c.Request.Context(), reviewerKey)
+	loginResponse, err := h.service.LoginReviewer(c.Request.Context(), reviewerKey)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, loginResponse)
 }

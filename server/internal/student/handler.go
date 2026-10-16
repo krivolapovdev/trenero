@@ -1,7 +1,6 @@
 package student
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -10,30 +9,21 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
+	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
-type StudentService interface {
-	GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error)
-	GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error)
-	GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error)
-	CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error)
-	CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error)
-	UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]interface{}) (models.StudentResponse, error)
-	DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error
-}
-
 type Handler struct {
-	service StudentService
+	service *Service
 }
 
-func NewHandler(service StudentService) *Handler {
+func NewHandler(service *Service) *Handler {
 	return &Handler{
 		service: service,
 	}
 }
 
 func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
-	val, exists := c.Get("jwtUser")
+	val, exists := c.Get(types.ContextKeyJWTUser)
 	if !exists {
 		pkgerrors.RespondUnauthorized(c, "")
 		c.Abort()
@@ -60,13 +50,13 @@ func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.GetAllStudentsSummary(c.Request.Context(), jwtUser.ID)
+	summaries, err := h.service.GetAllStudentsSummary(c.Request.Context(), jwtUser.ID)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, summaries)
 }
 
 // GetStudentVisits
@@ -102,13 +92,13 @@ func (h *Handler) GetStudentVisits(c *gin.Context) {
 		}
 	}
 
-	resp, err := h.service.GetStudentVisits(c.Request.Context(), studentID, jwtUser.ID, fromPtr, toPtr)
+	visits, err := h.service.GetStudentVisits(c.Request.Context(), studentID, jwtUser.ID, fromPtr, toPtr)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, visits)
 }
 
 // GetStudentPayments
@@ -130,13 +120,13 @@ func (h *Handler) GetStudentPayments(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.GetStudentPayments(c.Request.Context(), studentID, jwtUser.ID)
+	payments, err := h.service.GetStudentPayments(c.Request.Context(), studentID, jwtUser.ID)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, payments)
 }
 
 // CreateStudent
@@ -158,13 +148,13 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.CreateStudent(c.Request.Context(), req, jwtUser.ID)
+	createdStudent, err := h.service.CreateStudent(c.Request.Context(), req, jwtUser.ID)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, resp)
+	c.JSON(http.StatusCreated, createdStudent)
 }
 
 // CreateStudentPayment
@@ -193,13 +183,13 @@ func (h *Handler) CreateStudentPayment(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.CreateStudentPayment(c.Request.Context(), studentID, jwtUser.ID, req)
+	payment, err := h.service.CreateStudentPayment(c.Request.Context(), studentID, jwtUser.ID, req)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, resp)
+	c.JSON(http.StatusCreated, payment)
 }
 
 // UpdateStudent
@@ -222,19 +212,19 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 		return
 	}
 
-	var updates map[string]interface{}
+	var updates map[string]any
 	if err := c.ShouldBindJSON(&updates); err != nil {
 		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
 		return
 	}
 
-	resp, err := h.service.UpdateStudent(c.Request.Context(), studentID, jwtUser.ID, updates)
+	updatedStudent, err := h.service.UpdateStudent(c.Request.Context(), studentID, jwtUser.ID, updates)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, updatedStudent)
 }
 
 // DeleteStudent

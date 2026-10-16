@@ -25,15 +25,15 @@ func NewService(queries *db.Queries) *Service {
 
 func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (UserResponse, error) {
 	logger.InfoContext(ctx, "Get or create user from OAuth2", "provider", string(provider), "email", email)
-	u, err := s.db.GetUserByProviderAndProviderID(ctx, db.GetUserByProviderAndProviderIDParams{
+	existingUser, err := s.db.GetUserByProviderAndProviderID(ctx, db.GetUserByProviderAndProviderIDParams{
 		Provider:   provider,
 		ProviderID: providerID,
 	})
 	if err == nil {
-		logger.DebugContext(ctx, "Existing OAuth2 user found", "user_id", u.ID.String(), "provider", string(provider))
+		logger.DebugContext(ctx, "Existing OAuth2 user found", "user_id", existingUser.ID.String(), "provider", string(provider))
 		return UserResponse{
-			ID:    u.ID,
-			Email: u.Email,
+			ID:    existingUser.ID,
+			Email: existingUser.Email,
 		}, nil
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
@@ -78,11 +78,7 @@ func (s *Service) DeleteUser(ctx context.Context, jwtUser security.JwtUser) erro
 	}
 	if !exists {
 		logger.WarnContext(ctx, "User to delete not found", "user_id", jwtUser.ID.String())
-		return &pkgerrors.NotFoundError{
-			Entity:  "OAuth2User",
-			ID:      jwtUser.ID,
-			OwnerID: jwtUser.ID,
-		}
+		return pkgerrors.NewNotFound("OAuth2User", jwtUser.ID, jwtUser.ID)
 	}
 	if err := s.db.DeleteUserByID(ctx, jwtUser.ID); err != nil {
 		logger.ErrorContext(ctx, "Failed to delete user from database", "user_id", jwtUser.ID.String(), "error", err)

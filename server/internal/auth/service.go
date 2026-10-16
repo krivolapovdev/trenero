@@ -9,7 +9,13 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
+	"github.com/krivolapovdev/trenerio/pkg/types"
 	"google.golang.org/api/idtoken"
+)
+
+const (
+	ReviewerProviderID = "REVIEWER"
+	ReviewerEmail      = "REVIEWER@TRENERIO.RU"
 )
 
 type GetOrCreateUserFunc func(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (models.UserResponse, error)
@@ -41,24 +47,24 @@ func (s *Service) LoginGoogle(ctx context.Context, token string) (LoginResponse,
 	payload, err := idtoken.Validate(ctx, token, s.googleClientID)
 	if err != nil {
 		logger.WarnContext(ctx, "Failed to validate Google identity token", "error", err)
-		return LoginResponse{}, &pkgerrors.BadRequestError{Message: "Invalid or expired Google identity token"}
+		return LoginResponse{}, pkgerrors.NewBadRequest("Invalid or expired Google identity token")
 	}
 
 	providerID := payload.Subject
 	if providerID == "" {
 		logger.WarnContext(ctx, "Google identity token does not contain a subject")
-		return LoginResponse{}, &pkgerrors.BadRequestError{Message: "Google identity token does not contain a subject"}
+		return LoginResponse{}, pkgerrors.NewBadRequest("Google identity token does not contain a subject")
 	}
 
 	emailVal, ok := payload.Claims["email"]
 	if !ok {
 		logger.WarnContext(ctx, "Google identity token missing email claim", "subject", providerID)
-		return LoginResponse{}, &pkgerrors.BadRequestError{Message: "Google identity token does not contain an email"}
+		return LoginResponse{}, pkgerrors.NewBadRequest("Google identity token does not contain an email")
 	}
 	email, ok := emailVal.(string)
 	if !ok || email == "" {
 		logger.WarnContext(ctx, "Google identity token has invalid email claim", "subject", providerID)
-		return LoginResponse{}, &pkgerrors.BadRequestError{Message: "Google identity token does not contain an email"}
+		return LoginResponse{}, pkgerrors.NewBadRequest("Google identity token does not contain an email")
 	}
 
 	logger.DebugContext(ctx, "Valid Google token received", "provider_id", providerID, "email", email)
@@ -99,10 +105,10 @@ func (s *Service) LoginReviewer(ctx context.Context, reviewerKey string) (LoginR
 	logger.InfoContext(ctx, "Processing reviewer login")
 	if !s.tokenProvider.ValidateReviewerKey(reviewerKey) {
 		logger.WarnContext(ctx, "Invalid reviewer key provided")
-		return LoginResponse{}, &pkgerrors.BadRequestError{Message: "Invalid reviewer key"}
+		return LoginResponse{}, pkgerrors.NewBadRequest("Invalid reviewer key")
 	}
 
-	u, err := s.getOrCreateUser(ctx, db.UsersModuleOauth2ProviderGOOGLE, "REVIEWER", "REVIEWER@TRENERIO.RU")
+	u, err := s.getOrCreateUser(ctx, db.UsersModuleOauth2ProviderGOOGLE, ReviewerProviderID, ReviewerEmail)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to get or create user for reviewer login", "error", err)
 		return LoginResponse{}, err
@@ -136,15 +142,15 @@ func (s *Service) LoginReviewer(ctx context.Context, reviewerKey string) (LoginR
 
 func (s *Service) RefreshTokens(ctx context.Context, refreshToken string) (JwtResponse, error) {
 	logger.InfoContext(ctx, "Refreshing tokens")
-	if !s.tokenProvider.IsTokenValid(refreshToken, "REFRESH") {
+	if !s.tokenProvider.IsTokenValid(refreshToken, types.TokenTypeRefresh) {
 		logger.WarnContext(ctx, "Invalid or expired refresh token provided")
-		return JwtResponse{}, &pkgerrors.BadRequestError{Message: "Invalid or expired refresh token"}
+		return JwtResponse{}, pkgerrors.NewBadRequest("Invalid or expired refresh token")
 	}
 
 	jwtUser, err := s.tokenProvider.ExtractUser(refreshToken)
 	if err != nil {
 		logger.WarnContext(ctx, "Failed to extract user from refresh token", "error", err)
-		return JwtResponse{}, &pkgerrors.BadRequestError{Message: "Invalid or expired refresh token"}
+		return JwtResponse{}, pkgerrors.NewBadRequest("Invalid or expired refresh token")
 	}
 
 	logger.DebugContext(ctx, "Token user extracted", "user_id", jwtUser.ID.String(), "email", jwtUser.Email)
@@ -156,7 +162,7 @@ func (s *Service) RefreshTokens(ctx context.Context, refreshToken string) (JwtRe
 	}
 	if !exists {
 		logger.WarnContext(ctx, "User not found during token refresh", "user_id", jwtUser.ID.String())
-		return JwtResponse{}, &pkgerrors.BadRequestError{Message: "Invalid or expired refresh token"}
+		return JwtResponse{}, pkgerrors.NewBadRequest("Invalid or expired refresh token")
 	}
 
 	accessToken, err := s.tokenProvider.GenerateAccessToken(jwtUser)

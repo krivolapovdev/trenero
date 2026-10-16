@@ -7,6 +7,23 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/krivolapovdev/trenerio/pkg/types"
+)
+
+const (
+	claimSubject   = "sub"
+	claimEmail     = "email"
+	claimType      = "type"
+	claimIssuedAt  = "iat"
+	claimExpiresAt = "exp"
+)
+
+var (
+	ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
+	ErrInvalidToken            = errors.New("invalid token")
+	ErrInvalidTokenClaims      = errors.New("invalid token claims")
+	ErrMissingSubjectClaim     = errors.New("missing sub claim")
+	ErrInvalidSubjectFormat    = errors.New("invalid sub format")
 )
 
 type JwtUser struct {
@@ -37,52 +54,52 @@ func NewTokenProvider(secretKey string, accessExp, refreshExp time.Duration, rev
 }
 
 func (p *TokenProvider) GenerateAccessToken(user JwtUser) (string, error) {
-	return p.generateToken(user, p.accessTokenExpiration, "ACCESS")
+	return p.generateToken(user, p.accessTokenExpiration, types.TokenTypeAccess)
 }
 
 func (p *TokenProvider) GenerateRefreshToken(user JwtUser) (string, error) {
-	return p.generateToken(user, p.refreshTokenExpiration, "REFRESH")
+	return p.generateToken(user, p.refreshTokenExpiration, types.TokenTypeRefresh)
 }
 
 func (p *TokenProvider) generateToken(user JwtUser, exp time.Duration, tokenType string) (string, error) {
 	now := time.Now().UTC()
 	claims := jwt.MapClaims{
-		"sub":   user.ID.String(),
-		"email": user.Email,
-		"type":  tokenType,
-		"iat":   now.Unix(),
-		"exp":   now.Add(exp).Unix(),
+		claimSubject:   user.ID.String(),
+		claimEmail:     user.Email,
+		claimType:      tokenType,
+		claimIssuedAt:  now.Unix(),
+		claimExpiresAt: now.Add(exp).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(p.secretKey)
 }
 
 func (p *TokenProvider) ExtractUser(tokenStr string) (JwtUser, error) {
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
+			return nil, ErrUnexpectedSigningMethod
 		}
 		return p.secretKey, nil
 	})
 	if err != nil || !token.Valid {
-		return JwtUser{}, errors.New("invalid token")
+		return JwtUser{}, ErrInvalidToken
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return JwtUser{}, errors.New("invalid token claims")
+		return JwtUser{}, ErrInvalidTokenClaims
 	}
 
-	subStr, ok := claims["sub"].(string)
+	subStr, ok := claims[claimSubject].(string)
 	if !ok {
-		return JwtUser{}, errors.New("missing sub")
+		return JwtUser{}, ErrMissingSubjectClaim
 	}
 	id, err := uuid.Parse(subStr)
 	if err != nil {
-		return JwtUser{}, errors.New("invalid sub format")
+		return JwtUser{}, ErrInvalidSubjectFormat
 	}
 
-	email, _ := claims["email"].(string)
+	email, _ := claims[claimEmail].(string)
 	return JwtUser{
 		ID:    id,
 		Email: email,
@@ -90,9 +107,9 @@ func (p *TokenProvider) ExtractUser(tokenStr string) (JwtUser, error) {
 }
 
 func (p *TokenProvider) IsTokenValid(tokenStr string, expectedType string) bool {
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
+			return nil, ErrUnexpectedSigningMethod
 		}
 		return p.secretKey, nil
 	})
@@ -105,8 +122,8 @@ func (p *TokenProvider) IsTokenValid(tokenStr string, expectedType string) bool 
 		return false
 	}
 
-	tType, ok := claims["type"].(string)
-	if !ok || tType != expectedType {
+	tokenType, ok := claims[claimType].(string)
+	if !ok || tokenType != expectedType {
 		return false
 	}
 

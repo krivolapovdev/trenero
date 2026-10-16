@@ -58,11 +58,7 @@ func (s *Service) GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.WarnContext(ctx, "Lesson not found", "lesson_id", lessonID.String(), "user_id", ownerID.String())
-			return models.LessonResponse{}, &pkgerrors.NotFoundError{
-				Entity:  "Lesson",
-				ID:      lessonID,
-				OwnerID: ownerID,
-			}
+			return models.LessonResponse{}, pkgerrors.NewNotFound("Lesson", lessonID, ownerID)
 		}
 		logger.ErrorContext(ctx, "Failed to get lesson by id", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 		return models.LessonResponse{}, err
@@ -86,7 +82,7 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 	}
 
 	studentIDs := make([]uuid.UUID, 0, len(visitResponses))
-	seenStudentIDs := make(map[uuid.UUID]bool)
+	seenStudentIDs := make(map[uuid.UUID]bool, len(visitResponses))
 	for _, vr := range visitResponses {
 		if !seenStudentIDs[vr.StudentID] {
 			seenStudentIDs[vr.StudentID] = true
@@ -95,13 +91,13 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 	}
 
 	students := make([]models.StudentResponse, 0, len(studentIDs))
-	if len(studentIDs) > 0 {
+	if len(studentIDs) > 0 && s.fetchStudentsByIDs != nil {
 		stRows, err := s.fetchStudentsByIDs(ctx, studentIDs, ownerID)
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to fetch students for lesson details", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 			return models.LessonDetailsResponse{}, err
 		}
-		stMap := make(map[uuid.UUID]models.StudentResponse)
+		stMap := make(map[uuid.UUID]models.StudentResponse, len(stRows))
 		for _, sr := range stRows {
 			stMap[sr.ID] = sr
 		}
@@ -140,8 +136,8 @@ func (s *Service) CreateLesson(ctx context.Context, req models.CreateLessonReque
 		return models.LessonResponse{}, err
 	}
 
-	if len(req.Students) > 0 {
-		studentVisitMap := make(map[uuid.UUID]models.StudentVisit)
+	if len(req.Students) > 0 && s.createVisits != nil {
+		studentVisitMap := make(map[uuid.UUID]models.StudentVisit, len(req.Students))
 		for _, sv := range req.Students {
 			studentVisitMap[sv.StudentID] = sv
 		}
@@ -173,11 +169,7 @@ func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID,
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.WarnContext(ctx, "Lesson to update not found", "lesson_id", lessonID.String(), "user_id", ownerID.String())
-			return models.LessonResponse{}, &pkgerrors.NotFoundError{
-				Entity:  "Lesson",
-				ID:      lessonID,
-				OwnerID: ownerID,
-			}
+			return models.LessonResponse{}, pkgerrors.NewNotFound("Lesson", lessonID, ownerID)
 		}
 		logger.ErrorContext(ctx, "Failed to find lesson for update", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 		return models.LessonResponse{}, err
@@ -198,7 +190,7 @@ func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID,
 		return models.LessonResponse{}, err
 	}
 
-	if req.Students != nil {
+	if req.Students != nil && s.updateVisitsByLessonID != nil {
 		if err := s.updateVisitsByLessonID(ctx, lessonID, req.Students, ownerID); err != nil {
 			logger.ErrorContext(ctx, "Failed to update visits for lesson", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 			return models.LessonResponse{}, err
@@ -218,19 +210,17 @@ func (s *Service) DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.WarnContext(ctx, "Lesson to delete not found", "lesson_id", lessonID.String(), "user_id", ownerID.String())
-			return &pkgerrors.NotFoundError{
-				Entity:  "Lesson",
-				ID:      lessonID,
-				OwnerID: ownerID,
-			}
+			return pkgerrors.NewNotFound("Lesson", lessonID, ownerID)
 		}
 		logger.ErrorContext(ctx, "Failed to find lesson for deletion", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 		return err
 	}
 
-	if err := s.removeVisitsByLessonID(ctx, lessonID, ownerID); err != nil {
-		logger.ErrorContext(ctx, "Failed to remove visits for lesson deletion", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
-		return err
+	if s.removeVisitsByLessonID != nil {
+		if err := s.removeVisitsByLessonID(ctx, lessonID, ownerID); err != nil {
+			logger.ErrorContext(ctx, "Failed to remove visits for lesson deletion", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
+			return err
+		}
 	}
 
 	if err := s.db.DeleteLessonByIDAndOwnerID(ctx, db.DeleteLessonByIDAndOwnerIDParams{
@@ -257,12 +247,12 @@ func (s *Service) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, 
 		logger.ErrorContext(ctx, "Failed to get lessons by group id and date range", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
-	res := make([]models.LessonResponse, 0, len(rows))
+	lessons := make([]models.LessonResponse, 0, len(rows))
 	for _, r := range rows {
-		res = append(res, toLessonResponse(r))
+		lessons = append(lessons, toLessonResponse(r))
 	}
-	logger.DebugContext(ctx, "Retrieved lessons by group id and date range", "group_id", groupID.String(), "count", len(res), "user_id", ownerID.String())
-	return res, nil
+	logger.DebugContext(ctx, "Retrieved lessons by group id and date range", "group_id", groupID.String(), "count", len(lessons), "user_id", ownerID.String())
+	return lessons, nil
 }
 
 func (s *Service) GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.LessonResponse, error) {
@@ -278,12 +268,12 @@ func (s *Service) GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ow
 		logger.ErrorContext(ctx, "Failed to get lessons by IDs", "count", len(lessonIDs), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
-	res := make([]models.LessonResponse, 0, len(rows))
+	lessons := make([]models.LessonResponse, 0, len(rows))
 	for _, r := range rows {
-		res = append(res, toLessonResponse(r))
+		lessons = append(lessons, toLessonResponse(r))
 	}
-	logger.DebugContext(ctx, "Retrieved lessons by IDs", "count", len(res), "user_id", ownerID.String())
-	return res, nil
+	logger.DebugContext(ctx, "Retrieved lessons by IDs", "count", len(lessons), "user_id", ownerID.String())
+	return lessons, nil
 }
 
 func toLessonResponse(l db.LessonsModuleLesson) models.LessonResponse {

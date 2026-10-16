@@ -1,7 +1,6 @@
 package transaction
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 
@@ -10,27 +9,21 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
+	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
-type TransactionService interface {
-	GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error)
-	CreateTransaction(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error)
-	UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]interface{}) (models.TransactionResponse, error)
-	DeleteTransaction(ctx context.Context, transactionID, ownerID uuid.UUID) error
-}
-
 type Handler struct {
-	service TransactionService
+	service *Service
 }
 
-func NewHandler(service TransactionService) *Handler {
+func NewHandler(service *Service) *Handler {
 	return &Handler{
 		service: service,
 	}
 }
 
 func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
-	val, exists := c.Get("jwtUser")
+	val, exists := c.Get(types.ContextKeyJWTUser)
 	if !exists {
 		pkgerrors.RespondUnauthorized(c, "")
 		c.Abort()
@@ -60,26 +53,26 @@ func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
 	}
 
 	page := 1
-	if p := c.Query("page"); p != "" {
-		if val, err := strconv.Atoi(p); err == nil {
+	if pageStr := c.Query("page"); pageStr != "" {
+		if val, err := strconv.Atoi(pageStr); err == nil {
 			page = val
 		}
 	}
 
 	size := 20
-	if s := c.Query("size"); s != "" {
-		if val, err := strconv.Atoi(s); err == nil {
+	if sizeStr := c.Query("size"); sizeStr != "" {
+		if val, err := strconv.Atoi(sizeStr); err == nil {
 			size = val
 		}
 	}
 
-	resp, err := h.service.GetPaginatedTransactions(c.Request.Context(), page, size, jwtUser.ID)
+	pageResponse, err := h.service.GetPaginatedTransactions(c.Request.Context(), page, size, jwtUser.ID)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, pageResponse)
 }
 
 // CreateTransaction
@@ -101,13 +94,13 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.CreateTransaction(c.Request.Context(), req, jwtUser.ID)
+	createdTx, err := h.service.CreateTransaction(c.Request.Context(), req, jwtUser.ID)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, resp)
+	c.JSON(http.StatusCreated, createdTx)
 }
 
 // UpdateTransaction
@@ -130,19 +123,19 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 		return
 	}
 
-	var updates map[string]interface{}
+	var updates map[string]any
 	if err := c.ShouldBindJSON(&updates); err != nil {
 		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
 		return
 	}
 
-	resp, err := h.service.UpdateTransaction(c.Request.Context(), txID, jwtUser.ID, updates)
+	updatedTx, err := h.service.UpdateTransaction(c.Request.Context(), txID, jwtUser.ID, updates)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, updatedTx)
 }
 
 // DeleteTransaction
