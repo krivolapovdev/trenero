@@ -198,6 +198,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                     ),
                   );
                 },
+                onAddPressed: _openCreatePaymentSheet,
               ),
 
               StudentGroupsSection(

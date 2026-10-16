@@ -59,4 +59,47 @@ void main() {
 
     expect(title.dx, card.left + 20);
   });
+
+  testWidgets(
+    'renders add button in right bottom corner and invokes callback',
+    (tester) async {
+      var pressed = false;
+
+      await tester.pumpWidget(
+        _wrap(
+          RecentTransactions(
+            asyncTransactions: AsyncValue.data([_income()]),
+            onAddPressed: () => pressed = true,
+          ),
+        ),
+      );
+
+      final card = tester.getRect(find.byType(RecentTransactions));
+      final addButton = find.widgetWithText(TextButton, t.add);
+      expect(addButton, findsOneWidget);
+
+      final buttonRect = tester.getRect(addButton);
+      // Button is near the right edge of the card (offset by 20 padding)
+      expect(buttonRect.right, closeTo(card.right - 20, 1.0));
+      // Button is at the bottom of the card
+      expect(buttonRect.bottom, closeTo(card.bottom - 8, 1.0));
+
+      await tester.tap(addButton);
+      await tester.pump();
+
+      expect(pressed, isTrue);
+    },
+  );
+
+  testWidgets('does not render add button when onAddPressed is null', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        RecentTransactions(asyncTransactions: AsyncValue.data([_income()])),
+      ),
+    );
+
+    expect(find.widgetWithText(TextButton, t.add), findsNothing);
+  });
 }

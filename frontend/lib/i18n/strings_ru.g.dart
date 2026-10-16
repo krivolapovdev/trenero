@@ -47,6 +47,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get edit => 'Редактировать';
 	@override String get delete => 'Удалить';
 	@override String get all => 'Все';
+	@override String get add => 'Добавить';
 	@override String get month => 'Месяц';
 	@override String get year => 'Год';
 	@override String get print => 'Печать';
@@ -317,6 +318,7 @@ extension on TranslationsRu {
 			'edit' => 'Редактировать',
 			'delete' => 'Удалить',
 			'all' => 'Все',
+			'add' => 'Добавить',
 			'month' => 'Месяц',
 			'year' => 'Год',
 			'print' => 'Печать',

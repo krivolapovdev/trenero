@@ -69,6 +69,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'All'
 	String get all => 'All';
 
+	/// en: 'Add'
+	String get add => 'Add';
+
 	/// en: 'Month'
 	String get month => 'Month';
 
@@ -623,6 +626,7 @@ extension on Translations {
 			'edit' => 'Edit',
 			'delete' => 'Delete',
 			'all' => 'All',
+			'add' => 'Add',
 			'month' => 'Month',
 			'year' => 'Year',
 			'print' => 'Print',

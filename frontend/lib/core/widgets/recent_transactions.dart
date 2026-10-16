@@ -7,6 +7,7 @@ import 'package:phone/core/widgets/recent_transactions_header.dart';
 import 'package:phone/core/widgets/transactions_error.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/transaction_type.dart';
+import 'package:phone/i18n/strings.g.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class RecentTransactions extends StatelessWidget {
@@ -14,6 +15,7 @@ class RecentTransactions extends StatelessWidget {
 
   final AsyncValue<List<TransactionResponse>> asyncTransactions;
   final VoidCallback? onSeeAllPressed;
+  final VoidCallback? onAddPressed;
   final String? overrideTitle;
 
   static TransactionResponse _tx(
@@ -46,7 +48,9 @@ class RecentTransactions extends StatelessWidget {
     required this.asyncTransactions,
     this.overrideTitle,
     this.onSeeAllPressed,
-  });
+    VoidCallback? onAddPressed,
+    VoidCallback? onAdd,
+  }) : onAddPressed = onAddPressed ?? onAdd;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -84,6 +88,26 @@ class RecentTransactions extends StatelessWidget {
           ),
           error: (error, stack) => TransactionsError(error: error),
         ),
+        if (onAddPressed != null)
+          Padding(
+            padding: const EdgeInsets.only(
+              right: AppSpacing.xl,
+              bottom: AppSpacing.sm,
+            ),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Skeletonizer(
+                enabled: asyncTransactions.isLoading,
+                child: TextButton(
+                  onPressed: onAddPressed,
+                  child: Text(
+                    context.t.add,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     ),
   );
