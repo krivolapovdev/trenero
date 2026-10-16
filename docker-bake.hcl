@@ -1,6 +1,6 @@
 group "default" {
   targets = [
-    "backend"
+    "server"
   ]
 }
 
@@ -12,11 +12,11 @@ variable "IMAGE_TAG" {
   default = "latest"
 }
 
-target "backend" {
-  context = "./backend"
+target "server" {
+  context = "./server"
   tags = [
-    "${DOCKERHUB_USERNAME}/backend:${IMAGE_TAG}",
-    "${DOCKERHUB_USERNAME}/backend:latest"
+    "${DOCKERHUB_USERNAME}/server:${IMAGE_TAG}",
+    "${DOCKERHUB_USERNAME}/server:latest"
   ]
   platforms = [
     "linux/amd64",

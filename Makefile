@@ -7,3 +7,6 @@ down:
 
 sqlc:
 	cd ./server && sqlc generate
+
+swag:
+	cd ./server && swag init -d ./cmd/api,./internal,./pkg -g main.go -o docs
