@@ -3,7 +3,6 @@ sql:
   - engine: "postgresql"
     schema: "db/migrations/"
     queries:
-      - "db/queries/auth"
       - "db/queries/user"
       - "db/queries/group"
       - "db/queries/student"

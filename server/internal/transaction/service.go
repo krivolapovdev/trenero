@@ -16,15 +16,27 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
+type FetchStudentsByIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error)
+type FetchStudentByIDFunc func(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error)
+
 type Service struct {
-	db    *db.Queries
-	sqlDB *sql.DB
+	db                 *db.Queries
+	sqlDB              *sql.DB
+	fetchStudentsByIDs FetchStudentsByIDsFunc
+	fetchStudentByID   FetchStudentByIDFunc
 }
 
-func NewService(queries *db.Queries, sqlDB *sql.DB) *Service {
+func NewService(
+	queries *db.Queries,
+	sqlDB *sql.DB,
+	fetchStudentsByIDs FetchStudentsByIDsFunc,
+	fetchStudentByID FetchStudentByIDFunc,
+) *Service {
 	return &Service{
-		db:    queries,
-		sqlDB: sqlDB,
+		db:                 queries,
+		sqlDB:              sqlDB,
+		fetchStudentsByIDs: fetchStudentsByIDs,
+		fetchStudentByID:   fetchStudentByID,
 	}
 }
 
@@ -80,10 +92,7 @@ func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, 
 
 	studentNames := make(map[uuid.UUID]string)
 	if len(studentIDs) > 0 {
-		stRows, err := s.db.FindStudentsByIDsAndOwnerID(ctx, db.FindStudentsByIDsAndOwnerIDParams{
-			OwnerID: ownerID,
-			Column2: studentIDs,
-		})
+		stRows, err := s.fetchStudentsByIDs(ctx, studentIDs, ownerID)
 		if err == nil {
 			for _, sr := range stRows {
 				studentNames[sr.ID] = sr.FullName
@@ -265,18 +274,7 @@ func (s *Service) CreateTransaction(ctx context.Context, req models.CreateTransa
 			}
 		}
 
-		_, err := s.db.FindStudentByIDAndOwnerID(ctx, db.FindStudentByIDAndOwnerIDParams{
-			ID:      req.PaymentDetails.StudentID,
-			OwnerID: ownerID,
-		})
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return models.TransactionResponse{}, &pkgerrors.NotFoundError{
-					Entity:  "Student",
-					ID:      req.PaymentDetails.StudentID,
-					OwnerID: ownerID,
-				}
-			}
+		if _, err := s.fetchStudentByID(ctx, req.PaymentDetails.StudentID, ownerID); err != nil {
 			return models.TransactionResponse{}, err
 		}
 
@@ -338,18 +336,7 @@ func (s *Service) CreateTransaction(ctx context.Context, req models.CreateTransa
 
 func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Creating student payment transaction", "student_id", studentID.String(), "user_id", ownerID.String())
-	_, err := s.db.FindStudentByIDAndOwnerID(ctx, db.FindStudentByIDAndOwnerIDParams{
-		ID:      studentID,
-		OwnerID: ownerID,
-	})
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return models.TransactionResponse{}, &pkgerrors.NotFoundError{
-				Entity:  "Student",
-				ID:      studentID,
-				OwnerID: ownerID,
-			}
-		}
+	if _, err := s.fetchStudentByID(ctx, studentID, ownerID); err != nil {
 		return models.TransactionResponse{}, err
 	}
 
@@ -362,7 +349,7 @@ func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID,
 	var createdTx db.PaymentsModuleTransaction
 	var sp db.PaymentsModuleStudentPayment
 
-	err = s.withTx(ctx, func(qtx *db.Queries) error {
+	err := s.withTx(ctx, func(qtx *db.Queries) error {
 		amountStr := strconv.FormatFloat(amount, 'f', 2, 64)
 		var err error
 		createdTx, err = qtx.CreateTransaction(ctx, db.CreateTransactionParams{

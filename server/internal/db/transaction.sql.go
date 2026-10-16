@@ -214,7 +214,7 @@ func (q *Queries) FindStudentPaymentsByOwnerID(ctx context.Context, ownerID uuid
 }
 
 const findStudentPaymentsByStudentIDAndOwnerID = `-- name: FindStudentPaymentsByStudentIDAndOwnerID :many
-SELECT 
+SELECT
     t.id, t.owner_id, t.type, t.amount, t.date, t.created_at, t.updated_at,
     sp.student_id, sp.paid_until
 FROM payments_module.student_payments sp
@@ -274,7 +274,7 @@ func (q *Queries) FindStudentPaymentsByStudentIDAndOwnerID(ctx context.Context, 
 }
 
 const findStudentPaymentsByStudentIDsAndOwnerID = `-- name: FindStudentPaymentsByStudentIDsAndOwnerID :many
-SELECT 
+SELECT
     t.id, t.owner_id, t.type, t.amount, t.date, t.created_at, t.updated_at,
     sp.student_id, sp.paid_until
 FROM payments_module.student_payments sp
@@ -334,7 +334,7 @@ func (q *Queries) FindStudentPaymentsByStudentIDsAndOwnerID(ctx context.Context,
 }
 
 const findTransactionByIDAndOwnerID = `-- name: FindTransactionByIDAndOwnerID :one
-SELECT 
+SELECT
     t.id, t.owner_id, t.type, t.amount, t.date, t.created_at, t.updated_at,
     sp.student_id, sp.paid_until
 FROM payments_module.transactions t
@@ -377,7 +377,7 @@ func (q *Queries) FindTransactionByIDAndOwnerID(ctx context.Context, arg FindTra
 }
 
 const findTransactionsByOwnerIDAndDateBetween = `-- name: FindTransactionsByOwnerIDAndDateBetween :many
-SELECT 
+SELECT
     t.id, t.owner_id, t.type, t.amount, t.date, t.created_at, t.updated_at,
     sp.student_id, sp.paid_until
 FROM payments_module.transactions t
@@ -438,7 +438,7 @@ func (q *Queries) FindTransactionsByOwnerIDAndDateBetween(ctx context.Context, a
 }
 
 const findTransactionsByOwnerIDPaginated = `-- name: FindTransactionsByOwnerIDPaginated :many
-SELECT 
+SELECT
     t.id, t.owner_id, t.type, t.amount, t.date, t.created_at, t.updated_at,
     sp.student_id, sp.paid_until
 FROM payments_module.transactions t
@@ -521,8 +521,7 @@ func (q *Queries) UpdateStudentPayment(ctx context.Context, arg UpdateStudentPay
 const updateTransaction = `-- name: UpdateTransaction :one
 UPDATE payments_module.transactions
 SET amount = $3,
-    date = $4,
-    updated_at = now()
+    date = $4
 WHERE id = $1 AND owner_id = $2
 RETURNING id, owner_id, type, amount, date, created_at, updated_at
 `

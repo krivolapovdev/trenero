@@ -1,12 +1,10 @@
 package server
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/krivolapovdev/trenerio/internal/auth"
-	"github.com/krivolapovdev/trenerio/internal/db"
 	"github.com/krivolapovdev/trenerio/internal/group"
 	"github.com/krivolapovdev/trenerio/internal/lesson"
 	"github.com/krivolapovdev/trenerio/internal/metric"
@@ -19,8 +17,6 @@ import (
 
 type Server struct {
 	engine        *gin.Engine
-	dbConn        *sql.DB
-	queries       *db.Queries
 	tokenProvider *security.TokenProvider
 
 	authHandler    *auth.Handler
@@ -33,34 +29,28 @@ type Server struct {
 }
 
 func NewServer(
-	dbConn *sql.DB,
-	queries *db.Queries,
 	tokenProvider *security.TokenProvider,
-	googleClientID string,
 	allowedOrigins []string,
+	authHandler *auth.Handler,
+	userHandler *user.Handler,
+	groupHandler *group.Handler,
+	studentHandler *student.Handler,
+	lessonHandler *lesson.Handler,
+	txHandler *transaction.Handler,
+	metricHandler *metric.Handler,
 ) *Server {
-	userService := user.NewService(queries)
-	authService := auth.NewService(userService, tokenProvider, googleClientID)
-	groupService := group.NewService(queries, dbConn)
-	studentService := student.NewService(queries, dbConn)
-	lessonService := lesson.NewService(queries, dbConn)
-	txService := transaction.NewService(queries, dbConn)
-	metricService := metric.NewService(queries)
-
 	engine := gin.New()
 
 	s := &Server{
 		engine:         engine,
-		dbConn:         dbConn,
-		queries:        queries,
 		tokenProvider:  tokenProvider,
-		authHandler:    auth.NewHandler(authService),
-		userHandler:    user.NewHandler(userService),
-		groupHandler:   group.NewHandler(groupService),
-		studentHandler: student.NewHandler(studentService),
-		lessonHandler:  lesson.NewHandler(lessonService),
-		txHandler:      transaction.NewHandler(txService),
-		metricHandler:  metric.NewHandler(metricService),
+		authHandler:    authHandler,
+		userHandler:    userHandler,
+		groupHandler:   groupHandler,
+		studentHandler: studentHandler,
+		lessonHandler:  lessonHandler,
+		txHandler:      txHandler,
+		metricHandler:  metricHandler,
 	}
 
 	s.setupRoutes(allowedOrigins)

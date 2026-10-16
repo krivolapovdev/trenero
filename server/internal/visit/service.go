@@ -15,11 +15,15 @@ type Service struct {
 	sqlDB *sql.DB
 }
 
-func NewVisitService(queries *db.Queries, sqlDB *sql.DB) *Service {
+func NewService(queries *db.Queries, sqlDB *sql.DB) *Service {
 	return &Service{
 		db:    queries,
 		sqlDB: sqlDB,
 	}
+}
+
+func NewVisitService(queries *db.Queries, sqlDB *sql.DB) *Service {
+	return NewService(queries, sqlDB)
 }
 
 func (s *Service) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) ([]VisitResponse, error) {

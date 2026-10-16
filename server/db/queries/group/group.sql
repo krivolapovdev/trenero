@@ -35,8 +35,7 @@ RETURNING id, owner_id, name, default_price, note, created_at, updated_at;
 UPDATE groups_module.groups
 SET name = $3,
     default_price = $4,
-    note = $5,
-    updated_at = now()
+    note = $5
 WHERE id = $1 AND owner_id = $2
 RETURNING id, owner_id, name, default_price, note, created_at, updated_at;
 

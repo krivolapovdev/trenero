@@ -3,25 +3,36 @@ package auth
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
-	"github.com/krivolapovdev/trenerio/internal/user"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
+	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 	"google.golang.org/api/idtoken"
 )
 
+type GetOrCreateUserFunc func(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (models.UserResponse, error)
+type UserExistsByIDFunc func(ctx context.Context, id uuid.UUID) (bool, error)
+
 type Service struct {
-	userService    *user.Service
-	tokenProvider  *security.TokenProvider
-	googleClientID string
+	getOrCreateUser GetOrCreateUserFunc
+	userExistsByID  UserExistsByIDFunc
+	tokenProvider   *security.TokenProvider
+	googleClientID  string
 }
 
-func NewService(userService *user.Service, tokenProvider *security.TokenProvider, googleClientID string) *Service {
+func NewService(
+	getOrCreateUser GetOrCreateUserFunc,
+	userExistsByID UserExistsByIDFunc,
+	tokenProvider *security.TokenProvider,
+	googleClientID string,
+) *Service {
 	return &Service{
-		userService:    userService,
-		tokenProvider:  tokenProvider,
-		googleClientID: googleClientID,
+		getOrCreateUser: getOrCreateUser,
+		userExistsByID:  userExistsByID,
+		tokenProvider:   tokenProvider,
+		googleClientID:  googleClientID,
 	}
 }
 
@@ -46,7 +57,7 @@ func (s *Service) LoginGoogle(ctx context.Context, token string) (LoginResponse,
 		return LoginResponse{}, &pkgerrors.BadRequestError{Message: "Google identity token does not contain an email"}
 	}
 
-	u, err := s.userService.GetOrCreateUserFromOAuth2(ctx, db.UsersModuleOauth2ProviderGOOGLE, providerID, email)
+	u, err := s.getOrCreateUser(ctx, db.UsersModuleOauth2ProviderGOOGLE, providerID, email)
 	if err != nil {
 		return LoginResponse{}, err
 	}
@@ -80,7 +91,7 @@ func (s *Service) LoginReviewer(ctx context.Context, reviewerKey string) (LoginR
 		return LoginResponse{}, &pkgerrors.BadRequestError{Message: "Invalid reviewer key"}
 	}
 
-	u, err := s.userService.GetOrCreateUserFromOAuth2(ctx, db.UsersModuleOauth2ProviderGOOGLE, "REVIEWER", "REVIEWER@TRENERIO.RU")
+	u, err := s.getOrCreateUser(ctx, db.UsersModuleOauth2ProviderGOOGLE, "REVIEWER", "REVIEWER@TRENERIO.RU")
 	if err != nil {
 		return LoginResponse{}, err
 	}
@@ -119,7 +130,7 @@ func (s *Service) RefreshTokens(ctx context.Context, refreshToken string) (JwtRe
 		return JwtResponse{}, &pkgerrors.BadRequestError{Message: "Invalid or expired refresh token"}
 	}
 
-	exists, err := s.userService.ExistsByID(ctx, jwtUser.ID)
+	exists, err := s.userExistsByID(ctx, jwtUser.ID)
 	if err != nil {
 		return JwtResponse{}, err
 	}

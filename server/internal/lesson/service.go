@@ -11,32 +11,42 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
-	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
+type FetchVisitsByLessonIDFunc func(ctx context.Context, lessonID, ownerID uuid.UUID) ([]models.VisitResponse, error)
+type FetchStudentsByIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error)
+type CreateVisitsFunc func(ctx context.Context, lessonID uuid.UUID, studentVisits []models.StudentVisit, ownerID uuid.UUID) error
+type UpdateVisitsByLessonIDFunc func(ctx context.Context, lessonID uuid.UUID, requests []models.StudentVisit, ownerID uuid.UUID) error
+type RemoveVisitsByLessonIDFunc func(ctx context.Context, lessonID, ownerID uuid.UUID) error
+
 type Service struct {
-	db    *db.Queries
-	sqlDB *sql.DB
+	db                     *db.Queries
+	sqlDB                  *sql.DB
+	fetchVisitsByLessonID  FetchVisitsByLessonIDFunc
+	fetchStudentsByIDs     FetchStudentsByIDsFunc
+	createVisits           CreateVisitsFunc
+	updateVisitsByLessonID UpdateVisitsByLessonIDFunc
+	removeVisitsByLessonID RemoveVisitsByLessonIDFunc
 }
 
-func NewService(queries *db.Queries, sqlDB *sql.DB) *Service {
+func NewService(
+	queries *db.Queries,
+	sqlDB *sql.DB,
+	fetchVisitsByLessonID FetchVisitsByLessonIDFunc,
+	fetchStudentsByIDs FetchStudentsByIDsFunc,
+	createVisits CreateVisitsFunc,
+	updateVisitsByLessonID UpdateVisitsByLessonIDFunc,
+	removeVisitsByLessonID RemoveVisitsByLessonIDFunc,
+) *Service {
 	return &Service{
-		db:    queries,
-		sqlDB: sqlDB,
+		db:                     queries,
+		sqlDB:                  sqlDB,
+		fetchVisitsByLessonID:  fetchVisitsByLessonID,
+		fetchStudentsByIDs:     fetchStudentsByIDs,
+		createVisits:           createVisits,
+		updateVisitsByLessonID: updateVisitsByLessonID,
+		removeVisitsByLessonID: removeVisitsByLessonID,
 	}
-}
-
-func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
-	tx, err := s.sqlDB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	qtx := s.db.WithTx(tx)
-	if err := fn(qtx); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
 }
 
 func (s *Service) GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonResponse, error) {
@@ -65,27 +75,14 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 		return models.LessonDetailsResponse{}, err
 	}
 
-	visitsRows, err := s.db.FindVisitsByLessonIDAndOwnerID(ctx, db.FindVisitsByLessonIDAndOwnerIDParams{
-		LessonID: lessonID,
-		OwnerID:  ownerID,
-	})
+	visitResponses, err := s.fetchVisitsByLessonID(ctx, lessonID, ownerID)
 	if err != nil {
 		return models.LessonDetailsResponse{}, err
 	}
 
-	visitResponses := make([]models.VisitResponse, 0, len(visitsRows))
-	studentIDs := make([]uuid.UUID, 0, len(visitsRows))
+	studentIDs := make([]uuid.UUID, 0, len(visitResponses))
 	seenStudentIDs := make(map[uuid.UUID]bool)
-
-	for _, vr := range visitsRows {
-		visitResponses = append(visitResponses, models.VisitResponse{
-			ID:        vr.ID,
-			Status:    types.VisitStatus(vr.Status),
-			Type:      types.VisitType(vr.Type),
-			LessonID:  vr.LessonID,
-			StudentID: vr.StudentID,
-			CreatedAt: vr.CreatedAt,
-		})
+	for _, vr := range visitResponses {
 		if !seenStudentIDs[vr.StudentID] {
 			seenStudentIDs[vr.StudentID] = true
 			studentIDs = append(studentIDs, vr.StudentID)
@@ -94,36 +91,13 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 
 	students := make([]models.StudentResponse, 0, len(studentIDs))
 	if len(studentIDs) > 0 {
-		stRows, err := s.db.FindStudentsByIDsAndOwnerID(ctx, db.FindStudentsByIDsAndOwnerIDParams{
-			OwnerID: ownerID,
-			Column2: studentIDs,
-		})
+		stRows, err := s.fetchStudentsByIDs(ctx, studentIDs, ownerID)
 		if err != nil {
 			return models.LessonDetailsResponse{}, err
 		}
 		stMap := make(map[uuid.UUID]models.StudentResponse)
 		for _, sr := range stRows {
-			var birthdate *types.Date
-			if sr.Birthdate.Valid {
-				birthdate = &types.Date{Time: sr.Birthdate.Time}
-			}
-			var phone *string
-			if sr.Phone.Valid {
-				phone = &sr.Phone.String
-			}
-			var note *string
-			if sr.Note.Valid {
-				note = &sr.Note.String
-			}
-			stMap[sr.ID] = models.StudentResponse{
-				ID:        sr.ID,
-				FullName:  sr.FullName,
-				Birthdate: birthdate,
-				Phone:     phone,
-				Note:      note,
-				CreatedAt: sr.CreatedAt,
-				Free:      sr.Free,
-			}
+			stMap[sr.ID] = sr
 		}
 		for _, sid := range studentIDs {
 			if st, ok := stMap[sid]; ok {
@@ -144,46 +118,37 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 
 func (s *Service) CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Creating lesson", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
-	var createdLesson db.LessonsModuleLesson
+	var groupID uuid.NullUUID
+	if req.GroupID != nil {
+		groupID = uuid.NullUUID{UUID: *req.GroupID, Valid: true}
+	}
 
-	err := s.withTx(ctx, func(qtx *db.Queries) error {
-		var groupID uuid.NullUUID
-		if req.GroupID != nil {
-			groupID = uuid.NullUUID{UUID: *req.GroupID, Valid: true}
-		}
+	createdLesson, err := s.db.CreateLesson(ctx, db.CreateLessonParams{
+		OwnerID: ownerID,
+		GroupID: groupID,
+		Date:    req.Date,
+	})
+	if err != nil {
+		return models.LessonResponse{}, err
+	}
 
-		var err error
-		createdLesson, err = qtx.CreateLesson(ctx, db.CreateLessonParams{
-			OwnerID: ownerID,
-			GroupID: groupID,
-			Date:    req.Date,
-		})
-		if err != nil {
-			return err
-		}
-
+	if len(req.Students) > 0 {
 		studentVisitMap := make(map[uuid.UUID]models.StudentVisit)
 		for _, sv := range req.Students {
 			studentVisitMap[sv.StudentID] = sv
 		}
-
+		uniqueVisits := make([]models.StudentVisit, 0, len(studentVisitMap))
 		for _, sv := range studentVisitMap {
-			_, err := qtx.CreateVisit(ctx, db.CreateVisitParams{
-				OwnerID:   ownerID,
-				LessonID:  createdLesson.ID,
-				StudentID: sv.StudentID,
-				Status:    db.VisitsModuleVisitStatus(sv.Status),
-				Type:      db.VisitsModuleVisitType(sv.Type),
-			})
-			if err != nil {
-				return err
-			}
+			uniqueVisits = append(uniqueVisits, sv)
 		}
 
-		return nil
-	})
-	if err != nil {
-		return models.LessonResponse{}, err
+		if err := s.createVisits(ctx, createdLesson.ID, uniqueVisits, ownerID); err != nil {
+			_ = s.db.DeleteLessonByIDAndOwnerID(ctx, db.DeleteLessonByIDAndOwnerIDParams{
+				ID:      createdLesson.ID,
+				OwnerID: ownerID,
+			})
+			return models.LessonResponse{}, err
+		}
 	}
 
 	return toLessonResponse(createdLesson), nil
@@ -191,98 +156,39 @@ func (s *Service) CreateLesson(ctx context.Context, req models.CreateLessonReque
 
 func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Updating lesson", "lesson_id", lessonID.String(), "user_id", ownerID.String())
-	var updatedLesson db.LessonsModuleLesson
-
-	err := s.withTx(ctx, func(qtx *db.Queries) error {
-		existingLesson, err := qtx.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
-			ID:      lessonID,
-			OwnerID: ownerID,
-		})
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return &pkgerrors.NotFoundError{
-					Entity:  "Lesson",
-					ID:      lessonID,
-					OwnerID: ownerID,
-				}
-			}
-			return err
-		}
-
-		newDate := existingLesson.Date
-		if req.Date != nil {
-			newDate = *req.Date
-		}
-
-		updatedLesson, err = qtx.UpdateLesson(ctx, db.UpdateLessonParams{
-			ID:      lessonID,
-			OwnerID: ownerID,
-			Date:    newDate,
-		})
-		if err != nil {
-			return err
-		}
-
-		if req.Students != nil {
-			existingVisits, err := qtx.FindVisitsByLessonIDAndOwnerID(ctx, db.FindVisitsByLessonIDAndOwnerIDParams{
-				LessonID: lessonID,
-				OwnerID:  ownerID,
-			})
-			if err != nil {
-				return err
-			}
-
-			existingMap := make(map[uuid.UUID]db.VisitsModuleVisit)
-			for _, ev := range existingVisits {
-				existingMap[ev.StudentID] = ev
-			}
-
-			reqMap := make(map[uuid.UUID]models.StudentVisit)
-			for _, r := range req.Students {
-				reqMap[r.StudentID] = r
-			}
-
-			for sid, ev := range existingMap {
-				if _, ok := reqMap[sid]; !ok {
-					if err := qtx.DeleteVisitByIDAndOwnerID(ctx, db.DeleteVisitByIDAndOwnerIDParams{
-						ID:      ev.ID,
-						OwnerID: ownerID,
-					}); err != nil {
-						return err
-					}
-				}
-			}
-
-			for sid, r := range reqMap {
-				if ev, ok := existingMap[sid]; ok {
-					_, err := qtx.UpdateVisit(ctx, db.UpdateVisitParams{
-						ID:      ev.ID,
-						OwnerID: ownerID,
-						Status:  db.VisitsModuleVisitStatus(r.Status),
-						Type:    db.VisitsModuleVisitType(r.Type),
-					})
-					if err != nil {
-						return err
-					}
-				} else {
-					_, err := qtx.CreateVisit(ctx, db.CreateVisitParams{
-						OwnerID:   ownerID,
-						LessonID:  lessonID,
-						StudentID: r.StudentID,
-						Status:    db.VisitsModuleVisitStatus(r.Status),
-						Type:      db.VisitsModuleVisitType(r.Type),
-					})
-					if err != nil {
-						return err
-					}
-				}
+	existingLesson, err := s.db.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
+		ID:      lessonID,
+		OwnerID: ownerID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.LessonResponse{}, &pkgerrors.NotFoundError{
+				Entity:  "Lesson",
+				ID:      lessonID,
+				OwnerID: ownerID,
 			}
 		}
+		return models.LessonResponse{}, err
+	}
 
-		return nil
+	newDate := existingLesson.Date
+	if req.Date != nil {
+		newDate = *req.Date
+	}
+
+	updatedLesson, err := s.db.UpdateLesson(ctx, db.UpdateLessonParams{
+		ID:      lessonID,
+		OwnerID: ownerID,
+		Date:    newDate,
 	})
 	if err != nil {
 		return models.LessonResponse{}, err
+	}
+
+	if req.Students != nil {
+		if err := s.updateVisitsByLessonID(ctx, lessonID, req.Students, ownerID); err != nil {
+			return models.LessonResponse{}, err
+		}
 	}
 
 	return toLessonResponse(updatedLesson), nil
@@ -290,33 +196,28 @@ func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID,
 
 func (s *Service) DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Deleting lesson", "lesson_id", lessonID.String(), "user_id", ownerID.String())
-	return s.withTx(ctx, func(qtx *db.Queries) error {
-		_, err := qtx.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
-			ID:      lessonID,
-			OwnerID: ownerID,
-		})
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return &pkgerrors.NotFoundError{
-					Entity:  "Lesson",
-					ID:      lessonID,
-					OwnerID: ownerID,
-				}
+	_, err := s.db.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
+		ID:      lessonID,
+		OwnerID: ownerID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &pkgerrors.NotFoundError{
+				Entity:  "Lesson",
+				ID:      lessonID,
+				OwnerID: ownerID,
 			}
-			return err
 		}
+		return err
+	}
 
-		if err := qtx.DeleteVisitsByLessonIDAndOwnerID(ctx, db.DeleteVisitsByLessonIDAndOwnerIDParams{
-			LessonID: lessonID,
-			OwnerID:  ownerID,
-		}); err != nil {
-			return err
-		}
+	if err := s.removeVisitsByLessonID(ctx, lessonID, ownerID); err != nil {
+		return err
+	}
 
-		return qtx.DeleteLessonByIDAndOwnerID(ctx, db.DeleteLessonByIDAndOwnerIDParams{
-			ID:      lessonID,
-			OwnerID: ownerID,
-		})
+	return s.db.DeleteLessonByIDAndOwnerID(ctx, db.DeleteLessonByIDAndOwnerIDParams{
+		ID:      lessonID,
+		OwnerID: ownerID,
 	})
 }
 
@@ -327,6 +228,24 @@ func (s *Service) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, 
 		OwnerID: ownerID,
 		Date:    from,
 		Date_2:  to,
+	})
+	if err != nil {
+		return nil, err
+	}
+	res := make([]models.LessonResponse, 0, len(rows))
+	for _, r := range rows {
+		res = append(res, toLessonResponse(r))
+	}
+	return res, nil
+}
+
+func (s *Service) GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.LessonResponse, error) {
+	if len(lessonIDs) == 0 {
+		return []models.LessonResponse{}, nil
+	}
+	rows, err := s.db.FindLessonsByIDsAndOwnerID(ctx, db.FindLessonsByIDsAndOwnerIDParams{
+		OwnerID: ownerID,
+		Column2: lessonIDs,
 	})
 	if err != nil {
 		return nil, err

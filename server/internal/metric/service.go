@@ -2,24 +2,25 @@ package metric
 
 import (
 	"context"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/krivolapovdev/trenerio/internal/db"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
+	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
+type FetchTransactionsBetweenFunc func(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.TransactionResponse, error)
+
 type Service struct {
-	db *db.Queries
+	fetchTransactions FetchTransactionsBetweenFunc
 }
 
-func NewService(queries *db.Queries) *Service {
+func NewService(fetchTransactions FetchTransactionsBetweenFunc) *Service {
 	return &Service{
-		db: queries,
+		fetchTransactions: fetchTransactions,
 	}
 }
 
@@ -70,11 +71,7 @@ func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, sta
 			return t.AddDate(0, 1, 0)
 		}
 	}
-	rows, err := s.db.FindTransactionsByOwnerIDAndDateBetween(ctx, db.FindTransactionsByOwnerIDAndDateBetweenParams{
-		OwnerID: ownerID,
-		Date:    startDate,
-		Date_2:  endDate,
-	})
+	rows, err := s.fetchTransactions(ctx, startDate, endDate, ownerID)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +79,8 @@ func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, sta
 	totalsByBucket := make(map[int64]float64)
 	for _, r := range rows {
 		bucket := truncate(r.Date)
-		amt, _ := strconv.ParseFloat(r.Amount, 64)
-		if r.Type == db.PaymentsModuleTransactionTypeINCOME {
+		amt := r.Amount
+		if r.Type == types.TransactionTypeIncome {
 			totalsByBucket[bucket.Unix()] += amt
 		} else {
 			totalsByBucket[bucket.Unix()] -= amt

@@ -12,22 +12,53 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
-	"github.com/krivolapovdev/trenerio/internal/student"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
+type FetchStudentsByIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error)
+type ComputeStudentStatusesFunc func(student models.StudentResponse, visits []models.VisitResponse, payments []models.TransactionResponse, lessonsMap map[uuid.UUID]models.LessonResponse, groupLessonsMap map[uuid.UUID]models.LessonResponse, today time.Time) []types.StudentStatus
+type FetchVisitsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.VisitResponse, error)
+type FetchVisitsByLessonIDsFunc func(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.VisitResponse, error)
+type FetchPaymentsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.TransactionResponse, error)
+type FetchLessonsByGroupIDAndDateRangeFunc func(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error)
+type FetchLessonsByIDsFunc func(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.LessonResponse, error)
+
 type Service struct {
-	db    *db.Queries
-	sqlDB *sql.DB
+	db                        *db.Queries
+	sqlDB                     *sql.DB
+	fetchStudentsByIDs        FetchStudentsByIDsFunc
+	computeStudentStatuses    ComputeStudentStatusesFunc
+	fetchVisitsByStudentIDs   FetchVisitsByStudentIDsFunc
+	fetchVisitsByLessonIDs    FetchVisitsByLessonIDsFunc
+	fetchPaymentsByStudentIDs FetchPaymentsByStudentIDsFunc
+	fetchLessonsByGroup       FetchLessonsByGroupIDAndDateRangeFunc
+	fetchLessonsByIDs         FetchLessonsByIDsFunc
 }
 
-func NewService(queries *db.Queries, sqlDB *sql.DB) *Service {
+func NewService(
+	queries *db.Queries,
+	sqlDB *sql.DB,
+	fetchStudentsByIDs FetchStudentsByIDsFunc,
+	computeStudentStatuses ComputeStudentStatusesFunc,
+	fetchVisitsByStudentIDs FetchVisitsByStudentIDsFunc,
+	fetchVisitsByLessonIDs FetchVisitsByLessonIDsFunc,
+	fetchPaymentsByStudentIDs FetchPaymentsByStudentIDsFunc,
+	fetchLessonsByGroup FetchLessonsByGroupIDAndDateRangeFunc,
+	fetchLessonsByIDs FetchLessonsByIDsFunc,
+) *Service {
 	return &Service{
-		db:    queries,
-		sqlDB: sqlDB,
+		db:                        queries,
+		sqlDB:                     sqlDB,
+		fetchStudentsByIDs:        fetchStudentsByIDs,
+		computeStudentStatuses:    computeStudentStatuses,
+		fetchVisitsByStudentIDs:   fetchVisitsByStudentIDs,
+		fetchVisitsByLessonIDs:    fetchVisitsByLessonIDs,
+		fetchPaymentsByStudentIDs: fetchPaymentsByStudentIDs,
+		fetchLessonsByGroup:       fetchLessonsByGroup,
+		fetchLessonsByIDs:         fetchLessonsByIDs,
 	}
 }
 
@@ -142,81 +173,30 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 		}
 	}
 
-	stRows, err := s.db.FindStudentsByIDsAndOwnerID(ctx, db.FindStudentsByIDsAndOwnerIDParams{
-		OwnerID: ownerID,
-		Column2: studentIDs,
-	})
+	stRows, err := s.fetchStudentsByIDs(ctx, studentIDs, ownerID)
 	if err != nil {
 		return nil, err
 	}
 	studentsMap := make(map[uuid.UUID]models.StudentResponse)
 	for _, sr := range stRows {
-		var birthdate *types.Date
-		if sr.Birthdate.Valid {
-			birthdate = &types.Date{Time: sr.Birthdate.Time}
-		}
-		var phone *string
-		if sr.Phone.Valid {
-			phone = &sr.Phone.String
-		}
-		var note *string
-		if sr.Note.Valid {
-			note = &sr.Note.String
-		}
-		studentsMap[sr.ID] = models.StudentResponse{
-			ID:        sr.ID,
-			FullName:  sr.FullName,
-			Birthdate: birthdate,
-			Phone:     phone,
-			Note:      note,
-			CreatedAt: sr.CreatedAt,
-			Free:      sr.Free,
-		}
+		studentsMap[sr.ID] = sr
 	}
 
-	vRows, err := s.db.FindVisitsByStudentIDsAndOwnerID(ctx, db.FindVisitsByStudentIDsAndOwnerIDParams{
-		OwnerID: ownerID,
-		Column2: studentIDs,
-	})
+	visitsByStudentID, err := s.fetchVisitsByStudentIDs(ctx, studentIDs, ownerID)
 	if err != nil {
 		return nil, err
 	}
-	visitsByStudentID := make(map[uuid.UUID][]models.VisitResponse)
+
 	allLessonIDsMap := make(map[uuid.UUID]bool)
-	for _, vr := range vRows {
-		visitsByStudentID[vr.StudentID] = append(visitsByStudentID[vr.StudentID], models.VisitResponse{
-			ID:        vr.ID,
-			Status:    types.VisitStatus(vr.Status),
-			Type:      types.VisitType(vr.Type),
-			LessonID:  vr.LessonID,
-			StudentID: vr.StudentID,
-			CreatedAt: vr.CreatedAt,
-		})
-		allLessonIDsMap[vr.LessonID] = true
+	for _, visits := range visitsByStudentID {
+		for _, vr := range visits {
+			allLessonIDsMap[vr.LessonID] = true
+		}
 	}
 
-	pRows, err := s.db.FindStudentPaymentsByStudentIDsAndOwnerID(ctx, db.FindStudentPaymentsByStudentIDsAndOwnerIDParams{
-		OwnerID: ownerID,
-		Column2: studentIDs,
-	})
+	paymentsByStudentID, err := s.fetchPaymentsByStudentIDs(ctx, studentIDs, ownerID)
 	if err != nil {
 		return nil, err
-	}
-	paymentsByStudentID := make(map[uuid.UUID][]models.TransactionResponse)
-	for _, pr := range pRows {
-		amt, _ := strconv.ParseFloat(pr.Amount, 64)
-		paymentsByStudentID[pr.StudentID] = append(paymentsByStudentID[pr.StudentID], models.TransactionResponse{
-			ID:        pr.ID,
-			Amount:    amt,
-			Date:      pr.Date,
-			Type:      types.TransactionType(pr.Type),
-			CreatedAt: pr.CreatedAt,
-			PaymentDetails: &models.StudentPaymentDetailsResponse{
-				DetailsType: "STUDENT",
-				StudentID:   pr.StudentID,
-				PaidUntil:   pr.PaidUntil,
-			},
-		})
 	}
 
 	allLessonIDs := make([]uuid.UUID, 0, len(allLessonIDsMap))
@@ -226,22 +206,10 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 
 	lessonsMap := make(map[uuid.UUID]models.LessonResponse)
 	if len(allLessonIDs) > 0 {
-		lRows, err := s.db.FindLessonsByIDsAndOwnerID(ctx, db.FindLessonsByIDsAndOwnerIDParams{
-			OwnerID: ownerID,
-			Column2: allLessonIDs,
-		})
+		lRows, err := s.fetchLessonsByIDs(ctx, allLessonIDs, ownerID)
 		if err == nil {
 			for _, lr := range lRows {
-				var gID *uuid.UUID
-				if lr.GroupID.Valid {
-					gID = &lr.GroupID.UUID
-				}
-				lessonsMap[lr.ID] = models.LessonResponse{
-					ID:        lr.ID,
-					Date:      lr.Date,
-					CreatedAt: lr.CreatedAt,
-					GroupID:   gID,
-				}
+				lessonsMap[lr.ID] = lr
 			}
 		}
 	}
@@ -261,7 +229,7 @@ func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 				groupLessonsMap[lid] = l
 			}
 		}
-		statuses := student.ComputeStudentStatusesWithVisitLessons(st, stVisits, stPayments, lessonsMap, groupLessonsMap, today)
+		statuses := s.computeStudentStatuses(st, stVisits, stPayments, lessonsMap, groupLessonsMap, today)
 
 		res = append(res, models.GroupStudentSummaryResponse{
 			ID:        st.ID,
@@ -285,30 +253,7 @@ func (s *Service) GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUI
 		return nil, err
 	}
 
-	rows, err := s.db.FindLessonsByGroupIDAndDateBetween(ctx, db.FindLessonsByGroupIDAndDateBetweenParams{
-		GroupID: uuid.NullUUID{UUID: groupID, Valid: true},
-		OwnerID: ownerID,
-		Date:    from,
-		Date_2:  to,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	res := make([]models.LessonResponse, 0, len(rows))
-	for _, r := range rows {
-		var gID *uuid.UUID
-		if r.GroupID.Valid {
-			gID = &r.GroupID.UUID
-		}
-		res = append(res, models.LessonResponse{
-			ID:        r.ID,
-			Date:      r.Date,
-			CreatedAt: r.CreatedAt,
-			GroupID:   gID,
-		})
-	}
-	return res, nil
+	return s.fetchLessonsByGroup(ctx, groupID, ownerID, from, to)
 }
 
 func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (models.GroupReportResponse, error) {
@@ -321,38 +266,19 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 	firstDay := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
 	lastDay := time.Date(year, time.Month(month)+1, 0, 23, 59, 59, 999999999, time.UTC)
 
-	lessonRows, err := s.db.FindLessonsByGroupIDAndDateBetween(ctx, db.FindLessonsByGroupIDAndDateBetweenParams{
-		GroupID: uuid.NullUUID{UUID: groupID, Valid: true},
-		OwnerID: ownerID,
-		Date:    firstDay,
-		Date_2:  lastDay,
-	})
+	lessons, err := s.fetchLessonsByGroup(ctx, groupID, ownerID, firstDay, lastDay)
 	if err != nil {
 		return models.GroupReportResponse{}, err
 	}
 
-	lessons := make([]models.LessonResponse, 0, len(lessonRows))
-	lessonIDs := make([]uuid.UUID, 0, len(lessonRows))
-	for _, lr := range lessonRows {
-		var gID *uuid.UUID
-		if lr.GroupID.Valid {
-			gID = &lr.GroupID.UUID
-		}
-		lessons = append(lessons, models.LessonResponse{
-			ID:        lr.ID,
-			Date:      lr.Date,
-			CreatedAt: lr.CreatedAt,
-			GroupID:   gID,
-		})
+	lessonIDs := make([]uuid.UUID, 0, len(lessons))
+	for _, lr := range lessons {
 		lessonIDs = append(lessonIDs, lr.ID)
 	}
 
-	var lessonVisits []db.VisitsModuleVisit
+	var lessonVisits []models.VisitResponse
 	if len(lessonIDs) > 0 {
-		lv, err := s.db.FindVisitsByLessonIDsAndOwnerID(ctx, db.FindVisitsByLessonIDsAndOwnerIDParams{
-			OwnerID: ownerID,
-			Column2: lessonIDs,
-		})
+		lv, err := s.fetchVisitsByLessonIDs(ctx, lessonIDs, ownerID)
 		if err == nil {
 			lessonVisits = lv
 		}
@@ -383,48 +309,18 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 		visitsByStudentID[sid] = []models.VisitResponse{}
 	}
 	for _, lv := range lessonVisits {
-		visitsByStudentID[lv.StudentID] = append(visitsByStudentID[lv.StudentID], models.VisitResponse{
-			ID:        lv.ID,
-			Status:    types.VisitStatus(lv.Status),
-			Type:      types.VisitType(lv.Type),
-			LessonID:  lv.LessonID,
-			StudentID: lv.StudentID,
-			CreatedAt: lv.CreatedAt,
-		})
+		visitsByStudentID[lv.StudentID] = append(visitsByStudentID[lv.StudentID], lv)
 	}
 
 	studentsList := make([]models.StudentResponse, 0, len(studentIDOrder))
 	if len(studentIDOrder) > 0 {
-		stRows, err := s.db.FindStudentsByIDsAndOwnerID(ctx, db.FindStudentsByIDsAndOwnerIDParams{
-			OwnerID: ownerID,
-			Column2: studentIDOrder,
-		})
+		stRows, err := s.fetchStudentsByIDs(ctx, studentIDOrder, ownerID)
 		if err != nil {
 			return models.GroupReportResponse{}, err
 		}
 		stMap := make(map[uuid.UUID]models.StudentResponse)
 		for _, sr := range stRows {
-			var birthdate *types.Date
-			if sr.Birthdate.Valid {
-				birthdate = &types.Date{Time: sr.Birthdate.Time}
-			}
-			var phone *string
-			if sr.Phone.Valid {
-				phone = &sr.Phone.String
-			}
-			var note *string
-			if sr.Note.Valid {
-				note = &sr.Note.String
-			}
-			stMap[sr.ID] = models.StudentResponse{
-				ID:        sr.ID,
-				FullName:  sr.FullName,
-				Birthdate: birthdate,
-				Phone:     phone,
-				Note:      note,
-				CreatedAt: sr.CreatedAt,
-				Free:      sr.Free,
-			}
+			stMap[sr.ID] = sr
 		}
 		for _, sid := range studentIDOrder {
 			if st, ok := stMap[sid]; ok {
@@ -433,31 +329,114 @@ func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 		}
 	}
 
-	pRows, err := s.db.FindStudentPaymentsByStudentIDsAndOwnerID(ctx, db.FindStudentPaymentsByStudentIDsAndOwnerIDParams{
-		OwnerID: ownerID,
-		Column2: studentIDOrder,
-	})
+	paymentsByStudentID, err := s.fetchPaymentsByStudentIDs(ctx, studentIDOrder, ownerID)
 	if err != nil {
 		return models.GroupReportResponse{}, err
 	}
-	paymentsByStudentID := make(map[uuid.UUID][]models.TransactionResponse)
-	for _, pr := range pRows {
-		amt, _ := strconv.ParseFloat(pr.Amount, 64)
-		paymentsByStudentID[pr.StudentID] = append(paymentsByStudentID[pr.StudentID], models.TransactionResponse{
-			ID:        pr.ID,
-			Amount:    amt,
-			Date:      pr.Date,
-			Type:      types.TransactionType(pr.Type),
-			CreatedAt: pr.CreatedAt,
-			PaymentDetails: &models.StudentPaymentDetailsResponse{
-				DetailsType: "STUDENT",
-				StudentID:   pr.StudentID,
-				PaidUntil:   pr.PaidUntil,
-			},
-		})
-	}
 
 	return BuildGroupReport(group, year, month, studentsList, lessons, visitsByStudentID, paymentsByStudentID, time.Now().UTC()), nil
+}
+
+func (s *Service) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.GroupResponse, error) {
+	if len(studentIDs) == 0 {
+		return map[uuid.UUID][]models.GroupResponse{}, nil
+	}
+	groupStudentRows, err := s.db.FindGroupStudentsByStudentIDsAndOwnerID(ctx, db.FindGroupStudentsByStudentIDsAndOwnerIDParams{
+		OwnerID: ownerID,
+		Column2: studentIDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	studentGroupIDsMap := make(map[uuid.UUID][]uuid.UUID)
+	allGroupIDsMap := make(map[uuid.UUID]bool)
+	for _, gsr := range groupStudentRows {
+		studentGroupIDsMap[gsr.StudentID] = append(studentGroupIDsMap[gsr.StudentID], gsr.GroupID)
+		allGroupIDsMap[gsr.GroupID] = true
+	}
+
+	allGroupIDs := make([]uuid.UUID, 0, len(allGroupIDsMap))
+	for gid := range allGroupIDsMap {
+		allGroupIDs = append(allGroupIDs, gid)
+	}
+
+	groupsMap := make(map[uuid.UUID]models.GroupResponse)
+	if len(allGroupIDs) > 0 {
+		gRows, err := s.db.FindGroupsByIDsAndOwnerID(ctx, db.FindGroupsByIDsAndOwnerIDParams{
+			OwnerID: ownerID,
+			Column2: allGroupIDs,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, gr := range gRows {
+			groupsMap[gr.ID] = toGroupResponse(gr)
+		}
+	}
+
+	res := make(map[uuid.UUID][]models.GroupResponse)
+	for _, sid := range studentIDs {
+		gIDs := studentGroupIDsMap[sid]
+		stGroups := make([]models.GroupResponse, 0, len(gIDs))
+		for _, gid := range gIDs {
+			if grp, ok := groupsMap[gid]; ok {
+				stGroups = append(stGroups, grp)
+			}
+		}
+		res[sid] = stGroups
+	}
+
+	return res, nil
+}
+
+func (s *Service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.UUID, groupIDs []uuid.UUID) error {
+	return s.withTx(ctx, func(qtx *db.Queries) error {
+		currentLinks, err := qtx.FindGroupStudentsByStudentIDAndOwnerID(ctx, db.FindGroupStudentsByStudentIDAndOwnerIDParams{
+			StudentID: studentID,
+			OwnerID:   ownerID,
+		})
+		if err != nil {
+			return err
+		}
+
+		reqMap := make(map[uuid.UUID]bool)
+		for _, gid := range groupIDs {
+			reqMap[gid] = true
+		}
+
+		for _, cl := range currentLinks {
+			if !reqMap[cl.GroupID] {
+				if err := qtx.DeleteGroupStudentByStudentAndGroupID(ctx, db.DeleteGroupStudentByStudentAndGroupIDParams{
+					GroupID:   cl.GroupID,
+					StudentID: studentID,
+					OwnerID:   ownerID,
+				}); err != nil {
+					return err
+				}
+			}
+		}
+
+		curMap := make(map[uuid.UUID]bool)
+		for _, cl := range currentLinks {
+			curMap[cl.GroupID] = true
+		}
+
+		for _, gid := range groupIDs {
+			if !curMap[gid] {
+				_, err := qtx.CreateGroupStudent(ctx, db.CreateGroupStudentParams{
+					OwnerID:   ownerID,
+					GroupID:   gid,
+					StudentID: studentID,
+				})
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
 }
 
 func BuildGroupReport(group models.GroupResponse, year, month int, students []models.StudentResponse, lessons []models.LessonResponse, visitsByStudentID map[uuid.UUID][]models.VisitResponse, paymentsByStudentID map[uuid.UUID][]models.TransactionResponse, today time.Time) models.GroupReportResponse {
@@ -612,10 +591,7 @@ func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 			}
 		}
 
-		stRows, err := s.db.FindStudentsByIDsAndOwnerID(ctx, db.FindStudentsByIDsAndOwnerIDParams{
-			OwnerID: ownerID,
-			Column2: uniqueStudentIDs,
-		})
+		stRows, err := s.fetchStudentsByIDs(ctx, uniqueStudentIDs, ownerID)
 		if err != nil {
 			return models.GroupResponse{}, err
 		}
@@ -751,10 +727,7 @@ func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 		if rawSIDs, ok := updates["studentIds"]; ok {
 			requestedStudentIDs := parseUUIDSlice(rawSIDs)
 			if len(requestedStudentIDs) > 0 {
-				stRows, err := qtx.FindStudentsByIDsAndOwnerID(ctx, db.FindStudentsByIDsAndOwnerIDParams{
-					OwnerID: ownerID,
-					Column2: requestedStudentIDs,
-				})
+				stRows, err := s.fetchStudentsByIDs(ctx, requestedStudentIDs, ownerID)
 				if err != nil {
 					return err
 				}

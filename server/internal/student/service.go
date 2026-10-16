@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -18,15 +17,51 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
+type FetchVisitsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.VisitResponse, error)
+type FetchVisitsByStudentIDFunc func(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.VisitResponse, error)
+type FetchPaymentsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.TransactionResponse, error)
+type FetchPaymentsByStudentIDFunc func(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error)
+type CreateStudentPaymentFunc func(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (models.TransactionResponse, error)
+type FetchStudentGroupsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.GroupResponse, error)
+type SetStudentGroupsFunc func(ctx context.Context, studentID, ownerID uuid.UUID, groupIDs []uuid.UUID) error
+type FetchLessonsByIDsFunc func(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.LessonResponse, error)
+
 type Service struct {
-	db    *db.Queries
-	sqlDB *sql.DB
+	db                        *db.Queries
+	sqlDB                     *sql.DB
+	fetchVisitsByStudentIDs   FetchVisitsByStudentIDsFunc
+	fetchVisitsByStudentID    FetchVisitsByStudentIDFunc
+	fetchPaymentsByStudentIDs FetchPaymentsByStudentIDsFunc
+	fetchPaymentsByStudentID  FetchPaymentsByStudentIDFunc
+	createStudentPayment      CreateStudentPaymentFunc
+	fetchStudentGroups        FetchStudentGroupsByStudentIDsFunc
+	setStudentGroups          SetStudentGroupsFunc
+	fetchLessonsByIDs         FetchLessonsByIDsFunc
 }
 
-func NewService(queries *db.Queries, sqlDB *sql.DB) *Service {
+func NewService(
+	queries *db.Queries,
+	sqlDB *sql.DB,
+	fetchVisitsByStudentIDs FetchVisitsByStudentIDsFunc,
+	fetchVisitsByStudentID FetchVisitsByStudentIDFunc,
+	fetchPaymentsByStudentIDs FetchPaymentsByStudentIDsFunc,
+	fetchPaymentsByStudentID FetchPaymentsByStudentIDFunc,
+	createStudentPayment CreateStudentPaymentFunc,
+	fetchStudentGroups FetchStudentGroupsByStudentIDsFunc,
+	setStudentGroups SetStudentGroupsFunc,
+	fetchLessonsByIDs FetchLessonsByIDsFunc,
+) *Service {
 	return &Service{
-		db:    queries,
-		sqlDB: sqlDB,
+		db:                        queries,
+		sqlDB:                     sqlDB,
+		fetchVisitsByStudentIDs:   fetchVisitsByStudentIDs,
+		fetchVisitsByStudentID:    fetchVisitsByStudentID,
+		fetchPaymentsByStudentIDs: fetchPaymentsByStudentIDs,
+		fetchPaymentsByStudentID:  fetchPaymentsByStudentID,
+		createStudentPayment:      createStudentPayment,
+		fetchStudentGroups:        fetchStudentGroups,
+		setStudentGroups:          setStudentGroups,
+		fetchLessonsByIDs:         fetchLessonsByIDs,
 	}
 }
 
@@ -56,6 +91,24 @@ func (s *Service) GetAllStudents(ctx context.Context, ownerID uuid.UUID) ([]mode
 	return res, nil
 }
 
+func (s *Service) GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error) {
+	if len(studentIDs) == 0 {
+		return []models.StudentResponse{}, nil
+	}
+	rows, err := s.db.FindStudentsByIDsAndOwnerID(ctx, db.FindStudentsByIDsAndOwnerIDParams{
+		OwnerID: ownerID,
+		Column2: studentIDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+	res := make([]models.StudentResponse, 0, len(rows))
+	for _, r := range rows {
+		res = append(res, toStudentResponse(r))
+	}
+	return res, nil
+}
+
 func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error) {
 	logger.InfoContext(ctx, "Getting students overview", "user_id", ownerID.String())
 	students, err := s.GetAllStudents(ctx, ownerID)
@@ -71,100 +124,26 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 		studentIDs = append(studentIDs, st.ID)
 	}
 
-	visitRows, err := s.db.FindVisitsByStudentIDsAndOwnerID(ctx, db.FindVisitsByStudentIDsAndOwnerIDParams{
-		OwnerID: ownerID,
-		Column2: studentIDs,
-	})
+	visitsMap, err := s.fetchVisitsByStudentIDs(ctx, studentIDs, ownerID)
 	if err != nil {
 		return nil, err
 	}
 
-	visitsMap := make(map[uuid.UUID][]models.VisitResponse)
 	lessonIDsMap := make(map[uuid.UUID]bool)
-	for _, vr := range visitRows {
-		visitsMap[vr.StudentID] = append(visitsMap[vr.StudentID], models.VisitResponse{
-			ID:        vr.ID,
-			Status:    types.VisitStatus(vr.Status),
-			Type:      types.VisitType(vr.Type),
-			LessonID:  vr.LessonID,
-			StudentID: vr.StudentID,
-			CreatedAt: vr.CreatedAt,
-		})
-		lessonIDsMap[vr.LessonID] = true
+	for _, vs := range visitsMap {
+		for _, v := range vs {
+			lessonIDsMap[v.LessonID] = true
+		}
 	}
 
-	paymentRows, err := s.db.FindStudentPaymentsByStudentIDsAndOwnerID(ctx, db.FindStudentPaymentsByStudentIDsAndOwnerIDParams{
-		OwnerID: ownerID,
-		Column2: studentIDs,
-	})
+	paymentsMap, err := s.fetchPaymentsByStudentIDs(ctx, studentIDs, ownerID)
 	if err != nil {
 		return nil, err
 	}
 
-	paymentsMap := make(map[uuid.UUID][]models.TransactionResponse)
-	for _, pr := range paymentRows {
-		amt, _ := strconv.ParseFloat(pr.Amount, 64)
-		paymentsMap[pr.StudentID] = append(paymentsMap[pr.StudentID], models.TransactionResponse{
-			ID:        pr.ID,
-			Amount:    amt,
-			Date:      pr.Date,
-			Type:      types.TransactionType(pr.Type),
-			CreatedAt: pr.CreatedAt,
-			PaymentDetails: &models.StudentPaymentDetailsResponse{
-				DetailsType: "STUDENT",
-				StudentID:   pr.StudentID,
-				PaidUntil:   pr.PaidUntil,
-			},
-		})
-	}
-
-	groupStudentRows, err := s.db.FindGroupStudentsByStudentIDsAndOwnerID(ctx, db.FindGroupStudentsByStudentIDsAndOwnerIDParams{
-		OwnerID: ownerID,
-		Column2: studentIDs,
-	})
+	studentGroupsMap, err := s.fetchStudentGroups(ctx, studentIDs, ownerID)
 	if err != nil {
 		return nil, err
-	}
-
-	studentGroupIDsMap := make(map[uuid.UUID][]uuid.UUID)
-	allGroupIDsMap := make(map[uuid.UUID]bool)
-	for _, gsr := range groupStudentRows {
-		studentGroupIDsMap[gsr.StudentID] = append(studentGroupIDsMap[gsr.StudentID], gsr.GroupID)
-		allGroupIDsMap[gsr.GroupID] = true
-	}
-
-	allGroupIDs := make([]uuid.UUID, 0, len(allGroupIDsMap))
-	for gid := range allGroupIDsMap {
-		allGroupIDs = append(allGroupIDs, gid)
-	}
-
-	groupsMap := make(map[uuid.UUID]models.GroupResponse)
-	if len(allGroupIDs) > 0 {
-		gRows, err := s.db.FindGroupsByIDsAndOwnerID(ctx, db.FindGroupsByIDsAndOwnerIDParams{
-			OwnerID: ownerID,
-			Column2: allGroupIDs,
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, gr := range gRows {
-			var defPrice *float64
-			if gr.DefaultPrice.Valid {
-				f, _ := strconv.ParseFloat(gr.DefaultPrice.String, 64)
-				defPrice = &f
-			}
-			var note *string
-			if gr.Note.Valid {
-				note = &gr.Note.String
-			}
-			groupsMap[gr.ID] = models.GroupResponse{
-				ID:           gr.ID,
-				Name:         gr.Name,
-				DefaultPrice: defPrice,
-				Note:         note,
-				CreatedAt:    gr.CreatedAt,
-			}
-		}
 	}
 
 	allLessonIDs := make([]uuid.UUID, 0, len(lessonIDsMap))
@@ -174,24 +153,12 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 
 	lessonsMap := make(map[uuid.UUID]models.LessonResponse)
 	if len(allLessonIDs) > 0 {
-		lRows, err := s.db.FindLessonsByIDsAndOwnerID(ctx, db.FindLessonsByIDsAndOwnerIDParams{
-			OwnerID: ownerID,
-			Column2: allLessonIDs,
-		})
+		lRows, err := s.fetchLessonsByIDs(ctx, allLessonIDs, ownerID)
 		if err != nil {
 			return nil, err
 		}
 		for _, lr := range lRows {
-			var gID *uuid.UUID
-			if lr.GroupID.Valid {
-				gID = &lr.GroupID.UUID
-			}
-			lessonsMap[lr.ID] = models.LessonResponse{
-				ID:        lr.ID,
-				Date:      lr.Date,
-				CreatedAt: lr.CreatedAt,
-				GroupID:   gID,
-			}
+			lessonsMap[lr.ID] = lr
 		}
 	}
 
@@ -202,13 +169,9 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 		stPayments := paymentsMap[st.ID]
 
 		statuses := ComputeStudentStatuses(st, stVisits, stPayments, lessonsMap, today)
-
-		gIDs := studentGroupIDsMap[st.ID]
-		stGroups := make([]models.GroupResponse, 0, len(gIDs))
-		for _, gid := range gIDs {
-			if grp, ok := groupsMap[gid]; ok {
-				stGroups = append(stGroups, grp)
-			}
+		stGroups := studentGroupsMap[st.ID]
+		if stGroups == nil {
+			stGroups = []models.GroupResponse{}
 		}
 
 		res = append(res, models.StudentSummaryResponse{
@@ -253,10 +216,7 @@ func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.
 		return nil, err
 	}
 
-	vRows, err := s.db.FindVisitsByStudentIDAndOwnerID(ctx, db.FindVisitsByStudentIDAndOwnerIDParams{
-		StudentID: studentID,
-		OwnerID:   ownerID,
-	})
+	vRows, err := s.fetchVisitsByStudentID(ctx, studentID, ownerID)
 	if err != nil {
 		return nil, err
 	}
@@ -271,24 +231,12 @@ func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.
 
 	lessonsMap := make(map[uuid.UUID]models.LessonResponse)
 	if len(lessonIDs) > 0 {
-		lRows, err := s.db.FindLessonsByIDsAndOwnerID(ctx, db.FindLessonsByIDsAndOwnerIDParams{
-			OwnerID: ownerID,
-			Column2: lessonIDs,
-		})
+		lRows, err := s.fetchLessonsByIDs(ctx, lessonIDs, ownerID)
 		if err != nil {
 			return nil, err
 		}
 		for _, lr := range lRows {
-			var gID *uuid.UUID
-			if lr.GroupID.Valid {
-				gID = &lr.GroupID.UUID
-			}
-			lessonsMap[lr.ID] = models.LessonResponse{
-				ID:        lr.ID,
-				Date:      lr.Date,
-				CreatedAt: lr.CreatedAt,
-				GroupID:   gID,
-			}
+			lessonsMap[lr.ID] = lr
 		}
 	}
 
@@ -305,14 +253,7 @@ func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.
 			continue
 		}
 		res = append(res, models.VisitWithLessonResponse{
-			Visit: models.VisitResponse{
-				ID:        vr.ID,
-				Status:    types.VisitStatus(vr.Status),
-				Type:      types.VisitType(vr.Type),
-				LessonID:  vr.LessonID,
-				StudentID: vr.StudentID,
-				CreatedAt: vr.CreatedAt,
-			},
+			Visit:  vr,
 			Lesson: lResp,
 		})
 	}
@@ -331,30 +272,7 @@ func (s *Service) GetStudentPayments(ctx context.Context, studentID, ownerID uui
 		return nil, err
 	}
 
-	rows, err := s.db.FindStudentPaymentsByStudentIDAndOwnerID(ctx, db.FindStudentPaymentsByStudentIDAndOwnerIDParams{
-		StudentID: studentID,
-		OwnerID:   ownerID,
-	})
-	if err != nil {
-		return nil, err
-	}
-	res := make([]models.TransactionResponse, 0, len(rows))
-	for _, r := range rows {
-		amt, _ := strconv.ParseFloat(r.Amount, 64)
-		res = append(res, models.TransactionResponse{
-			ID:        r.ID,
-			Amount:    amt,
-			Date:      r.Date,
-			Type:      types.TransactionType(r.Type),
-			CreatedAt: r.CreatedAt,
-			PaymentDetails: &models.StudentPaymentDetailsResponse{
-				DetailsType: "STUDENT",
-				StudentID:   r.StudentID,
-				PaidUntil:   r.PaidUntil,
-			},
-		})
-	}
-	return res, nil
+	return s.fetchPaymentsByStudentID(ctx, studentID, ownerID)
 }
 
 func (s *Service) CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
@@ -411,18 +329,8 @@ func (s *Service) CreateStudent(ctx context.Context, req models.CreateStudentReq
 
 func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Creating student payment", "student_id", studentID.String(), "user_id", ownerID.String())
-	_, err := s.db.FindStudentByIDAndOwnerID(ctx, db.FindStudentByIDAndOwnerIDParams{
-		ID:      studentID,
-		OwnerID: ownerID,
-	})
+	_, err := s.GetStudentDetailsByID(ctx, studentID, ownerID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return models.TransactionResponse{}, &pkgerrors.NotFoundError{
-				Entity:  "Student",
-				ID:      studentID,
-				OwnerID: ownerID,
-			}
-		}
 		return models.TransactionResponse{}, err
 	}
 
@@ -432,46 +340,7 @@ func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID,
 		}
 	}
 
-	var createdTx db.PaymentsModuleTransaction
-	var sp db.PaymentsModuleStudentPayment
-
-	err = s.withTx(ctx, func(qtx *db.Queries) error {
-		amountStr := strconv.FormatFloat(req.Amount, 'f', 2, 64)
-		var err error
-		createdTx, err = qtx.CreateTransaction(ctx, db.CreateTransactionParams{
-			OwnerID: ownerID,
-			Type:    db.PaymentsModuleTransactionTypeINCOME,
-			Amount:  amountStr,
-			Date:    req.Date,
-		})
-		if err != nil {
-			return err
-		}
-
-		sp, err = qtx.CreateStudentPayment(ctx, db.CreateStudentPaymentParams{
-			TransactionID: createdTx.ID,
-			StudentID:     studentID,
-			PaidUntil:     req.PaidUntil,
-		})
-		return err
-	})
-	if err != nil {
-		return models.TransactionResponse{}, err
-	}
-
-	amt, _ := strconv.ParseFloat(createdTx.Amount, 64)
-	return models.TransactionResponse{
-		ID:        createdTx.ID,
-		Amount:    amt,
-		Date:      createdTx.Date,
-		Type:      types.TransactionType(createdTx.Type),
-		CreatedAt: createdTx.CreatedAt,
-		PaymentDetails: &models.StudentPaymentDetailsResponse{
-			DetailsType: "STUDENT",
-			StudentID:   sp.StudentID,
-			PaidUntil:   sp.PaidUntil,
-		},
-	}, nil
+	return s.createStudentPayment(ctx, studentID, req.Amount, req.Date, req.PaidUntil, ownerID)
 }
 
 func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]interface{}) (models.StudentResponse, error) {
@@ -559,12 +428,12 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 
 		if _, ok := updates["groupIds"]; ok {
 			requestedGroupIDs := parseUUIDSlice(updates["groupIds"])
-			if err := reconcileStudentGroups(ctx, qtx, studentID, ownerID, requestedGroupIDs); err != nil {
+			if err := s.setStudentGroups(ctx, studentID, ownerID, requestedGroupIDs); err != nil {
 				return err
 			}
 		} else if _, ok := updates["groupId"]; ok {
 			requestedGroupIDs := parseUUIDSlice(updates["groupId"])
-			if err := reconcileStudentGroups(ctx, qtx, studentID, ownerID, requestedGroupIDs); err != nil {
+			if err := s.setStudentGroups(ctx, studentID, ownerID, requestedGroupIDs); err != nil {
 				return err
 			}
 		}
@@ -587,53 +456,6 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 	return toStudentResponse(updated), nil
 }
 
-func reconcileStudentGroups(ctx context.Context, qtx *db.Queries, studentID, ownerID uuid.UUID, requestedGroupIDs []uuid.UUID) error {
-	currentLinks, err := qtx.FindGroupStudentsByStudentIDAndOwnerID(ctx, db.FindGroupStudentsByStudentIDAndOwnerIDParams{
-		StudentID: studentID,
-		OwnerID:   ownerID,
-	})
-	if err != nil {
-		return err
-	}
-
-	reqMap := make(map[uuid.UUID]bool)
-	for _, gid := range requestedGroupIDs {
-		reqMap[gid] = true
-	}
-
-	for _, cl := range currentLinks {
-		if !reqMap[cl.GroupID] {
-			if err := qtx.DeleteGroupStudentByStudentAndGroupID(ctx, db.DeleteGroupStudentByStudentAndGroupIDParams{
-				GroupID:   cl.GroupID,
-				StudentID: studentID,
-				OwnerID:   ownerID,
-			}); err != nil {
-				return err
-			}
-		}
-	}
-
-	curMap := make(map[uuid.UUID]bool)
-	for _, cl := range currentLinks {
-		curMap[cl.GroupID] = true
-	}
-
-	for _, gid := range requestedGroupIDs {
-		if !curMap[gid] {
-			_, err := qtx.CreateGroupStudent(ctx, db.CreateGroupStudentParams{
-				OwnerID:   ownerID,
-				GroupID:   gid,
-				StudentID: studentID,
-			})
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
 func (s *Service) DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Deleting student", "student_id", studentID.String(), "user_id", ownerID.String())
 	_, err := s.db.FindStudentByIDAndOwnerID(ctx, db.FindStudentByIDAndOwnerIDParams{
@@ -654,6 +476,17 @@ func (s *Service) DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUI
 		ID:      studentID,
 		OwnerID: ownerID,
 	})
+}
+
+func (s *Service) ComputeStudentStatuses(
+	student models.StudentResponse,
+	visits []models.VisitResponse,
+	payments []models.TransactionResponse,
+	lessonsMap map[uuid.UUID]models.LessonResponse,
+	groupLessonsMap map[uuid.UUID]models.LessonResponse,
+	today time.Time,
+) []types.StudentStatus {
+	return ComputeStudentStatusesWithVisitLessons(student, visits, payments, lessonsMap, groupLessonsMap, today)
 }
 
 func ComputeStudentStatuses(
@@ -798,10 +631,6 @@ func parseUUIDSlice(raw interface{}) []uuid.UUID {
 					res = append(res, id)
 				}
 			}
-		}
-	case string:
-		if id, err := uuid.Parse(v); err == nil {
-			res = append(res, id)
 		}
 	}
 	return res

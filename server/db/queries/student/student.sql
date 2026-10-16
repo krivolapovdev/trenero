@@ -37,8 +37,7 @@ SET full_name = $3,
     birthdate = $4,
     phone = $5,
     note = $6,
-    free = $7,
-    updated_at = now()
+    free = $7
 WHERE id = $1 AND owner_id = $2
 RETURNING id, owner_id, full_name, birthdate, phone, note, free, created_at, updated_at;
 
