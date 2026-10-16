@@ -14,7 +14,6 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
-	"github.com/krivolapovdev/trenerio/pkg/timeutil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 	"golang.org/x/sync/errgroup"
 )
@@ -28,7 +27,21 @@ type FetchStudentGroupsByStudentIDsFunc func(ctx context.Context, studentIDs []u
 type SetStudentGroupsFunc func(ctx context.Context, studentID, ownerID uuid.UUID, groupIDs []uuid.UUID) error
 type FetchLessonsByIDsFunc func(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.LessonResponse, error)
 
-type Service struct {
+type Service interface {
+	GetAllStudents(ctx context.Context, ownerID uuid.UUID) ([]models.StudentResponse, error)
+	GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error)
+	GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error)
+	GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error)
+	GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error)
+	GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error)
+	CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error)
+	CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error)
+	UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error)
+	DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error
+	ComputeStudentStatuses(student models.StudentResponse, visits []models.VisitResponse, payments []models.TransactionResponse, lessonsMap map[uuid.UUID]models.LessonResponse, groupLessonsMap map[uuid.UUID]models.LessonResponse, today time.Time) []types.StudentStatus
+}
+
+type service struct {
 	db                        *db.Queries
 	sqlDB                     *sql.DB
 	fetchVisitsByStudentIDs   FetchVisitsByStudentIDsFunc
@@ -52,8 +65,8 @@ func NewService(
 	fetchStudentGroups FetchStudentGroupsByStudentIDsFunc,
 	setStudentGroups SetStudentGroupsFunc,
 	fetchLessonsByIDs FetchLessonsByIDsFunc,
-) *Service {
-	return &Service{
+) Service {
+	return &service{
 		db:                        queries,
 		sqlDB:                     sqlDB,
 		fetchVisitsByStudentIDs:   fetchVisitsByStudentIDs,
@@ -67,7 +80,7 @@ func NewService(
 	}
 }
 
-func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (err error) {
+func (s *service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (err error) {
 	tx, err := s.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -87,7 +100,7 @@ func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (e
 	return tx.Commit()
 }
 
-func (s *Service) GetAllStudents(ctx context.Context, ownerID uuid.UUID) ([]models.StudentResponse, error) {
+func (s *service) GetAllStudents(ctx context.Context, ownerID uuid.UUID) ([]models.StudentResponse, error) {
 	logger.InfoContext(ctx, "Getting all students", "user_id", ownerID.String())
 	rows, err := s.db.FindAllStudentsByOwnerID(ctx, ownerID)
 	if err != nil {
@@ -102,7 +115,7 @@ func (s *Service) GetAllStudents(ctx context.Context, ownerID uuid.UUID) ([]mode
 	return students, nil
 }
 
-func (s *Service) GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error) {
+func (s *service) GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error) {
 	if len(studentIDs) == 0 {
 		logger.DebugContext(ctx, "No student IDs provided to get students", "user_id", ownerID.String())
 		return []models.StudentResponse{}, nil
@@ -123,7 +136,7 @@ func (s *Service) GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, 
 	return students, nil
 }
 
-func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error) {
+func (s *service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error) {
 	logger.InfoContext(ctx, "Getting students overview", "user_id", ownerID.String())
 	students, err := s.GetAllStudents(ctx, ownerID)
 	if err != nil {
@@ -242,7 +255,7 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 	return summaries, nil
 }
 
-func (s *Service) GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error) {
+func (s *service) GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error) {
 	logger.InfoContext(ctx, "Getting student by id", "student_id", studentID.String(), "user_id", ownerID.String())
 	st, err := s.db.FindStudentByIDAndOwnerID(ctx, db.FindStudentByIDAndOwnerIDParams{
 		ID:      studentID,
@@ -260,7 +273,7 @@ func (s *Service) GetStudentDetailsByID(ctx context.Context, studentID, ownerID 
 	return toStudentResponse(st), nil
 }
 
-func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error) {
+func (s *service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error) {
 	logger.InfoContext(ctx, "Getting student visits", "student_id", studentID.String(), "user_id", ownerID.String())
 	if _, err := s.GetStudentDetailsByID(ctx, studentID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Student not found for visits", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
@@ -324,7 +337,7 @@ func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.
 	return visitsWithLessons, nil
 }
 
-func (s *Service) GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+func (s *service) GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting payments for student", "student_id", studentID.String(), "user_id", ownerID.String())
 	if _, err := s.GetStudentDetailsByID(ctx, studentID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Student not found for payments", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
@@ -340,7 +353,7 @@ func (s *Service) GetStudentPayments(ctx context.Context, studentID, ownerID uui
 	return payments, nil
 }
 
-func (s *Service) CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
+func (s *service) CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
 	logger.InfoContext(ctx, "Creating student", "name", req.FullName, "user_id", ownerID.String())
 	fullName := strings.TrimSpace(req.FullName)
 	if fullName == "" {
@@ -398,7 +411,7 @@ func (s *Service) CreateStudent(ctx context.Context, req models.CreateStudentReq
 	return toStudentResponse(created), nil
 }
 
-func (s *Service) CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
+func (s *service) CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Creating payment for student", "student_id", studentID.String(), "amount", req.Amount, "user_id", ownerID.String())
 	if _, err := s.GetStudentDetailsByID(ctx, studentID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Student not found for creating payment", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
@@ -415,7 +428,7 @@ func (s *Service) CreateStudentPayment(ctx context.Context, studentID, ownerID u
 	return payment, nil
 }
 
-func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error) {
+func (s *service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error) {
 	logger.InfoContext(ctx, "Updating student", "student_id", studentID.String(), "user_id", ownerID.String())
 	var updated db.StudentsModuleStudent
 
@@ -539,7 +552,7 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 	return toStudentResponse(updated), nil
 }
 
-func (s *Service) DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error {
+func (s *service) DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Deleting student", "student_id", studentID.String(), "user_id", ownerID.String())
 	_, err := s.db.FindStudentByIDAndOwnerID(ctx, db.FindStudentByIDAndOwnerIDParams{
 		ID:      studentID,
@@ -564,7 +577,7 @@ func (s *Service) DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUI
 	return nil
 }
 
-func (s *Service) ComputeStudentStatuses(
+func (s *service) ComputeStudentStatuses(
 	student models.StudentResponse,
 	visits []models.VisitResponse,
 	payments []models.TransactionResponse,
@@ -573,92 +586,6 @@ func (s *Service) ComputeStudentStatuses(
 	today time.Time,
 ) []types.StudentStatus {
 	return ComputeStudentStatusesWithVisitLessons(student, visits, payments, lessonsMap, groupLessonsMap, today)
-}
-
-func ComputeStudentStatuses(
-	student models.StudentResponse,
-	visits []models.VisitResponse,
-	payments []models.TransactionResponse,
-	lessonsMap map[uuid.UUID]models.LessonResponse,
-	today time.Time,
-) []types.StudentStatus {
-	return ComputeStudentStatusesWithVisitLessons(student, visits, payments, lessonsMap, lessonsMap, today)
-}
-
-func ComputeStudentStatusesWithVisitLessons(
-	student models.StudentResponse,
-	visits []models.VisitResponse,
-	payments []models.TransactionResponse,
-	lessonsMap map[uuid.UUID]models.LessonResponse,
-	visitLessonsMap map[uuid.UUID]models.LessonResponse,
-	today time.Time,
-) []types.StudentStatus {
-	if len(visits) == 0 && len(payments) == 0 {
-		if student.Free {
-			return []types.StudentStatus{types.StudentStatusFree}
-		}
-		return []types.StudentStatus{types.StudentStatusInactive}
-	}
-
-	statuses := make([]types.StudentStatus, 0)
-
-	var lastVisitLesson *models.LessonResponse
-	for _, l := range visitLessonsMap {
-		if lastVisitLesson == nil || l.Date.After(lastVisitLesson.Date) || (l.Date.Equal(lastVisitLesson.Date) && l.CreatedAt.After(lastVisitLesson.CreatedAt)) {
-			cur := l
-			lastVisitLesson = &cur
-		}
-	}
-
-	if lastVisitLesson != nil {
-		for _, v := range visits {
-			if v.LessonID == lastVisitLesson.ID {
-				if v.Status == types.VisitStatusPresent {
-					statuses = append(statuses, types.StudentStatusPresent)
-				} else {
-					statuses = append(statuses, types.StudentStatusMissing)
-				}
-				break
-			}
-		}
-	}
-
-	if student.Free {
-		statuses = append(statuses, types.StudentStatusFree)
-		return statuses
-	}
-
-	var lastLesson *models.LessonResponse
-	for _, l := range lessonsMap {
-		if lastLesson == nil || l.Date.After(lastLesson.Date) || (l.Date.Equal(lastLesson.Date) && l.CreatedAt.After(lastLesson.CreatedAt)) {
-			cur := l
-			lastLesson = &cur
-		}
-	}
-
-	referenceDate := today
-	if lastLesson != nil {
-		referenceDate = lastLesson.Date
-	}
-
-	var maxPaidUntil *time.Time
-	for _, p := range payments {
-		if p.PaymentDetails != nil {
-			pu := p.PaymentDetails.PaidUntil
-			if maxPaidUntil == nil || pu.After(*maxPaidUntil) {
-				t := pu
-				maxPaidUntil = &t
-			}
-		}
-	}
-
-	if timeutil.IsSubscriptionActive(maxPaidUntil, referenceDate) {
-		statuses = append(statuses, types.StudentStatusPaid)
-	} else {
-		statuses = append(statuses, types.StudentStatusUnpaid)
-	}
-
-	return statuses
 }
 
 func toStudentResponse(s db.StudentsModuleStudent) models.StudentResponse {

@@ -10,23 +10,33 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
-type Service struct {
+type Service interface {
+	GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) ([]VisitResponse, error)
+	GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]VisitResponse, error)
+	GetVisitsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]VisitResponse, error)
+	GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]VisitResponse, error)
+	CreateVisits(ctx context.Context, lessonID uuid.UUID, studentVisits []StudentVisit, ownerID uuid.UUID) error
+	RemoveVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) error
+	UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID, requests []StudentVisit, ownerID uuid.UUID) error
+}
+
+type service struct {
 	db    *db.Queries
 	sqlDB *sql.DB
 }
 
-func NewService(queries *db.Queries, sqlDB *sql.DB) *Service {
-	return &Service{
+func NewService(queries *db.Queries, sqlDB *sql.DB) Service {
+	return &service{
 		db:    queries,
 		sqlDB: sqlDB,
 	}
 }
 
-func NewVisitService(queries *db.Queries, sqlDB *sql.DB) *Service {
+func NewVisitService(queries *db.Queries, sqlDB *sql.DB) Service {
 	return NewService(queries, sqlDB)
 }
 
-func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (err error) {
+func (s *service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (err error) {
 	tx, err := s.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -46,7 +56,7 @@ func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (e
 	return tx.Commit()
 }
 
-func (s *Service) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) ([]VisitResponse, error) {
+func (s *service) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) ([]VisitResponse, error) {
 	logger.InfoContext(ctx, "Getting visits by lesson id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindVisitsByLessonIDAndOwnerID(ctx, db.FindVisitsByLessonIDAndOwnerIDParams{
 		LessonID: lessonID,
@@ -65,7 +75,7 @@ func (s *Service) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uui
 	return visits, nil
 }
 
-func (s *Service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]VisitResponse, error) {
+func (s *service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]VisitResponse, error) {
 	logger.InfoContext(ctx, "Getting visits by lesson ids", "count", len(lessonIDs), "user_id", ownerID.String())
 	if len(lessonIDs) == 0 {
 		logger.DebugContext(ctx, "No lesson IDs provided to get visits", "user_id", ownerID.String())
@@ -89,7 +99,7 @@ func (s *Service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUI
 	return visits, nil
 }
 
-func (s *Service) GetVisitsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]VisitResponse, error) {
+func (s *service) GetVisitsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]VisitResponse, error) {
 	logger.InfoContext(ctx, "Getting visits by student id", "student_id", studentID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindVisitsByStudentIDAndOwnerID(ctx, db.FindVisitsByStudentIDAndOwnerIDParams{
 		StudentID: studentID,
@@ -108,7 +118,7 @@ func (s *Service) GetVisitsByStudentID(ctx context.Context, studentID, ownerID u
 	return visits, nil
 }
 
-func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]VisitResponse, error) {
+func (s *service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]VisitResponse, error) {
 	logger.InfoContext(ctx, "Getting visits by student ids", "count", len(studentIDs), "user_id", ownerID.String())
 	if len(studentIDs) == 0 {
 		logger.DebugContext(ctx, "No student IDs provided to get visits", "user_id", ownerID.String())
@@ -135,7 +145,7 @@ func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 	return visitsByStudent, nil
 }
 
-func (s *Service) CreateVisits(ctx context.Context, lessonID uuid.UUID, studentVisits []StudentVisit, ownerID uuid.UUID) error {
+func (s *service) CreateVisits(ctx context.Context, lessonID uuid.UUID, studentVisits []StudentVisit, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Creating visits", "lesson_id", lessonID.String(), "count", len(studentVisits), "user_id", ownerID.String())
 	err := s.withTx(ctx, func(qtx *db.Queries) error {
 		for _, sv := range studentVisits {
@@ -161,7 +171,7 @@ func (s *Service) CreateVisits(ctx context.Context, lessonID uuid.UUID, studentV
 	return nil
 }
 
-func (s *Service) RemoveVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) error {
+func (s *service) RemoveVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Removing visits by lesson id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	err := s.db.DeleteVisitsByLessonIDAndOwnerID(ctx, db.DeleteVisitsByLessonIDAndOwnerIDParams{
 		LessonID: lessonID,
@@ -175,7 +185,7 @@ func (s *Service) RemoveVisitsByLessonID(ctx context.Context, lessonID, ownerID 
 	return nil
 }
 
-func (s *Service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID, requests []StudentVisit, ownerID uuid.UUID) error {
+func (s *service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID, requests []StudentVisit, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Updating visits by lesson id", "lesson_id", lessonID.String(), "count", len(requests), "user_id", ownerID.String())
 	err := s.withTx(ctx, func(qtx *db.Queries) error {
 		existingVisits, err := qtx.FindVisitsByLessonIDAndOwnerID(ctx, db.FindVisitsByLessonIDAndOwnerIDParams{

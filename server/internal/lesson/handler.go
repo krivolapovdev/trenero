@@ -4,37 +4,30 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/httputil"
 	"github.com/krivolapovdev/trenerio/pkg/models"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
 type Handler struct {
-	service *Service
+	service Service
 }
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service Service) *Handler {
 	return &Handler{
 		service: service,
 	}
 }
 
-func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
-	val, exists := c.Get(types.ContextKeyJWTUser)
-	if !exists {
-		pkgerrors.RespondUnauthorized(c, "")
-		c.Abort()
-		return security.JwtUser{}, false
+// RegisterRoutes registers the lesson routes onto the given router group.
+func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
+	lessons := rg.Group("/lessons")
+	{
+		lessons.GET("/:lessonId/details", h.GetLessonDetails)
+		lessons.POST("", h.CreateLesson)
+		lessons.PATCH("/:lessonId", h.UpdateLesson)
+		lessons.DELETE("/:lessonId", h.DeleteLesson)
 	}
-	u, ok := val.(security.JwtUser)
-	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
-		c.Abort()
-		return security.JwtUser{}, false
-	}
-	return u, true
 }
 
 // GetLessonDetails
@@ -45,14 +38,13 @@ func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
 // @Success      200       {object}  models.LessonDetailsResponse
 // @Router       /api/v1/lessons/{lessonId}/details [get]
 func (h *Handler) GetLessonDetails(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	lessonID, err := uuid.Parse(c.Param("lessonId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid lessonId")
+	lessonID, ok := httputil.ParseUUIDParam(c, "lessonId")
+	if !ok {
 		return
 	}
 
@@ -73,14 +65,13 @@ func (h *Handler) GetLessonDetails(c *gin.Context) {
 // @Success      201   {object}  models.LessonResponse
 // @Router       /api/v1/lessons [post]
 func (h *Handler) CreateLesson(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
 	var req models.CreateLessonRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+	if !httputil.BindJSON(c, &req) {
 		return
 	}
 
@@ -102,20 +93,18 @@ func (h *Handler) CreateLesson(c *gin.Context) {
 // @Success      200       {object}  models.LessonResponse
 // @Router       /api/v1/lessons/{lessonId} [patch]
 func (h *Handler) UpdateLesson(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	lessonID, err := uuid.Parse(c.Param("lessonId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid lessonId")
+	lessonID, ok := httputil.ParseUUIDParam(c, "lessonId")
+	if !ok {
 		return
 	}
 
 	var req models.UpdateLessonRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+	if !httputil.BindJSON(c, &req) {
 		return
 	}
 
@@ -136,14 +125,13 @@ func (h *Handler) UpdateLesson(c *gin.Context) {
 // @Success      204       "No Content"
 // @Router       /api/v1/lessons/{lessonId} [delete]
 func (h *Handler) DeleteLesson(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	lessonID, err := uuid.Parse(c.Param("lessonId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid lessonId")
+	lessonID, ok := httputil.ParseUUIDParam(c, "lessonId")
+	if !ok {
 		return
 	}
 

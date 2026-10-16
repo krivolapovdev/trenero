@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"runtime/debug"
 	"strings"
@@ -34,15 +35,30 @@ func RequestIDMiddleware() gin.HandlerFunc {
 	}
 }
 
-func LoggingMiddleware() gin.HandlerFunc {
+func SlogMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		reqID := c.GetString(types.ContextKeyRequestID)
+		if reqID == "" {
+			reqID = c.GetHeader(types.HeaderXRequestID)
+		}
+		if reqID == "" {
+			reqID = uuid.New().String()
+		}
+
+		ctx := logger.WithRequestID(c.Request.Context(), reqID)
+		reqLogger := slog.Default().With(
+			slog.String("request_id", reqID),
+			slog.String("method", c.Request.Method),
+			slog.String("path", c.Request.URL.Path),
+		)
+		ctx = logger.WithLogger(ctx, reqLogger)
+		c.Request = c.Request.WithContext(ctx)
+
 		start := time.Now()
 		c.Next()
 		latency := time.Since(start)
 
 		status := c.Writer.Status()
-		ctx := c.Request.Context()
-
 		attrs := []any{
 			"status", status,
 			"method", c.Request.Method,
@@ -66,14 +82,20 @@ func LoggingMiddleware() gin.HandlerFunc {
 			attrs = append(attrs, "gin_errors", c.Errors.String())
 		}
 
-		if status >= http.StatusInternalServerError {
-			logger.ErrorContext(ctx, "HTTP request failed", attrs...)
-		} else if status >= http.StatusBadRequest {
-			logger.WarnContext(ctx, "HTTP request client error", attrs...)
-		} else {
-			logger.InfoContext(ctx, "HTTP request completed", attrs...)
+		reqCtx := c.Request.Context()
+		switch {
+		case status >= http.StatusInternalServerError:
+			logger.ErrorContext(reqCtx, "HTTP request failed", attrs...)
+		case status >= http.StatusBadRequest:
+			logger.WarnContext(reqCtx, "HTTP request client error", attrs...)
+		default:
+			logger.InfoContext(reqCtx, "HTTP request completed", attrs...)
 		}
 	}
+}
+
+func LoggingMiddleware() gin.HandlerFunc {
+	return SlogMiddleware()
 }
 
 func CorsMiddleware(allowedOrigins []string) gin.HandlerFunc {

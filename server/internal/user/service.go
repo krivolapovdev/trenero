@@ -13,17 +13,23 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
-type Service struct {
+type Service interface {
+	GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (UserResponse, error)
+	ExistsByID(ctx context.Context, id uuid.UUID) (bool, error)
+	DeleteUser(ctx context.Context, jwtUser security.JwtUser) error
+}
+
+type service struct {
 	db *db.Queries
 }
 
-func NewService(queries *db.Queries) *Service {
-	return &Service{
+func NewService(queries *db.Queries) Service {
+	return &service{
 		db: queries,
 	}
 }
 
-func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (UserResponse, error) {
+func (s *service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (UserResponse, error) {
 	logger.InfoContext(ctx, "Get or create user from OAuth2", "provider", string(provider), "email", email)
 	existingUser, err := s.db.GetUserByProviderAndProviderID(ctx, db.GetUserByProviderAndProviderIDParams{
 		Provider:   provider,
@@ -60,7 +66,7 @@ func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.Use
 	}, nil
 }
 
-func (s *Service) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+func (s *service) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
 	logger.DebugContext(ctx, "Checking whether user exists", "id", id.String())
 	exists, err := s.db.ExistsUserByID(ctx, id)
 	if err != nil {
@@ -69,7 +75,7 @@ func (s *Service) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
 	return exists, err
 }
 
-func (s *Service) DeleteUser(ctx context.Context, jwtUser security.JwtUser) error {
+func (s *service) DeleteUser(ctx context.Context, jwtUser security.JwtUser) error {
 	logger.InfoContext(ctx, "Deleting user", "user_id", jwtUser.ID.String())
 	exists, err := s.db.ExistsUserByID(ctx, jwtUser.ID)
 	if err != nil {

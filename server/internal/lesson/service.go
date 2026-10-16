@@ -19,7 +19,17 @@ type CreateVisitsFunc func(ctx context.Context, lessonID uuid.UUID, studentVisit
 type UpdateVisitsByLessonIDFunc func(ctx context.Context, lessonID uuid.UUID, requests []models.StudentVisit, ownerID uuid.UUID) error
 type RemoveVisitsByLessonIDFunc func(ctx context.Context, lessonID, ownerID uuid.UUID) error
 
-type Service struct {
+type Service interface {
+	GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonResponse, error)
+	GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonDetailsResponse, error)
+	CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error)
+	UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error)
+	DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID) error
+	GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error)
+	GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.LessonResponse, error)
+}
+
+type service struct {
 	db                     *db.Queries
 	sqlDB                  *sql.DB
 	fetchVisitsByLessonID  FetchVisitsByLessonIDFunc
@@ -37,8 +47,8 @@ func NewService(
 	createVisits CreateVisitsFunc,
 	updateVisitsByLessonID UpdateVisitsByLessonIDFunc,
 	removeVisitsByLessonID RemoveVisitsByLessonIDFunc,
-) *Service {
-	return &Service{
+) Service {
+	return &service{
 		db:                     queries,
 		sqlDB:                  sqlDB,
 		fetchVisitsByLessonID:  fetchVisitsByLessonID,
@@ -49,7 +59,7 @@ func NewService(
 	}
 }
 
-func (s *Service) GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonResponse, error) {
+func (s *service) GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Getting lesson by id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	l, err := s.db.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
 		ID:      lessonID,
@@ -67,7 +77,7 @@ func (s *Service) GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID
 	return toLessonResponse(l), nil
 }
 
-func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonDetailsResponse, error) {
+func (s *service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonDetailsResponse, error) {
 	logger.InfoContext(ctx, "Getting lesson details", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	lessonResp, err := s.GetLessonByID(ctx, lessonID, ownerID)
 	if err != nil {
@@ -119,7 +129,7 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 	}, nil
 }
 
-func (s *Service) CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error) {
+func (s *service) CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Creating lesson", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
 	var groupID uuid.NullUUID
 	if req.GroupID != nil {
@@ -160,7 +170,7 @@ func (s *Service) CreateLesson(ctx context.Context, req models.CreateLessonReque
 	return toLessonResponse(createdLesson), nil
 }
 
-func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error) {
+func (s *service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Updating lesson", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	existingLesson, err := s.db.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
 		ID:      lessonID,
@@ -201,7 +211,7 @@ func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID,
 	return toLessonResponse(updatedLesson), nil
 }
 
-func (s *Service) DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID) error {
+func (s *service) DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Deleting lesson", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	_, err := s.db.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
 		ID:      lessonID,
@@ -235,7 +245,7 @@ func (s *Service) DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID)
 	return nil
 }
 
-func (s *Service) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error) {
+func (s *service) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Getting lessons by group id and date range", "group_id", groupID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindLessonsByGroupIDAndDateBetween(ctx, db.FindLessonsByGroupIDAndDateBetweenParams{
 		GroupID: uuid.NullUUID{UUID: groupID, Valid: true},
@@ -255,7 +265,7 @@ func (s *Service) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, 
 	return lessons, nil
 }
 
-func (s *Service) GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.LessonResponse, error) {
+func (s *service) GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.LessonResponse, error) {
 	if len(lessonIDs) == 0 {
 		logger.DebugContext(ctx, "No lesson IDs provided to get lessons", "user_id", ownerID.String())
 		return []models.LessonResponse{}, nil

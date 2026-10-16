@@ -2,40 +2,32 @@ package transaction
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/httputil"
 	"github.com/krivolapovdev/trenerio/pkg/models"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
 type Handler struct {
-	service *Service
+	service Service
 }
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service Service) *Handler {
 	return &Handler{
 		service: service,
 	}
 }
 
-func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
-	val, exists := c.Get(types.ContextKeyJWTUser)
-	if !exists {
-		pkgerrors.RespondUnauthorized(c, "")
-		c.Abort()
-		return security.JwtUser{}, false
+// RegisterRoutes registers the transaction routes onto the given router group.
+func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
+	txGroup := rg.Group("/transactions")
+	{
+		txGroup.GET("", h.GetPaginatedTransactions)
+		txGroup.POST("", h.CreateTransaction)
+		txGroup.PATCH("/:transactionId", h.UpdateTransaction)
+		txGroup.DELETE("/:transactionId", h.DeleteTransaction)
 	}
-	u, ok := val.(security.JwtUser)
-	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
-		c.Abort()
-		return security.JwtUser{}, false
-	}
-	return u, true
 }
 
 // GetPaginatedTransactions
@@ -47,24 +39,12 @@ func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
 // @Success      200   {object}  models.PageTransactionResponse
 // @Router       /api/v1/transactions [get]
 func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	page := 1
-	if pageStr := c.Query("page"); pageStr != "" {
-		if val, err := strconv.Atoi(pageStr); err == nil {
-			page = val
-		}
-	}
-
-	size := 20
-	if sizeStr := c.Query("size"); sizeStr != "" {
-		if val, err := strconv.Atoi(sizeStr); err == nil {
-			size = val
-		}
-	}
+	page, size := httputil.ParsePagination(c, 1, 20)
 
 	pageResponse, err := h.service.GetPaginatedTransactions(c.Request.Context(), page, size, jwtUser.ID)
 	if err != nil {
@@ -83,14 +63,13 @@ func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
 // @Success      201   {object}  models.TransactionResponse
 // @Router       /api/v1/transactions [post]
 func (h *Handler) CreateTransaction(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
 	var req models.CreateTransactionRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+	if !httputil.BindJSON(c, &req) {
 		return
 	}
 
@@ -112,20 +91,18 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 // @Success      200            {object}  models.TransactionResponse
 // @Router       /api/v1/transactions/{transactionId} [patch]
 func (h *Handler) UpdateTransaction(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	txID, err := uuid.Parse(c.Param("transactionId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid transactionId")
+	txID, ok := httputil.ParseUUIDParam(c, "transactionId")
+	if !ok {
 		return
 	}
 
 	var updates map[string]any
-	if err := c.ShouldBindJSON(&updates); err != nil {
-		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+	if !httputil.BindJSON(c, &updates) {
 		return
 	}
 
@@ -146,14 +123,13 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 // @Success      204            "No Content"
 // @Router       /api/v1/transactions/{transactionId} [delete]
 func (h *Handler) DeleteTransaction(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	txID, err := uuid.Parse(c.Param("transactionId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid transactionId")
+	txID, ok := httputil.ParseUUIDParam(c, "transactionId")
+	if !ok {
 		return
 	}
 

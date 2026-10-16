@@ -40,7 +40,7 @@ func wireServer(dbConn *sql.DB, cfg Config) *server.Server {
 		cfg.GoogleClientID,
 	)
 
-	var studentService *student.Service
+	var studentService student.Service
 
 	fetchStudentsByIDs := func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error) {
 		return studentService.GetStudentsByIDs(ctx, studentIDs, ownerID)

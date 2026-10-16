@@ -2,40 +2,36 @@ package student
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/httputil"
 	"github.com/krivolapovdev/trenerio/pkg/models"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
 type Handler struct {
-	service *Service
+	service Service
 }
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service Service) *Handler {
 	return &Handler{
 		service: service,
 	}
 }
 
-func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
-	val, exists := c.Get(types.ContextKeyJWTUser)
-	if !exists {
-		pkgerrors.RespondUnauthorized(c, "")
-		c.Abort()
-		return security.JwtUser{}, false
+// RegisterRoutes registers the student routes onto the given router group.
+func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
+	students := rg.Group("/students")
+	{
+		students.GET("", h.GetAllStudentsSummary)
+		students.GET("/overview", h.GetAllStudentsSummary)
+		students.GET("/:studentId/visits", h.GetStudentVisits)
+		students.GET("/:studentId/payments", h.GetStudentPayments)
+		students.POST("", h.CreateStudent)
+		students.POST("/:studentId/payments", h.CreateStudentPayment)
+		students.PATCH("/:studentId", h.UpdateStudent)
+		students.DELETE("/:studentId", h.DeleteStudent)
 	}
-	u, ok := val.(security.JwtUser)
-	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
-		c.Abort()
-		return security.JwtUser{}, false
-	}
-	return u, true
 }
 
 // GetAllStudentsSummary
@@ -45,7 +41,7 @@ func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
 // @Success      200  {array}   models.StudentSummaryResponse
 // @Router       /api/v1/students/overview [get]
 func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
@@ -69,28 +65,18 @@ func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
 // @Success      200        {array}   models.VisitWithLessonResponse
 // @Router       /api/v1/students/{studentId}/visits [get]
 func (h *Handler) GetStudentVisits(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	studentID, err := uuid.Parse(c.Param("studentId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid studentId")
+	studentID, ok := httputil.ParseUUIDParam(c, "studentId")
+	if !ok {
 		return
 	}
 
-	var fromPtr, toPtr *time.Time
-	if fromStr := c.Query("from"); fromStr != "" {
-		if t, err := time.Parse(time.RFC3339, fromStr); err == nil {
-			fromPtr = &t
-		}
-	}
-	if toStr := c.Query("to"); toStr != "" {
-		if t, err := time.Parse(time.RFC3339, toStr); err == nil {
-			toPtr = &t
-		}
-	}
+	fromPtr := httputil.ParseOptionalRFC3339(c, "from")
+	toPtr := httputil.ParseOptionalRFC3339(c, "to")
 
 	visits, err := h.service.GetStudentVisits(c.Request.Context(), studentID, jwtUser.ID, fromPtr, toPtr)
 	if err != nil {
@@ -109,14 +95,13 @@ func (h *Handler) GetStudentVisits(c *gin.Context) {
 // @Success      200        {array}   models.TransactionResponse
 // @Router       /api/v1/students/{studentId}/payments [get]
 func (h *Handler) GetStudentPayments(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	studentID, err := uuid.Parse(c.Param("studentId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid studentId")
+	studentID, ok := httputil.ParseUUIDParam(c, "studentId")
+	if !ok {
 		return
 	}
 
@@ -137,14 +122,13 @@ func (h *Handler) GetStudentPayments(c *gin.Context) {
 // @Success      201   {object}  models.StudentResponse
 // @Router       /api/v1/students [post]
 func (h *Handler) CreateStudent(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
 	var req models.CreateStudentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+	if !httputil.BindJSON(c, &req) {
 		return
 	}
 
@@ -166,20 +150,18 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 // @Success      201        {object}  models.TransactionResponse
 // @Router       /api/v1/students/{studentId}/payments [post]
 func (h *Handler) CreateStudentPayment(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	studentID, err := uuid.Parse(c.Param("studentId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid studentId")
+	studentID, ok := httputil.ParseUUIDParam(c, "studentId")
+	if !ok {
 		return
 	}
 
 	var req models.CreateStudentPaymentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+	if !httputil.BindJSON(c, &req) {
 		return
 	}
 
@@ -201,20 +183,18 @@ func (h *Handler) CreateStudentPayment(c *gin.Context) {
 // @Success      200        {object}  models.StudentResponse
 // @Router       /api/v1/students/{studentId} [patch]
 func (h *Handler) UpdateStudent(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	studentID, err := uuid.Parse(c.Param("studentId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid studentId")
+	studentID, ok := httputil.ParseUUIDParam(c, "studentId")
+	if !ok {
 		return
 	}
 
 	var updates map[string]any
-	if err := c.ShouldBindJSON(&updates); err != nil {
-		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+	if !httputil.BindJSON(c, &updates) {
 		return
 	}
 
@@ -235,14 +215,13 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 // @Success      204        "No Content"
 // @Router       /api/v1/students/{studentId} [delete]
 func (h *Handler) DeleteStudent(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	studentID, err := uuid.Parse(c.Param("studentId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid studentId")
+	studentID, ok := httputil.ParseUUIDParam(c, "studentId")
+	if !ok {
 		return
 	}
 

@@ -95,71 +95,30 @@ func (s *Server) setupRoutes(allowedOrigins []string) {
 
 	api := s.engine.Group("/api/v1")
 	{
-		jwtGroup := api.Group("/jwt")
-		{
-			jwtGroup.POST("/refresh", s.authHandler.RefreshTokens)
-		}
-
-		oauth2Group := api.Group("/oauth2")
-		{
-			oauth2Group.POST("/google", s.authHandler.GoogleLogin)
-		}
-
-		reviewerGroup := api.Group("/reviewer")
-		{
-			reviewerGroup.POST("/login", s.authHandler.ReviewerLogin)
+		if s.authHandler != nil {
+			s.authHandler.RegisterRoutes(api)
 		}
 
 		authRequired := api.Group("")
 		authRequired.Use(AuthMiddleware(s.tokenProvider))
 		{
-			userGroup := authRequired.Group("/users")
-			{
-				userGroup.DELETE("/me", s.userHandler.DeleteMyAccount)
+			if s.userHandler != nil {
+				s.userHandler.RegisterRoutes(authRequired)
 			}
-
-			groupGroup := authRequired.Group("/groups")
-			{
-				groupGroup.GET("", s.groupHandler.GetAllGroupsSummary)
-				groupGroup.GET("/:groupId/students", s.groupHandler.GetGroupStudents)
-				groupGroup.GET("/:groupId/lessons", s.groupHandler.GetGroupLessons)
-				groupGroup.GET("/:groupId/report", s.groupHandler.GetGroupReport)
-				groupGroup.POST("", s.groupHandler.CreateGroup)
-				groupGroup.PATCH("/:groupId", s.groupHandler.UpdateGroup)
-				groupGroup.DELETE("/:groupId", s.groupHandler.DeleteGroup)
+			if s.groupHandler != nil {
+				s.groupHandler.RegisterRoutes(authRequired)
 			}
-
-			studentGroup := authRequired.Group("/students")
-			{
-				studentGroup.GET("", s.studentHandler.GetAllStudentsSummary)
-				studentGroup.GET("/overview", s.studentHandler.GetAllStudentsSummary)
-				studentGroup.GET("/:studentId/visits", s.studentHandler.GetStudentVisits)
-				studentGroup.GET("/:studentId/payments", s.studentHandler.GetStudentPayments)
-				studentGroup.POST("", s.studentHandler.CreateStudent)
-				studentGroup.POST("/:studentId/payments", s.studentHandler.CreateStudentPayment)
-				studentGroup.PATCH("/:studentId", s.studentHandler.UpdateStudent)
-				studentGroup.DELETE("/:studentId", s.studentHandler.DeleteStudent)
+			if s.studentHandler != nil {
+				s.studentHandler.RegisterRoutes(authRequired)
 			}
-
-			lessonGroup := authRequired.Group("/lessons")
-			{
-				lessonGroup.GET("/:lessonId/details", s.lessonHandler.GetLessonDetails)
-				lessonGroup.POST("", s.lessonHandler.CreateLesson)
-				lessonGroup.PATCH("/:lessonId", s.lessonHandler.UpdateLesson)
-				lessonGroup.DELETE("/:lessonId", s.lessonHandler.DeleteLesson)
+			if s.lessonHandler != nil {
+				s.lessonHandler.RegisterRoutes(authRequired)
 			}
-
-			txGroup := authRequired.Group("/transactions")
-			{
-				txGroup.GET("", s.txHandler.GetPaginatedTransactions)
-				txGroup.POST("", s.txHandler.CreateTransaction)
-				txGroup.PATCH("/:transactionId", s.txHandler.UpdateTransaction)
-				txGroup.DELETE("/:transactionId", s.txHandler.DeleteTransaction)
+			if s.txHandler != nil {
+				s.txHandler.RegisterRoutes(authRequired)
 			}
-
-			metricGroup := authRequired.Group("/metrics")
-			{
-				metricGroup.GET("/payments", s.metricHandler.GetPaymentStatistics)
+			if s.metricHandler != nil {
+				s.metricHandler.RegisterRoutes(authRequired)
 			}
 		}
 	}

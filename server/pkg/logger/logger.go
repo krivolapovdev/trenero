@@ -6,6 +6,9 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/lmittmann/tint"
 )
 
 type contextKey string
@@ -17,9 +20,10 @@ const (
 )
 
 type Config struct {
-	Level  string
-	Format string
-	Output io.Writer
+	Level   string
+	Format  string
+	Output  io.Writer
+	NoColor bool
 }
 
 type contextHandler struct {
@@ -64,19 +68,30 @@ func Init(cfgs ...Config) *slog.Logger {
 	case "error":
 		level = slog.LevelError
 	default:
-		level = slog.LevelInfo
+		if os.Getenv("GIN_MODE") == "release" {
+			level = slog.LevelInfo
+		} else {
+			level = slog.LevelDebug
+		}
 	}
 
-	opts := &slog.HandlerOptions{Level: level}
-	var baseHandler slog.Handler
-	if strings.ToLower(strings.TrimSpace(cfg.Format)) == "json" {
-		baseHandler = slog.NewJSONHandler(cfg.Output, opts)
+	var handler slog.Handler
+	isRelease := os.Getenv("GIN_MODE") == "release"
+	if strings.ToLower(strings.TrimSpace(cfg.Format)) == "json" || (cfg.Format == "" && isRelease) {
+		handler = slog.NewJSONHandler(cfg.Output, &slog.HandlerOptions{
+			Level: level,
+		})
 	} else {
-		baseHandler = slog.NewTextHandler(cfg.Output, opts)
+		handler = tint.NewTextHandler(cfg.Output, &tint.Options{
+			Level:      level,
+			TimeFormat: time.DateTime,
+			NoColor:    cfg.NoColor,
+		})
 	}
 
-	l := slog.New(contextHandler{Handler: baseHandler})
+	l := slog.New(contextHandler{Handler: handler})
 	slog.SetDefault(l)
+
 	return l
 }
 

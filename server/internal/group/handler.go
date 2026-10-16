@@ -6,37 +6,33 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/httputil"
 	"github.com/krivolapovdev/trenerio/pkg/models"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
 type Handler struct {
-	service *Service
+	service Service
 }
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service Service) *Handler {
 	return &Handler{
 		service: service,
 	}
 }
 
-func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
-	val, exists := c.Get(types.ContextKeyJWTUser)
-	if !exists {
-		pkgerrors.RespondUnauthorized(c, "")
-		c.Abort()
-		return security.JwtUser{}, false
+// RegisterRoutes registers the group routes onto the given router group.
+func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
+	groups := rg.Group("/groups")
+	{
+		groups.GET("", h.GetAllGroupsSummary)
+		groups.GET("/:groupId/students", h.GetGroupStudents)
+		groups.GET("/:groupId/lessons", h.GetGroupLessons)
+		groups.GET("/:groupId/report", h.GetGroupReport)
+		groups.POST("", h.CreateGroup)
+		groups.PATCH("/:groupId", h.UpdateGroup)
+		groups.DELETE("/:groupId", h.DeleteGroup)
 	}
-	u, ok := val.(security.JwtUser)
-	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
-		c.Abort()
-		return security.JwtUser{}, false
-	}
-	return u, true
 }
 
 // GetAllGroupsSummary
@@ -46,7 +42,7 @@ func getAuthUser(c *gin.Context) (security.JwtUser, bool) {
 // @Success      200  {array}   models.GroupSummaryResponse
 // @Router       /api/v1/groups [get]
 func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
@@ -68,14 +64,13 @@ func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
 // @Success      200      {array}   models.GroupStudentSummaryResponse
 // @Router       /api/v1/groups/{groupId}/students [get]
 func (h *Handler) GetGroupStudents(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	groupID, err := uuid.Parse(c.Param("groupId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid groupId")
+	groupID, ok := httputil.ParseUUIDParam(c, "groupId")
+	if !ok {
 		return
 	}
 
@@ -98,14 +93,13 @@ func (h *Handler) GetGroupStudents(c *gin.Context) {
 // @Success      200      {array}   models.LessonResponse
 // @Router       /api/v1/groups/{groupId}/lessons [get]
 func (h *Handler) GetGroupLessons(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	groupID, err := uuid.Parse(c.Param("groupId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid groupId")
+	groupID, ok := httputil.ParseUUIDParam(c, "groupId")
+	if !ok {
 		return
 	}
 
@@ -147,14 +141,13 @@ func (h *Handler) GetGroupLessons(c *gin.Context) {
 // @Success      200      {object}  models.GroupReportResponse
 // @Router       /api/v1/groups/{groupId}/report [get]
 func (h *Handler) GetGroupReport(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	groupID, err := uuid.Parse(c.Param("groupId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid groupId")
+	groupID, ok := httputil.ParseUUIDParam(c, "groupId")
+	if !ok {
 		return
 	}
 
@@ -194,14 +187,13 @@ func (h *Handler) GetGroupReport(c *gin.Context) {
 // @Success      201   {object}  models.GroupResponse
 // @Router       /api/v1/groups [post]
 func (h *Handler) CreateGroup(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
 	var req models.CreateGroupRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+	if !httputil.BindJSON(c, &req) {
 		return
 	}
 
@@ -223,20 +215,18 @@ func (h *Handler) CreateGroup(c *gin.Context) {
 // @Success      200      {object}  models.GroupResponse
 // @Router       /api/v1/groups/{groupId} [patch]
 func (h *Handler) UpdateGroup(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	groupID, err := uuid.Parse(c.Param("groupId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid groupId")
+	groupID, ok := httputil.ParseUUIDParam(c, "groupId")
+	if !ok {
 		return
 	}
 
 	var updates map[string]any
-	if err := c.ShouldBindJSON(&updates); err != nil {
-		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+	if !httputil.BindJSON(c, &updates) {
 		return
 	}
 
@@ -257,14 +247,13 @@ func (h *Handler) UpdateGroup(c *gin.Context) {
 // @Success      204      "No Content"
 // @Router       /api/v1/groups/{groupId} [delete]
 func (h *Handler) DeleteGroup(c *gin.Context) {
-	jwtUser, ok := getAuthUser(c)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
 		return
 	}
 
-	groupID, err := uuid.Parse(c.Param("groupId"))
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid groupId")
+	groupID, ok := httputil.ParseUUIDParam(c, "groupId")
+	if !ok {
 		return
 	}
 

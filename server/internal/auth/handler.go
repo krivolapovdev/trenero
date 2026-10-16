@@ -5,16 +5,35 @@ import (
 
 	"github.com/gin-gonic/gin"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/httputil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
 type Handler struct {
-	service *Service
+	service Service
 }
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service Service) *Handler {
 	return &Handler{
 		service: service,
+	}
+}
+
+// RegisterRoutes registers the authentication routes onto the given router group.
+func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
+	jwtGroup := rg.Group("/jwt")
+	{
+		jwtGroup.POST("/refresh", h.RefreshTokens)
+	}
+
+	oauth2Group := rg.Group("/oauth2")
+	{
+		oauth2Group.POST("/google", h.GoogleLogin)
+	}
+
+	reviewerGroup := rg.Group("/reviewer")
+	{
+		reviewerGroup.POST("/login", h.ReviewerLogin)
 	}
 }
 
@@ -26,8 +45,7 @@ func NewHandler(service *Service) *Handler {
 // @Router       /api/v1/oauth2/google [post]
 func (h *Handler) GoogleLogin(c *gin.Context) {
 	var req OAuth2LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+	if !httputil.BindJSON(c, &req) {
 		return
 	}
 
@@ -48,8 +66,7 @@ func (h *Handler) GoogleLogin(c *gin.Context) {
 // @Router       /api/v1/jwt/refresh [post]
 func (h *Handler) RefreshTokens(c *gin.Context) {
 	var req RefreshTokenRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+	if !httputil.BindJSON(c, &req) {
 		return
 	}
 

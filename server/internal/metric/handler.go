@@ -6,17 +6,25 @@ import (
 
 	"github.com/gin-gonic/gin"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/security"
+	"github.com/krivolapovdev/trenerio/pkg/httputil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
 type Handler struct {
-	service *Service
+	service Service
 }
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service Service) *Handler {
 	return &Handler{
 		service: service,
+	}
+}
+
+// RegisterRoutes registers the metric routes onto the given router group.
+func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
+	metrics := rg.Group("/metrics")
+	{
+		metrics.GET("/payments", h.GetPaymentStatistics)
 	}
 }
 
@@ -30,16 +38,8 @@ func NewHandler(service *Service) *Handler {
 // @Success      200        {array}   models.PaymentMetricResponse
 // @Router       /api/v1/metrics/payments [get]
 func (h *Handler) GetPaymentStatistics(c *gin.Context) {
-	val, exists := c.Get(types.ContextKeyJWTUser)
-	if !exists {
-		pkgerrors.RespondUnauthorized(c, "")
-		c.Abort()
-		return
-	}
-	jwtUser, ok := val.(security.JwtUser)
+	jwtUser, ok := httputil.GetAuthUser(c)
 	if !ok {
-		pkgerrors.RespondUnauthorized(c, "")
-		c.Abort()
 		return
 	}
 

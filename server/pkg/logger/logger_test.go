@@ -34,15 +34,39 @@ func TestLoggerInitJSON(t *testing.T) {
 func TestLoggerInitText(t *testing.T) {
 	var buf bytes.Buffer
 	l := Init(Config{
-		Level:  "INFO",
-		Format: "text",
-		Output: &buf,
+		Level:   "INFO",
+		Format:  "text",
+		Output:  &buf,
+		NoColor: true,
 	})
 	require.NotNil(t, l)
 
 	Info("hello world", "foo", "bar")
 	assert.Contains(t, buf.String(), "hello world")
 	assert.Contains(t, buf.String(), "foo=bar")
+}
+
+func TestLoggerTintColors(t *testing.T) {
+	var buf bytes.Buffer
+	l := Init(Config{
+		Level:   "DEBUG",
+		Format:  "text",
+		Output:  &buf,
+		NoColor: false,
+	})
+	require.NotNil(t, l)
+
+	Debug("debug tint")
+	Info("info tint")
+	Warn("warn tint")
+	Error("error tint")
+
+	out := buf.String()
+	assert.Contains(t, out, "DBG")
+	assert.Contains(t, out, "INF")
+	assert.Contains(t, out, "WRN")
+	assert.Contains(t, out, "ERR")
+	assert.Contains(t, out, "\x1b[") // verify ANSI colors are present!
 }
 
 func TestLoggerContextValues(t *testing.T) {
