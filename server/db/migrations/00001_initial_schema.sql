@@ -25,9 +25,9 @@ CREATE TABLE users_module.oauth2_users
 CREATE TABLE groups_module.groups
 (
     id            uuid                  DEFAULT uuidv7() PRIMARY KEY,
-    owner_id      UUID         NOT NULL REFERENCES users_module.oauth2_users (id) ON DELETE CASCADE,
+    owner_id      UUID         NOT NULL,
     name          VARCHAR(255) NOT NULL,
-    default_price NUMERIC(38, 2),
+    default_price NUMERIC(19, 2),
     note          VARCHAR(255),
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
@@ -37,7 +37,7 @@ CREATE TABLE groups_module.groups
 CREATE TABLE groups_module.group_students
 (
     id         uuid                 DEFAULT uuidv7() PRIMARY KEY,
-    owner_id   UUID        NOT NULL REFERENCES users_module.oauth2_users (id) ON DELETE CASCADE,
+    owner_id   UUID        NOT NULL,
     group_id   UUID        NOT NULL REFERENCES groups_module.groups (id) ON DELETE CASCADE,
     student_id UUID        NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -48,7 +48,7 @@ CREATE TABLE groups_module.group_students
 CREATE TABLE students_module.students
 (
     id         uuid                  DEFAULT uuidv7() PRIMARY KEY,
-    owner_id   UUID         NOT NULL REFERENCES users_module.oauth2_users (id) ON DELETE CASCADE,
+    owner_id   UUID         NOT NULL,
     full_name  VARCHAR(255) NOT NULL,
     birthdate  DATE,
     phone      VARCHAR(15),
@@ -62,7 +62,7 @@ CREATE TABLE students_module.students
 CREATE TABLE lessons_module.lessons
 (
     id         uuid                 DEFAULT uuidv7() PRIMARY KEY,
-    owner_id   UUID        NOT NULL REFERENCES users_module.oauth2_users (id) ON DELETE CASCADE,
+    owner_id   UUID        NOT NULL,
     group_id   UUID        REFERENCES groups_module.groups (id) ON DELETE SET NULL,
     date       TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -72,7 +72,7 @@ CREATE TABLE lessons_module.lessons
 CREATE TABLE visits_module.visits
 (
     id         uuid                                DEFAULT uuidv7() PRIMARY KEY,
-    owner_id   UUID                       NOT NULL REFERENCES users_module.oauth2_users (id) ON DELETE CASCADE,
+    owner_id   UUID                       NOT NULL,
     lesson_id  UUID                       NOT NULL,
     student_id UUID                       NOT NULL,
     status     visits_module.visit_status NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE visits_module.visits
 CREATE TABLE payments_module.transactions
 (
     id         uuid                                      DEFAULT uuidv7() PRIMARY KEY,
-    owner_id   UUID                             NOT NULL REFERENCES users_module.oauth2_users (id) ON DELETE CASCADE,
+    owner_id   UUID                             NOT NULL,
     type       payments_module.transaction_type NOT NULL,
     amount     NUMERIC(19, 2)                   NOT NULL,
     date       TIMESTAMPTZ                      NOT NULL,

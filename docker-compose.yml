@@ -4,7 +4,7 @@ services:
     container_name: db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: trenero
+      POSTGRES_DB: trenerio
       POSTGRES_USER: ${DB_USERNAME:-username}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
     healthcheck:
@@ -26,7 +26,7 @@ services:
         condition: service_healthy
     environment:
       POSTGRES_HOST: db
-      POSTGRES_DB: trenero
+      POSTGRES_DB: trenerio
       POSTGRES_USER: ${DB_USERNAME:-username}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
       SCHEDULE: "@daily"
@@ -50,7 +50,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_URL: postgres://${DB_USERNAME:-username}:${DB_PASSWORD:-password}@db:5432/trenero?sslmode=disable
+      DB_URL: postgres://${DB_USERNAME:-username}:${DB_PASSWORD:-password}@db:5432/trenerio?sslmode=disable
       GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-ultra-secure-and-ultra-long-secret}
       REVIEWER_SECRET_KEY: ${REVIEWER_SECRET_KEY:-your-reviewer-secret-key}

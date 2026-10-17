@@ -47,10 +47,12 @@ func (h contextHandler) Handle(ctx context.Context, r slog.Record) error {
 		if reqID := GetRequestID(ctx); reqID != "" {
 			r.AddAttrs(slog.String("request_id", reqID))
 		}
+
 		if userID := GetUserID(ctx); userID != "" {
 			r.AddAttrs(slog.String("user_id", userID))
 		}
 	}
+
 	return h.Handler.Handle(ctx, r)
 }
 
@@ -72,6 +74,7 @@ func GetRequestID(ctx context.Context) string {
 			return v
 		}
 	}
+
 	return ""
 }
 
@@ -85,6 +88,7 @@ func GetUserID(ctx context.Context) string {
 			return v
 		}
 	}
+
 	return ""
 }
 
@@ -98,12 +102,16 @@ func FromContext(ctx context.Context) *slog.Logger {
 			return l
 		}
 	}
+
 	return slog.Default()
 }
 
 func Debug(msg string, args ...any) { slog.Debug(msg, args...) }
-func Info(msg string, args ...any)  { slog.Info(msg, args...) }
-func Warn(msg string, args ...any)  { slog.Warn(msg, args...) }
+
+func Info(msg string, args ...any) { slog.Info(msg, args...) }
+
+func Warn(msg string, args ...any) { slog.Warn(msg, args...) }
+
 func Error(msg string, args ...any) { slog.Error(msg, args...) }
 
 func DebugContext(ctx context.Context, msg string, args ...any) {

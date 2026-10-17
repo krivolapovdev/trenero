@@ -21,13 +21,19 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@v5
         with:
           go-version-file: server/go.mod
           cache-dependency-path: server/go.sum
 
       - name: Install dependencies
         run: go mod download
+
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@v1.16.4
+
+      - name: Generate Swagger docs
+        run: swag init -g ./cmd/api/main.go -o docs
 
       - name: Run go vet
         run: go vet ./...
@@ -51,6 +57,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+          cache: false
+
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@v1.16.4
+
+      - name: Generate Swagger schema
+        run: swag init -g ./cmd/api/main.go -o docs
+        working-directory: server
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -59,6 +78,12 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Generate client types
+        run: |
+          dart run swagger_parser --schema_path ../server/docs/swagger.json
+          dart run build_runner build --build-filter="lib/generated/**"
+          dart run slang
 
       - name: Analyze Flutter code
         run: flutter analyze

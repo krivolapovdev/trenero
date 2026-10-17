@@ -20,7 +20,7 @@ func TestAuthMiddleware(t *testing.T) {
 	tokenProvider := security.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
 	user := security.JwtUser{
 		ID:    uuid.New(),
-		Email: "teacher@trenero.org",
+		Email: "teacher@trenerio.ru",
 	}
 
 	validAccessToken, err := tokenProvider.GenerateAccessToken(user)

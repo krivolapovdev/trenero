@@ -12,7 +12,7 @@ import (
 func TestCorsMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(CorsMiddleware([]string{"https://app.trenero.org"}))
+	r.Use(CorsMiddleware([]string{"https://app.trenerio.ru"}))
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})
@@ -20,22 +20,22 @@ func TestCorsMiddleware(t *testing.T) {
 	t.Run("OptionsPreflight", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodOptions, "/ping", nil)
-		req.Header.Set("Origin", "https://app.trenero.org")
+		req.Header.Set("Origin", "https://app.trenerio.ru")
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusNoContent, w.Code)
-		assert.Equal(t, "https://app.trenero.org", w.Header().Get("Access-Control-Allow-Origin"))
+		assert.Equal(t, "https://app.trenerio.ru", w.Header().Get("Access-Control-Allow-Origin"))
 		assert.Contains(t, w.Header().Get("Access-Control-Allow-Methods"), "GET")
 	})
 
 	t.Run("AllowedOrigin", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
-		req.Header.Set("Origin", "https://app.trenero.org")
+		req.Header.Set("Origin", "https://app.trenerio.ru")
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, "https://app.trenero.org", w.Header().Get("Access-Control-Allow-Origin"))
+		assert.Equal(t, "https://app.trenerio.ru", w.Header().Get("Access-Control-Allow-Origin"))
 	})
 
 	t.Run("DisallowedOrigin", func(t *testing.T) {

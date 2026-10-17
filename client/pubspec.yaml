@@ -55,7 +55,7 @@ flutter:
     - assets/fonts/
 
 swagger_parser:
-  schema_url: http://localhost:8080/swagger/doc.json
+  schema_path: ../server/docs/swagger.json
   output_directory: lib/generated
   language: dart
   json_serializer: json_serializable
