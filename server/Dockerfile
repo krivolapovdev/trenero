@@ -3,6 +3,8 @@ FROM --platform=$BUILDPLATFORM golang:1.27.2-alpine3.24 AS build
 
 WORKDIR /app
 
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
 COPY go.mod go.sum ./
 
 RUN go mod download

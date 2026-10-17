@@ -1,124 +1,3 @@
-#services:
-#  db:
-#    image: postgres:18.1-alpine3.22
-#    container_name: db
-#    restart: unless-stopped
-#    environment:
-#      POSTGRES_DB: trenero
-#      POSTGRES_USER: ${DB_USERNAME:-username}
-#      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
-#    healthcheck:
-#      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U$${POSTGRES_USER}" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 20
-#    volumes:
-#      - db-data:/var/lib/postgresql/data
-#    networks:
-#      - trenerio-network
-#
-#  db-backup:
-#    image: prodrigestivill/postgres-backup-local:18-alpine-d257e5d
-#    container_name: db-backup
-#    restart: unless-stopped
-#    depends_on:
-#      db:
-#        condition: service_healthy
-#    environment:
-#      POSTGRES_HOST: db
-#      POSTGRES_DB: trenero
-#      POSTGRES_USER: ${DB_USERNAME:-username}
-#      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
-#      SCHEDULE: "@daily"
-#      BACKUP_ON_START: "TRUE"
-#      BACKUP_SUFFIX: ".sql.gz"
-#    healthcheck:
-#      test: [ "CMD-SHELL", "pg_isready -h db -U $${POSTGRES_USER} -d$${POSTGRES_DB}" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 20
-#    volumes:
-#      - ~/trenerio_backups:/backups
-#    networks:
-#      - trenerio-network
-#
-#  server:
-#    image: krivolapovdev/server:${IMAGE_TAG:-latest}
-#    container_name: server
-#    restart: unless-stopped
-#    depends_on:
-#      db:
-#        condition: service_healthy
-#    environment:
-#      DB_URL: postgres://${DB_USERNAME:-username}:${DB_PASSWORD:-password}@db:5432/trenero?sslmode=disable
-#      GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID}
-#      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-ultra-secure-and-ultra-long-secret}
-#      REVIEWER_SECRET_KEY: ${REVIEWER_SECRET_KEY:-your-reviewer-secret-key}
-#    healthcheck:
-#      test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/health" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 20
-#      start_period: 10s
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.server.entrypoints=websecure"
-#      - "traefik.http.routers.server.rule=Host(`${DOMAIN:-api.trenerio.ru}`) && PathPrefix(`/api`)"
-#      - "traefik.http.routers.server.tls=true"
-#      - "traefik.http.routers.server.tls.certresolver=letsencrypt"
-#      - "traefik.http.services.server.loadbalancer.server.port=8080"
-#      - "traefik.http.routers.server.middlewares=server-compress"
-#      - "traefik.http.middlewares.server-compress.compress=true"
-#      - "traefik.http.routers.server.priority=100"
-#    networks:
-#      - trenerio-network
-#
-#  traefik:
-#    image: traefik:v3.6.7
-#    container_name: traefik
-#    restart: unless-stopped
-#    command:
-#      - "--providers.docker=true"
-#      - "--providers.docker.exposedbydefault=false"
-#      - "--entrypoints.web.address=:80"
-#      - "--entrypoints.websecure.address=:443"
-#      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-#      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-#      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-#      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-#      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-KrivolapovVladislav1998@gmail.com}"
-#      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-#      - "--log.level=INFO"
-#      - "--accesslog=true"
-#      - "--accesslog.format=common"
-#      - "--ping=true"
-#      - "--ping.entrypoint=web"
-#    ports:
-#      - "80:80"
-#      - "443:443"
-#    healthcheck:
-#      test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/ping" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 20
-#      start_period: 30s
-#    volumes:
-#      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-#      - "letsencrypt-data:/letsencrypt"
-#    networks:
-#      - trenerio-network
-#
-#volumes:
-#  db-data:
-#    name: trenerio-db-data
-#  letsencrypt-data:
-#    name: trenerio-acme-data
-#
-#networks:
-#  trenerio-network:
-#    driver: bridge
-
-
 services:
   db:
     image: postgres:18.1-alpine3.22
@@ -135,6 +14,31 @@ services:
       retries: 20
     volumes:
       - db-data:/var/lib/postgresql/data
+    networks:
+      - trenerio-network
+
+  db-backup:
+    image: prodrigestivill/postgres-backup-local:18-alpine-d257e5d
+    container_name: db-backup
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: trenero
+      POSTGRES_USER: ${DB_USERNAME:-username}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      SCHEDULE: "@daily"
+      BACKUP_ON_START: "TRUE"
+      BACKUP_SUFFIX: ".sql.gz"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -h db -U $${POSTGRES_USER} -d$${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ~/trenerio_backups:/backups
     networks:
       - trenerio-network
 
@@ -158,8 +62,10 @@ services:
       start_period: 10s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.server.entrypoints=web"
-      - "traefik.http.routers.server.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.server.entrypoints=websecure"
+      - "traefik.http.routers.server.rule=Host(`${DOMAIN:-api.trenerio.ru}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.server.tls=true"
+      - "traefik.http.routers.server.tls.certresolver=letsencrypt"
       - "traefik.http.services.server.loadbalancer.server.port=8080"
       - "traefik.http.routers.server.middlewares=server-compress"
       - "traefik.http.middlewares.server-compress.compress=true"
@@ -175,6 +81,13 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-KrivolapovVladislav1998@gmail.com}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       - "--log.level=INFO"
       - "--accesslog=true"
       - "--accesslog.format=common"
@@ -182,6 +95,7 @@ services:
       - "--ping.entrypoint=web"
     ports:
       - "80:80"
+      - "443:443"
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/ping" ]
       interval: 10s
@@ -190,12 +104,15 @@ services:
       start_period: 30s
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt-data:/letsencrypt"
     networks:
       - trenerio-network
 
 volumes:
   db-data:
     name: trenerio-db-data
+  letsencrypt-data:
+    name: trenerio-acme-data
 
 networks:
   trenerio-network:

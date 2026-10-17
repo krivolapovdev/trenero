@@ -4,19 +4,17 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/krivolapovdev/trenerio/docs"
 	"github.com/krivolapovdev/trenerio/internal/auth"
 	"github.com/krivolapovdev/trenerio/internal/group"
 	"github.com/krivolapovdev/trenerio/internal/lesson"
 	"github.com/krivolapovdev/trenerio/internal/metric"
 	"github.com/krivolapovdev/trenerio/internal/server/middleware"
+	"github.com/krivolapovdev/trenerio/internal/server/swagger"
 	"github.com/krivolapovdev/trenerio/internal/student"
 	"github.com/krivolapovdev/trenerio/internal/transaction"
 	"github.com/krivolapovdev/trenerio/internal/user"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/security"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Server struct {
@@ -91,9 +89,7 @@ func (s *Server) setupRoutes(allowedOrigins []string) {
 		c.String(http.StatusOK, "OK")
 	})
 
-	if gin.Mode() != gin.ReleaseMode {
-		s.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	}
+	swagger.SetupSwagger(s.engine)
 
 	api := s.engine.Group("/api/v1")
 	{
