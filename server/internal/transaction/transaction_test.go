@@ -74,8 +74,19 @@ func TestCreateTransaction_Validation(t *testing.T) {
 	require.ErrorAs(t, err, &badReq)
 	assert.Contains(t, badReq.Message, "studentId must not be null")
 
+	// Date in the future
+	futureDate := time.Now().UTC().Add(24 * time.Hour)
+	_, err = svc.CreateTransaction(ctx, models.CreateTransactionRequest{
+		Amount: 100,
+		Type:   types.TransactionTypeIncome,
+		Date:   futureDate,
+	}, ownerID)
+	require.Error(t, err)
+	require.ErrorAs(t, err, &badReq)
+	assert.Contains(t, badReq.Message, "date cannot be in the future")
+
 	// paidUntil before Date
-	date := time.Date(2026, 10, 20, 0, 0, 0, 0, time.UTC)
+	date := time.Date(2026, 10, 15, 0, 0, 0, 0, time.UTC)
 	paidUntil := time.Date(2026, 10, 10, 0, 0, 0, 0, time.UTC)
 	_, err = svc.CreateTransaction(ctx, models.CreateTransactionRequest{
 		Amount: 100,
@@ -97,12 +108,19 @@ func TestCreateStudentPayment_Validation(t *testing.T) {
 	ownerID := uuid.New()
 	studentID := uuid.New()
 
-	date := time.Date(2026, 10, 20, 0, 0, 0, 0, time.UTC)
-	paidUntil := time.Date(2026, 10, 15, 0, 0, 0, 0, time.UTC)
-
-	_, err := svc.CreateStudentPayment(ctx, studentID, 100, date, paidUntil, ownerID)
+	// Future payment date
+	futureDate := time.Now().UTC().Add(24 * time.Hour)
+	_, err := svc.CreateStudentPayment(ctx, studentID, 100, futureDate, futureDate.Add(24*time.Hour), ownerID)
 	require.Error(t, err)
 	var badReq *pkgerrors.BadRequestError
+	require.ErrorAs(t, err, &badReq)
+	assert.Contains(t, badReq.Message, "date cannot be in the future")
+
+	date := time.Date(2026, 10, 15, 0, 0, 0, 0, time.UTC)
+	paidUntil := time.Date(2026, 10, 10, 0, 0, 0, 0, time.UTC)
+
+	_, err = svc.CreateStudentPayment(ctx, studentID, 100, date, paidUntil, ownerID)
+	require.Error(t, err)
 	require.ErrorAs(t, err, &badReq)
 	assert.Contains(t, badReq.Message, "paidUntil must not be before")
 }

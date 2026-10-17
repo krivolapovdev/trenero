@@ -129,6 +129,11 @@ func (s *service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 
 func (s *service) CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Creating lesson", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
+	if err := utils.ValidateDateNotFuture(req.Date, "date"); err != nil {
+		logger.WarnContext(ctx, "Lesson date cannot be in the future", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
+		return models.LessonResponse{}, err
+	}
+
 	var groupID uuid.NullUUID
 	if req.GroupID != nil {
 		groupID = uuid.NullUUID{UUID: *req.GroupID, Valid: true}
@@ -170,6 +175,13 @@ func (s *service) CreateLesson(ctx context.Context, req models.CreateLessonReque
 
 func (s *service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Updating lesson", "lesson_id", lessonID.String(), "user_id", ownerID.String())
+	if req.Date != nil {
+		if err := utils.ValidateDateNotFuture(*req.Date, "date"); err != nil {
+			logger.WarnContext(ctx, "Updated lesson date cannot be in the future", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
+			return models.LessonResponse{}, err
+		}
+	}
+
 	existingLesson, err := s.db.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
 		ID:      lessonID,
 		OwnerID: ownerID,

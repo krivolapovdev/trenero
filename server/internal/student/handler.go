@@ -2,6 +2,7 @@ package student
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
@@ -132,6 +133,15 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 		return
 	}
 
+	var err error
+	req.FullName, err = httputil.ValidateRequiredName(req.FullName, "fullName")
+	if err != nil {
+		pkgerrors.HandleError(c, err)
+		return
+	}
+	req.Phone = httputil.TrimStringPtr(req.Phone)
+	req.Note = httputil.TrimStringPtr(req.Note)
+
 	createdStudent, err := h.service.CreateStudent(c.Request.Context(), req, jwtUser.ID)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
@@ -196,6 +206,30 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 	var updates map[string]any
 	if !httputil.BindJSON(c, &updates) {
 		return
+	}
+
+	if rawName, ok := updates["fullName"]; ok && rawName != nil {
+		if nameStr, ok := rawName.(string); ok {
+			trimmedName, err := httputil.ValidateRequiredName(nameStr, "fullName")
+			if err != nil {
+				pkgerrors.HandleError(c, err)
+				return
+			}
+			updates["fullName"] = trimmedName
+		} else {
+			pkgerrors.RespondBadRequest(c, "fullName must not be blank")
+			return
+		}
+	}
+	if rawPhone, ok := updates["phone"]; ok && rawPhone != nil {
+		if phoneStr, ok := rawPhone.(string); ok {
+			updates["phone"] = strings.TrimSpace(phoneStr)
+		}
+	}
+	if rawNote, ok := updates["note"]; ok && rawNote != nil {
+		if noteStr, ok := rawNote.(string); ok {
+			updates["note"] = strings.TrimSpace(noteStr)
+		}
 	}
 
 	updatedStudent, err := h.service.UpdateStudent(c.Request.Context(), studentID, jwtUser.ID, updates)

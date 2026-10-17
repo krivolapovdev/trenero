@@ -191,6 +191,43 @@ func TestStudentHandler_CreateStudent(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
+	t.Run("BlankFullName", func(t *testing.T) {
+		r := setupStudentRouter(&mockStudentService{}, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/students", bytes.NewBufferString(`{"fullName":"   "}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("TrimmedData", func(t *testing.T) {
+		expectedID := uuid.New()
+		mockSvc := &mockStudentService{
+			createStudentFn: func(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
+				assert.Equal(t, "Anna Smith", req.FullName)
+				require.NotNil(t, req.Phone)
+				assert.Equal(t, "123456", *req.Phone)
+				require.NotNil(t, req.Note)
+				assert.Equal(t, "student note", *req.Note)
+				return models.StudentResponse{
+					ID:       expectedID,
+					FullName: req.FullName,
+					Phone:    req.Phone,
+					Note:     req.Note,
+				}, nil
+			},
+		}
+
+		r := setupStudentRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/students", bytes.NewBufferString(`{"fullName":"  Anna Smith  ","phone":"  123456  ","note":"  student note  "}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+	})
+
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockStudentService{
 			createStudentFn: func(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
@@ -519,6 +556,37 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("BlankFullName", func(t *testing.T) {
+		r := setupStudentRouter(&mockStudentService{}, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/students/"+studentID.String(), bytes.NewBufferString(`{"fullName":"   "}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("TrimmedData", func(t *testing.T) {
+		mockSvc := &mockStudentService{
+			updateStudentFn: func(ctx context.Context, sID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error) {
+				assert.Equal(t, studentID, sID)
+				assert.Equal(t, testUser.ID, ownerID)
+				assert.Equal(t, "Boris", updates["fullName"])
+				assert.Equal(t, "98765", updates["phone"])
+				assert.Equal(t, "updated note", updates["note"])
+				return models.StudentResponse{ID: studentID, FullName: "Boris"}, nil
+			},
+		}
+
+		r := setupStudentRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/students/"+studentID.String(), bytes.NewBufferString(`{"fullName":"  Boris  ","phone":"  98765  ","note":"  updated note  "}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
 	t.Run("InternalServerError", func(t *testing.T) {

@@ -345,6 +345,15 @@ func (s *service) CreateStudent(ctx context.Context, req models.CreateStudentReq
 		return models.StudentResponse{}, err
 	}
 
+	var birthdate sql.NullTime
+	if req.Birthdate != nil {
+		if err := utils.ValidateDateNotFuture(req.Birthdate.Time, "birthdate"); err != nil {
+			logger.WarnContext(ctx, "Student birthdate cannot be in the future", "birthdate", req.Birthdate.Format(time.DateOnly), "user_id", ownerID.String())
+			return models.StudentResponse{}, err
+		}
+		birthdate = sql.NullTime{Time: req.Birthdate.Time, Valid: true}
+	}
+
 	taken, err := s.db.ExistsStudentByOwnerIDAndFullName(ctx, db.ExistsStudentByOwnerIDAndFullNameParams{
 		OwnerID:  ownerID,
 		FullName: fullName,
@@ -359,11 +368,6 @@ func (s *service) CreateStudent(ctx context.Context, req models.CreateStudentReq
 			types.ErrStudentNameNotUnique,
 			fmt.Sprintf("A student named \"%s\" already exists", fullName),
 		)
-	}
-
-	var birthdate sql.NullTime
-	if req.Birthdate != nil {
-		birthdate = sql.NullTime{Time: req.Birthdate.Time, Valid: true}
 	}
 	var phone sql.NullString
 	if req.Phone != nil && *req.Phone != "" {
@@ -393,6 +397,11 @@ func (s *service) CreateStudent(ctx context.Context, req models.CreateStudentReq
 
 func (s *service) CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Creating payment for student", "student_id", studentID.String(), "amount", req.Amount, "user_id", ownerID.String())
+	if err := utils.ValidateDateNotFuture(req.Date, "date"); err != nil {
+		logger.WarnContext(ctx, "Student payment date cannot be in the future", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
+		return models.TransactionResponse{}, err
+	}
+
 	if _, err := s.GetStudentDetailsByID(ctx, studentID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Student not found for creating payment", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return models.TransactionResponse{}, err
@@ -462,7 +471,15 @@ func (s *service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 			if rawBD == nil {
 				birthdate = sql.NullTime{Valid: false}
 			} else if s, ok := rawBD.(string); ok && s != "" {
-				if t, err := time.Parse(time.DateOnly, s); err == nil {
+				t, err := time.Parse(time.DateOnly, s)
+				if err != nil {
+					t, err = time.Parse(time.RFC3339, s)
+				}
+				if err == nil {
+					if err := utils.ValidateDateNotFuture(t, "birthdate"); err != nil {
+						logger.WarnContext(ctx, "Updated student birthdate cannot be in the future", "birthdate", s, "user_id", ownerID.String())
+						return err
+					}
 					birthdate = sql.NullTime{Time: t, Valid: true}
 				}
 			}

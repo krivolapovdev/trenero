@@ -284,6 +284,11 @@ func (s *service) CreateTransaction(ctx context.Context, req models.CreateTransa
 		return models.TransactionResponse{}, pkgerrors.NewBadRequest("amount must be greater than 0")
 	}
 
+	if err := timeutil.ValidateDateNotFuture(req.Date, "date"); err != nil {
+		logger.WarnContext(ctx, "Transaction date cannot be in the future", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
+		return models.TransactionResponse{}, err
+	}
+
 	if req.PaymentDetails != nil {
 		if req.PaymentDetails.StudentID == uuid.Nil {
 			logger.WarnContext(ctx, "Student ID must not be nil for student payment", "user_id", ownerID.String())
@@ -364,9 +369,9 @@ func (s *service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID,
 		}
 	}
 
-	if timeutil.IsPaidUntilBeforeDate(paidUntil, date) {
-		logger.WarnContext(ctx, "paidUntil must not be before payment date", "student_id", studentID.String(), "paid_until", paidUntil.Format(time.RFC3339), "date", date.Format(time.RFC3339), "user_id", ownerID.String())
-		return models.TransactionResponse{}, pkgerrors.NewBadRequest("paidUntil must not be before the payment date")
+	if err := timeutil.ValidateDateNotFuture(date, "date"); err != nil {
+		logger.WarnContext(ctx, "Payment date cannot be in the future", "date", date.Format(time.RFC3339), "user_id", ownerID.String())
+		return models.TransactionResponse{}, err
 	}
 
 	var createdTx db.PaymentsModuleTransaction
@@ -454,6 +459,13 @@ func (s *service) UpdateTransaction(ctx context.Context, transactionID, ownerID 
 			if err == nil {
 				txDate = d
 				patchesDate = true
+			}
+		}
+
+		if patchesDate {
+			if err := timeutil.ValidateDateNotFuture(txDate, "date"); err != nil {
+				logger.WarnContext(ctx, "Updated transaction date cannot be in the future", "date", txDate.Format(time.RFC3339), "user_id", ownerID.String())
+				return err
 			}
 		}
 

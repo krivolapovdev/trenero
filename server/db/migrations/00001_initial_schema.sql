@@ -13,10 +13,11 @@ CREATE TYPE payments_module.transaction_type AS ENUM ('INCOME', 'EXPENSE');
 
 CREATE TABLE users_module.oauth2_users
 (
-    id          uuid                                  DEFAULT uuidv7() PRIMARY KEY,
+    id          uuid DEFAULT uuidv7() PRIMARY KEY,
     provider    users_module.oauth2_provider NOT NULL,
     provider_id VARCHAR(255)                 NOT NULL,
-    email       VARCHAR(255)                 NOT NULL,
+    email       VARCHAR(255)                 NOT NULL CHECK (trim(email) != ''
+) ,
     created_at  TIMESTAMPTZ                  NOT NULL DEFAULT now(),
     updated_at  TIMESTAMPTZ                  NOT NULL DEFAULT now(),
     CONSTRAINT uq_users_provider_provider_id UNIQUE (provider, provider_id)
@@ -24,11 +25,12 @@ CREATE TABLE users_module.oauth2_users
 
 CREATE TABLE groups_module.groups
 (
-    id            uuid                  DEFAULT uuidv7() PRIMARY KEY,
-    owner_id      UUID         NOT NULL,
-    name          VARCHAR(255) NOT NULL,
-    default_price NUMERIC(19, 2),
-    note          VARCHAR(255),
+    id       uuid DEFAULT uuidv7() PRIMARY KEY,
+    owner_id UUID         NOT NULL,
+    name     VARCHAR(255) NOT NULL CHECK (trim(name) != ''
+) ,
+    default_price NUMERIC(19, 2)        CHECK (default_price > 0),
+    note          VARCHAR(255)          CHECK (trim(note) != ''),
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     CONSTRAINT groups_owner_id_name_unique UNIQUE (owner_id, name)
@@ -47,12 +49,13 @@ CREATE TABLE groups_module.group_students
 
 CREATE TABLE students_module.students
 (
-    id         uuid                  DEFAULT uuidv7() PRIMARY KEY,
-    owner_id   UUID         NOT NULL,
-    full_name  VARCHAR(255) NOT NULL,
+    id        uuid DEFAULT uuidv7() PRIMARY KEY,
+    owner_id  UUID         NOT NULL,
+    full_name VARCHAR(255) NOT NULL CHECK (trim(full_name) != ''
+) ,
     birthdate  DATE,
-    phone      VARCHAR(15),
-    note       VARCHAR(255),
+    phone      VARCHAR(15)           CHECK (trim(phone) != ''),
+    note       VARCHAR(255)          CHECK (trim(note) != ''),
     free       BOOLEAN      NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
@@ -63,7 +66,7 @@ CREATE TABLE lessons_module.lessons
 (
     id         uuid                 DEFAULT uuidv7() PRIMARY KEY,
     owner_id   UUID        NOT NULL,
-    group_id   UUID        REFERENCES groups_module.groups (id) ON DELETE SET NULL,
+    group_id   UUID,
     date       TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -87,7 +90,7 @@ CREATE TABLE payments_module.transactions
     id         uuid                                      DEFAULT uuidv7() PRIMARY KEY,
     owner_id   UUID                             NOT NULL,
     type       payments_module.transaction_type NOT NULL,
-    amount     NUMERIC(19, 2)                   NOT NULL,
+    amount     NUMERIC(19, 2)                   NOT NULL CHECK (amount > 0),
     date       TIMESTAMPTZ                      NOT NULL,
     created_at TIMESTAMPTZ                      NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ                      NOT NULL DEFAULT now()

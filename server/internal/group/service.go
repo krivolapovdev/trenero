@@ -583,6 +583,11 @@ func (s *service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 		return models.GroupResponse{}, err
 	}
 
+	if req.DefaultPrice != nil && *req.DefaultPrice <= 0 {
+		logger.WarnContext(ctx, "Group default price must be greater than 0", "default_price", *req.DefaultPrice, "user_id", ownerID.String())
+		return models.GroupResponse{}, pkgerrors.NewBadRequest("defaultPrice must be greater than 0")
+	}
+
 	taken, err := s.db.ExistsGroupByOwnerIDAndName(ctx, db.ExistsGroupByOwnerIDAndNameParams{
 		OwnerID: ownerID,
 		Name:    name,
@@ -707,12 +712,30 @@ func (s *service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 			if rawDP == nil {
 				defaultPrice = sql.NullString{Valid: false}
 			} else {
+				var priceVal float64
 				switch v := rawDP.(type) {
 				case float64:
-					defaultPrice = sql.NullString{String: strconv.FormatFloat(v, 'f', 2, 64), Valid: true}
+					priceVal = v
+				case int:
+					priceVal = float64(v)
+				case int64:
+					priceVal = float64(v)
 				case string:
-					defaultPrice = sql.NullString{String: v, Valid: true}
+					p, err := strconv.ParseFloat(v, 64)
+					if err != nil {
+						logger.WarnContext(ctx, "Invalid defaultPrice format for update", "group_id", groupID.String(), "user_id", ownerID.String())
+						return pkgerrors.NewBadRequest("invalid defaultPrice format")
+					}
+					priceVal = p
+				default:
+					logger.WarnContext(ctx, "Invalid defaultPrice type for update", "group_id", groupID.String(), "user_id", ownerID.String())
+					return pkgerrors.NewBadRequest("invalid defaultPrice format")
 				}
+				if priceVal <= 0 {
+					logger.WarnContext(ctx, "Group default price must be greater than 0 for update", "group_id", groupID.String(), "user_id", ownerID.String())
+					return pkgerrors.NewBadRequest("defaultPrice must be greater than 0")
+				}
+				defaultPrice = sql.NullString{String: strconv.FormatFloat(priceVal, 'f', 2, 64), Valid: true}
 			}
 		}
 

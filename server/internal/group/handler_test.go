@@ -396,6 +396,89 @@ func TestGroupHandler_CreateGroup(t *testing.T) {
 		assert.Equal(t, http.StatusConflict, w.Code)
 	})
 
+	t.Run("BlankName", func(t *testing.T) {
+		r := setupGroupRouter(&mockGroupService{}, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/groups", bytes.NewBufferString(`{"name":"   "}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("NonPositiveDefaultPrice", func(t *testing.T) {
+		r := setupGroupRouter(&mockGroupService{}, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/groups", bytes.NewBufferString(`{"name":"Advanced","defaultPrice":0}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("NegativeDefaultPrice", func(t *testing.T) {
+		r := setupGroupRouter(&mockGroupService{}, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/groups", bytes.NewBufferString(`{"name":"Advanced","defaultPrice":-10}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("NullDefaultPrice", func(t *testing.T) {
+		mockSvc := &mockGroupService{
+			createGroupFn: func(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error) {
+				assert.Nil(t, req.DefaultPrice)
+				return models.GroupResponse{ID: uuid.New(), Name: req.Name}, nil
+			},
+		}
+		r := setupGroupRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/groups", bytes.NewBufferString(`{"name":"Advanced","defaultPrice":null}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+	})
+
+	t.Run("PositiveDefaultPrice", func(t *testing.T) {
+		mockSvc := &mockGroupService{
+			createGroupFn: func(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error) {
+				require.NotNil(t, req.DefaultPrice)
+				assert.Equal(t, 150.0, *req.DefaultPrice)
+				return models.GroupResponse{ID: uuid.New(), Name: req.Name, DefaultPrice: req.DefaultPrice}, nil
+			},
+		}
+		r := setupGroupRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/groups", bytes.NewBufferString(`{"name":"Advanced","defaultPrice":150.0}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+	})
+
+	t.Run("TrimmedData", func(t *testing.T) {
+		expectedID := uuid.New()
+		mockSvc := &mockGroupService{
+			createGroupFn: func(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error) {
+				assert.Equal(t, "Advanced", req.Name)
+				require.NotNil(t, req.Note)
+				assert.Equal(t, "note text", *req.Note)
+				return models.GroupResponse{ID: expectedID, Name: req.Name, Note: req.Note}, nil
+			},
+		}
+
+		r := setupGroupRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/groups", bytes.NewBufferString(`{"name":"  Advanced  ","note":"  note text  "}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+	})
+
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockGroupService{
 			createGroupFn: func(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error) {
@@ -449,6 +532,35 @@ func TestGroupHandler_UpdateGroup(t *testing.T) {
 		r := setupGroupRouter(mockSvc, testUser)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodPatch, "/api/v1/groups/"+groupID.String(), bytes.NewBufferString(`{"name":"Updated Name"}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("BlankName", func(t *testing.T) {
+		r := setupGroupRouter(&mockGroupService{}, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/groups/"+groupID.String(), bytes.NewBufferString(`{"name":"   "}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("TrimmedData", func(t *testing.T) {
+		mockSvc := &mockGroupService{
+			updateGroupFn: func(ctx context.Context, gID, ownerID uuid.UUID, updates map[string]any) (models.GroupResponse, error) {
+				assert.Equal(t, groupID, gID)
+				assert.Equal(t, "Updated Name", updates["name"])
+				assert.Equal(t, "new note", updates["note"])
+				return models.GroupResponse{ID: groupID, Name: "Updated Name"}, nil
+			},
+		}
+
+		r := setupGroupRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/groups/"+groupID.String(), bytes.NewBufferString(`{"name":"  Updated Name  ","note":"  new note  "}`))
 		req.Header.Set("Content-Type", "application/json")
 		r.ServeHTTP(w, req)
 

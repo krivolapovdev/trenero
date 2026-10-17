@@ -3,6 +3,7 @@ package utils
 import (
 	"strings"
 	"testing"
+	"time"
 
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -31,5 +32,48 @@ func TestValidateRequiredName(t *testing.T) {
 		val, err := ValidateRequiredName("  Group A  ", "name")
 		require.NoError(t, err)
 		assert.Equal(t, "Group A", val)
+	})
+}
+
+func TestTrimStringPtr(t *testing.T) {
+	t.Run("NilString_ReturnsNil", func(t *testing.T) {
+		res := TrimStringPtr(nil)
+		assert.Nil(t, res)
+	})
+
+	t.Run("WhitespaceString_ReturnsTrimmed", func(t *testing.T) {
+		s := "   "
+		res := TrimStringPtr(&s)
+		require.NotNil(t, res)
+		assert.Equal(t, "", *res)
+	})
+
+	t.Run("PaddedString_ReturnsTrimmed", func(t *testing.T) {
+		s := "  note content  "
+		res := TrimStringPtr(&s)
+		require.NotNil(t, res)
+		assert.Equal(t, "note content", *res)
+	})
+}
+
+func TestValidateDateNotFuture(t *testing.T) {
+	t.Run("ZeroDate_ReturnsNoError", func(t *testing.T) {
+		err := ValidateDateNotFuture(time.Time{}, "date")
+		assert.NoError(t, err)
+	})
+
+	t.Run("PastDate_ReturnsNoError", func(t *testing.T) {
+		past := time.Now().UTC().Add(-24 * time.Hour)
+		err := ValidateDateNotFuture(past, "date")
+		assert.NoError(t, err)
+	})
+
+	t.Run("FutureDate_ReturnsBadRequest", func(t *testing.T) {
+		future := time.Now().UTC().Add(24 * time.Hour)
+		err := ValidateDateNotFuture(future, "date")
+		require.Error(t, err)
+		var badReq *pkgerrors.BadRequestError
+		require.ErrorAs(t, err, &badReq)
+		assert.Equal(t, "date cannot be in the future", badReq.Message)
 	})
 }

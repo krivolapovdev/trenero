@@ -3,6 +3,7 @@ package group
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
@@ -182,6 +183,14 @@ func (h *Handler) CreateGroup(c *gin.Context) {
 		return
 	}
 
+	trimmedName, err := httputil.ValidateRequiredName(req.Name, "name")
+	if err != nil {
+		pkgerrors.HandleError(c, err)
+		return
+	}
+	req.Name = trimmedName
+	req.Note = httputil.TrimStringPtr(req.Note)
+
 	createdGroup, err := h.service.CreateGroup(c.Request.Context(), req, jwtUser.ID)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
@@ -213,6 +222,25 @@ func (h *Handler) UpdateGroup(c *gin.Context) {
 	var updates map[string]any
 	if !httputil.BindJSON(c, &updates) {
 		return
+	}
+
+	if rawName, ok := updates["name"]; ok && rawName != nil {
+		if nameStr, ok := rawName.(string); ok {
+			trimmedName, err := httputil.ValidateRequiredName(nameStr, "name")
+			if err != nil {
+				pkgerrors.HandleError(c, err)
+				return
+			}
+			updates["name"] = trimmedName
+		} else {
+			pkgerrors.RespondBadRequest(c, "name must not be blank")
+			return
+		}
+	}
+	if rawNote, ok := updates["note"]; ok && rawNote != nil {
+		if noteStr, ok := rawNote.(string); ok {
+			updates["note"] = strings.TrimSpace(noteStr)
+		}
 	}
 
 	updatedGroup, err := h.service.UpdateGroup(c.Request.Context(), groupID, jwtUser.ID, updates)
