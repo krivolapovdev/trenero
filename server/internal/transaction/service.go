@@ -301,11 +301,6 @@ func (s *service) CreateTransaction(ctx context.Context, req models.CreateTransa
 				return models.TransactionResponse{}, err
 			}
 		}
-
-		if timeutil.IsPaidUntilBeforeDate(req.PaymentDetails.PaidUntil, req.Date) {
-			logger.WarnContext(ctx, "paidUntil must not be before payment date", "paid_until", req.PaymentDetails.PaidUntil.Format(time.RFC3339), "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
-			return models.TransactionResponse{}, pkgerrors.NewBadRequest("paidUntil must not be before the payment date")
-		}
 	}
 
 	var createdTx db.PaymentsModuleTransaction
@@ -362,6 +357,16 @@ func (s *service) CreateTransaction(ctx context.Context, req models.CreateTransa
 
 func (s *service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (models.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Creating student payment transaction", "student_id", studentID.String(), "amount", amount, "user_id", ownerID.String())
+	if amount <= 0 {
+		logger.WarnContext(ctx, "Transaction amount must be greater than 0", "amount", amount, "user_id", ownerID.String())
+		return models.TransactionResponse{}, pkgerrors.NewBadRequest("amount must be greater than 0")
+	}
+
+	if studentID == uuid.Nil {
+		logger.WarnContext(ctx, "Student ID must not be nil for student payment", "user_id", ownerID.String())
+		return models.TransactionResponse{}, pkgerrors.NewBadRequest("studentId must not be null for student payment")
+	}
+
 	if s.fetchStudentByID != nil {
 		if _, err := s.fetchStudentByID(ctx, studentID, ownerID); err != nil {
 			logger.WarnContext(ctx, "Student not found for student payment", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
@@ -476,13 +481,6 @@ func (s *service) UpdateTransaction(ctx context.Context, transactionID, ownerID 
 			if err == nil {
 				paidUntilDate = d
 				patchesPaidUntil = true
-			}
-		}
-
-		if (patchesDate || patchesPaidUntil) && existing.StudentID.Valid {
-			if timeutil.IsPaidUntilBeforeDate(paidUntilDate, txDate) {
-				logger.WarnContext(ctx, "paidUntil must not be before payment date for transaction update", "transaction_id", transactionID.String(), "user_id", ownerID.String())
-				return pkgerrors.NewBadRequest("paidUntil must not be before the payment date")
 			}
 		}
 

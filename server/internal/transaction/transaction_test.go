@@ -108,11 +108,23 @@ func TestCreateStudentPayment_Validation(t *testing.T) {
 	ownerID := uuid.New()
 	studentID := uuid.New()
 
-	// Future payment date
-	futureDate := time.Now().UTC().Add(24 * time.Hour)
-	_, err := svc.CreateStudentPayment(ctx, studentID, 100, futureDate, futureDate.Add(24*time.Hour), ownerID)
+	// Amount <= 0
+	_, err := svc.CreateStudentPayment(ctx, studentID, 0, time.Now(), time.Now(), ownerID)
 	require.Error(t, err)
 	var badReq *pkgerrors.BadRequestError
+	require.ErrorAs(t, err, &badReq)
+	assert.Equal(t, "amount must be greater than 0", badReq.Message)
+
+	// Nil student ID
+	_, err = svc.CreateStudentPayment(ctx, uuid.Nil, 100, time.Now(), time.Now(), ownerID)
+	require.Error(t, err)
+	require.ErrorAs(t, err, &badReq)
+	assert.Contains(t, badReq.Message, "studentId must not be null")
+
+	// Future payment date
+	futureDate := time.Now().UTC().Add(24 * time.Hour)
+	_, err = svc.CreateStudentPayment(ctx, studentID, 100, futureDate, futureDate.Add(24*time.Hour), ownerID)
+	require.Error(t, err)
 	require.ErrorAs(t, err, &badReq)
 	assert.Contains(t, badReq.Message, "date cannot be in the future")
 
