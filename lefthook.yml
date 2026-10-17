@@ -2,7 +2,7 @@ pre-commit:
   parallel: true
   jobs:
     - name: phone
-      root: frontend
+      root: client
       stage_fixed: true
       run: dart fix --apply && dart format .
 

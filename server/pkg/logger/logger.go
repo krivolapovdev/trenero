@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/lmittmann/tint"
 )
 
@@ -24,6 +25,51 @@ type Config struct {
 	Format  string
 	Output  io.Writer
 	NoColor bool
+}
+
+func Init(cfgs ...Config) *slog.Logger {
+	var cfg Config
+	if len(cfgs) > 0 {
+		cfg = cfgs[0]
+	}
+	if cfg.Output == nil {
+		cfg.Output = os.Stdout
+	}
+
+	var level slog.Level
+	switch strings.ToLower(strings.TrimSpace(cfg.Level)) {
+	case "debug":
+		level = slog.LevelDebug
+	case "warn", "warning":
+		level = slog.LevelWarn
+	case "error":
+		level = slog.LevelError
+	default:
+		if gin.Mode() == gin.ReleaseMode {
+			level = slog.LevelInfo
+		} else {
+			level = slog.LevelDebug
+		}
+	}
+
+	var handler slog.Handler
+	isRelease := gin.Mode() == gin.ReleaseMode
+	if strings.ToLower(strings.TrimSpace(cfg.Format)) == "json" || (cfg.Format == "" && isRelease) {
+		handler = slog.NewJSONHandler(cfg.Output, &slog.HandlerOptions{
+			Level: level,
+		})
+	} else {
+		handler = tint.NewTextHandler(cfg.Output, &tint.Options{
+			Level:      level,
+			TimeFormat: time.DateTime,
+			NoColor:    cfg.NoColor,
+		})
+	}
+
+	l := slog.New(contextHandler{Handler: handler})
+	slog.SetDefault(l)
+
+	return l
 }
 
 type contextHandler struct {
@@ -48,51 +94,6 @@ func (h contextHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 
 func (h contextHandler) WithGroup(name string) slog.Handler {
 	return contextHandler{Handler: h.Handler.WithGroup(name)}
-}
-
-func Init(cfgs ...Config) *slog.Logger {
-	var cfg Config
-	if len(cfgs) > 0 {
-		cfg = cfgs[0]
-	}
-	if cfg.Output == nil {
-		cfg.Output = os.Stdout
-	}
-
-	var level slog.Level
-	switch strings.ToLower(strings.TrimSpace(cfg.Level)) {
-	case "debug":
-		level = slog.LevelDebug
-	case "warn", "warning":
-		level = slog.LevelWarn
-	case "error":
-		level = slog.LevelError
-	default:
-		if os.Getenv("GIN_MODE") == "release" {
-			level = slog.LevelInfo
-		} else {
-			level = slog.LevelDebug
-		}
-	}
-
-	var handler slog.Handler
-	isRelease := os.Getenv("GIN_MODE") == "release"
-	if strings.ToLower(strings.TrimSpace(cfg.Format)) == "json" || (cfg.Format == "" && isRelease) {
-		handler = slog.NewJSONHandler(cfg.Output, &slog.HandlerOptions{
-			Level: level,
-		})
-	} else {
-		handler = tint.NewTextHandler(cfg.Output, &tint.Options{
-			Level:      level,
-			TimeFormat: time.DateTime,
-			NoColor:    cfg.NoColor,
-		})
-	}
-
-	l := slog.New(contextHandler{Handler: handler})
-	slog.SetDefault(l)
-
-	return l
 }
 
 func WithRequestID(ctx context.Context, id string) context.Context {

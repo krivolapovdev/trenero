@@ -9,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/krivolapovdev/trenerio/internal/server"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 )
 
@@ -32,7 +31,6 @@ func main() {
 		logger.Error("failed to initialize database", "error", err)
 		os.Exit(1)
 	}
-
 	defer func() {
 		if err := dbConn.Close(); err != nil {
 			logger.Error("failed to close database connection", "error", err)
@@ -41,10 +39,6 @@ func main() {
 
 	srv := wireServer(dbConn, cfg)
 
-	runHTTPServer(srv, cfg)
-}
-
-func runHTTPServer(srv *server.Server, cfg Config) {
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.Port,
 		Handler:           srv.Engine(),

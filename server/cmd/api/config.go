@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 const (
@@ -35,16 +36,6 @@ type Config struct {
 }
 
 func loadConfig() Config {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-
-	jwtSecret := os.Getenv("JWT_SECRET_KEY")
-	if jwtSecret == "" {
-		jwtSecret = defaultJWTSecret
-	}
-
 	reviewerKey := os.Getenv("REVIEWER_SECRET_KEY")
 	if reviewerKey == "" {
 		reviewerKey = defaultReviewerKey
@@ -65,9 +56,9 @@ func loadConfig() Config {
 	}
 
 	return Config{
-		Port:               port,
+		Port:               utils.GetEnv("PORT", defaultPort),
 		DBURL:              buildDatabaseURL(),
-		JWTSecret:          jwtSecret,
+		JWTSecret:          utils.GetEnv("JWT_SECRET_KEY", defaultJWTSecret),
 		ReviewerKey:        reviewerKey,
 		GoogleClientID:     os.Getenv("GOOGLE_WEB_CLIENT_ID"),
 		AllowedOrigins:     allowedOrigins,
@@ -79,20 +70,12 @@ func loadConfig() Config {
 }
 
 func buildDatabaseURL() string {
-	user := os.Getenv("DB_USERNAME")
-	if user == "" {
-		user = defaultDBUser
+	if rawURL := os.Getenv("DB_URL"); rawURL != "" {
+		return rawURL
 	}
 
-	pass := os.Getenv("DB_PASSWORD")
-	if pass == "" {
-		pass = defaultDBPassword
-	}
+	user := utils.GetEnv("DB_USERNAME", defaultDBUser)
+	pass := utils.GetEnv("DB_PASSWORD", defaultDBPassword)
 
-	rawURL := os.Getenv("DB_URL")
-	if rawURL == "" {
-		return fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, pass, defaultDBHost, defaultDBName)
-	}
-
-	return rawURL
+	return fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, pass, defaultDBHost, defaultDBName)
 }

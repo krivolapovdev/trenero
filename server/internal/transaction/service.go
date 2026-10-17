@@ -13,8 +13,8 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
-	"github.com/krivolapovdev/trenerio/pkg/timeutil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
+	timeutil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 type FetchStudentsByIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error)

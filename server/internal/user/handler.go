@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/httputil"
+	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 type Handler struct {

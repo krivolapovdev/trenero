@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/pkg/models"
-	"github.com/krivolapovdev/trenerio/pkg/timeutil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
+	timeutil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 func ComputeStudentStatuses(

@@ -198,9 +198,9 @@ func HandleError(c *gin.Context, err error) {
 		return
 	}
 
-	var unauthErr *UnauthorizedError
-	if errors.As(err, &unauthErr) {
-		RespondUnauthorized(c, unauthErr.Message)
+	var unauthorizedErr *UnauthorizedError
+	if errors.As(err, &unauthorizedErr) {
+		RespondUnauthorized(c, unauthorizedErr.Message)
 		return
 	}
 
