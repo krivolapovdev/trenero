@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,6 +14,7 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
+	"github.com/krivolapovdev/trenerio/pkg/utils"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -75,24 +75,8 @@ func NewService(
 	}
 }
 
-func (s *service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (err error) {
-	tx, err := s.sqlDB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if p := recover(); p != nil {
-			_ = tx.Rollback()
-			panic(p)
-		} else if err != nil {
-			_ = tx.Rollback()
-		}
-	}()
-	qtx := s.db.WithTx(tx)
-	if err = fn(qtx); err != nil {
-		return err
-	}
-	return tx.Commit()
+func (s *service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
+	return db.WithTx(ctx, s.sqlDB, s.db, fn)
 }
 
 func (s *service) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.GroupSummaryResponse, error) {
@@ -190,13 +174,10 @@ func (s *service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UU
 	}
 
 	studentIDs := make([]uuid.UUID, 0, len(studentLinks))
-	seenStudentIDs := make(map[uuid.UUID]bool, len(studentLinks))
 	for _, sl := range studentLinks {
-		if !seenStudentIDs[sl.StudentID] {
-			seenStudentIDs[sl.StudentID] = true
-			studentIDs = append(studentIDs, sl.StudentID)
-		}
+		studentIDs = append(studentIDs, sl.StudentID)
 	}
+	studentIDs = utils.UniqueUUIDs(studentIDs)
 
 	var (
 		stRows              []models.StudentResponse
@@ -553,48 +534,37 @@ func (s *service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.
 			return err
 		}
 
-		reqMap := make(map[uuid.UUID]bool, len(groupIDs))
-		for _, gid := range groupIDs {
-			reqMap[gid] = true
+		currentGroupIDs := make([]uuid.UUID, 0, len(currentLinks))
+		for _, cl := range currentLinks {
+			currentGroupIDs = append(currentGroupIDs, cl.GroupID)
 		}
 
-		deletedCount := 0
-		for _, cl := range currentLinks {
-			if !reqMap[cl.GroupID] {
-				if err := qtx.DeleteGroupStudentByStudentAndGroupID(ctx, db.DeleteGroupStudentByStudentAndGroupIDParams{
-					GroupID:   cl.GroupID,
-					StudentID: studentID,
-					OwnerID:   ownerID,
-				}); err != nil {
-					logger.ErrorContext(ctx, "Failed to unlink student from group", "student_id", studentID.String(), "group_id", cl.GroupID.String(), "error", err, "user_id", ownerID.String())
-					return err
-				}
-				deletedCount++
+		toDelete, toCreate := utils.DiffUUIDs(currentGroupIDs, groupIDs)
+
+		for _, gid := range toDelete {
+			if err := qtx.DeleteGroupStudentByStudentAndGroupID(ctx, db.DeleteGroupStudentByStudentAndGroupIDParams{
+				GroupID:   gid,
+				StudentID: studentID,
+				OwnerID:   ownerID,
+			}); err != nil {
+				logger.ErrorContext(ctx, "Failed to unlink student from group", "student_id", studentID.String(), "group_id", gid.String(), "error", err, "user_id", ownerID.String())
+				return err
 			}
 		}
 
-		curMap := make(map[uuid.UUID]bool, len(currentLinks))
-		for _, cl := range currentLinks {
-			curMap[cl.GroupID] = true
-		}
-
-		createdCount := 0
-		for _, gid := range groupIDs {
-			if !curMap[gid] {
-				_, err := qtx.CreateGroupStudent(ctx, db.CreateGroupStudentParams{
-					OwnerID:   ownerID,
-					GroupID:   gid,
-					StudentID: studentID,
-				})
-				if err != nil {
-					logger.ErrorContext(ctx, "Failed to link student to group", "student_id", studentID.String(), "group_id", gid.String(), "error", err, "user_id", ownerID.String())
-					return err
-				}
-				createdCount++
+		for _, gid := range toCreate {
+			_, err := qtx.CreateGroupStudent(ctx, db.CreateGroupStudentParams{
+				OwnerID:   ownerID,
+				GroupID:   gid,
+				StudentID: studentID,
+			})
+			if err != nil {
+				logger.ErrorContext(ctx, "Failed to link student to group", "student_id", studentID.String(), "group_id", gid.String(), "error", err, "user_id", ownerID.String())
+				return err
 			}
 		}
 
-		logger.DebugContext(ctx, "Student groups sync details", "student_id", studentID.String(), "unlinked", deletedCount, "linked", createdCount, "user_id", ownerID.String())
+		logger.DebugContext(ctx, "Student groups sync details", "student_id", studentID.String(), "unlinked", len(toDelete), "linked", len(toCreate), "user_id", ownerID.String())
 		return nil
 	})
 	if err != nil {
@@ -607,14 +577,10 @@ func (s *service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.
 
 func (s *service) CreateGroup(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error) {
 	logger.InfoContext(ctx, "Creating group", "name", req.Name, "user_id", ownerID.String())
-	name := strings.TrimSpace(req.Name)
-	if name == "" {
-		logger.WarnContext(ctx, "Group name must not be blank", "user_id", ownerID.String())
-		return models.GroupResponse{}, pkgerrors.NewBadRequest("name must not be blank")
-	}
-	if len(name) > 255 {
-		logger.WarnContext(ctx, "Group name exceeds limit", "length", len(name), "user_id", ownerID.String())
-		return models.GroupResponse{}, pkgerrors.NewBadRequest("name must not exceed 255 characters")
+	name, err := utils.ValidateRequiredName(req.Name, "name")
+	if err != nil {
+		logger.WarnContext(ctx, "Group name validation failed", "user_id", ownerID.String())
+		return models.GroupResponse{}, err
 	}
 
 	taken, err := s.db.ExistsGroupByOwnerIDAndName(ctx, db.ExistsGroupByOwnerIDAndNameParams{
@@ -635,32 +601,9 @@ func (s *service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 
 	var uniqueStudentIDs []uuid.UUID
 	if len(req.StudentIds) > 0 && s.fetchStudentsByIDs != nil {
-		seen := make(map[uuid.UUID]bool, len(req.StudentIds))
-		for _, sid := range req.StudentIds {
-			if !seen[sid] {
-				seen[sid] = true
-				uniqueStudentIDs = append(uniqueStudentIDs, sid)
-			}
-		}
-
-		stRows, err := s.fetchStudentsByIDs(ctx, uniqueStudentIDs, ownerID)
-		if err != nil {
-			logger.ErrorContext(ctx, "Failed to fetch students by IDs for group creation", "count", len(uniqueStudentIDs), "error", err, "user_id", ownerID.String())
+		uniqueStudentIDs = utils.UniqueUUIDs(req.StudentIds)
+		if err := validateStudentIDsExist(ctx, s.fetchStudentsByIDs, uniqueStudentIDs, ownerID, "group creation"); err != nil {
 			return models.GroupResponse{}, err
-		}
-		foundMap := make(map[uuid.UUID]bool, len(stRows))
-		for _, sr := range stRows {
-			foundMap[sr.ID] = true
-		}
-		unknown := make([]uuid.UUID, 0)
-		for _, sid := range uniqueStudentIDs {
-			if !foundMap[sid] {
-				unknown = append(unknown, sid)
-			}
-		}
-		if len(unknown) > 0 {
-			logger.WarnContext(ctx, "Unknown student IDs provided for group creation", "unknown", unknown, "user_id", ownerID.String())
-			return models.GroupResponse{}, pkgerrors.NewBadRequest(fmt.Sprintf("unknown students: %v", unknown))
 		}
 	}
 
@@ -731,14 +674,14 @@ func (s *service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 		name := existing.Name
 		if rawName, ok := updates["name"]; ok && rawName != nil {
 			nameStr, isStr := rawName.(string)
-			if !isStr || strings.TrimSpace(nameStr) == "" {
+			if !isStr {
 				logger.WarnContext(ctx, "Updated group name must not be blank", "group_id", groupID.String(), "user_id", ownerID.String())
 				return pkgerrors.NewBadRequest("name must not be blank")
 			}
-			trimmed := strings.TrimSpace(nameStr)
-			if len(trimmed) > 255 {
-				logger.WarnContext(ctx, "Updated group name exceeds limit", "length", len(trimmed), "group_id", groupID.String(), "user_id", ownerID.String())
-				return pkgerrors.NewBadRequest("name must not exceed 255 characters")
+			trimmed, err := utils.ValidateRequiredName(nameStr, "name")
+			if err != nil {
+				logger.WarnContext(ctx, "Updated group name validation failed", "group_id", groupID.String(), "user_id", ownerID.String())
+				return err
 			}
 			taken, err := qtx.ExistsGroupByOwnerIDAndNameAndIDNot(ctx, db.ExistsGroupByOwnerIDAndNameAndIDNotParams{
 				OwnerID: ownerID,
@@ -785,24 +728,8 @@ func (s *service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 		if rawSIDs, ok := updates["studentIds"]; ok && s.fetchStudentsByIDs != nil {
 			requestedStudentIDs := types.ParseUUIDSlice(rawSIDs)
 			if len(requestedStudentIDs) > 0 {
-				stRows, err := s.fetchStudentsByIDs(ctx, requestedStudentIDs, ownerID)
-				if err != nil {
-					logger.ErrorContext(ctx, "Failed to fetch students by IDs for group update", "count", len(requestedStudentIDs), "error", err, "user_id", ownerID.String())
+				if err := validateStudentIDsExist(ctx, s.fetchStudentsByIDs, requestedStudentIDs, ownerID, "group update"); err != nil {
 					return err
-				}
-				foundMap := make(map[uuid.UUID]bool, len(stRows))
-				for _, sr := range stRows {
-					foundMap[sr.ID] = true
-				}
-				unknown := make([]uuid.UUID, 0)
-				for _, sid := range requestedStudentIDs {
-					if !foundMap[sid] {
-						unknown = append(unknown, sid)
-					}
-				}
-				if len(unknown) > 0 {
-					logger.WarnContext(ctx, "Unknown students provided for group update", "group_id", groupID.String(), "unknown", unknown, "user_id", ownerID.String())
-					return pkgerrors.NewBadRequest(fmt.Sprintf("unknown students: %v", unknown))
 				}
 			}
 
@@ -815,45 +742,37 @@ func (s *service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 				return err
 			}
 
-			reqMap := make(map[uuid.UUID]bool, len(requestedStudentIDs))
-			for _, sid := range requestedStudentIDs {
-				reqMap[sid] = true
+			currentStudentIDs := make([]uuid.UUID, 0, len(currentLinks))
+			for _, cl := range currentLinks {
+				currentStudentIDs = append(currentStudentIDs, cl.StudentID)
 			}
 
+			toDelete, toCreate := utils.DiffUUIDs(currentStudentIDs, requestedStudentIDs)
 			deletedCount := 0
-			for _, cl := range currentLinks {
-				if !reqMap[cl.StudentID] {
-					if err := qtx.DeleteGroupStudentByStudentAndGroupID(ctx, db.DeleteGroupStudentByStudentAndGroupIDParams{
-						GroupID:   groupID,
-						StudentID: cl.StudentID,
-						OwnerID:   ownerID,
-					}); err != nil {
-						logger.ErrorContext(ctx, "Failed to unlink student during group update", "group_id", groupID.String(), "student_id", cl.StudentID.String(), "error", err, "user_id", ownerID.String())
-						return err
-					}
-					deletedCount++
+			for _, sid := range toDelete {
+				if err := qtx.DeleteGroupStudentByStudentAndGroupID(ctx, db.DeleteGroupStudentByStudentAndGroupIDParams{
+					GroupID:   groupID,
+					StudentID: sid,
+					OwnerID:   ownerID,
+				}); err != nil {
+					logger.ErrorContext(ctx, "Failed to unlink student during group update", "group_id", groupID.String(), "student_id", sid.String(), "error", err, "user_id", ownerID.String())
+					return err
 				}
-			}
-
-			curMap := make(map[uuid.UUID]bool, len(currentLinks))
-			for _, cl := range currentLinks {
-				curMap[cl.StudentID] = true
+				deletedCount++
 			}
 
 			createdCount := 0
-			for _, sid := range requestedStudentIDs {
-				if !curMap[sid] {
-					_, err := qtx.CreateGroupStudent(ctx, db.CreateGroupStudentParams{
-						OwnerID:   ownerID,
-						GroupID:   groupID,
-						StudentID: sid,
-					})
-					if err != nil {
-						logger.ErrorContext(ctx, "Failed to link student during group update", "group_id", groupID.String(), "student_id", sid.String(), "error", err, "user_id", ownerID.String())
-						return err
-					}
-					createdCount++
+			for _, sid := range toCreate {
+				_, err := qtx.CreateGroupStudent(ctx, db.CreateGroupStudentParams{
+					OwnerID:   ownerID,
+					GroupID:   groupID,
+					StudentID: sid,
+				})
+				if err != nil {
+					logger.ErrorContext(ctx, "Failed to link student during group update", "group_id", groupID.String(), "student_id", sid.String(), "error", err, "user_id", ownerID.String())
+					return err
 				}
+				createdCount++
 			}
 
 			logger.DebugContext(ctx, "Group students synced during update", "group_id", groupID.String(), "unlinked", deletedCount, "linked", createdCount, "user_id", ownerID.String())

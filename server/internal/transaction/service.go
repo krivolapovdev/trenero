@@ -52,24 +52,8 @@ func NewService(
 	}
 }
 
-func (s *service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (err error) {
-	tx, err := s.sqlDB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if p := recover(); p != nil {
-			_ = tx.Rollback()
-			panic(p)
-		} else if err != nil {
-			_ = tx.Rollback()
-		}
-	}()
-	qtx := s.db.WithTx(tx)
-	if err = fn(qtx); err != nil {
-		return err
-	}
-	return tx.Commit()
+func (s *service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
+	return db.WithTx(ctx, s.sqlDB, s.db, fn)
 }
 
 func (s *service) GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error) {

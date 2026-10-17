@@ -89,3 +89,19 @@ func TestTokenProvider_ValidateReviewerKey(t *testing.T) {
 	providerNoReviewer := NewTokenProvider("key-super-secret-key-32-bytes-long", time.Hour, time.Hour, "")
 	assert.False(t, providerNoReviewer.ValidateReviewerKey("secret-reviewer-key"))
 }
+
+func TestTokenProvider_GenerateTokenPair(t *testing.T) {
+	provider := NewTokenProvider("key-super-secret-key-32-bytes-long", time.Hour, 24*time.Hour, "reviewer")
+	user := JwtUser{
+		ID:    uuid.New(),
+		Email: "user@example.com",
+	}
+
+	accessToken, refreshToken, err := provider.GenerateTokenPair(user)
+	require.NoError(t, err)
+	assert.NotEmpty(t, accessToken)
+	assert.NotEmpty(t, refreshToken)
+
+	assert.True(t, provider.IsTokenValid(accessToken, "ACCESS"))
+	assert.True(t, provider.IsTokenValid(refreshToken, "REFRESH"))
+}

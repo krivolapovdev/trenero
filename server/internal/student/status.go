@@ -36,14 +36,7 @@ func ComputeStudentStatusesWithVisitLessons(
 
 	statuses := make([]types.StudentStatus, 0)
 
-	var lastVisitLesson *models.LessonResponse
-	for _, l := range visitLessonsMap {
-		if lastVisitLesson == nil || l.Date.After(lastVisitLesson.Date) || (l.Date.Equal(lastVisitLesson.Date) && l.CreatedAt.After(lastVisitLesson.CreatedAt)) {
-			cur := l
-			lastVisitLesson = &cur
-		}
-	}
-
+	lastVisitLesson := findLatestLesson(visitLessonsMap)
 	if lastVisitLesson != nil {
 		for _, v := range visits {
 			if v.LessonID == lastVisitLesson.ID {
@@ -62,29 +55,14 @@ func ComputeStudentStatusesWithVisitLessons(
 		return statuses
 	}
 
-	var lastLesson *models.LessonResponse
-	for _, l := range lessonsMap {
-		if lastLesson == nil || l.Date.After(lastLesson.Date) || (l.Date.Equal(lastLesson.Date) && l.CreatedAt.After(lastLesson.CreatedAt)) {
-			cur := l
-			lastLesson = &cur
-		}
-	}
+	lastLesson := findLatestLesson(lessonsMap)
 
 	referenceDate := today
 	if lastLesson != nil {
 		referenceDate = lastLesson.Date
 	}
 
-	var maxPaidUntil *time.Time
-	for _, p := range payments {
-		if p.PaymentDetails != nil {
-			pu := p.PaymentDetails.PaidUntil
-			if maxPaidUntil == nil || pu.After(*maxPaidUntil) {
-				t := pu
-				maxPaidUntil = &t
-			}
-		}
-	}
+	maxPaidUntil := timeutil.MaxPaidUntil(payments)
 
 	if timeutil.IsSubscriptionActive(maxPaidUntil, referenceDate) {
 		statuses = append(statuses, types.StudentStatusPaid)

@@ -81,30 +81,12 @@ func (s *service) LoginGoogle(ctx context.Context, token string) (LoginResponse,
 		return LoginResponse{}, err
 	}
 
-	jwtUser := security.JwtUser{
-		ID:    u.ID,
-		Email: u.Email,
-	}
-
-	accessToken, err := s.tokenProvider.GenerateAccessToken(jwtUser)
+	resp, err := generateLoginResponse(ctx, s.tokenProvider, u, "Google")
 	if err != nil {
-		logger.ErrorContext(ctx, "Failed to generate access token for Google login", "error", err, "user_id", u.ID.String())
 		return LoginResponse{}, err
 	}
-	refreshToken, err := s.tokenProvider.GenerateRefreshToken(jwtUser)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to generate refresh token for Google login", "error", err, "user_id", u.ID.String())
-		return LoginResponse{}, err
-	}
-
 	logger.InfoContext(ctx, "Google login successful", "user_id", u.ID.String(), "email", u.Email)
-	return LoginResponse{
-		User: u,
-		JwtTokens: JwtResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
-		},
-	}, nil
+	return resp, nil
 }
 
 func (s *service) LoginReviewer(ctx context.Context, reviewerKey string) (LoginResponse, error) {
@@ -120,30 +102,12 @@ func (s *service) LoginReviewer(ctx context.Context, reviewerKey string) (LoginR
 		return LoginResponse{}, err
 	}
 
-	jwtUser := security.JwtUser{
-		ID:    u.ID,
-		Email: u.Email,
-	}
-
-	accessToken, err := s.tokenProvider.GenerateAccessToken(jwtUser)
+	resp, err := generateLoginResponse(ctx, s.tokenProvider, u, "reviewer")
 	if err != nil {
-		logger.ErrorContext(ctx, "Failed to generate access token for reviewer login", "error", err, "user_id", u.ID.String())
 		return LoginResponse{}, err
 	}
-	refreshToken, err := s.tokenProvider.GenerateRefreshToken(jwtUser)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to generate refresh token for reviewer login", "error", err, "user_id", u.ID.String())
-		return LoginResponse{}, err
-	}
-
 	logger.InfoContext(ctx, "Reviewer login successful", "user_id", u.ID.String())
-	return LoginResponse{
-		User: u,
-		JwtTokens: JwtResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
-		},
-	}, nil
+	return resp, nil
 }
 
 func (s *service) RefreshTokens(ctx context.Context, refreshToken string) (JwtResponse, error) {

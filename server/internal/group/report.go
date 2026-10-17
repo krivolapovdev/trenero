@@ -106,16 +106,7 @@ func BuildGroupReport(
 }
 
 func isPaid(payments []models.TransactionResponse, year, month int, today time.Time) bool {
-	var maxPaidUntil *time.Time
-	for _, p := range payments {
-		if p.PaymentDetails != nil {
-			pu := p.PaymentDetails.PaidUntil
-			if maxPaidUntil == nil || pu.After(*maxPaidUntil) {
-				t := pu
-				maxPaidUntil = &t
-			}
-		}
-	}
+	maxPaidUntil := timeutil.MaxPaidUntil(payments)
 	if maxPaidUntil == nil {
 		return false
 	}

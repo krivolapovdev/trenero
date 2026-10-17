@@ -2,7 +2,6 @@ package metric
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
@@ -44,23 +43,8 @@ func (h *Handler) GetPaymentStatistics(c *gin.Context) {
 	}
 
 	scope := c.DefaultQuery("scope", string(types.MetricScopeMonth))
-	startDateStr := c.Query("startDate")
-	endDateStr := c.Query("endDate")
-
-	if startDateStr == "" || endDateStr == "" {
-		pkgerrors.RespondBadRequest(c, "startDate and endDate are required")
-		return
-	}
-
-	startDate, err := time.Parse(time.RFC3339, startDateStr)
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid startDate format")
-		return
-	}
-
-	endDate, err := time.Parse(time.RFC3339, endDateStr)
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid endDate format")
+	startDate, endDate, ok := httputil.ParseRequiredRFC3339Range(c, "startDate", "endDate", "startDate and endDate are required")
+	if !ok {
 		return
 	}
 

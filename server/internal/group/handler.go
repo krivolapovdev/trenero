@@ -3,7 +3,6 @@ package group
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
@@ -103,22 +102,8 @@ func (h *Handler) GetGroupLessons(c *gin.Context) {
 		return
 	}
 
-	fromStr := c.Query("from")
-	toStr := c.Query("to")
-	if fromStr == "" || toStr == "" {
-		pkgerrors.RespondBadRequest(c, "from and to query parameters are required")
-		return
-	}
-
-	from, err := time.Parse(time.RFC3339, fromStr)
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid from date format")
-		return
-	}
-
-	to, err := time.Parse(time.RFC3339, toStr)
-	if err != nil {
-		pkgerrors.RespondBadRequest(c, "Invalid to date format")
+	from, to, ok := httputil.ParseRequiredRFC3339Range(c, "from", "to", "from and to query parameters are required")
+	if !ok {
 		return
 	}
 

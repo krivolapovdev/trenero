@@ -11,6 +11,7 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
+	"github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 type FetchVisitsByLessonIDFunc func(ctx context.Context, lessonID, ownerID uuid.UUID) ([]models.VisitResponse, error)
@@ -92,13 +93,10 @@ func (s *service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 	}
 
 	studentIDs := make([]uuid.UUID, 0, len(visitResponses))
-	seenStudentIDs := make(map[uuid.UUID]bool, len(visitResponses))
 	for _, vr := range visitResponses {
-		if !seenStudentIDs[vr.StudentID] {
-			seenStudentIDs[vr.StudentID] = true
-			studentIDs = append(studentIDs, vr.StudentID)
-		}
+		studentIDs = append(studentIDs, vr.StudentID)
 	}
+	studentIDs = utils.UniqueUUIDs(studentIDs)
 
 	students := make([]models.StudentResponse, 0, len(studentIDs))
 	if len(studentIDs) > 0 && s.fetchStudentsByIDs != nil {

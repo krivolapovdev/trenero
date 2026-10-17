@@ -61,6 +61,19 @@ func (p *TokenProvider) GenerateRefreshToken(user JwtUser) (string, error) {
 	return p.generateToken(user, p.refreshTokenExpiration, types.TokenTypeRefresh)
 }
 
+// GenerateTokenPair generates both an access token and a refresh token for the given user.
+func (p *TokenProvider) GenerateTokenPair(user JwtUser) (accessToken, refreshToken string, err error) {
+	accessToken, err = p.GenerateAccessToken(user)
+	if err != nil {
+		return "", "", err
+	}
+	refreshToken, err = p.GenerateRefreshToken(user)
+	if err != nil {
+		return "", "", err
+	}
+	return accessToken, refreshToken, nil
+}
+
 func (p *TokenProvider) generateToken(user JwtUser, exp time.Duration, tokenType string) (string, error) {
 	now := time.Now().UTC()
 	claims := jwt.MapClaims{

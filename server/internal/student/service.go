@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,6 +14,7 @@ import (
 	"github.com/krivolapovdev/trenerio/pkg/logger"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
+	"github.com/krivolapovdev/trenerio/pkg/utils"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -80,24 +80,8 @@ func NewService(
 	}
 }
 
-func (s *service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) (err error) {
-	tx, err := s.sqlDB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if p := recover(); p != nil {
-			_ = tx.Rollback()
-			panic(p)
-		} else if err != nil {
-			_ = tx.Rollback()
-		}
-	}()
-	qtx := s.db.WithTx(tx)
-	if err = fn(qtx); err != nil {
-		return err
-	}
-	return tx.Commit()
+func (s *service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
+	return db.WithTx(ctx, s.sqlDB, s.db, fn)
 }
 
 func (s *service) GetAllStudents(ctx context.Context, ownerID uuid.UUID) ([]models.StudentResponse, error) {
@@ -355,14 +339,10 @@ func (s *service) GetStudentPayments(ctx context.Context, studentID, ownerID uui
 
 func (s *service) CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
 	logger.InfoContext(ctx, "Creating student", "name", req.FullName, "user_id", ownerID.String())
-	fullName := strings.TrimSpace(req.FullName)
-	if fullName == "" {
-		logger.WarnContext(ctx, "Student full name must not be blank", "user_id", ownerID.String())
-		return models.StudentResponse{}, pkgerrors.NewBadRequest("fullName must not be blank")
-	}
-	if len(fullName) > 255 {
-		logger.WarnContext(ctx, "Student full name exceeds limit", "length", len(fullName), "user_id", ownerID.String())
-		return models.StudentResponse{}, pkgerrors.NewBadRequest("fullName must not exceed 255 characters")
+	fullName, err := utils.ValidateRequiredName(req.FullName, "fullName")
+	if err != nil {
+		logger.WarnContext(ctx, "Student full name validation failed", "user_id", ownerID.String())
+		return models.StudentResponse{}, err
 	}
 
 	taken, err := s.db.ExistsStudentByOwnerIDAndFullName(ctx, db.ExistsStudentByOwnerIDAndFullNameParams{
@@ -449,14 +429,14 @@ func (s *service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 		fullName := existing.FullName
 		if rawName, ok := updates["fullName"]; ok && rawName != nil {
 			nameStr, isStr := rawName.(string)
-			if !isStr || strings.TrimSpace(nameStr) == "" {
+			if !isStr {
 				logger.WarnContext(ctx, "Updated student name must not be blank", "student_id", studentID.String(), "user_id", ownerID.String())
 				return pkgerrors.NewBadRequest("fullName must not be blank")
 			}
-			trimmed := strings.TrimSpace(nameStr)
-			if len(trimmed) > 255 {
-				logger.WarnContext(ctx, "Updated student name exceeds limit", "length", len(trimmed), "student_id", studentID.String(), "user_id", ownerID.String())
-				return pkgerrors.NewBadRequest("fullName must not exceed 255 characters")
+			trimmed, err := utils.ValidateRequiredName(nameStr, "fullName")
+			if err != nil {
+				logger.WarnContext(ctx, "Updated student name validation failed", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
+				return err
 			}
 			taken, err := qtx.ExistsStudentByOwnerIDAndFullNameAndIDNot(ctx, db.ExistsStudentByOwnerIDAndFullNameAndIDNotParams{
 				OwnerID:  ownerID,

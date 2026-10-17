@@ -14,6 +14,7 @@ import (
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
+	"github.com/krivolapovdev/trenerio/pkg/testutil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -95,17 +96,9 @@ func (m *mockGroupService) DeleteGroup(ctx context.Context, groupID, ownerID uui
 }
 
 func setupGroupRouter(svc Service, user security.JwtUser) *gin.Engine {
-	gin.SetMode(gin.TestMode)
-	r := gin.New()
-	r.Use(func(c *gin.Context) {
-		if user.ID != uuid.Nil {
-			c.Set(types.ContextKeyJWTUser, user)
-		}
-		c.Next()
+	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
+		NewHandler(svc).RegisterRoutes(rg)
 	})
-	h := NewHandler(svc)
-	h.RegisterRoutes(r.Group("/api/v1"))
-	return r
 }
 
 func TestGroupHandler_GetAllGroupsSummary(t *testing.T) {
