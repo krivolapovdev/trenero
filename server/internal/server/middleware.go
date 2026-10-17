@@ -108,13 +108,13 @@ func CorsMiddleware(allowedOrigins []string) gin.HandlerFunc {
 	config := cors.Config{
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions},
 		AllowHeaders:     []string{types.HeaderAuthorization, "Content-Type", types.HeaderXReviewerKey, types.HeaderXRequestID, "Origin", "Accept"},
-		ExposeHeaders:    []string{types.HeaderXRequestID, "*"},
+		ExposeHeaders:    []string{types.HeaderXRequestID},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}
 
 	if allowAll {
-		config.AllowAllOrigins = true
+		config.AllowOriginFunc = func(origin string) bool { return true }
 	} else {
 		config.AllowOrigins = allowedOrigins
 	}
@@ -123,6 +123,10 @@ func CorsMiddleware(allowedOrigins []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
 		if origin != "" && !allowAll && !originMap[origin] {
+			if c.Request.Method == http.MethodOptions {
+				c.AbortWithStatus(http.StatusForbidden)
+				return
+			}
 			c.Next()
 			return
 		}

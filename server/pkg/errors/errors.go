@@ -93,7 +93,15 @@ func getContextAndPath(c *gin.Context) (context.Context, string, string) {
 	if c == nil || c.Request == nil {
 		return context.Background(), "", ""
 	}
-	return c.Request.Context(), c.Request.RequestURI, c.Request.URL.Path
+	uri := c.Request.RequestURI
+	if uri == "" && c.Request.URL != nil {
+		uri = c.Request.URL.RequestURI()
+	}
+	path := ""
+	if c.Request.URL != nil {
+		path = c.Request.URL.Path
+	}
+	return c.Request.Context(), uri, path
 }
 
 func RespondProblem(c *gin.Context, status int, title, detail string) {

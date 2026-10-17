@@ -2,10 +2,8 @@ package logger
 
 import (
 	"context"
-	"io"
 	"log/slog"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,49 +18,17 @@ const (
 	loggerKey    contextKey = "logger"
 )
 
-type Config struct {
-	Level   string
-	Format  string
-	Output  io.Writer
-	NoColor bool
-}
-
-func Init(cfgs ...Config) *slog.Logger {
-	var cfg Config
-	if len(cfgs) > 0 {
-		cfg = cfgs[0]
-	}
-	if cfg.Output == nil {
-		cfg.Output = os.Stdout
-	}
-
-	var level slog.Level
-	switch strings.ToLower(strings.TrimSpace(cfg.Level)) {
-	case "debug":
-		level = slog.LevelDebug
-	case "warn", "warning":
-		level = slog.LevelWarn
-	case "error":
-		level = slog.LevelError
-	default:
-		if gin.Mode() == gin.ReleaseMode {
-			level = slog.LevelInfo
-		} else {
-			level = slog.LevelDebug
-		}
-	}
-
+func Init() *slog.Logger {
 	var handler slog.Handler
-	isRelease := gin.Mode() == gin.ReleaseMode
-	if strings.ToLower(strings.TrimSpace(cfg.Format)) == "json" || (cfg.Format == "" && isRelease) {
-		handler = slog.NewJSONHandler(cfg.Output, &slog.HandlerOptions{
-			Level: level,
+
+	if gin.Mode() == gin.ReleaseMode {
+		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelInfo,
 		})
 	} else {
-		handler = tint.NewTextHandler(cfg.Output, &tint.Options{
-			Level:      level,
+		handler = tint.NewTextHandler(os.Stdout, &tint.Options{
+			Level:      slog.LevelDebug,
 			TimeFormat: time.DateTime,
-			NoColor:    cfg.NoColor,
 		})
 	}
 

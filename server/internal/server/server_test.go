@@ -230,3 +230,83 @@ func TestSwaggerEndpoint(t *testing.T) {
 	assert.Contains(t, w.Body.String(), `"title": "Trenerio API"`)
 	assert.Contains(t, w.Body.String(), `"/api/v1/groups"`)
 }
+
+func TestHealthEndpoint(t *testing.T) {
+	tokenProvider := security.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
+	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	srv.Engine().ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "OK", w.Body.String())
+}
+
+func TestNoRouteAndNoMethod(t *testing.T) {
+	tokenProvider := security.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
+	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil)
+
+	t.Run("NotFoundRoute", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/non-existent-route", nil)
+		srv.Engine().ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		var pd pkgerrors.ProblemDetail
+		err := json.Unmarshal(w.Body.Bytes(), &pd)
+		require.NoError(t, err)
+		assert.Equal(t, "Not Found", pd.Title)
+		assert.Equal(t, "Endpoint not found", pd.Detail)
+	})
+
+	t.Run("MethodNotAllowed", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/health", nil)
+		srv.Engine().ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+		var pd pkgerrors.ProblemDetail
+		err := json.Unmarshal(w.Body.Bytes(), &pd)
+		require.NoError(t, err)
+		assert.Equal(t, "Method Not Allowed", pd.Title)
+		assert.Equal(t, "Method not allowed", pd.Detail)
+	})
+}
+
+func TestCorsMiddleware_WildcardAndDisallowedPreflight(t *testing.T) {
+	t.Run("WildcardOriginReflectsAndAllowsCredentials", func(t *testing.T) {
+		r := gin.New()
+		r.Use(CorsMiddleware([]string{"*"}))
+		r.GET("/api/test", func(c *gin.Context) {
+			c.String(http.StatusOK, "ok")
+		})
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/test", nil)
+		req.Header.Set("Origin", "https://my-frontend.domain.com")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		// Should reflect origin rather than wildcard to satisfy CORS with credentials
+		assert.Equal(t, "https://my-frontend.domain.com", w.Header().Get("Access-Control-Allow-Origin"))
+		assert.Equal(t, "true", w.Header().Get("Access-Control-Allow-Credentials"))
+		assert.NotContains(t, w.Header().Get("Access-Control-Expose-Headers"), "*")
+	})
+
+	t.Run("DisallowedOriginPreflightOptionsReturnsForbidden", func(t *testing.T) {
+		r := gin.New()
+		r.Use(CorsMiddleware([]string{"https://trusted.org"}))
+		r.GET("/api/test", func(c *gin.Context) {
+			c.String(http.StatusOK, "ok")
+		})
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodOptions, "/api/test", nil)
+		req.Header.Set("Origin", "https://untrusted-hacker.com")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+		assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
+	})
+}

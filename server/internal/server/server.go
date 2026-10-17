@@ -43,6 +43,7 @@ func NewServer(
 	metricHandler *metric.Handler,
 ) *Server {
 	engine := gin.New()
+	engine.HandleMethodNotAllowed = true
 
 	err := engine.SetTrustedProxies([]string{
 		"10.0.0.0/8",

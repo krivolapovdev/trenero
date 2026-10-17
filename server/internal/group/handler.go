@@ -159,13 +159,13 @@ func (h *Handler) GetGroupReport(c *gin.Context) {
 	}
 
 	year, err := strconv.Atoi(yearStr)
-	if err != nil {
+	if err != nil || year < 1 {
 		pkgerrors.RespondBadRequest(c, "Invalid year")
 		return
 	}
 
 	month, err := strconv.Atoi(monthStr)
-	if err != nil {
+	if err != nil || month < 1 || month > 12 {
 		pkgerrors.RespondBadRequest(c, "Invalid month")
 		return
 	}

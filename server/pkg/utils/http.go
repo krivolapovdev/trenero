@@ -37,6 +37,7 @@ func ParseUUIDParam(c *gin.Context, paramName string) (uuid.UUID, bool) {
 	id, err := uuid.Parse(val)
 	if err != nil {
 		pkgerrors.RespondBadRequest(c, fmt.Sprintf("Invalid %s", paramName))
+		c.Abort()
 		return uuid.Nil, false
 	}
 	return id, true
@@ -47,12 +48,14 @@ func ParseUUIDParam(c *gin.Context, paramName string) (uuid.UUID, bool) {
 func BindJSON(c *gin.Context, obj any) bool {
 	if err := c.ShouldBindJSON(obj); err != nil {
 		pkgerrors.RespondBadRequest(c, "Request body is missing or has invalid format")
+		c.Abort()
 		return false
 	}
 	return true
 }
 
 // ParsePagination parses page and size query parameters with defaults.
+// Caps size at a maximum of 100 to prevent unbounded queries.
 func ParsePagination(c *gin.Context, defaultPage, defaultSize int) (int, int) {
 	page := defaultPage
 	if pageStr := c.Query("page"); pageStr != "" {
@@ -66,6 +69,11 @@ func ParsePagination(c *gin.Context, defaultPage, defaultSize int) (int, int) {
 		if val, err := strconv.Atoi(sizeStr); err == nil && val > 0 {
 			size = val
 		}
+	}
+
+	const maxPageSize = 100
+	if size > maxPageSize {
+		size = maxPageSize
 	}
 
 	return page, size

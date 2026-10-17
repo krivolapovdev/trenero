@@ -146,6 +146,16 @@ func TestParsePagination(t *testing.T) {
 		assert.Equal(t, 1, page)
 		assert.Equal(t, 20, size)
 	})
+
+	t.Run("CapMaxPageSize", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodGet, "/items?page=1&size=5000", nil)
+
+		page, size := ParsePagination(c, 1, 20)
+		assert.Equal(t, 1, page)
+		assert.Equal(t, 100, size)
+	})
 }
 
 func TestParseOptionalRFC3339(t *testing.T) {
