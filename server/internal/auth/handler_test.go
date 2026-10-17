@@ -111,6 +111,21 @@ func TestAuthHandler_GoogleLogin(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockAuthService{
+			loginGoogleFn: func(ctx context.Context, token string) (LoginResponse, error) {
+				return LoginResponse{}, assert.AnError
+			},
+		}
+		r := setupAuthRouter(mockSvc)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/oauth2/google", bytes.NewBufferString(`{"token":"crash-token"}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestAuthHandler_RefreshTokens(t *testing.T) {
@@ -150,6 +165,36 @@ func TestAuthHandler_RefreshTokens(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
+
+	t.Run("Unauthorized_ExpiredOrInvalidToken", func(t *testing.T) {
+		mockSvc := &mockAuthService{
+			refreshTokensFn: func(ctx context.Context, refreshToken string) (models.JwtResponse, error) {
+				return models.JwtResponse{}, pkgerrors.NewUnauthorized("Invalid or expired refresh token")
+			},
+		}
+		r := setupAuthRouter(mockSvc)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/jwt/refresh", bytes.NewBufferString(`{"refreshToken":"expired"}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockAuthService{
+			refreshTokensFn: func(ctx context.Context, refreshToken string) (models.JwtResponse, error) {
+				return models.JwtResponse{}, assert.AnError
+			},
+		}
+		r := setupAuthRouter(mockSvc)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/jwt/refresh", bytes.NewBufferString(`{"refreshToken":"any"}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestAuthHandler_ReviewerLogin(t *testing.T) {
@@ -185,5 +230,37 @@ func TestAuthHandler_ReviewerLogin(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("Unauthorized_InvalidKey", func(t *testing.T) {
+		mockSvc := &mockAuthService{
+			loginReviewerFn: func(ctx context.Context, reviewerKey string) (LoginResponse, error) {
+				return LoginResponse{}, pkgerrors.NewUnauthorized("Invalid reviewer key")
+			},
+		}
+
+		r := setupAuthRouter(mockSvc)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/reviewer/login", nil)
+		req.Header.Set(types.HeaderXReviewerKey, "wrong-key")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockAuthService{
+			loginReviewerFn: func(ctx context.Context, reviewerKey string) (LoginResponse, error) {
+				return LoginResponse{}, assert.AnError
+			},
+		}
+
+		r := setupAuthRouter(mockSvc)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/reviewer/login", nil)
+		req.Header.Set(types.HeaderXReviewerKey, "crash-key")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }

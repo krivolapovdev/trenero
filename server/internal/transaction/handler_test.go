@@ -131,6 +131,21 @@ func TestTransactionHandler_GetPaginatedTransactions(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockTxService{
+			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error) {
+				return models.PageTransactionResponse{}, assert.AnError
+			},
+		}
+
+		r := setupTxRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/transactions", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestTransactionHandler_CreateTransaction(t *testing.T) {
@@ -171,6 +186,23 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, expectedID, actual.ID)
 	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockTxService{
+			createTransactionFn: func(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error) {
+				return models.TransactionResponse{}, assert.AnError
+			},
+		}
+
+		r := setupTxRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		payload := `{"amount":2500.0,"type":"INCOME","date":"2026-10-17T10:00:00Z"}`
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/transactions", bytes.NewBufferString(payload))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestTransactionHandler_UpdateTransaction(t *testing.T) {
@@ -181,6 +213,16 @@ func TestTransactionHandler_UpdateTransaction(t *testing.T) {
 		r := setupTxRouter(&mockTxService{}, testUser)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodPatch, "/api/v1/transactions/bad-id", bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("InvalidJSON", func(t *testing.T) {
+		r := setupTxRouter(&mockTxService{}, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/transactions/"+txID.String(), bytes.NewBufferString(`{bad`))
 		req.Header.Set("Content-Type", "application/json")
 		r.ServeHTTP(w, req)
 
@@ -204,6 +246,38 @@ func TestTransactionHandler_UpdateTransaction(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		mockSvc := &mockTxService{
+			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (models.TransactionResponse, error) {
+				return models.TransactionResponse{}, pkgerrors.NewNotFound("Transaction", id, ownerID)
+			},
+		}
+
+		r := setupTxRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/transactions/"+txID.String(), bytes.NewBufferString(`{"amount":3000.0}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockTxService{
+			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (models.TransactionResponse, error) {
+				return models.TransactionResponse{}, assert.AnError
+			},
+		}
+
+		r := setupTxRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/transactions/"+txID.String(), bytes.NewBufferString(`{"amount":3000.0}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
 
@@ -253,5 +327,20 @@ func TestTransactionHandler_DeleteTransaction(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockTxService{
+			deleteTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID) error {
+				return assert.AnError
+			},
+		}
+
+		r := setupTxRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodDelete, "/api/v1/transactions/"+txID.String(), nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }

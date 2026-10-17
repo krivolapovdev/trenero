@@ -153,7 +153,7 @@ Future<void> _openGroupPage(WidgetTester tester) async {
   await tester.tap(find.byType(PopupMenuButton<String>));
   await tester.pumpAndSettle();
 
-  await tester.tap(find.text(t.students.group));
+  await tester.tap(find.widgetWithText(PopupMenuItem<String>, t.groups.title));
   await tester.pumpAndSettle();
 }
 

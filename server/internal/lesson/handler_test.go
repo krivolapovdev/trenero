@@ -136,6 +136,21 @@ func TestLessonHandler_GetLessonDetails(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, lessonID, res.ID)
 	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockLessonService{
+			getLessonDetailsByIDFn: func(ctx context.Context, lID, ownerID uuid.UUID) (models.LessonDetailsResponse, error) {
+				return models.LessonDetailsResponse{}, assert.AnError
+			},
+		}
+
+		r := setupLessonRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/lessons/"+lessonID.String()+"/details", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestLessonHandler_CreateLesson(t *testing.T) {
@@ -182,6 +197,24 @@ func TestLessonHandler_CreateLesson(t *testing.T) {
 
 		assert.Equal(t, http.StatusCreated, w.Code)
 	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		lessonDate := time.Date(2026, 10, 17, 10, 0, 0, 0, time.UTC)
+		mockSvc := &mockLessonService{
+			createLessonFn: func(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error) {
+				return models.LessonResponse{}, assert.AnError
+			},
+		}
+
+		r := setupLessonRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		payload := `{"date":"` + lessonDate.Format(time.RFC3339) + `"}`
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/lessons", bytes.NewBufferString(payload))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestLessonHandler_UpdateLesson(t *testing.T) {
@@ -192,6 +225,16 @@ func TestLessonHandler_UpdateLesson(t *testing.T) {
 		r := setupLessonRouter(&mockLessonService{}, testUser)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodPatch, "/api/v1/lessons/bad-id", bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("InvalidJSON", func(t *testing.T) {
+		r := setupLessonRouter(&mockLessonService{}, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/lessons/"+lessonID.String(), bytes.NewBufferString(`{invalid`))
 		req.Header.Set("Content-Type", "application/json")
 		r.ServeHTTP(w, req)
 
@@ -218,6 +261,38 @@ func TestLessonHandler_UpdateLesson(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		mockSvc := &mockLessonService{
+			updateLessonFn: func(ctx context.Context, lID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error) {
+				return models.LessonResponse{}, pkgerrors.NewNotFound("Lesson", lID, ownerID)
+			},
+		}
+
+		r := setupLessonRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/lessons/"+lessonID.String(), bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockLessonService{
+			updateLessonFn: func(ctx context.Context, lID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error) {
+				return models.LessonResponse{}, assert.AnError
+			},
+		}
+
+		r := setupLessonRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/lessons/"+lessonID.String(), bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
 
@@ -252,5 +327,35 @@ func TestLessonHandler_DeleteLesson(t *testing.T) {
 
 		assert.Equal(t, http.StatusNoContent, w.Code)
 		assert.True(t, called)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		mockSvc := &mockLessonService{
+			deleteLessonFn: func(ctx context.Context, lID, ownerID uuid.UUID) error {
+				return pkgerrors.NewNotFound("Lesson", lID, ownerID)
+			},
+		}
+
+		r := setupLessonRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodDelete, "/api/v1/lessons/"+lessonID.String(), nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockLessonService{
+			deleteLessonFn: func(ctx context.Context, lID, ownerID uuid.UUID) error {
+				return assert.AnError
+			},
+		}
+
+		r := setupLessonRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodDelete, "/api/v1/lessons/"+lessonID.String(), nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }

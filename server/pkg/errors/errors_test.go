@@ -110,4 +110,66 @@ func TestRespondFunctions(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "Internal Server Error", pd.Title)
 	})
+
+	t.Run("HandleError_Nil", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		HandleError(c, nil)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("HandleError_Conflict", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest("POST", "/api/groups", nil)
+		HandleError(c, NewConflict("CODE_EXISTS", "already exists"))
+		assert.Equal(t, http.StatusConflict, w.Code)
+	})
+
+	t.Run("HandleError_NotFound", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest("GET", "/api/students/123", nil)
+		HandleError(c, NewNotFound("Student", uuid.New(), uuid.New()))
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("HandleError_BadRequest", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest("POST", "/api/test", nil)
+		HandleError(c, NewBadRequest("bad data"))
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("HandleError_Unauthorized", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest("GET", "/api/protected", nil)
+		HandleError(c, NewUnauthorized("custom unauthorized"))
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("HandleError_ValidationError", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest("POST", "/api/validate", nil)
+		vErr := NewValidationError([]map[string]any{{"field": "name", "error": "required"}})
+		assert.Equal(t, "One or more fields in the request failed validation", vErr.Error())
+		HandleError(c, vErr)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+}
+
+func TestErrorConstructors_EdgeCases(t *testing.T) {
+	unauthDefault := NewUnauthorized("")
+	assert.Equal(t, "Full authentication is required to access this resource", unauthDefault.Error())
+
+	unauthCustom := NewUnauthorized("custom message")
+	assert.Equal(t, "custom message", unauthCustom.Error())
+
+	ctx, uri, path := getContextAndPath(nil)
+	assert.NotNil(t, ctx)
+	assert.Empty(t, uri)
+	assert.Empty(t, path)
 }

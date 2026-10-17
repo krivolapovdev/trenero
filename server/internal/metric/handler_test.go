@@ -129,4 +129,29 @@ func TestMetricHandler_GetPaymentStatistics(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
+
+	t.Run("MissingEndDate", func(t *testing.T) {
+		r := setupMetricRouter(&mockMetricService{}, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/metrics/payments?startDate="+startDate.Format(time.RFC3339), nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockMetricService{
+			getPaymentStatisticsFn: func(ctx context.Context, scopeStr string, start, end time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
+				return nil, assert.AnError
+			},
+		}
+
+		r := setupMetricRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		url := "/api/v1/metrics/payments?startDate=" + startDate.Format(time.RFC3339) + "&endDate=" + endDate.Format(time.RFC3339)
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }

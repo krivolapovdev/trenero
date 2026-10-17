@@ -216,7 +216,7 @@ void main() {
     await _login(tester, 'secret');
 
     expect(_loginButton(tester).onPressed, isNull);
-    expect(tester.widget<TextField>(find.byType(TextField)).readOnly, true);
+    expect(tester.widget<TextField>(find.byType(TextField)).enabled, false);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     reviewerClient.gate!.complete();
@@ -251,7 +251,7 @@ void main() {
     expect(find.byType(DefaultStandardToastWidget), findsOneWidget);
     expect(_loginButton(tester).onPressed, isNotNull);
 
-    await tester.pump(const Duration(seconds: 5));
+    await tester.pump(const Duration(seconds: 13));
     await tester.pumpAndSettle();
   });
 

@@ -85,4 +85,19 @@ func TestUserHandler_DeleteMyAccount(t *testing.T) {
 
 		assert.Equal(t, http.StatusNotFound, w.Code)
 	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockUserService{
+			deleteUserFn: func(ctx context.Context, jwtUser security.JwtUser) error {
+				return assert.AnError
+			},
+		}
+
+		r := setupUserRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodDelete, "/api/v1/users/me", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }

@@ -66,7 +66,7 @@ Future<void> _openSheetAndFail(WidgetTester tester) async {
 }
 
 Future<void> _waitForNotification(WidgetTester tester) async {
-  await tester.pump(const Duration(seconds: 5));
+  await tester.pump(const Duration(seconds: 13));
   await tester.pumpAndSettle();
 }
 

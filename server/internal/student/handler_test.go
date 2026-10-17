@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 	"github.com/krivolapovdev/trenerio/pkg/testutil"
@@ -133,6 +134,21 @@ func TestStudentHandler_GetAllStudentsSummary(t *testing.T) {
 		assert.Len(t, actual, 1)
 		assert.Equal(t, "Ivan Ivanov", actual[0].FullName)
 	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockStudentService{
+			getAllStudentsSummaryFn: func(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error) {
+				return nil, assert.AnError
+			},
+		}
+
+		r := setupStudentRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/students/overview", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestStudentHandler_CreateStudent(t *testing.T) {
@@ -174,6 +190,22 @@ func TestStudentHandler_CreateStudent(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockStudentService{
+			createStudentFn: func(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
+				return models.StudentResponse{}, assert.AnError
+			},
+		}
+
+		r := setupStudentRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/students", bytes.NewBufferString(`{"fullName":"Anna Smith"}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestStudentHandler_DeleteStudent(t *testing.T) {
@@ -207,6 +239,38 @@ func TestStudentHandler_DeleteStudent(t *testing.T) {
 
 		assert.Equal(t, http.StatusNoContent, w.Code)
 		assert.True(t, called)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		targetID := uuid.New()
+		mockSvc := &mockStudentService{
+			deleteStudentFn: func(ctx context.Context, studentID, ownerID uuid.UUID) error {
+				return pkgerrors.NewNotFound("Student", studentID, ownerID)
+			},
+		}
+
+		r := setupStudentRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodDelete, "/api/v1/students/"+targetID.String(), nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		targetID := uuid.New()
+		mockSvc := &mockStudentService{
+			deleteStudentFn: func(ctx context.Context, studentID, ownerID uuid.UUID) error {
+				return assert.AnError
+			},
+		}
+
+		r := setupStudentRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodDelete, "/api/v1/students/"+targetID.String(), nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
 
@@ -269,6 +333,21 @@ func TestStudentHandler_GetStudentVisits(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockStudentService{
+			getStudentVisitsFn: func(ctx context.Context, sID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error) {
+				return nil, assert.AnError
+			},
+		}
+
+		r := setupStudentRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/students/"+studentID.String()+"/visits", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestStudentHandler_GetStudentPayments(t *testing.T) {
@@ -299,6 +378,21 @@ func TestStudentHandler_GetStudentPayments(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockStudentService{
+			getStudentPaymentsFn: func(ctx context.Context, sID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+				return nil, assert.AnError
+			},
+		}
+
+		r := setupStudentRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/students/"+studentID.String()+"/payments", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
 
@@ -349,6 +443,23 @@ func TestStudentHandler_CreateStudentPayment(t *testing.T) {
 
 		assert.Equal(t, http.StatusCreated, w.Code)
 	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockStudentService{
+			createStudentPaymentFn: func(ctx context.Context, sID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
+				return models.TransactionResponse{}, assert.AnError
+			},
+		}
+
+		r := setupStudentRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		payload := `{"amount":4500.0,"date":"2026-10-17T00:00:00Z","paidUntil":"2026-11-17T00:00:00Z"}`
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/students/"+studentID.String()+"/payments", bytes.NewBufferString(payload))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestStudentHandler_UpdateStudent(t *testing.T) {
@@ -359,6 +470,16 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 		r := setupStudentRouter(&mockStudentService{}, testUser)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodPatch, "/api/v1/students/bad-id", bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("InvalidJSON", func(t *testing.T) {
+		r := setupStudentRouter(&mockStudentService{}, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/students/"+studentID.String(), bytes.NewBufferString(`{bad`))
 		req.Header.Set("Content-Type", "application/json")
 		r.ServeHTTP(w, req)
 
@@ -382,5 +503,37 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		mockSvc := &mockStudentService{
+			updateStudentFn: func(ctx context.Context, sID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error) {
+				return models.StudentResponse{}, pkgerrors.NewNotFound("Student", sID, ownerID)
+			},
+		}
+
+		r := setupStudentRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/students/"+studentID.String(), bytes.NewBufferString(`{"fullName":"Boris"}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		mockSvc := &mockStudentService{
+			updateStudentFn: func(ctx context.Context, sID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error) {
+				return models.StudentResponse{}, assert.AnError
+			},
+		}
+
+		r := setupStudentRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/students/"+studentID.String(), bytes.NewBufferString(`{"fullName":"Boris"}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
