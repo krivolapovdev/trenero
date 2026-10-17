@@ -9,6 +9,7 @@ import (
 	"github.com/krivolapovdev/trenerio/internal/group"
 	"github.com/krivolapovdev/trenerio/internal/lesson"
 	"github.com/krivolapovdev/trenerio/internal/metric"
+	"github.com/krivolapovdev/trenerio/internal/server/middleware"
 	"github.com/krivolapovdev/trenerio/internal/student"
 	"github.com/krivolapovdev/trenerio/internal/transaction"
 	"github.com/krivolapovdev/trenerio/internal/user"
@@ -72,11 +73,11 @@ func NewServer(
 }
 
 func (s *Server) setupRoutes(allowedOrigins []string) {
-	s.engine.Use(RequestIDMiddleware())
-	s.engine.Use(LoggingMiddleware())
-	s.engine.Use(RecoveryMiddleware())
-	s.engine.Use(CorsMiddleware(allowedOrigins))
-	s.engine.Use(ErrorHandlerMiddleware())
+	s.engine.Use(middleware.RequestIDMiddleware())
+	s.engine.Use(middleware.LoggingMiddleware())
+	s.engine.Use(middleware.RecoveryMiddleware())
+	s.engine.Use(middleware.CorsMiddleware(allowedOrigins))
+	s.engine.Use(middleware.ErrorHandlerMiddleware())
 
 	s.engine.NoRoute(func(c *gin.Context) {
 		pkgerrors.RespondNotFound(c, "Endpoint not found")
@@ -101,7 +102,7 @@ func (s *Server) setupRoutes(allowedOrigins []string) {
 		}
 
 		authRequired := api.Group("")
-		authRequired.Use(AuthMiddleware(s.tokenProvider))
+		authRequired.Use(middleware.AuthMiddleware(s.tokenProvider))
 		{
 			if s.userHandler != nil {
 				s.userHandler.RegisterRoutes(authRequired)

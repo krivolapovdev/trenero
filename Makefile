@@ -10,3 +10,9 @@ sqlc:
 
 swag:
 	cd ./server && swag init -d ./cmd/api,./internal,./pkg -g main.go -o docs
+	cd ./client && rm -rf lib/generated
+	cd ./client && dart run swagger_parser
+	cd ./client && dart run build_runner build --build-filter="lib/generated/**"
+
+slang:
+	cd ./client && dart run slang
