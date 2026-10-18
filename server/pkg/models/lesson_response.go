@@ -8,18 +8,18 @@ import (
 
 // @name LessonResponse
 type LessonResponse struct {
-	ID        uuid.UUID  `json:"id" format:"uuid"`
-	Date      time.Time  `json:"date" format:"date-time"`
-	CreatedAt time.Time  `json:"createdAt" format:"date-time"`
+	ID        uuid.UUID  `json:"id" binding:"required" format:"uuid"`
+	Date      time.Time  `json:"date" binding:"required" format:"date-time"`
+	CreatedAt time.Time  `json:"createdAt" binding:"required" format:"date-time"`
 	GroupID   *uuid.UUID `json:"groupId,omitempty" format:"uuid"`
 }
 
 // @name LessonDetailsResponse
 type LessonDetailsResponse struct {
-	ID            uuid.UUID         `json:"id" format:"uuid"`
-	Date          time.Time         `json:"date" format:"date-time"`
-	CreatedAt     time.Time         `json:"createdAt" format:"date-time"`
+	ID            uuid.UUID         `json:"id" binding:"required" format:"uuid"`
+	Date          time.Time         `json:"date" binding:"required" format:"date-time"`
+	CreatedAt     time.Time         `json:"createdAt" binding:"required" format:"date-time"`
 	GroupID       *uuid.UUID        `json:"groupId,omitempty" format:"uuid"`
-	StudentVisits []VisitResponse   `json:"studentVisits"`
-	Students      []StudentResponse `json:"students"`
+	StudentVisits []VisitResponse   `json:"studentVisits" binding:"required"`
+	Students      []StudentResponse `json:"students" binding:"required"`
 }

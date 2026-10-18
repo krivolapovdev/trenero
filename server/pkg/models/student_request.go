@@ -12,7 +12,7 @@ type CreateStudentRequest struct {
 	Birthdate *types.Date `json:"birthdate,omitempty" swaggertype:"string" format:"date"`
 	Phone     *string     `json:"phone,omitempty" binding:"omitempty,max=15" validate:"omitempty,max=15"`
 	Note      *string     `json:"note,omitempty" binding:"omitempty,max=255" validate:"omitempty,max=255"`
-	Free      bool        `json:"free"`
+	Free      bool        `json:"free" validate:"required"`
 }
 
 // @name CreateStudentPaymentRequest

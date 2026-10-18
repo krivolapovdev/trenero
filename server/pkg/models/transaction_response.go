@@ -9,19 +9,19 @@ import (
 
 // @name StudentPaymentDetailsResponse
 type StudentPaymentDetailsResponse struct {
-	DetailsType string    `json:"detailsType"`
-	StudentID   uuid.UUID `json:"studentId" format:"uuid"`
-	PaidUntil   time.Time `json:"paidUntil" format:"date-time"`
+	DetailsType string    `json:"detailsType" binding:"required"`
+	StudentID   uuid.UUID `json:"studentId" binding:"required" format:"uuid"`
+	PaidUntil   time.Time `json:"paidUntil" binding:"required" format:"date-time"`
 	StudentName *string   `json:"studentName,omitempty"`
 }
 
 // @name TransactionResponse
 type TransactionResponse struct {
-	ID             uuid.UUID                      `json:"id" format:"uuid"`
-	Amount         float64                        `json:"amount"`
-	Date           time.Time                      `json:"date" format:"date-time"`
-	Type           types.TransactionType          `json:"type"`
-	CreatedAt      time.Time                      `json:"createdAt" format:"date-time"`
+	ID             uuid.UUID                      `json:"id" binding:"required" format:"uuid"`
+	Amount         float64                        `json:"amount" binding:"required"`
+	Date           time.Time                      `json:"date" binding:"required" format:"date-time"`
+	Type           types.TransactionType          `json:"type" binding:"required"`
+	CreatedAt      time.Time                      `json:"createdAt" binding:"required" format:"date-time"`
 	PaymentDetails *StudentPaymentDetailsResponse `json:"paymentDetails,omitempty"`
 }
 
