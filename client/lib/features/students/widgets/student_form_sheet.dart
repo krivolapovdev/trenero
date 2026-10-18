@@ -46,6 +46,7 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
   late final TextEditingController _phoneController;
   late final TextEditingController _noteController;
   late final FocusNode _nameFocusNode;
+  late final FocusNode _phoneFocusNode;
   late final FocusNode _noteFocusNode;
 
   DateTime? _birthdate;
@@ -60,6 +61,7 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
     _phoneController = TextEditingController(text: widget.initialPhone);
     _noteController = TextEditingController(text: widget.initialNote);
     _nameFocusNode = FocusNode()..addListener(_onFieldChanged);
+    _phoneFocusNode = FocusNode()..addListener(_onFieldChanged);
     _noteFocusNode = FocusNode()..addListener(_onFieldChanged);
     _nameController.addListener(_onFieldChanged);
     _phoneController.addListener(_onFieldChanged);
@@ -106,6 +108,7 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
     _phoneController.dispose();
     _noteController.dispose();
     _nameFocusNode.dispose();
+    _phoneFocusNode.dispose();
     _noteFocusNode.dispose();
     super.dispose();
   }
@@ -195,12 +198,27 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                       ),
 
                       TextField(
+                        controller: _phoneController,
+                        focusNode: _phoneFocusNode,
+                        maxLength: 15,
+                        maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                        buildCounter: (
+                          _, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) => null,
                         decoration: InputDecoration(
                           labelText: context.t.students.phone,
                           hintText: '+7 999 123-45-67',
                           prefixIcon: const Icon(FluentIcons.call_16_regular),
+                          suffixIcon: _buildCharCounter(
+                            _phoneController.text.length,
+                            15,
+                            isFocused: _phoneFocusNode.hasFocus,
+                          ),
+                          suffixIconConstraints: const BoxConstraints(),
                         ),
-                        controller: _phoneController,
                         keyboardType: TextInputType.phone,
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(

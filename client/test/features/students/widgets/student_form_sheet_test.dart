@@ -41,7 +41,7 @@ Widget _editSheet() => StudentFormSheet(
   submitLabel: t.edit,
   initialFullName: 'Ivan Petrov',
   initialBirthdate: DateTime(2010, 5, 20),
-  initialPhone: '+7 999 123-45-67',
+  initialPhone: '+7 999 123-45-6',
   initialNote: 'Note of the student',
   onSubmit: ({
     required String fullName,
@@ -132,7 +132,7 @@ void main() {
     );
 
     await tester.enterText(find.byType(TextField).first, 'Ivan Petrov');
-    await tester.enterText(find.byType(TextField).at(2), '+7 999 123-45-67');
+    await tester.enterText(find.byType(TextField).at(2), '+7 999 123-45-6');
     await tester.enterText(find.byType(TextField).at(3), 'Note of the student');
     await tester.pump();
 
@@ -140,7 +140,7 @@ void main() {
     await tester.pump();
 
     expect(submittedName, 'Ivan Petrov');
-    expect(submittedPhone, '+7 999 123-45-67');
+    expect(submittedPhone, '+7 999 123-45-6');
     expect(submittedNote, 'Note of the student');
     expect(submittedFree, isFalse);
   });
@@ -248,12 +248,12 @@ void main() {
   testWidgets('the edit form notices the phone and the note', (tester) async {
     await tester.pumpWidget(_wrap(_editSheet()));
 
-    await tester.enterText(find.byType(TextField).at(2), '+7 999 000-00-00');
+    await tester.enterText(find.byType(TextField).at(2), '+7 999 000-00-0');
     await tester.pump();
 
     expect(_submit(tester).onPressed, isNotNull);
 
-    await tester.enterText(find.byType(TextField).at(2), '+7 999 123-45-67');
+    await tester.enterText(find.byType(TextField).at(2), '+7 999 123-45-6');
     await tester.pump();
 
     expect(_submit(tester).onPressed, isNull);
@@ -274,11 +274,12 @@ void main() {
   });
 
   testWidgets(
-    'displays length counters only when focused and prohibits extra characters in full name',
+    'displays length counters only when focused and prohibits extra characters in full name and phone',
     (tester) async {
       await tester.pumpWidget(_wrap(_sheet()));
 
       expect(find.text('0/255'), findsNothing);
+      expect(find.text('0/15'), findsNothing);
 
       final nameField = find.byType(TextField).first;
       await tester.tap(nameField);
@@ -292,6 +293,19 @@ void main() {
       final textField = tester.widget<TextField>(nameField);
       expect(textField.controller?.text.length, 255);
       expect(find.text('255/255'), findsOneWidget);
+
+      final phoneField = find.byType(TextField).at(2);
+      await tester.tap(phoneField);
+      await tester.pump();
+
+      expect(find.text('0/15'), findsOneWidget);
+
+      await tester.enterText(phoneField, '1' * 20);
+      await tester.pump();
+
+      final phoneTextField = tester.widget<TextField>(phoneField);
+      expect(phoneTextField.controller?.text.length, 15);
+      expect(find.text('15/15'), findsOneWidget);
 
       final noteField = find.byType(TextField).at(3);
       await tester.tap(noteField);
