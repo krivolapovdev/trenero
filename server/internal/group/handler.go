@@ -1,21 +1,34 @@
 package group
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
-type Handler struct {
-	service Service
+type groupService interface {
+	GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.GroupSummaryResponse, error)
+	GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]models.GroupStudentSummaryResponse, error)
+	GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error)
+	GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (models.GroupReportResponse, error)
+	CreateGroup(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error)
+	UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]any) (models.GroupResponse, error)
+	DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) error
 }
 
-func NewHandler(service Service) *Handler {
+type Handler struct {
+	service groupService
+}
+
+func NewHandler(service groupService) *Handler {
 	return &Handler{
 		service: service,
 	}

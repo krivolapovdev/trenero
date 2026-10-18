@@ -1,19 +1,28 @@
 package transaction
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
-type Handler struct {
-	service Service
+type transactionService interface {
+	GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error)
+	CreateTransaction(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error)
+	UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (models.TransactionResponse, error)
+	DeleteTransaction(ctx context.Context, transactionID, ownerID uuid.UUID) error
 }
 
-func NewHandler(service Service) *Handler {
+type Handler struct {
+	service transactionService
+}
+
+func NewHandler(service transactionService) *Handler {
 	return &Handler{
 		service: service,
 	}

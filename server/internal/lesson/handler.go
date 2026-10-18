@@ -1,19 +1,28 @@
 package lesson
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
-type Handler struct {
-	service Service
+type lessonService interface {
+	GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonDetailsResponse, error)
+	CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error)
+	UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error)
+	DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID) error
 }
 
-func NewHandler(service Service) *Handler {
+type Handler struct {
+	service lessonService
+}
+
+func NewHandler(service lessonService) *Handler {
 	return &Handler{
 		service: service,
 	}

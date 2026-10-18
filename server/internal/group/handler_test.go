@@ -95,7 +95,7 @@ func (m *mockGroupService) DeleteGroup(ctx context.Context, groupID, ownerID uui
 	return nil
 }
 
-func setupGroupRouter(svc Service, user security.JwtUser) *gin.Engine {
+func setupGroupRouter(svc groupService, user security.JwtUser) *gin.Engine {
 	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
 		NewHandler(svc).RegisterRoutes(rg)
 	})

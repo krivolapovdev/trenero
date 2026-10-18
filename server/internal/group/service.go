@@ -26,20 +26,7 @@ type FetchPaymentsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.U
 type FetchLessonsByGroupIDAndDateRangeFunc func(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error)
 type FetchLessonsByIDsFunc func(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.LessonResponse, error)
 
-type Service interface {
-	GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.GroupSummaryResponse, error)
-	GetGroupByID(ctx context.Context, groupID, ownerID uuid.UUID) (models.GroupResponse, error)
-	GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]models.GroupStudentSummaryResponse, error)
-	GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error)
-	GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (models.GroupReportResponse, error)
-	GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.GroupResponse, error)
-	SetStudentGroups(ctx context.Context, studentID, ownerID uuid.UUID, groupIDs []uuid.UUID) error
-	CreateGroup(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error)
-	UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]any) (models.GroupResponse, error)
-	DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) error
-}
-
-type service struct {
+type Service struct {
 	db                        *db.Queries
 	sqlDB                     *sql.DB
 	fetchStudentsByIDs        FetchStudentsByIDsFunc
@@ -61,8 +48,8 @@ func NewService(
 	fetchPaymentsByStudentIDs FetchPaymentsByStudentIDsFunc,
 	fetchLessonsByGroup FetchLessonsByGroupIDAndDateRangeFunc,
 	fetchLessonsByIDs FetchLessonsByIDsFunc,
-) Service {
-	return &service{
+) *Service {
+	return &Service{
 		db:                        queries,
 		sqlDB:                     sqlDB,
 		fetchStudentsByIDs:        fetchStudentsByIDs,
@@ -75,11 +62,11 @@ func NewService(
 	}
 }
 
-func (s *service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
+func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
 	return db.WithTx(ctx, s.sqlDB, s.db, fn)
 }
 
-func (s *service) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.GroupSummaryResponse, error) {
+func (s *Service) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.GroupSummaryResponse, error) {
 	logger.InfoContext(ctx, "Getting all groups summary", "user_id", ownerID.String())
 	groups, err := s.db.FindAllGroupsByOwnerID(ctx, ownerID)
 	if err != nil {
@@ -135,7 +122,7 @@ func (s *service) GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([
 	return summaries, nil
 }
 
-func (s *service) GetGroupByID(ctx context.Context, groupID, ownerID uuid.UUID) (models.GroupResponse, error) {
+func (s *Service) GetGroupByID(ctx context.Context, groupID, ownerID uuid.UUID) (models.GroupResponse, error) {
 	logger.InfoContext(ctx, "Getting group by id", "group_id", groupID.String(), "user_id", ownerID.String())
 	g, err := s.db.FindGroupByIDAndOwnerID(ctx, db.FindGroupByIDAndOwnerIDParams{
 		ID:      groupID,
@@ -153,7 +140,7 @@ func (s *service) GetGroupByID(ctx context.Context, groupID, ownerID uuid.UUID) 
 	return toGroupResponse(g), nil
 }
 
-func (s *service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]models.GroupStudentSummaryResponse, error) {
+func (s *Service) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]models.GroupStudentSummaryResponse, error) {
 	logger.InfoContext(ctx, "Getting students for group", "group_id", groupID.String(), "user_id", ownerID.String())
 	if _, err := s.GetGroupByID(ctx, groupID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Group not found for getting students", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
@@ -302,7 +289,7 @@ func phonePtr(p *string) *string {
 	return p
 }
 
-func (s *service) GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error) {
+func (s *Service) GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error) {
 	logger.InfoContext(ctx, "Getting lessons for group", "group_id", groupID.String(), "user_id", ownerID.String())
 	if _, err := s.GetGroupByID(ctx, groupID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Group not found for getting lessons", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
@@ -318,7 +305,7 @@ func (s *service) GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUI
 	return lessons, nil
 }
 
-func (s *service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (models.GroupReportResponse, error) {
+func (s *Service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (models.GroupReportResponse, error) {
 	logger.InfoContext(ctx, "Getting group report", "group_id", groupID.String(), "year", year, "month", month, "user_id", ownerID.String())
 	grp, err := s.GetGroupByID(ctx, groupID, ownerID)
 	if err != nil {
@@ -465,7 +452,7 @@ func (s *service) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID
 	return report, nil
 }
 
-func (s *service) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.GroupResponse, error) {
+func (s *Service) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.GroupResponse, error) {
 	if len(studentIDs) == 0 {
 		logger.DebugContext(ctx, "No student IDs provided to get groups", "user_id", ownerID.String())
 		return map[uuid.UUID][]models.GroupResponse{}, nil
@@ -522,7 +509,7 @@ func (s *service) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 	return groupsByStudent, nil
 }
 
-func (s *service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.UUID, groupIDs []uuid.UUID) error {
+func (s *Service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.UUID, groupIDs []uuid.UUID) error {
 	logger.InfoContext(ctx, "Setting student groups", "student_id", studentID.String(), "groups_count", len(groupIDs), "user_id", ownerID.String())
 	err := s.withTx(ctx, func(qtx *db.Queries) error {
 		currentLinks, err := qtx.FindGroupStudentsByStudentIDAndOwnerID(ctx, db.FindGroupStudentsByStudentIDAndOwnerIDParams{
@@ -575,7 +562,7 @@ func (s *service) SetStudentGroups(ctx context.Context, studentID, ownerID uuid.
 	return nil
 }
 
-func (s *service) CreateGroup(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error) {
+func (s *Service) CreateGroup(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error) {
 	logger.InfoContext(ctx, "Creating group", "name", req.Name, "user_id", ownerID.String())
 	name, err := utils.ValidateRequiredName(req.Name, "name")
 	if err != nil {
@@ -658,7 +645,7 @@ func (s *service) CreateGroup(ctx context.Context, req models.CreateGroupRequest
 	return toGroupResponse(created), nil
 }
 
-func (s *service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]any) (models.GroupResponse, error) {
+func (s *Service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]any) (models.GroupResponse, error) {
 	logger.InfoContext(ctx, "Updating group", "group_id", groupID.String(), "user_id", ownerID.String())
 	var updated db.GroupsModuleGroup
 
@@ -823,7 +810,7 @@ func (s *service) UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, u
 	return toGroupResponse(updated), nil
 }
 
-func (s *service) DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) error {
+func (s *Service) DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Deleting group", "group_id", groupID.String(), "user_id", ownerID.String())
 	_, err := s.db.FindGroupByIDAndOwnerID(ctx, db.FindGroupByIDAndOwnerIDParams{
 		ID:      groupID,

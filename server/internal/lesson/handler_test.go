@@ -70,7 +70,7 @@ func (m *mockLessonService) GetLessonsByIDs(ctx context.Context, lessonIDs []uui
 	return nil, nil
 }
 
-func setupLessonRouter(svc Service, user security.JwtUser) *gin.Engine {
+func setupLessonRouter(svc lessonService, user security.JwtUser) *gin.Engine {
 	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
 		NewHandler(svc).RegisterRoutes(rg)
 	})

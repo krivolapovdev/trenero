@@ -1,20 +1,34 @@
 package student
 
 import (
+	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/models"
 	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
-type Handler struct {
-	service Service
+type studentService interface {
+	GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error)
+	GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error)
+	GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error)
+	GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error)
+	CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error)
+	CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error)
+	UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error)
+	DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error
 }
 
-func NewHandler(service Service) *Handler {
+type Handler struct {
+	service studentService
+}
+
+func NewHandler(service studentService) *Handler {
 	return &Handler{
 		service: service,
 	}

@@ -1,19 +1,27 @@
 package metric
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
-type Handler struct {
-	service Service
+type metricService interface {
+	GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error)
 }
 
-func NewHandler(service Service) *Handler {
+type Handler struct {
+	service metricService
+}
+
+func NewHandler(service metricService) *Handler {
 	return &Handler{
 		service: service,
 	}

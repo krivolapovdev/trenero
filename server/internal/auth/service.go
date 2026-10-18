@@ -21,13 +21,7 @@ const (
 type GetOrCreateUserFunc func(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (models.UserResponse, error)
 type UserExistsByIDFunc func(ctx context.Context, id uuid.UUID) (bool, error)
 
-type Service interface {
-	LoginGoogle(ctx context.Context, token string) (LoginResponse, error)
-	LoginReviewer(ctx context.Context, reviewerKey string) (LoginResponse, error)
-	RefreshTokens(ctx context.Context, refreshToken string) (JwtResponse, error)
-}
-
-type service struct {
+type Service struct {
 	getOrCreateUser GetOrCreateUserFunc
 	userExistsByID  UserExistsByIDFunc
 	tokenProvider   *security.TokenProvider
@@ -39,8 +33,8 @@ func NewService(
 	userExistsByID UserExistsByIDFunc,
 	tokenProvider *security.TokenProvider,
 	googleClientID string,
-) Service {
-	return &service{
+) *Service {
+	return &Service{
 		getOrCreateUser: getOrCreateUser,
 		userExistsByID:  userExistsByID,
 		tokenProvider:   tokenProvider,
@@ -48,7 +42,7 @@ func NewService(
 	}
 }
 
-func (s *service) LoginGoogle(ctx context.Context, token string) (LoginResponse, error) {
+func (s *Service) LoginGoogle(ctx context.Context, token string) (LoginResponse, error) {
 	logger.InfoContext(ctx, "Processing Google login")
 	payload, err := idtoken.Validate(ctx, token, s.googleClientID)
 	if err != nil {
@@ -89,7 +83,7 @@ func (s *service) LoginGoogle(ctx context.Context, token string) (LoginResponse,
 	return resp, nil
 }
 
-func (s *service) LoginReviewer(ctx context.Context, reviewerKey string) (LoginResponse, error) {
+func (s *Service) LoginReviewer(ctx context.Context, reviewerKey string) (LoginResponse, error) {
 	logger.InfoContext(ctx, "Processing reviewer login")
 	if !s.tokenProvider.ValidateReviewerKey(reviewerKey) {
 		logger.WarnContext(ctx, "Invalid reviewer key provided")
@@ -110,7 +104,7 @@ func (s *service) LoginReviewer(ctx context.Context, reviewerKey string) (LoginR
 	return resp, nil
 }
 
-func (s *service) RefreshTokens(ctx context.Context, refreshToken string) (JwtResponse, error) {
+func (s *Service) RefreshTokens(ctx context.Context, refreshToken string) (JwtResponse, error) {
 	logger.InfoContext(ctx, "Refreshing tokens")
 	if !s.tokenProvider.IsTokenValid(refreshToken, types.TokenTypeRefresh) {
 		logger.WarnContext(ctx, "Invalid or expired refresh token provided")

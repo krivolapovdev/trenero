@@ -34,7 +34,7 @@ func (m *mockUserService) DeleteUser(ctx context.Context, jwtUser security.JwtUs
 	return nil
 }
 
-func setupUserRouter(svc Service, user security.JwtUser) *gin.Engine {
+func setupUserRouter(svc userService, user security.JwtUser) *gin.Engine {
 	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
 		NewHandler(svc).RegisterRoutes(rg)
 	})

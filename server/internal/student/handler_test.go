@@ -89,7 +89,7 @@ func (m *mockStudentService) ComputeStudentStatuses(student models.StudentRespon
 	return nil
 }
 
-func setupStudentRouter(svc Service, user security.JwtUser) *gin.Engine {
+func setupStudentRouter(svc studentService, user security.JwtUser) *gin.Engine {
 	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
 		NewHandler(svc).RegisterRoutes(rg)
 	})

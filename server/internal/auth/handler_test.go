@@ -44,7 +44,7 @@ func (m *mockAuthService) LoginReviewer(ctx context.Context, reviewerKey string)
 	return LoginResponse{}, nil
 }
 
-func setupAuthRouter(svc Service) *gin.Engine {
+func setupAuthRouter(svc authService) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	h := NewHandler(svc)

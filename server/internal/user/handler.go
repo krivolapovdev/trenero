@@ -1,18 +1,24 @@
 package user
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	"github.com/krivolapovdev/trenerio/pkg/security"
 	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
-type Handler struct {
-	service Service
+type userService interface {
+	DeleteUser(ctx context.Context, jwtUser security.JwtUser) error
 }
 
-func NewHandler(service Service) *Handler {
+type Handler struct {
+	service userService
+}
+
+func NewHandler(service userService) *Handler {
 	return &Handler{
 		service: service,
 	}

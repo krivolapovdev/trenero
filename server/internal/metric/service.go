@@ -64,21 +64,17 @@ var scopeStrategies = map[types.MetricScope]ScopeStrategy{
 	types.MetricScopeYear:  yearStrategy{},
 }
 
-type Service interface {
-	GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error)
-}
-
-type service struct {
+type Service struct {
 	fetchTransactions FetchTransactionsBetweenFunc
 }
 
-func NewService(fetchTransactions FetchTransactionsBetweenFunc) Service {
-	return &service{
+func NewService(fetchTransactions FetchTransactionsBetweenFunc) *Service {
+	return &Service{
 		fetchTransactions: fetchTransactions,
 	}
 }
 
-func (s *service) GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
+func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
 	if endDate.Before(startDate) {
 		logger.WarnContext(ctx, "Invalid date range for payment statistics",
 			"start_date", startDate.Format(time.RFC3339),

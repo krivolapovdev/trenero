@@ -70,7 +70,7 @@ func (m *mockTxService) DeleteTransaction(ctx context.Context, transactionID, ow
 	return nil
 }
 
-func setupTxRouter(svc Service, user security.JwtUser) *gin.Engine {
+func setupTxRouter(svc transactionService, user security.JwtUser) *gin.Engine {
 	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
 		NewHandler(svc).RegisterRoutes(rg)
 	})

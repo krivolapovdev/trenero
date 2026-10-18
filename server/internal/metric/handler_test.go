@@ -30,7 +30,7 @@ func (m *mockMetricService) GetPaymentStatistics(ctx context.Context, scopeStr s
 	return nil, nil
 }
 
-func setupMetricRouter(svc Service, user security.JwtUser) *gin.Engine {
+func setupMetricRouter(svc metricService, user security.JwtUser) *gin.Engine {
 	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
 		NewHandler(svc).RegisterRoutes(rg)
 	})

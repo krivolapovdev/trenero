@@ -109,7 +109,7 @@ func ParseDate(s string) (Date, error) {
 	return Date{}, fmt.Errorf("invalid date format: %s", s)
 }
 
-func (d *Date) MarshalJSON() ([]byte, error) {
+func (d Date) MarshalJSON() ([]byte, error) {
 	if d.IsZero() {
 		return []byte("null"), nil
 	}
@@ -130,7 +130,7 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (d *Date) String() string {
+func (d Date) String() string {
 	if d.IsZero() {
 		return ""
 	}
