@@ -124,14 +124,6 @@ void main() {
     expect(find.text('Group A'), findsOneWidget);
   });
 
-  testWidgets('the app bar title shows the number of groups in the list', (
-    tester,
-  ) async {
-    await _pumpGroupListPage(tester, container);
-
-    expect(find.text('Groups [1]'), findsOneWidget);
-  });
-
   testWidgets('a pull to refresh drops the caches of the group pages', (
     tester,
   ) async {

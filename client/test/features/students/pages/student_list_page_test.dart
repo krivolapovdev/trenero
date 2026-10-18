@@ -245,7 +245,7 @@ void main() {
   ) async {
     await _pumpStudentListPage(tester, container);
 
-    expect(find.text('Students [2]'), findsOneWidget);
+    expect(find.text('Students: 2'), findsOneWidget);
 
     await _openFilterSheet(tester);
     await tester.tap(_optionTile('Group A'));
@@ -253,7 +253,7 @@ void main() {
     await tester.tap(find.text('Apply'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Students [1]'), findsOneWidget);
+    expect(find.text('Students: 1'), findsOneWidget);
   });
 
   testWidgets('the app bar title hides the number for an empty list', (
