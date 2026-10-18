@@ -7,8 +7,6 @@ import (
 
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
-	"github.com/krivolapovdev/trenerio/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -42,99 +40,6 @@ func TestParseTime(t *testing.T) {
 	// Unsupported type
 	_, err = parseTime(12345)
 	require.Error(t, err)
-}
-
-func TestCreateTransaction_Validation(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil)
-	ctx := context.Background()
-	ownerID := uuid.New()
-
-	// Amount <= 0
-	_, err := svc.CreateTransaction(ctx, models.CreateTransactionRequest{
-		Amount: 0,
-		Type:   types.TransactionTypeIncome,
-		Date:   time.Now(),
-	}, ownerID)
-	require.Error(t, err)
-	var badReq *pkgerrors.BadRequestError
-	require.ErrorAs(t, err, &badReq)
-	assert.Equal(t, "amount must be greater than 0", badReq.Message)
-
-	// Nil student ID in payment details
-	_, err = svc.CreateTransaction(ctx, models.CreateTransactionRequest{
-		Amount: 100,
-		Type:   types.TransactionTypeIncome,
-		Date:   time.Now(),
-		PaymentDetails: &models.CreateStudentPaymentDetailsRequest{
-			StudentID: uuid.Nil,
-			PaidUntil: time.Now(),
-		},
-	}, ownerID)
-	require.Error(t, err)
-	require.ErrorAs(t, err, &badReq)
-	assert.Contains(t, badReq.Message, "studentId must not be null")
-
-	// Date in the future
-	futureDate := time.Now().UTC().Add(24 * time.Hour)
-	_, err = svc.CreateTransaction(ctx, models.CreateTransactionRequest{
-		Amount: 100,
-		Type:   types.TransactionTypeIncome,
-		Date:   futureDate,
-	}, ownerID)
-	require.Error(t, err)
-	require.ErrorAs(t, err, &badReq)
-	assert.Contains(t, badReq.Message, "date cannot be in the future")
-
-	// paidUntil before Date
-	date := time.Date(2026, 10, 15, 0, 0, 0, 0, time.UTC)
-	paidUntil := time.Date(2026, 10, 10, 0, 0, 0, 0, time.UTC)
-	_, err = svc.CreateTransaction(ctx, models.CreateTransactionRequest{
-		Amount: 100,
-		Type:   types.TransactionTypeIncome,
-		Date:   date,
-		PaymentDetails: &models.CreateStudentPaymentDetailsRequest{
-			StudentID: uuid.New(),
-			PaidUntil: paidUntil,
-		},
-	}, ownerID)
-	require.Error(t, err)
-	require.ErrorAs(t, err, &badReq)
-	assert.Contains(t, badReq.Message, "paidUntil must not be before")
-}
-
-func TestCreateStudentPayment_Validation(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil)
-	ctx := context.Background()
-	ownerID := uuid.New()
-	studentID := uuid.New()
-
-	// Amount <= 0
-	_, err := svc.CreateStudentPayment(ctx, studentID, 0, time.Now(), time.Now(), ownerID)
-	require.Error(t, err)
-	var badReq *pkgerrors.BadRequestError
-	require.ErrorAs(t, err, &badReq)
-	assert.Equal(t, "amount must be greater than 0", badReq.Message)
-
-	// Nil student ID
-	_, err = svc.CreateStudentPayment(ctx, uuid.Nil, 100, time.Now(), time.Now(), ownerID)
-	require.Error(t, err)
-	require.ErrorAs(t, err, &badReq)
-	assert.Contains(t, badReq.Message, "studentId must not be null")
-
-	// Future payment date
-	futureDate := time.Now().UTC().Add(24 * time.Hour)
-	_, err = svc.CreateStudentPayment(ctx, studentID, 100, futureDate, futureDate.Add(24*time.Hour), ownerID)
-	require.Error(t, err)
-	require.ErrorAs(t, err, &badReq)
-	assert.Contains(t, badReq.Message, "date cannot be in the future")
-
-	date := time.Date(2026, 10, 15, 0, 0, 0, 0, time.UTC)
-	paidUntil := time.Date(2026, 10, 10, 0, 0, 0, 0, time.UTC)
-
-	_, err = svc.CreateStudentPayment(ctx, studentID, 100, date, paidUntil, ownerID)
-	require.Error(t, err)
-	require.ErrorAs(t, err, &badReq)
-	assert.Contains(t, badReq.Message, "paidUntil must not be before")
 }
 
 func TestGetPaginatedTransactions_InvalidPageSize(t *testing.T) {

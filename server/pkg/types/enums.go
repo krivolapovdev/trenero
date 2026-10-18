@@ -49,13 +49,6 @@ const (
 	MetricScopeYear  MetricScope = "YEAR"
 )
 
-type OAuth2Provider string
-
-const (
-	OAuth2ProviderGoogle OAuth2Provider = "GOOGLE"
-	OAuth2ProviderApple  OAuth2Provider = "APPLE"
-)
-
 const (
 	TokenTypeAccess  = "ACCESS"
 	TokenTypeRefresh = "REFRESH"
@@ -90,7 +83,11 @@ type Date struct {
 var dateFormats = []string{
 	time.DateOnly,
 	time.RFC3339,
+	time.RFC3339Nano,
 	"2006-01-02T15:04:05.000",
+	"2006-01-02T15:04:05",
+	"02.01.2006",
+	"2006/01/02",
 }
 
 func ParseDate(s string) (Date, error) {
@@ -112,7 +109,7 @@ func ParseDate(s string) (Date, error) {
 	return Date{}, fmt.Errorf("invalid date format: %s", s)
 }
 
-func (d Date) MarshalJSON() ([]byte, error) {
+func (d *Date) MarshalJSON() ([]byte, error) {
 	if d.IsZero() {
 		return []byte("null"), nil
 	}
@@ -133,7 +130,7 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (d Date) String() string {
+func (d *Date) String() string {
 	if d.IsZero() {
 		return ""
 	}
