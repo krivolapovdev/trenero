@@ -1,4 +1,4 @@
-package request
+package models
 
 // @name OAuth2LoginRequest
 type OAuth2LoginRequest struct {
