@@ -5,6 +5,7 @@ import 'package:phone/i18n/strings.g.dart';
 
 class StudentAppMenu extends StatelessWidget {
   final VoidCallback onEdit;
+  final VoidCallback onCreateLesson;
   final VoidCallback onCreatePayment;
   final VoidCallback onAssignGroup;
   final VoidCallback onReport;
@@ -13,6 +14,7 @@ class StudentAppMenu extends StatelessWidget {
   const new({
     super.key,
     required this.onEdit,
+    required this.onCreateLesson,
     required this.onCreatePayment,
     required this.onAssignGroup,
     required this.onReport,
@@ -57,6 +59,17 @@ class StudentAppMenu extends StatelessWidget {
               const Icon(CupertinoIcons.printer, size: 20),
               const SizedBox(width: 12),
               Text(context.t.groups.report),
+            ],
+          ),
+        ),
+
+        PopupMenuItem<String>(
+          onTap: onCreateLesson,
+          child: Row(
+            children: [
+              const Icon(CupertinoIcons.calendar, size: 20),
+              const SizedBox(width: 12),
+              Text(context.t.lessons.title),
             ],
           ),
         ),

@@ -4,7 +4,10 @@ import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/lesson_details_controller.dart';
+import 'package:phone/features/groups/models/lesson_attendance.dart';
+import 'package:phone/features/groups/widgets/lesson_attendance_bottom_sheet.dart';
 import 'package:phone/features/students/controllers/student_lesson_mutation_controller.dart';
+import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/pages/individual_lesson_menu.dart';
 import 'package:phone/features/students/pages/student_lesson_attendance_card.dart';
 import 'package:phone/features/students/pages/student_lesson_date_card.dart';
@@ -13,6 +16,7 @@ import 'package:phone/generated/models/lesson_details_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/generated/models/visit_response.dart';
 import 'package:phone/generated/models/visit_status.dart';
+import 'package:phone/generated/models/visit_type.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 class StudentLessonPage extends ConsumerStatefulWidget {
@@ -24,12 +28,15 @@ class StudentLessonPage extends ConsumerStatefulWidget {
 
   final LessonResponse? lesson;
 
+  final bool? free;
+
   const new({
     super.key,
     required this.studentId,
     required this.studentName,
     required this.date,
     this.lesson,
+    this.free,
   });
 
   @override
@@ -39,7 +46,8 @@ class StudentLessonPage extends ConsumerStatefulWidget {
 class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
   late DateTime _selectedDate;
 
-  bool? _pickedIsPresent;
+  LessonAttendance? _pickedAttendance;
+  bool _hasPickedAttendance = false;
 
   @override
   void initState() {
@@ -47,17 +55,50 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
     _selectedDate = widget.lesson?.date ?? widget.date;
   }
 
-  bool _storedIsPresent(AsyncValue<LessonDetailsResponse>? state) =>
-      (state?.value?.studentVisits ?? const <VisitResponse>[]).any(
-        (visit) =>
-            visit.studentId == widget.studentId &&
-            visit.status == VisitStatus.present,
-      );
+  LessonAttendance? _storedAttendance(
+    AsyncValue<LessonDetailsResponse>? state,
+  ) {
+    final visit = (state?.value?.studentVisits ?? const <VisitResponse>[])
+        .where((visit) => visit.studentId == widget.studentId)
+        .firstOrNull;
 
-  bool _isPresent(bool storedIsPresent) =>
-      _pickedIsPresent ?? (widget.lesson == null ? true : storedIsPresent);
+    if (visit == null) return null;
 
-  bool _hasChanges(bool isPresent, bool storedIsPresent) {
+    return LessonAttendance(status: visit.status, type: visit.type);
+  }
+
+  bool _isStudentFree(AsyncValue<LessonDetailsResponse>? detailsState) {
+    if (widget.free != null) return widget.free!;
+
+    final students = ref.watch(studentListControllerProvider).value;
+    final student = students
+        ?.where((s) => s.id == widget.studentId)
+        .firstOrNull;
+    if (student != null) return student.free;
+
+    final detailStudent = detailsState?.value?.students
+        .where((s) => s.id == widget.studentId)
+        .firstOrNull;
+    if (detailStudent != null) return detailStudent.free;
+
+    return false;
+  }
+
+  LessonAttendance? _attendance(LessonAttendance? stored, bool free) {
+    if (_hasPickedAttendance) return _pickedAttendance;
+
+    if (widget.lesson != null) return stored;
+
+    return LessonAttendance(
+      status: VisitStatus.present,
+      type: free ? VisitType.free : VisitType.regular,
+    );
+  }
+
+  VisitType _typeFor(bool free, LessonAttendance? current) =>
+      free ? VisitType.free : (current?.type ?? VisitType.regular);
+
+  bool _hasChanges(LessonAttendance? attendance, LessonAttendance? stored) {
     final lesson = widget.lesson;
 
     if (lesson == null) return true;
@@ -65,7 +106,9 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
     final isSameDay =
         DateUtils.dateOnly(_selectedDate) == DateUtils.dateOnly(lesson.date);
 
-    return !isSameDay || isPresent != storedIsPresent;
+    if (!isSameDay) return true;
+
+    return attendance != stored;
   }
 
   Future<void> _pickDate() async {
@@ -84,10 +127,44 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
     setState(() => _selectedDate = picked);
   }
 
-  void _togglePresent(bool isPresent) =>
-      setState(() => _pickedIsPresent = !isPresent);
+  void _toggleAttendance(LessonAttendance? current, bool free) {
+    setState(() {
+      _hasPickedAttendance = true;
+      final isPresent = current?.status == VisitStatus.present;
+      _pickedAttendance = LessonAttendance(
+        status: isPresent ? VisitStatus.absent : VisitStatus.present,
+        type: _typeFor(free, current),
+      );
+    });
+  }
 
-  Future<void> _onSubmit(bool isPresent) async {
+  Future<void> _editAttendance(LessonAttendance? current, bool free) async {
+    final selection = await AppBottomSheet.show<LessonAttendanceSelection>(
+      context: context,
+      child: LessonAttendanceBottomSheet(
+        studentName: widget.studentName,
+        free: free,
+        attendance: current,
+      ),
+    );
+
+    if (!mounted || selection == null) return;
+
+    setState(() {
+      _hasPickedAttendance = true;
+      final picked = selection.attendance;
+      if (picked == null) {
+        _pickedAttendance = null;
+      } else {
+        _pickedAttendance = LessonAttendance(
+          status: picked.status,
+          type: _typeFor(free, picked),
+        );
+      }
+    });
+  }
+
+  Future<void> _onSubmit(LessonAttendance? attendance) async {
     FocusScope.of(context).unfocus();
 
     final lesson = widget.lesson;
@@ -99,13 +176,13 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
         ? controller.createStudentLesson(
             studentId: widget.studentId,
             date: _selectedDate,
-            isPresent: isPresent,
+            attendance: attendance,
           )
         : controller.updateStudentLesson(
             lessonId: lesson.id,
             studentId: widget.studentId,
             date: _selectedDate,
-            isPresent: isPresent,
+            attendance: attendance,
           ));
 
     if (!mounted) return;
@@ -162,9 +239,10 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
         .isLoading;
 
     final isAttendanceLoading = detailsState?.isLoading ?? false;
-    final storedIsPresent = _storedIsPresent(detailsState);
-    final isPresent = _isPresent(storedIsPresent);
-    final hasChanges = _hasChanges(isPresent, storedIsPresent);
+    final isFree = _isStudentFree(detailsState);
+    final storedAttendance = _storedAttendance(detailsState);
+    final attendance = _attendance(storedAttendance, isFree);
+    final hasChanges = _hasChanges(attendance, storedAttendance);
     final canEdit = !isLoading && !isAttendanceLoading;
 
     return Scaffold(
@@ -195,14 +273,15 @@ class _StudentLessonPageState extends ConsumerState<StudentLessonPage> {
               ),
               StudentLessonAttendanceCard(
                 studentName: widget.studentName,
-                isPresent: isPresent,
+                attendance: attendance,
                 canEdit: canEdit,
                 hasChanges: hasChanges,
                 isAttendanceLoading: isAttendanceLoading,
                 isLoading: isLoading,
                 isUpdate: lesson != null,
-                onToggle: () => _togglePresent(isPresent),
-                onSubmit: () => _onSubmit(isPresent),
+                onToggle: () => _toggleAttendance(attendance, isFree),
+                onLongPress: () => _editAttendance(attendance, isFree),
+                onSubmit: () => _onSubmit(attendance),
               ),
             ],
           ),

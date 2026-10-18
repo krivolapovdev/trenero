@@ -183,4 +183,22 @@ void main() {
     expect(find.byType(StudentReportBottomSheet), findsOneWidget);
     expect(find.widgetWithText(TextField, t.month), findsOneWidget);
   });
+
+  testWidgets('the app bar menu opens the add lesson page', (tester) async {
+    await _pumpPage(tester, _studentWithGroup);
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(t.lessons.title));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(StudentLessonPage), findsOneWidget);
+    final page = tester.widget<StudentLessonPage>(
+      find.byType(StudentLessonPage),
+    );
+    expect(page.studentId, _studentId);
+    expect(page.studentName, _studentWithGroup.fullName);
+    expect(page.lesson, isNull);
+  });
 }

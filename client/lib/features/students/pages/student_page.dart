@@ -10,6 +10,7 @@ import 'package:phone/features/students/controllers/student_list_controller.dart
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 import 'package:phone/features/students/pages/student_app_menu.dart';
 import 'package:phone/features/students/pages/student_group_page.dart';
+import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/widgets/student_hero_card.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
 import 'package:phone/features/students/widgets/delete_student_bottom_sheet.dart';
@@ -46,6 +47,19 @@ class _StudentPageState extends ConsumerState<StudentPage> {
         builder: (context) => StudentGroupPage(
           studentId: _student.id,
           initialGroupIds: _studentGroupIds,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openCreateLessonPage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => StudentLessonPage(
+          studentId: _student.id,
+          studentName: _student.fullName,
+          free: _student.free,
+          date: DateTime.now(),
         ),
       ),
     );
@@ -146,6 +160,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
         actions: [
           StudentAppMenu(
             onEdit: _openEditStudentSheet,
+            onCreateLesson: _openCreateLessonPage,
             onCreatePayment: _openCreatePaymentSheet,
             onAssignGroup: _openAssignGroupPage,
             onReport: _openReportSheet,

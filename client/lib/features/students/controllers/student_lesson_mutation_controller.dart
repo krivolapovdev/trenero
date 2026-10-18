@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/features/groups/controllers/lesson_details_controller.dart';
+import 'package:phone/features/groups/models/lesson_attendance.dart';
 import 'package:phone/features/groups/services/lesson_service.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
@@ -24,7 +25,8 @@ class StudentLessonMutationController extends AsyncNotifier<void> {
   Future<bool> createStudentLesson({
     required String studentId,
     required DateTime date,
-    required bool isPresent,
+    LessonAttendance? attendance,
+    bool? isPresent,
   }) => _mutate(
     studentId,
     () => ref
@@ -32,7 +34,7 @@ class StudentLessonMutationController extends AsyncNotifier<void> {
         .createLesson(
           body: CreateLessonRequest(
             date: _asDay(date),
-            students: [_buildVisit(studentId, isPresent)],
+            students: _buildVisits(studentId, attendance, isPresent),
           ),
         ),
   );
@@ -41,7 +43,8 @@ class StudentLessonMutationController extends AsyncNotifier<void> {
     required String lessonId,
     required String studentId,
     required DateTime date,
-    required bool isPresent,
+    LessonAttendance? attendance,
+    bool? isPresent,
   }) => _mutate(studentId, () async {
     await ref
         .read(lessonServiceProvider)
@@ -49,7 +52,7 @@ class StudentLessonMutationController extends AsyncNotifier<void> {
           lessonId: lessonId,
           body: UpdateLessonRequest(
             date: _asDay(date),
-            students: [_buildVisit(studentId, isPresent)],
+            students: _buildVisits(studentId, attendance, isPresent),
           ),
         );
 
@@ -80,17 +83,31 @@ class StudentLessonMutationController extends AsyncNotifier<void> {
     return !state.hasError;
   }
 
-  StudentVisit _buildVisit(String studentId, bool isPresent) => isPresent
-      ? StudentVisit(
+  List<StudentVisit> _buildVisits(
+    String studentId,
+    LessonAttendance? attendance,
+    bool? isPresent,
+  ) {
+    if (attendance != null) {
+      return [
+        StudentVisit(
           studentId: studentId,
-          status: VisitStatus.present,
-          type: VisitType.regular,
-        )
-      : StudentVisit(
+          status: attendance.status,
+          type: attendance.type,
+        ),
+      ];
+    }
+    if (isPresent != null) {
+      return [
+        StudentVisit(
           studentId: studentId,
-          status: VisitStatus.absent,
+          status: isPresent ? VisitStatus.present : VisitStatus.absent,
           type: VisitType.regular,
-        );
+        ),
+      ];
+    }
+    return const [];
+  }
 
   DateTime _asDay(DateTime date) => DateTime(date.year, date.month, date.day);
 }
