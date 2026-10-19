@@ -2,12 +2,12 @@ package student
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/request"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,7 +20,7 @@ func TestStudentService_DateValidation(t *testing.T) {
 
 	t.Run("CreateStudent_FutureBirthdate", func(t *testing.T) {
 		futureBirthdate := types.Date{Time: time.Now().UTC().Add(24 * time.Hour)}
-		_, err := svc.CreateStudent(ctx, models.CreateStudentRequest{
+		_, err := svc.CreateStudent(ctx, request.CreateStudentRequest{
 			FullName:  "Test Student",
 			Birthdate: &futureBirthdate,
 		}, ownerID)
@@ -32,7 +32,7 @@ func TestStudentService_DateValidation(t *testing.T) {
 
 	t.Run("CreateStudentPayment_FutureDate", func(t *testing.T) {
 		futureDate := time.Now().UTC().Add(24 * time.Hour)
-		_, err := svc.CreateStudentPayment(ctx, uuid.New(), ownerID, models.CreateStudentPaymentRequest{
+		_, err := svc.CreateStudentPayment(ctx, uuid.New(), ownerID, request.CreateStudentPaymentRequest{
 			Amount:    1000,
 			Date:      futureDate,
 			PaidUntil: futureDate.Add(24 * time.Hour),

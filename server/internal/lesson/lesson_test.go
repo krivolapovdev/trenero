@@ -2,12 +2,12 @@ package lesson
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/request"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,7 +48,7 @@ func TestLessonService_DateValidation(t *testing.T) {
 
 	t.Run("CreateLesson_FutureDate", func(t *testing.T) {
 		futureDate := time.Now().UTC().Add(24 * time.Hour)
-		_, err := svc.CreateLesson(ctx, models.CreateLessonRequest{
+		_, err := svc.CreateLesson(ctx, request.CreateLessonRequest{
 			Date: futureDate,
 		}, ownerID)
 		assert.Error(t, err)
@@ -57,7 +57,7 @@ func TestLessonService_DateValidation(t *testing.T) {
 
 	t.Run("UpdateLesson_FutureDate", func(t *testing.T) {
 		futureDate := time.Now().UTC().Add(24 * time.Hour)
-		_, err := svc.UpdateLesson(ctx, uuid.New(), ownerID, models.UpdateLessonRequest{
+		_, err := svc.UpdateLesson(ctx, uuid.New(), ownerID, request.UpdateLessonRequest{
 			Date: &futureDate,
 		})
 		assert.Error(t, err)

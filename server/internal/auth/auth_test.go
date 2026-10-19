@@ -2,13 +2,13 @@ package auth
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,10 +19,10 @@ func TestAuthService_LoginReviewer(t *testing.T) {
 	tokenProvider := security.NewTokenProvider("test-jwt-secret-key-at-least-32-chars", time.Hour, 24*time.Hour, reviewerKey)
 	testUserID := uuid.New()
 
-	mockGetOrCreate := func(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (models.UserResponse, error) {
+	mockGetOrCreate := func(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (response.UserResponse, error) {
 		assert.Equal(t, ReviewerProviderID, providerID)
 		assert.Equal(t, ReviewerEmail, email)
-		return models.UserResponse{
+		return response.UserResponse{
 			ID:    testUserID,
 			Email: email,
 		}, nil

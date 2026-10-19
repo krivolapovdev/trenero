@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/krivolapovdev/trenerio/pkg/request"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"strconv"
 	"time"
 
@@ -12,13 +14,12 @@ import (
 	"github.com/krivolapovdev/trenerio/internal/db"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 	timeutil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
-type FetchStudentsByIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error)
-type FetchStudentByIDFunc func(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error)
+type FetchStudentsByIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]response.StudentResponse, error)
+type FetchStudentByIDFunc func(ctx context.Context, studentID, ownerID uuid.UUID) (response.StudentResponse, error)
 
 type Service struct {
 	db                 *db.Queries
@@ -45,11 +46,11 @@ func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) er
 	return db.WithTx(ctx, s.sqlDB, s.db, fn)
 }
 
-func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error) {
+func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting paginated transactions", "page", page, "size", size, "user_id", ownerID.String())
 	if size < 1 {
 		logger.WarnContext(ctx, "Invalid page size for transactions", "size", size, "user_id", ownerID.String())
-		return models.PageTransactionResponse{}, pkgerrors.NewBadRequest(fmt.Sprintf("size must be at least 1, but was %d", size))
+		return response.PageTransactionResponse{}, pkgerrors.NewBadRequest(fmt.Sprintf("size must be at least 1, but was %d", size))
 	}
 
 	pageIndex := page - 1
@@ -61,7 +62,7 @@ func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, 
 	totalElements, err := s.db.CountTransactionsByOwnerID(ctx, ownerID)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to count transactions", "error", err, "user_id", ownerID.String())
-		return models.PageTransactionResponse{}, err
+		return response.PageTransactionResponse{}, err
 	}
 
 	rows, err := s.db.FindTransactionsByOwnerIDPaginated(ctx, db.FindTransactionsByOwnerIDPaginatedParams{
@@ -71,7 +72,7 @@ func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, 
 	})
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to fetch paginated transactions", "error", err, "offset", offset, "limit", size, "user_id", ownerID.String())
-		return models.PageTransactionResponse{}, err
+		return response.PageTransactionResponse{}, err
 	}
 
 	studentIDs := make([]uuid.UUID, 0, len(rows))
@@ -95,15 +96,16 @@ func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, 
 		}
 	}
 
-	transactions := make([]models.TransactionResponse, 0, len(rows))
+	transactions := make([]response.TransactionResponse, 0, len(rows))
 	for _, r := range rows {
-		var details *models.StudentPaymentDetailsResponse
+		var details *response.StudentPaymentDetailsResponse
 		if r.StudentID.Valid && r.PaidUntil.Valid {
 			var studentName *string
 			if name, ok := studentNames[r.StudentID.UUID]; ok {
 				studentName = &name
 			}
-			details = &models.StudentPaymentDetailsResponse{
+
+			details = &response.StudentPaymentDetailsResponse{
 				DetailsType: types.DetailsTypeStudent,
 				StudentID:   r.StudentID.UUID,
 				PaidUntil:   r.PaidUntil.Time,
@@ -112,7 +114,7 @@ func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, 
 		}
 
 		amt, _ := strconv.ParseFloat(r.Amount, 64)
-		transactions = append(transactions, models.TransactionResponse{
+		transactions = append(transactions, response.TransactionResponse{
 			ID:             r.ID,
 			Amount:         amt,
 			Date:           r.Date,
@@ -131,13 +133,13 @@ func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, 
 	isFirst := pageIndex == 0
 	isLast := pageIndex >= totalPages-1 || totalPages == 0
 
-	sortObj := &models.SortObject{
+	sortObj := &response.SortObject{
 		Empty:    false,
 		Sorted:   true,
 		Unsorted: false,
 	}
 
-	pageableObj := &models.PageableObject{
+	pageableObj := &response.PageableObject{
 		Offset:     int64(offset),
 		PageNumber: pageIndex,
 		PageSize:   size,
@@ -154,7 +156,7 @@ func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, 
 		"user_id", ownerID.String(),
 	)
 
-	return models.PageTransactionResponse{
+	return response.PageTransactionResponse{
 		TotalPages:       totalPages,
 		TotalElements:    totalElements,
 		Size:             size,
@@ -169,22 +171,23 @@ func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, 
 	}, nil
 }
 
-func (s *Service) GetTransactionsBetween(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+func (s *Service) GetTransactionsBetween(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting transactions between dates", "start_date", startDate.Format(time.RFC3339), "end_date", endDate.Format(time.RFC3339), "user_id", ownerID.String())
 	rows, err := s.db.FindTransactionsByOwnerIDAndDateBetween(ctx, db.FindTransactionsByOwnerIDAndDateBetweenParams{
 		OwnerID: ownerID,
 		Date:    startDate,
 		Date_2:  endDate,
 	})
+
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to get transactions between dates", "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 
-	transactions := make([]models.TransactionResponse, 0, len(rows))
+	transactions := make([]response.TransactionResponse, 0, len(rows))
 	for _, r := range rows {
 		amt, _ := strconv.ParseFloat(r.Amount, 64)
-		transactions = append(transactions, models.TransactionResponse{
+		transactions = append(transactions, response.TransactionResponse{
 			ID:        r.ID,
 			Amount:    amt,
 			Date:      r.Date,
@@ -192,31 +195,33 @@ func (s *Service) GetTransactionsBetween(ctx context.Context, startDate, endDate
 			CreatedAt: r.CreatedAt,
 		})
 	}
+
 	logger.DebugContext(ctx, "Retrieved transactions between dates", "count", len(transactions), "user_id", ownerID.String())
 	return transactions, nil
 }
 
-func (s *Service) GetTransactionsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+func (s *Service) GetTransactionsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting transactions by student id", "student_id", studentID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindStudentPaymentsByStudentIDAndOwnerID(ctx, db.FindStudentPaymentsByStudentIDAndOwnerIDParams{
 		StudentID: studentID,
 		OwnerID:   ownerID,
 	})
+
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to get transactions by student id", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 
-	transactions := make([]models.TransactionResponse, 0, len(rows))
+	transactions := make([]response.TransactionResponse, 0, len(rows))
 	for _, r := range rows {
 		amt, _ := strconv.ParseFloat(r.Amount, 64)
-		transactions = append(transactions, models.TransactionResponse{
+		transactions = append(transactions, response.TransactionResponse{
 			ID:        r.ID,
 			Amount:    amt,
 			Date:      r.Date,
 			Type:      types.TransactionType(r.Type),
 			CreatedAt: r.CreatedAt,
-			PaymentDetails: &models.StudentPaymentDetailsResponse{
+			PaymentDetails: &response.StudentPaymentDetailsResponse{
 				DetailsType: types.DetailsTypeStudent,
 				StudentID:   r.StudentID,
 				PaidUntil:   r.PaidUntil,
@@ -227,73 +232,76 @@ func (s *Service) GetTransactionsByStudentID(ctx context.Context, studentID, own
 	return transactions, nil
 }
 
-func (s *Service) GetTransactionsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.TransactionResponse, error) {
+func (s *Service) GetTransactionsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]response.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting transactions by student ids", "count", len(studentIDs), "user_id", ownerID.String())
 	if len(studentIDs) == 0 {
 		logger.DebugContext(ctx, "No student IDs provided to get transactions", "user_id", ownerID.String())
-		return map[uuid.UUID][]models.TransactionResponse{}, nil
+		return map[uuid.UUID][]response.TransactionResponse{}, nil
 	}
 
 	rows, err := s.db.FindStudentPaymentsByStudentIDsAndOwnerID(ctx, db.FindStudentPaymentsByStudentIDsAndOwnerIDParams{
 		OwnerID: ownerID,
 		Column2: studentIDs,
 	})
+
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to get transactions by student ids", "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 
-	transactionsByStudent := make(map[uuid.UUID][]models.TransactionResponse, len(studentIDs))
+	transactionsByStudent := make(map[uuid.UUID][]response.TransactionResponse, len(studentIDs))
 	for _, sid := range studentIDs {
-		transactionsByStudent[sid] = []models.TransactionResponse{}
+		transactionsByStudent[sid] = []response.TransactionResponse{}
 	}
+
 	for _, r := range rows {
 		amt, _ := strconv.ParseFloat(r.Amount, 64)
-		transactionsByStudent[r.StudentID] = append(transactionsByStudent[r.StudentID], models.TransactionResponse{
+		transactionsByStudent[r.StudentID] = append(transactionsByStudent[r.StudentID], response.TransactionResponse{
 			ID:        r.ID,
 			Amount:    amt,
 			Date:      r.Date,
 			Type:      types.TransactionType(r.Type),
 			CreatedAt: r.CreatedAt,
-			PaymentDetails: &models.StudentPaymentDetailsResponse{
+			PaymentDetails: &response.StudentPaymentDetailsResponse{
 				DetailsType: types.DetailsTypeStudent,
 				StudentID:   r.StudentID,
 				PaidUntil:   r.PaidUntil,
 			},
 		})
 	}
+
 	logger.DebugContext(ctx, "Retrieved transactions by student ids", "count", len(rows), "user_id", ownerID.String())
 	return transactionsByStudent, nil
 }
 
-func (s *Service) CreateTransaction(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error) {
+func (s *Service) CreateTransaction(ctx context.Context, req request.CreateTransactionRequest, ownerID uuid.UUID) (response.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Creating transaction", "amount", req.Amount, "type", string(req.Type), "user_id", ownerID.String())
 	if req.Amount <= 0 {
 		logger.WarnContext(ctx, "Transaction amount must be greater than 0", "amount", req.Amount, "user_id", ownerID.String())
-		return models.TransactionResponse{}, pkgerrors.NewBadRequest("amount must be greater than 0")
+		return response.TransactionResponse{}, pkgerrors.NewBadRequest("amount must be greater than 0")
 	}
 
 	if err := timeutil.ValidateDateNotFuture(req.Date, "date"); err != nil {
 		logger.WarnContext(ctx, "Transaction date cannot be in the future", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
-		return models.TransactionResponse{}, err
+		return response.TransactionResponse{}, err
 	}
 
 	if req.PaymentDetails != nil {
 		if req.PaymentDetails.StudentID == uuid.Nil {
 			logger.WarnContext(ctx, "Student ID must not be nil for student payment", "user_id", ownerID.String())
-			return models.TransactionResponse{}, pkgerrors.NewBadRequest("studentId must not be null for student payment")
+			return response.TransactionResponse{}, pkgerrors.NewBadRequest("studentId must not be null for student payment")
 		}
 
 		if s.fetchStudentByID != nil {
 			if _, err := s.fetchStudentByID(ctx, req.PaymentDetails.StudentID, ownerID); err != nil {
 				logger.WarnContext(ctx, "Student not found for transaction payment details", "student_id", req.PaymentDetails.StudentID.String(), "error", err, "user_id", ownerID.String())
-				return models.TransactionResponse{}, err
+				return response.TransactionResponse{}, err
 			}
 		}
 	}
 
 	var createdTx db.PaymentsModuleTransaction
-	var details *models.StudentPaymentDetailsResponse
+	var details *response.StudentPaymentDetailsResponse
 
 	err := s.withTx(ctx, func(qtx *db.Queries) error {
 		amountStr := strconv.FormatFloat(req.Amount, 'f', 2, 64)
@@ -304,6 +312,7 @@ func (s *Service) CreateTransaction(ctx context.Context, req models.CreateTransa
 			Amount:  amountStr,
 			Date:    req.Date,
 		})
+
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to create transaction record", "error", err, "user_id", ownerID.String())
 			return err
@@ -319,7 +328,7 @@ func (s *Service) CreateTransaction(ctx context.Context, req models.CreateTransa
 				logger.ErrorContext(ctx, "Failed to create student payment details record", "transaction_id", createdTx.ID.String(), "student_id", req.PaymentDetails.StudentID.String(), "error", err, "user_id", ownerID.String())
 				return err
 			}
-			details = &models.StudentPaymentDetailsResponse{
+			details = &response.StudentPaymentDetailsResponse{
 				DetailsType: types.DetailsTypeStudent,
 				StudentID:   sp.StudentID,
 				PaidUntil:   sp.PaidUntil,
@@ -327,14 +336,15 @@ func (s *Service) CreateTransaction(ctx context.Context, req models.CreateTransa
 		}
 		return nil
 	})
+
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to create transaction in database", "error", err, "user_id", ownerID.String())
-		return models.TransactionResponse{}, err
+		return response.TransactionResponse{}, err
 	}
 
 	amt, _ := strconv.ParseFloat(createdTx.Amount, 64)
 	logger.InfoContext(ctx, "Transaction created successfully", "transaction_id", createdTx.ID.String(), "amount", amt, "type", string(createdTx.Type), "user_id", ownerID.String())
-	return models.TransactionResponse{
+	return response.TransactionResponse{
 		ID:             createdTx.ID,
 		Amount:         amt,
 		Date:           createdTx.Date,
@@ -344,28 +354,28 @@ func (s *Service) CreateTransaction(ctx context.Context, req models.CreateTransa
 	}, nil
 }
 
-func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (models.TransactionResponse, error) {
+func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (response.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Creating student payment transaction", "student_id", studentID.String(), "amount", amount, "user_id", ownerID.String())
 	if amount <= 0 {
 		logger.WarnContext(ctx, "Transaction amount must be greater than 0", "amount", amount, "user_id", ownerID.String())
-		return models.TransactionResponse{}, pkgerrors.NewBadRequest("amount must be greater than 0")
+		return response.TransactionResponse{}, pkgerrors.NewBadRequest("amount must be greater than 0")
 	}
 
 	if studentID == uuid.Nil {
 		logger.WarnContext(ctx, "Student ID must not be nil for student payment", "user_id", ownerID.String())
-		return models.TransactionResponse{}, pkgerrors.NewBadRequest("studentId must not be null for student payment")
+		return response.TransactionResponse{}, pkgerrors.NewBadRequest("studentId must not be null for student payment")
 	}
 
 	if s.fetchStudentByID != nil {
 		if _, err := s.fetchStudentByID(ctx, studentID, ownerID); err != nil {
 			logger.WarnContext(ctx, "Student not found for student payment", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
-			return models.TransactionResponse{}, err
+			return response.TransactionResponse{}, err
 		}
 	}
 
 	if err := timeutil.ValidateDateNotFuture(date, "date"); err != nil {
 		logger.WarnContext(ctx, "Payment date cannot be in the future", "date", date.Format(time.RFC3339), "user_id", ownerID.String())
-		return models.TransactionResponse{}, err
+		return response.TransactionResponse{}, err
 	}
 
 	var createdTx db.PaymentsModuleTransaction
@@ -380,6 +390,7 @@ func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID,
 			Amount:  amountStr,
 			Date:    date,
 		})
+
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to create transaction record for student payment", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 			return err
@@ -390,26 +401,28 @@ func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID,
 			StudentID:     studentID,
 			PaidUntil:     paidUntil,
 		})
+
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to create student payment record", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 			return err
 		}
+
 		return nil
 	})
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to create student payment transaction in database", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
-		return models.TransactionResponse{}, err
+		return response.TransactionResponse{}, err
 	}
 
 	amt, _ := strconv.ParseFloat(createdTx.Amount, 64)
 	logger.InfoContext(ctx, "Student payment created successfully", "transaction_id", createdTx.ID.String(), "student_id", studentID.String(), "amount", amt, "user_id", ownerID.String())
-	return models.TransactionResponse{
+	return response.TransactionResponse{
 		ID:        createdTx.ID,
 		Amount:    amt,
 		Date:      createdTx.Date,
 		Type:      types.TransactionType(createdTx.Type),
 		CreatedAt: createdTx.CreatedAt,
-		PaymentDetails: &models.StudentPaymentDetailsResponse{
+		PaymentDetails: &response.StudentPaymentDetailsResponse{
 			DetailsType: types.DetailsTypeStudent,
 			StudentID:   sp.StudentID,
 			PaidUntil:   sp.PaidUntil,
@@ -417,16 +430,17 @@ func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID,
 	}, nil
 }
 
-func (s *Service) UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (models.TransactionResponse, error) {
+func (s *Service) UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Updating transaction", "transaction_id", transactionID.String(), "user_id", ownerID.String())
 	var updatedTx db.PaymentsModuleTransaction
-	var details *models.StudentPaymentDetailsResponse
+	var details *response.StudentPaymentDetailsResponse
 
 	err := s.withTx(ctx, func(qtx *db.Queries) error {
 		existing, err := qtx.FindTransactionByIDAndOwnerID(ctx, db.FindTransactionByIDAndOwnerIDParams{
 			ID:      transactionID,
 			OwnerID: ownerID,
 		})
+
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				logger.WarnContext(ctx, "Transaction to update not found", "transaction_id", transactionID.String(), "user_id", ownerID.String())
@@ -479,6 +493,7 @@ func (s *Service) UpdateTransaction(ctx context.Context, transactionID, ownerID 
 			Amount:  amountStr,
 			Date:    txDate,
 		})
+
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to update transaction record", "transaction_id", transactionID.String(), "error", err, "user_id", ownerID.String())
 			return err
@@ -493,13 +508,13 @@ func (s *Service) UpdateTransaction(ctx context.Context, transactionID, ownerID 
 				logger.ErrorContext(ctx, "Failed to update student payment record", "transaction_id", transactionID.String(), "error", err, "user_id", ownerID.String())
 				return err
 			}
-			details = &models.StudentPaymentDetailsResponse{
+			details = &response.StudentPaymentDetailsResponse{
 				DetailsType: types.DetailsTypeStudent,
 				StudentID:   sp.StudentID,
 				PaidUntil:   sp.PaidUntil,
 			}
 		} else if existing.StudentID.Valid {
-			details = &models.StudentPaymentDetailsResponse{
+			details = &response.StudentPaymentDetailsResponse{
 				DetailsType: types.DetailsTypeStudent,
 				StudentID:   existing.StudentID.UUID,
 				PaidUntil:   existing.PaidUntil.Time,
@@ -510,12 +525,12 @@ func (s *Service) UpdateTransaction(ctx context.Context, transactionID, ownerID 
 	})
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to update transaction in database", "transaction_id", transactionID.String(), "error", err, "user_id", ownerID.String())
-		return models.TransactionResponse{}, err
+		return response.TransactionResponse{}, err
 	}
 
 	amt, _ := strconv.ParseFloat(updatedTx.Amount, 64)
 	logger.InfoContext(ctx, "Transaction updated successfully", "transaction_id", updatedTx.ID.String(), "amount", amt, "user_id", ownerID.String())
-	return models.TransactionResponse{
+	return response.TransactionResponse{
 		ID:             updatedTx.ID,
 		Amount:         amt,
 		Date:           updatedTx.Date,
@@ -532,6 +547,7 @@ func (s *Service) DeleteTransaction(ctx context.Context, transactionID, ownerID 
 			ID:      transactionID,
 			OwnerID: ownerID,
 		})
+
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				logger.WarnContext(ctx, "Transaction to delete not found", "transaction_id", transactionID.String(), "user_id", ownerID.String())
@@ -556,6 +572,7 @@ func (s *Service) DeleteTransaction(ctx context.Context, transactionID, ownerID 
 
 		return nil
 	})
+
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to delete transaction from database", "transaction_id", transactionID.String(), "error", err, "user_id", ownerID.String())
 		return err

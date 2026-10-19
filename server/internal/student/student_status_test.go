@@ -1,11 +1,11 @@
 package student
 
 import (
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,19 +17,19 @@ func TestStudentStatus_IndividualLessonLast(t *testing.T) {
 	individualLessonID := uuid.New()
 	createdAt := time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC)
 
-	st := models.StudentResponse{
+	st := response.StudentResponse{
 		ID:        studentID,
 		FullName:  "Test Student",
 		Free:      false,
 		CreatedAt: createdAt,
 	}
 
-	visits := []models.VisitResponse{
+	visits := []response.VisitResponse{
 		{ID: uuid.New(), LessonID: groupLessonID, StudentID: studentID, Status: types.VisitStatusAbsent},
 		{ID: uuid.New(), LessonID: individualLessonID, StudentID: studentID, Status: types.VisitStatusPresent},
 	}
 
-	lessonsMap := map[uuid.UUID]models.LessonResponse{
+	lessonsMap := map[uuid.UUID]response.LessonResponse{
 		groupLessonID: {
 			ID:        groupLessonID,
 			GroupID:   &groupID,
@@ -57,19 +57,19 @@ func TestStudentStatus_GroupLessonLast(t *testing.T) {
 	individualLessonID := uuid.New()
 	createdAt := time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC)
 
-	st := models.StudentResponse{
+	st := response.StudentResponse{
 		ID:        studentID,
 		FullName:  "Test Student",
 		Free:      false,
 		CreatedAt: createdAt,
 	}
 
-	visits := []models.VisitResponse{
+	visits := []response.VisitResponse{
 		{ID: uuid.New(), LessonID: individualLessonID, StudentID: studentID, Status: types.VisitStatusPresent},
 		{ID: uuid.New(), LessonID: groupLessonID, StudentID: studentID, Status: types.VisitStatusAbsent},
 	}
 
-	lessonsMap := map[uuid.UUID]models.LessonResponse{
+	lessonsMap := map[uuid.UUID]response.LessonResponse{
 		individualLessonID: {
 			ID:        individualLessonID,
 			GroupID:   nil,
@@ -98,19 +98,19 @@ func TestStudentStatus_PrefersLessonCreatedLastOnSameDay(t *testing.T) {
 	createdAt := time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC)
 	day := time.Date(2026, 10, 8, 10, 0, 0, 0, time.UTC)
 
-	st := models.StudentResponse{
+	st := response.StudentResponse{
 		ID:        studentID,
 		FullName:  "Test Student",
 		Free:      false,
 		CreatedAt: createdAt,
 	}
 
-	visits := []models.VisitResponse{
+	visits := []response.VisitResponse{
 		{ID: uuid.New(), LessonID: groupLessonID, StudentID: studentID, Status: types.VisitStatusAbsent},
 		{ID: uuid.New(), LessonID: individualLessonID, StudentID: studentID, Status: types.VisitStatusPresent},
 	}
 
-	lessonsMap := map[uuid.UUID]models.LessonResponse{
+	lessonsMap := map[uuid.UUID]response.LessonResponse{
 		groupLessonID: {
 			ID:        groupLessonID,
 			GroupID:   &groupID,
@@ -135,7 +135,7 @@ func TestStudentStatus_InactiveWhenNoVisitsAndNoPayments(t *testing.T) {
 	studentID := uuid.New()
 	createdAt := time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC)
 
-	stNotFree := models.StudentResponse{
+	stNotFree := response.StudentResponse{
 		ID:        studentID,
 		FullName:  "Inactive Student",
 		Free:      false,
@@ -144,7 +144,7 @@ func TestStudentStatus_InactiveWhenNoVisitsAndNoPayments(t *testing.T) {
 	statuses := ComputeStudentStatuses(stNotFree, nil, nil, nil, time.Now().UTC())
 	assert.Equal(t, []types.StudentStatus{types.StudentStatusInactive}, statuses)
 
-	stFree := models.StudentResponse{
+	stFree := response.StudentResponse{
 		ID:        studentID,
 		FullName:  "Free Student",
 		Free:      true,
@@ -160,18 +160,18 @@ func TestStudentStatus_PaidVsUnpaid(t *testing.T) {
 	createdAt := time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC)
 	lastLessonDay := time.Date(2026, 10, 8, 10, 0, 0, 0, time.UTC)
 
-	st := models.StudentResponse{
+	st := response.StudentResponse{
 		ID:        studentID,
 		FullName:  "Paying Student",
 		Free:      false,
 		CreatedAt: createdAt,
 	}
 
-	visits := []models.VisitResponse{
+	visits := []response.VisitResponse{
 		{ID: uuid.New(), LessonID: lessonID, StudentID: studentID, Status: types.VisitStatusPresent},
 	}
 
-	lessonsMap := map[uuid.UUID]models.LessonResponse{
+	lessonsMap := map[uuid.UUID]response.LessonResponse{
 		lessonID: {
 			ID:        lessonID,
 			Date:      lastLessonDay,
@@ -179,12 +179,12 @@ func TestStudentStatus_PaidVsUnpaid(t *testing.T) {
 		},
 	}
 
-	activePayments := []models.TransactionResponse{
+	activePayments := []response.TransactionResponse{
 		{
 			ID:        uuid.New(),
 			Amount:    1000,
 			CreatedAt: createdAt,
-			PaymentDetails: &models.StudentPaymentDetailsResponse{
+			PaymentDetails: &response.StudentPaymentDetailsResponse{
 				StudentID: studentID,
 				PaidUntil: lastLessonDay,
 			},
@@ -195,12 +195,12 @@ func TestStudentStatus_PaidVsUnpaid(t *testing.T) {
 	assert.Contains(t, statusesPaid, types.StudentStatusPaid)
 	assert.NotContains(t, statusesPaid, types.StudentStatusUnpaid)
 
-	expiredPayments := []models.TransactionResponse{
+	expiredPayments := []response.TransactionResponse{
 		{
 			ID:        uuid.New(),
 			Amount:    1000,
 			CreatedAt: createdAt,
-			PaymentDetails: &models.StudentPaymentDetailsResponse{
+			PaymentDetails: &response.StudentPaymentDetailsResponse{
 				StudentID: studentID,
 				PaidUntil: lastLessonDay.AddDate(0, 0, -1),
 			},
@@ -218,18 +218,18 @@ func TestStudentStatus_FreeStudent(t *testing.T) {
 	createdAt := time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC)
 	lastLessonDay := time.Date(2026, 10, 8, 10, 0, 0, 0, time.UTC)
 
-	st := models.StudentResponse{
+	st := response.StudentResponse{
 		ID:        studentID,
 		FullName:  "Free Student",
 		Free:      true,
 		CreatedAt: createdAt,
 	}
 
-	visits := []models.VisitResponse{
+	visits := []response.VisitResponse{
 		{ID: uuid.New(), LessonID: lessonID, StudentID: studentID, Status: types.VisitStatusPresent},
 	}
 
-	lessonsMap := map[uuid.UUID]models.LessonResponse{
+	lessonsMap := map[uuid.UUID]response.LessonResponse{
 		lessonID: {
 			ID:        lessonID,
 			Date:      lastLessonDay,
@@ -253,19 +253,19 @@ func TestStudentStatus_GroupScopedVisits(t *testing.T) {
 	groupLessonDay := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
 	individualLessonDay := time.Date(2026, 10, 8, 10, 0, 0, 0, time.UTC)
 
-	st := models.StudentResponse{
+	st := response.StudentResponse{
 		ID:        studentID,
 		FullName:  "Student",
 		Free:      false,
 		CreatedAt: createdAt,
 	}
 
-	visits := []models.VisitResponse{
+	visits := []response.VisitResponse{
 		{ID: uuid.New(), LessonID: groupLessonID, StudentID: studentID, Status: types.VisitStatusAbsent},
 		{ID: uuid.New(), LessonID: individualLessonID, StudentID: studentID, Status: types.VisitStatusPresent},
 	}
 
-	everyLessonMap := map[uuid.UUID]models.LessonResponse{
+	everyLessonMap := map[uuid.UUID]response.LessonResponse{
 		groupLessonID: {
 			ID:        groupLessonID,
 			GroupID:   &groupID,
@@ -280,7 +280,7 @@ func TestStudentStatus_GroupScopedVisits(t *testing.T) {
 		},
 	}
 
-	groupLessonsMap := map[uuid.UUID]models.LessonResponse{
+	groupLessonsMap := map[uuid.UUID]response.LessonResponse{
 		groupLessonID: {
 			ID:        groupLessonID,
 			GroupID:   &groupID,
@@ -289,12 +289,12 @@ func TestStudentStatus_GroupScopedVisits(t *testing.T) {
 		},
 	}
 
-	payments := []models.TransactionResponse{
+	payments := []response.TransactionResponse{
 		{
 			ID:        uuid.New(),
 			Amount:    1000,
 			CreatedAt: createdAt,
-			PaymentDetails: &models.StudentPaymentDetailsResponse{
+			PaymentDetails: &response.StudentPaymentDetailsResponse{
 				StudentID: studentID,
 				PaidUntil: time.Date(2026, 9, 15, 0, 0, 0, 0, time.UTC),
 			},

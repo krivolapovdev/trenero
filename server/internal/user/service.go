@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"strings"
 
 	"github.com/google/uuid"
@@ -23,7 +24,7 @@ func NewService(queries *db.Queries) *Service {
 	}
 }
 
-func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (UserResponse, error) {
+func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (response.UserResponse, error) {
 	logger.InfoContext(ctx, "Get or create user from OAuth2", "provider", string(provider), "email", email)
 
 	existingUser, err := s.db.GetUserByProviderAndProviderID(ctx, db.GetUserByProviderAndProviderIDParams{
@@ -33,7 +34,7 @@ func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.Use
 
 	if err == nil {
 		logger.DebugContext(ctx, "Existing OAuth2 user found", "user_id", existingUser.ID.String(), "provider", string(provider))
-		return UserResponse{
+		return response.UserResponse{
 			ID:    existingUser.ID,
 			Email: existingUser.Email,
 		}, nil
@@ -41,7 +42,7 @@ func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.Use
 
 	if !errors.Is(err, sql.ErrNoRows) {
 		logger.ErrorContext(ctx, "Failed to query OAuth2 user", "error", err, "provider", string(provider))
-		return UserResponse{}, err
+		return response.UserResponse{}, err
 	}
 
 	normalizedEmail := strings.ToUpper(strings.TrimSpace(email))
@@ -56,12 +57,12 @@ func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.Use
 
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to create user in database", "error", err, "provider", string(provider), "email", normalizedEmail)
-		return UserResponse{}, err
+		return response.UserResponse{}, err
 	}
 
 	logger.InfoContext(ctx, "User created successfully", "user_id", created.ID.String(), "email", created.Email)
 
-	return UserResponse{
+	return response.UserResponse{
 		ID:    created.ID,
 		Email: created.Email,
 	}, nil

@@ -4,20 +4,21 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/krivolapovdev/trenerio/pkg/request"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
-type FetchVisitsByLessonIDFunc func(ctx context.Context, lessonID, ownerID uuid.UUID) ([]models.VisitResponse, error)
-type FetchStudentsByIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error)
-type CreateVisitsFunc func(ctx context.Context, lessonID uuid.UUID, studentVisits []models.StudentVisit, ownerID uuid.UUID) error
-type UpdateVisitsByLessonIDFunc func(ctx context.Context, lessonID uuid.UUID, requests []models.StudentVisit, ownerID uuid.UUID) error
+type FetchVisitsByLessonIDFunc func(ctx context.Context, lessonID, ownerID uuid.UUID) ([]response.VisitResponse, error)
+type FetchStudentsByIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]response.StudentResponse, error)
+type CreateVisitsFunc func(ctx context.Context, lessonID uuid.UUID, studentVisits []request.StudentVisit, ownerID uuid.UUID) error
+type UpdateVisitsByLessonIDFunc func(ctx context.Context, lessonID uuid.UUID, requests []request.StudentVisit, ownerID uuid.UUID) error
 type RemoveVisitsByLessonIDFunc func(ctx context.Context, lessonID, ownerID uuid.UUID) error
 
 type Service struct {
@@ -50,36 +51,41 @@ func NewService(
 	}
 }
 
-func (s *Service) GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonResponse, error) {
+func (s *Service) GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID) (response.LessonResponse, error) {
 	logger.InfoContext(ctx, "Getting lesson by id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
+
 	l, err := s.db.FindLessonByIDAndOwnerID(ctx, db.FindLessonByIDAndOwnerIDParams{
 		ID:      lessonID,
 		OwnerID: ownerID,
 	})
+
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.WarnContext(ctx, "Lesson not found", "lesson_id", lessonID.String(), "user_id", ownerID.String())
-			return models.LessonResponse{}, pkgerrors.NewNotFound("Lesson", lessonID, ownerID)
+			return response.LessonResponse{}, pkgerrors.NewNotFound("Lesson", lessonID, ownerID)
 		}
+
 		logger.ErrorContext(ctx, "Failed to get lesson by id", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
-		return models.LessonResponse{}, err
+		return response.LessonResponse{}, err
 	}
+
 	logger.DebugContext(ctx, "Retrieved lesson by id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
+
 	return toLessonResponse(l), nil
 }
 
-func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonDetailsResponse, error) {
+func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (response.LessonDetailsResponse, error) {
 	logger.InfoContext(ctx, "Getting lesson details", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	lessonResp, err := s.GetLessonByID(ctx, lessonID, ownerID)
 	if err != nil {
 		logger.WarnContext(ctx, "Failed to get lesson for details", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
-		return models.LessonDetailsResponse{}, err
+		return response.LessonDetailsResponse{}, err
 	}
 
 	visitResponses, err := s.fetchVisitsByLessonID(ctx, lessonID, ownerID)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to fetch visits for lesson details", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
-		return models.LessonDetailsResponse{}, err
+		return response.LessonDetailsResponse{}, err
 	}
 
 	studentIDs := make([]uuid.UUID, 0, len(visitResponses))
@@ -88,14 +94,14 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 	}
 	studentIDs = utils.UniqueUUIDs(studentIDs)
 
-	students := make([]models.StudentResponse, 0, len(studentIDs))
+	students := make([]response.StudentResponse, 0, len(studentIDs))
 	if len(studentIDs) > 0 && s.fetchStudentsByIDs != nil {
 		stRows, err := s.fetchStudentsByIDs(ctx, studentIDs, ownerID)
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to fetch students for lesson details", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
-			return models.LessonDetailsResponse{}, err
+			return response.LessonDetailsResponse{}, err
 		}
-		stMap := make(map[uuid.UUID]models.StudentResponse, len(stRows))
+		stMap := make(map[uuid.UUID]response.StudentResponse, len(stRows))
 		for _, sr := range stRows {
 			stMap[sr.ID] = sr
 		}
@@ -107,7 +113,7 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 	}
 
 	logger.InfoContext(ctx, "Lesson details retrieved", "lesson_id", lessonID.String(), "visits_count", len(visitResponses), "students_count", len(students), "user_id", ownerID.String())
-	return models.LessonDetailsResponse{
+	return response.LessonDetailsResponse{
 		ID:            lessonResp.ID,
 		Date:          lessonResp.Date,
 		CreatedAt:     lessonResp.CreatedAt,
@@ -117,11 +123,11 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 	}, nil
 }
 
-func (s *Service) CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error) {
+func (s *Service) CreateLesson(ctx context.Context, req request.CreateLessonRequest, ownerID uuid.UUID) (response.LessonResponse, error) {
 	logger.InfoContext(ctx, "Creating lesson", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
 	if err := utils.ValidateDateNotFuture(req.Date, "date"); err != nil {
 		logger.WarnContext(ctx, "Lesson date cannot be in the future", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
-		return models.LessonResponse{}, err
+		return response.LessonResponse{}, err
 	}
 
 	var groupID uuid.NullUUID
@@ -136,15 +142,15 @@ func (s *Service) CreateLesson(ctx context.Context, req models.CreateLessonReque
 	})
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to create lesson record", "error", err, "user_id", ownerID.String())
-		return models.LessonResponse{}, err
+		return response.LessonResponse{}, err
 	}
 
 	if len(req.Students) > 0 && s.createVisits != nil {
-		studentVisitMap := make(map[uuid.UUID]models.StudentVisit, len(req.Students))
+		studentVisitMap := make(map[uuid.UUID]request.StudentVisit, len(req.Students))
 		for _, sv := range req.Students {
 			studentVisitMap[sv.StudentID] = sv
 		}
-		uniqueVisits := make([]models.StudentVisit, 0, len(studentVisitMap))
+		uniqueVisits := make([]request.StudentVisit, 0, len(studentVisitMap))
 		for _, sv := range studentVisitMap {
 			uniqueVisits = append(uniqueVisits, sv)
 		}
@@ -155,7 +161,7 @@ func (s *Service) CreateLesson(ctx context.Context, req models.CreateLessonReque
 				ID:      createdLesson.ID,
 				OwnerID: ownerID,
 			})
-			return models.LessonResponse{}, err
+			return response.LessonResponse{}, err
 		}
 	}
 
@@ -163,12 +169,12 @@ func (s *Service) CreateLesson(ctx context.Context, req models.CreateLessonReque
 	return toLessonResponse(createdLesson), nil
 }
 
-func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error) {
+func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req request.UpdateLessonRequest) (response.LessonResponse, error) {
 	logger.InfoContext(ctx, "Updating lesson", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	if req.Date != nil {
 		if err := utils.ValidateDateNotFuture(*req.Date, "date"); err != nil {
 			logger.WarnContext(ctx, "Updated lesson date cannot be in the future", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
-			return models.LessonResponse{}, err
+			return response.LessonResponse{}, err
 		}
 	}
 
@@ -179,10 +185,10 @@ func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID,
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.WarnContext(ctx, "Lesson to update not found", "lesson_id", lessonID.String(), "user_id", ownerID.String())
-			return models.LessonResponse{}, pkgerrors.NewNotFound("Lesson", lessonID, ownerID)
+			return response.LessonResponse{}, pkgerrors.NewNotFound("Lesson", lessonID, ownerID)
 		}
 		logger.ErrorContext(ctx, "Failed to find lesson for update", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
-		return models.LessonResponse{}, err
+		return response.LessonResponse{}, err
 	}
 
 	newDate := existingLesson.Date
@@ -197,13 +203,13 @@ func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID,
 	})
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to update lesson record", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
-		return models.LessonResponse{}, err
+		return response.LessonResponse{}, err
 	}
 
 	if req.Students != nil && s.updateVisitsByLessonID != nil {
 		if err := s.updateVisitsByLessonID(ctx, lessonID, req.Students, ownerID); err != nil {
 			logger.ErrorContext(ctx, "Failed to update visits for lesson", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
-			return models.LessonResponse{}, err
+			return response.LessonResponse{}, err
 		}
 	}
 
@@ -245,7 +251,7 @@ func (s *Service) DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID)
 	return nil
 }
 
-func (s *Service) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error) {
+func (s *Service) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]response.LessonResponse, error) {
 	logger.InfoContext(ctx, "Getting lessons by group id and date range", "group_id", groupID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindLessonsByGroupIDAndDateBetween(ctx, db.FindLessonsByGroupIDAndDateBetweenParams{
 		GroupID: uuid.NullUUID{UUID: groupID, Valid: true},
@@ -257,7 +263,7 @@ func (s *Service) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, 
 		logger.ErrorContext(ctx, "Failed to get lessons by group id and date range", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
-	lessons := make([]models.LessonResponse, 0, len(rows))
+	lessons := make([]response.LessonResponse, 0, len(rows))
 	for _, r := range rows {
 		lessons = append(lessons, toLessonResponse(r))
 	}
@@ -265,10 +271,10 @@ func (s *Service) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, 
 	return lessons, nil
 }
 
-func (s *Service) GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]models.LessonResponse, error) {
+func (s *Service) GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]response.LessonResponse, error) {
 	if len(lessonIDs) == 0 {
 		logger.DebugContext(ctx, "No lesson IDs provided to get lessons", "user_id", ownerID.String())
-		return []models.LessonResponse{}, nil
+		return []response.LessonResponse{}, nil
 	}
 	rows, err := s.db.FindLessonsByIDsAndOwnerID(ctx, db.FindLessonsByIDsAndOwnerIDParams{
 		OwnerID: ownerID,
@@ -278,7 +284,7 @@ func (s *Service) GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ow
 		logger.ErrorContext(ctx, "Failed to get lessons by IDs", "count", len(lessonIDs), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
-	lessons := make([]models.LessonResponse, 0, len(rows))
+	lessons := make([]response.LessonResponse, 0, len(rows))
 	for _, r := range rows {
 		lessons = append(lessons, toLessonResponse(r))
 	}
@@ -286,12 +292,12 @@ func (s *Service) GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ow
 	return lessons, nil
 }
 
-func toLessonResponse(l db.LessonsModuleLesson) models.LessonResponse {
+func toLessonResponse(l db.LessonsModuleLesson) response.LessonResponse {
 	var groupID *uuid.UUID
 	if l.GroupID.Valid {
 		groupID = &l.GroupID.UUID
 	}
-	return models.LessonResponse{
+	return response.LessonResponse{
 		ID:        l.ID,
 		Date:      l.Date,
 		CreatedAt: l.CreatedAt,

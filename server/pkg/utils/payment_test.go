@@ -1,21 +1,21 @@
 package utils
 
 import (
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"testing"
 	"time"
 
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMaxPaidUntil(t *testing.T) {
 	t.Run("EmptyList_ReturnsNil", func(t *testing.T) {
 		assert.Nil(t, MaxPaidUntil(nil))
-		assert.Nil(t, MaxPaidUntil([]models.TransactionResponse{}))
+		assert.Nil(t, MaxPaidUntil([]response.TransactionResponse{}))
 	})
 
 	t.Run("NoPaymentDetails_ReturnsNil", func(t *testing.T) {
-		txs := []models.TransactionResponse{
+		txs := []response.TransactionResponse{
 			{PaymentDetails: nil},
 			{PaymentDetails: nil},
 		}
@@ -27,11 +27,11 @@ func TestMaxPaidUntil(t *testing.T) {
 		t2 := time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC)
 		t3 := time.Date(2026, 2, 20, 0, 0, 0, 0, time.UTC)
 
-		txs := []models.TransactionResponse{
-			{PaymentDetails: &models.StudentPaymentDetailsResponse{PaidUntil: t1}},
+		txs := []response.TransactionResponse{
+			{PaymentDetails: &response.StudentPaymentDetailsResponse{PaidUntil: t1}},
 			{PaymentDetails: nil},
-			{PaymentDetails: &models.StudentPaymentDetailsResponse{PaidUntil: t2}},
-			{PaymentDetails: &models.StudentPaymentDetailsResponse{PaidUntil: t3}},
+			{PaymentDetails: &response.StudentPaymentDetailsResponse{PaidUntil: t2}},
+			{PaymentDetails: &response.StudentPaymentDetailsResponse{PaidUntil: t3}},
 		}
 
 		latest := MaxPaidUntil(txs)

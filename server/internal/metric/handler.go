@@ -2,19 +2,19 @@ package metric
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 type metricService interface {
-	GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error)
+	GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.PaymentMetricResponse, error)
 }
 
 type Handler struct {
@@ -42,7 +42,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @Param        scope      query     string  false  "Aggregation scope"      Enums(WEEK, MONTH, YEAR)  default(MONTH)
 // @Param        startDate  query     string  true   "Start date (RFC3339)"   Format(date-time)
 // @Param        endDate    query     string  true   "End date (RFC3339)"     Format(date-time)
-// @Success      200        {array}   models.PaymentMetricResponse
+// @Success      200        {array}   response.PaymentMetricResponse
 // @Router       /api/v1/metrics/payments [get]
 func (h *Handler) GetPaymentStatistics(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)

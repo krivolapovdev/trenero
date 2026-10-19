@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,37 +12,36 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 type mockAuthService struct {
-	loginGoogleFn   func(ctx context.Context, token string) (LoginResponse, error)
-	refreshTokensFn func(ctx context.Context, refreshToken string) (models.JwtResponse, error)
-	loginReviewerFn func(ctx context.Context, reviewerKey string) (LoginResponse, error)
+	loginGoogleFn   func(ctx context.Context, token string) (response.LoginResponse, error)
+	refreshTokensFn func(ctx context.Context, refreshToken string) (response.JwtResponse, error)
+	loginReviewerFn func(ctx context.Context, reviewerKey string) (response.LoginResponse, error)
 }
 
-func (m *mockAuthService) LoginGoogle(ctx context.Context, token string) (LoginResponse, error) {
+func (m *mockAuthService) LoginGoogle(ctx context.Context, token string) (response.LoginResponse, error) {
 	if m.loginGoogleFn != nil {
 		return m.loginGoogleFn(ctx, token)
 	}
-	return LoginResponse{}, nil
+	return response.LoginResponse{}, nil
 }
 
-func (m *mockAuthService) RefreshTokens(ctx context.Context, refreshToken string) (models.JwtResponse, error) {
+func (m *mockAuthService) RefreshTokens(ctx context.Context, refreshToken string) (response.JwtResponse, error) {
 	if m.refreshTokensFn != nil {
 		return m.refreshTokensFn(ctx, refreshToken)
 	}
-	return models.JwtResponse{}, nil
+	return response.JwtResponse{}, nil
 }
 
-func (m *mockAuthService) LoginReviewer(ctx context.Context, reviewerKey string) (LoginResponse, error) {
+func (m *mockAuthService) LoginReviewer(ctx context.Context, reviewerKey string) (response.LoginResponse, error) {
 	if m.loginReviewerFn != nil {
 		return m.loginReviewerFn(ctx, reviewerKey)
 	}
-	return LoginResponse{}, nil
+	return response.LoginResponse{}, nil
 }
 
 func setupAuthRouter(svc authService) *gin.Engine {
@@ -54,19 +54,19 @@ func setupAuthRouter(svc authService) *gin.Engine {
 
 func TestAuthHandler_GoogleLogin(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		expectedResp := LoginResponse{
-			User: models.UserResponse{
+		expectedResp := response.LoginResponse{
+			User: response.UserResponse{
 				ID:    uuid.New(),
 				Email: "teacher@trenerio.ru",
 			},
-			JwtTokens: JwtResponse{
+			JwtTokens: response.JwtResponse{
 				AccessToken:  "access-123",
 				RefreshToken: "refresh-123",
 			},
 		}
 
 		mockSvc := &mockAuthService{
-			loginGoogleFn: func(ctx context.Context, token string) (LoginResponse, error) {
+			loginGoogleFn: func(ctx context.Context, token string) (response.LoginResponse, error) {
 				assert.Equal(t, "google-token-xyz", token)
 				return expectedResp, nil
 			},
@@ -79,7 +79,7 @@ func TestAuthHandler_GoogleLogin(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var actualResp LoginResponse
+		var actualResp response.LoginResponse
 		err := json.Unmarshal(w.Body.Bytes(), &actualResp)
 		require.NoError(t, err)
 		assert.Equal(t, expectedResp.User.Email, actualResp.User.Email)
@@ -99,8 +99,8 @@ func TestAuthHandler_GoogleLogin(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockSvc := &mockAuthService{
-			loginGoogleFn: func(ctx context.Context, token string) (LoginResponse, error) {
-				return LoginResponse{}, pkgerrors.NewBadRequest("token rejected")
+			loginGoogleFn: func(ctx context.Context, token string) (response.LoginResponse, error) {
+				return response.LoginResponse{}, pkgerrors.NewBadRequest("token rejected")
 			},
 		}
 		r := setupAuthRouter(mockSvc)
@@ -114,8 +114,8 @@ func TestAuthHandler_GoogleLogin(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockAuthService{
-			loginGoogleFn: func(ctx context.Context, token string) (LoginResponse, error) {
-				return LoginResponse{}, assert.AnError
+			loginGoogleFn: func(ctx context.Context, token string) (response.LoginResponse, error) {
+				return response.LoginResponse{}, assert.AnError
 			},
 		}
 		r := setupAuthRouter(mockSvc)
@@ -130,13 +130,13 @@ func TestAuthHandler_GoogleLogin(t *testing.T) {
 
 func TestAuthHandler_RefreshTokens(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		expectedTokens := models.JwtResponse{
+		expectedTokens := response.JwtResponse{
 			AccessToken:  "new-access",
 			RefreshToken: "new-refresh",
 		}
 
 		mockSvc := &mockAuthService{
-			refreshTokensFn: func(ctx context.Context, refreshToken string) (models.JwtResponse, error) {
+			refreshTokensFn: func(ctx context.Context, refreshToken string) (response.JwtResponse, error) {
 				assert.Equal(t, "old-refresh", refreshToken)
 				return expectedTokens, nil
 			},
@@ -149,7 +149,7 @@ func TestAuthHandler_RefreshTokens(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var actualTokens models.JwtResponse
+		var actualTokens response.JwtResponse
 		err := json.Unmarshal(w.Body.Bytes(), &actualTokens)
 		require.NoError(t, err)
 		assert.Equal(t, expectedTokens.AccessToken, actualTokens.AccessToken)
@@ -168,8 +168,8 @@ func TestAuthHandler_RefreshTokens(t *testing.T) {
 
 	t.Run("Unauthorized_ExpiredOrInvalidToken", func(t *testing.T) {
 		mockSvc := &mockAuthService{
-			refreshTokensFn: func(ctx context.Context, refreshToken string) (models.JwtResponse, error) {
-				return models.JwtResponse{}, pkgerrors.NewUnauthorized("Invalid or expired refresh token")
+			refreshTokensFn: func(ctx context.Context, refreshToken string) (response.JwtResponse, error) {
+				return response.JwtResponse{}, pkgerrors.NewUnauthorized("Invalid or expired refresh token")
 			},
 		}
 		r := setupAuthRouter(mockSvc)
@@ -183,8 +183,8 @@ func TestAuthHandler_RefreshTokens(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockAuthService{
-			refreshTokensFn: func(ctx context.Context, refreshToken string) (models.JwtResponse, error) {
-				return models.JwtResponse{}, assert.AnError
+			refreshTokensFn: func(ctx context.Context, refreshToken string) (response.JwtResponse, error) {
+				return response.JwtResponse{}, assert.AnError
 			},
 		}
 		r := setupAuthRouter(mockSvc)
@@ -209,15 +209,15 @@ func TestAuthHandler_ReviewerLogin(t *testing.T) {
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		expectedResp := LoginResponse{
-			User: models.UserResponse{
+		expectedResp := response.LoginResponse{
+			User: response.UserResponse{
 				ID:    uuid.New(),
 				Email: ReviewerEmail,
 			},
 		}
 
 		mockSvc := &mockAuthService{
-			loginReviewerFn: func(ctx context.Context, reviewerKey string) (LoginResponse, error) {
+			loginReviewerFn: func(ctx context.Context, reviewerKey string) (response.LoginResponse, error) {
 				assert.Equal(t, "secret-key", reviewerKey)
 				return expectedResp, nil
 			},
@@ -234,8 +234,8 @@ func TestAuthHandler_ReviewerLogin(t *testing.T) {
 
 	t.Run("Unauthorized_InvalidKey", func(t *testing.T) {
 		mockSvc := &mockAuthService{
-			loginReviewerFn: func(ctx context.Context, reviewerKey string) (LoginResponse, error) {
-				return LoginResponse{}, pkgerrors.NewUnauthorized("Invalid reviewer key")
+			loginReviewerFn: func(ctx context.Context, reviewerKey string) (response.LoginResponse, error) {
+				return response.LoginResponse{}, pkgerrors.NewUnauthorized("Invalid reviewer key")
 			},
 		}
 
@@ -250,8 +250,8 @@ func TestAuthHandler_ReviewerLogin(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockAuthService{
-			loginReviewerFn: func(ctx context.Context, reviewerKey string) (LoginResponse, error) {
-				return LoginResponse{}, assert.AnError
+			loginReviewerFn: func(ctx context.Context, reviewerKey string) (response.LoginResponse, error) {
+				return response.LoginResponse{}, assert.AnError
 			},
 		}
 

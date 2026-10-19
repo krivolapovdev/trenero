@@ -2,17 +2,17 @@ package metric
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
 	"github.com/krivolapovdev/trenerio/pkg/logger"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
-type FetchTransactionsBetweenFunc func(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.TransactionResponse, error)
+type FetchTransactionsBetweenFunc func(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.TransactionResponse, error)
 
 type ScopeStrategy interface {
 	Truncate(t time.Time, loc *time.Location) time.Time
@@ -74,7 +74,7 @@ func NewService(fetchTransactions FetchTransactionsBetweenFunc) *Service {
 	}
 }
 
-func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
+func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.PaymentMetricResponse, error) {
 	if endDate.Before(startDate) {
 		logger.WarnContext(ctx, "Invalid date range for payment statistics",
 			"start_date", startDate.Format(time.RFC3339),
@@ -123,12 +123,12 @@ func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, sta
 		}
 	}
 
-	metrics := make([]models.PaymentMetricResponse, 0)
+	metrics := make([]response.PaymentMetricResponse, 0)
 	current := strategy.Truncate(startDate, loc)
 	limit := strategy.Truncate(endDate, loc)
 	for !current.After(limit) {
 		amount := totalsByBucket[current.Unix()]
-		metrics = append(metrics, models.PaymentMetricResponse{
+		metrics = append(metrics, response.PaymentMetricResponse{
 			Date:  current,
 			Total: amount,
 		})

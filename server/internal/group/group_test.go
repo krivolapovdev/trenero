@@ -2,11 +2,11 @@ package group
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/request"
 	"testing"
 
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +18,7 @@ func TestGroupService_DefaultPriceValidation(t *testing.T) {
 
 	t.Run("CreateGroup_ZeroDefaultPrice", func(t *testing.T) {
 		zero := 0.0
-		_, err := svc.CreateGroup(ctx, models.CreateGroupRequest{
+		_, err := svc.CreateGroup(ctx, request.CreateGroupRequest{
 			Name:         "Swimming",
 			DefaultPrice: &zero,
 		}, ownerID)
@@ -30,7 +30,7 @@ func TestGroupService_DefaultPriceValidation(t *testing.T) {
 
 	t.Run("CreateGroup_NegativeDefaultPrice", func(t *testing.T) {
 		neg := -50.0
-		_, err := svc.CreateGroup(ctx, models.CreateGroupRequest{
+		_, err := svc.CreateGroup(ctx, request.CreateGroupRequest{
 			Name:         "Swimming",
 			DefaultPrice: &neg,
 		}, ownerID)

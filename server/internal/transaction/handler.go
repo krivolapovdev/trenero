@@ -2,19 +2,20 @@ package transaction
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/request"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 type transactionService interface {
-	GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error)
-	CreateTransaction(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error)
-	UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (models.TransactionResponse, error)
+	GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error)
+	CreateTransaction(ctx context.Context, req request.CreateTransactionRequest, ownerID uuid.UUID) (response.TransactionResponse, error)
+	UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error)
 	DeleteTransaction(ctx context.Context, transactionID, ownerID uuid.UUID) error
 }
 
@@ -45,7 +46,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @Security     BearerAuth
 // @Param        page  query     int  false  "Page number (1-indexed)"  default(1)
 // @Param        size  query     int  false  "Page size"                default(20)
-// @Success      200   {object}  models.PageTransactionResponse
+// @Success      200   {object}  response.PageTransactionResponse
 // @Router       /api/v1/transactions [get]
 func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -68,8 +69,8 @@ func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
 // @ID           createTransaction
 // @Tags         transaction-controller
 // @Security     BearerAuth
-// @Param        body  body      models.CreateTransactionRequest  true  "Create transaction request"
-// @Success      201   {object}  models.TransactionResponse
+// @Param        body  body      request.CreateTransactionRequest  true  "Create transaction request"
+// @Success      201   {object}  response.TransactionResponse
 // @Router       /api/v1/transactions [post]
 func (h *Handler) CreateTransaction(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -77,7 +78,7 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	var req models.CreateTransactionRequest
+	var req request.CreateTransactionRequest
 	if !httputil.BindJSON(c, &req) {
 		return
 	}
@@ -97,7 +98,7 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        transactionId  path      string             true  "Transaction ID"    Format(uuid)
 // @Param        body           body      map[string]object  true  "Fields to update"
-// @Success      200            {object}  models.TransactionResponse
+// @Success      200            {object}  response.TransactionResponse
 // @Router       /api/v1/transactions/{transactionId} [patch]
 func (h *Handler) UpdateTransaction(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)

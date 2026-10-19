@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/krivolapovdev/trenerio/pkg/request"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,7 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 	"github.com/krivolapovdev/trenerio/pkg/testutil"
 	"github.com/stretchr/testify/assert"
@@ -20,47 +21,47 @@ import (
 )
 
 type mockTxService struct {
-	getPaginatedTransactionsFn func(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error)
-	createTransactionFn        func(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error)
-	updateTransactionFn        func(ctx context.Context, txID, ownerID uuid.UUID, updates map[string]any) (models.TransactionResponse, error)
+	getPaginatedTransactionsFn func(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error)
+	createTransactionFn        func(ctx context.Context, req request.CreateTransactionRequest, ownerID uuid.UUID) (response.TransactionResponse, error)
+	updateTransactionFn        func(ctx context.Context, txID, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error)
 	deleteTransactionFn        func(ctx context.Context, txID, ownerID uuid.UUID) error
 }
 
-func (m *mockTxService) GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error) {
+func (m *mockTxService) GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error) {
 	if m.getPaginatedTransactionsFn != nil {
 		return m.getPaginatedTransactionsFn(ctx, page, size, ownerID)
 	}
-	return models.PageTransactionResponse{}, nil
+	return response.PageTransactionResponse{}, nil
 }
 
-func (m *mockTxService) GetTransactionsBetween(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+func (m *mockTxService) GetTransactionsBetween(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
 	return nil, nil
 }
 
-func (m *mockTxService) GetTransactionsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+func (m *mockTxService) GetTransactionsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
 	return nil, nil
 }
 
-func (m *mockTxService) GetTransactionsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]models.TransactionResponse, error) {
+func (m *mockTxService) GetTransactionsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]response.TransactionResponse, error) {
 	return nil, nil
 }
 
-func (m *mockTxService) CreateTransaction(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error) {
+func (m *mockTxService) CreateTransaction(ctx context.Context, req request.CreateTransactionRequest, ownerID uuid.UUID) (response.TransactionResponse, error) {
 	if m.createTransactionFn != nil {
 		return m.createTransactionFn(ctx, req, ownerID)
 	}
-	return models.TransactionResponse{}, nil
+	return response.TransactionResponse{}, nil
 }
 
-func (m *mockTxService) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (models.TransactionResponse, error) {
-	return models.TransactionResponse{}, nil
+func (m *mockTxService) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (response.TransactionResponse, error) {
+	return response.TransactionResponse{}, nil
 }
 
-func (m *mockTxService) UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (models.TransactionResponse, error) {
+func (m *mockTxService) UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error) {
 	if m.updateTransactionFn != nil {
 		return m.updateTransactionFn(ctx, transactionID, ownerID, updates)
 	}
-	return models.TransactionResponse{}, nil
+	return response.TransactionResponse{}, nil
 }
 
 func (m *mockTxService) DeleteTransaction(ctx context.Context, transactionID, ownerID uuid.UUID) error {
@@ -90,11 +91,11 @@ func TestTransactionHandler_GetPaginatedTransactions(t *testing.T) {
 
 	t.Run("SuccessWithDefaults", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error) {
+			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error) {
 				assert.Equal(t, 1, page)
 				assert.Equal(t, 20, size)
 				assert.Equal(t, testUser.ID, ownerID)
-				return models.PageTransactionResponse{
+				return response.PageTransactionResponse{
 					Number:        page,
 					Size:          size,
 					TotalElements: 1,
@@ -109,7 +110,7 @@ func TestTransactionHandler_GetPaginatedTransactions(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var actual models.PageTransactionResponse
+		var actual response.PageTransactionResponse
 		err := json.Unmarshal(w.Body.Bytes(), &actual)
 		require.NoError(t, err)
 		assert.Equal(t, 1, actual.Number)
@@ -117,10 +118,10 @@ func TestTransactionHandler_GetPaginatedTransactions(t *testing.T) {
 
 	t.Run("SuccessWithQueryParams", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error) {
+			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error) {
 				assert.Equal(t, 2, page)
 				assert.Equal(t, 50, size)
-				return models.PageTransactionResponse{Number: page, Size: size}, nil
+				return response.PageTransactionResponse{Number: page, Size: size}, nil
 			},
 		}
 
@@ -134,8 +135,8 @@ func TestTransactionHandler_GetPaginatedTransactions(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (models.PageTransactionResponse, error) {
-				return models.PageTransactionResponse{}, assert.AnError
+			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error) {
+				return response.PageTransactionResponse{}, assert.AnError
 			},
 		}
 
@@ -166,10 +167,10 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		expectedID := uuid.New()
 
 		mockSvc := &mockTxService{
-			createTransactionFn: func(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error) {
+			createTransactionFn: func(ctx context.Context, req request.CreateTransactionRequest, ownerID uuid.UUID) (response.TransactionResponse, error) {
 				assert.Equal(t, testUser.ID, ownerID)
 				assert.Equal(t, 2500.0, req.Amount)
-				return models.TransactionResponse{ID: expectedID, Amount: req.Amount}, nil
+				return response.TransactionResponse{ID: expectedID, Amount: req.Amount}, nil
 			},
 		}
 
@@ -181,7 +182,7 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
-		var actual models.TransactionResponse
+		var actual response.TransactionResponse
 		err := json.Unmarshal(w.Body.Bytes(), &actual)
 		require.NoError(t, err)
 		assert.Equal(t, expectedID, actual.ID)
@@ -189,8 +190,8 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			createTransactionFn: func(ctx context.Context, req models.CreateTransactionRequest, ownerID uuid.UUID) (models.TransactionResponse, error) {
-				return models.TransactionResponse{}, assert.AnError
+			createTransactionFn: func(ctx context.Context, req request.CreateTransactionRequest, ownerID uuid.UUID) (response.TransactionResponse, error) {
+				return response.TransactionResponse{}, assert.AnError
 			},
 		}
 
@@ -231,11 +232,11 @@ func TestTransactionHandler_UpdateTransaction(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (models.TransactionResponse, error) {
+			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error) {
 				assert.Equal(t, txID, id)
 				assert.Equal(t, testUser.ID, ownerID)
 				assert.Equal(t, 3000.0, updates["amount"])
-				return models.TransactionResponse{ID: txID, Amount: 3000.0}, nil
+				return response.TransactionResponse{ID: txID, Amount: 3000.0}, nil
 			},
 		}
 
@@ -250,8 +251,8 @@ func TestTransactionHandler_UpdateTransaction(t *testing.T) {
 
 	t.Run("NotFound", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (models.TransactionResponse, error) {
-				return models.TransactionResponse{}, pkgerrors.NewNotFound("Transaction", id, ownerID)
+			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error) {
+				return response.TransactionResponse{}, pkgerrors.NewNotFound("Transaction", id, ownerID)
 			},
 		}
 
@@ -266,8 +267,8 @@ func TestTransactionHandler_UpdateTransaction(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (models.TransactionResponse, error) {
-				return models.TransactionResponse{}, assert.AnError
+			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error) {
+				return response.TransactionResponse{}, assert.AnError
 			},
 		}
 

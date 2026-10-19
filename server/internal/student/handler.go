@@ -2,6 +2,8 @@ package student
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/request"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"strings"
 	"time"
@@ -9,18 +11,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 type studentService interface {
-	GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error)
-	GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error)
-	GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error)
-	GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error)
-	CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error)
-	CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error)
-	UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error)
+	GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]response.StudentSummaryResponse, error)
+	GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]response.VisitWithLessonResponse, error)
+	GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.TransactionResponse, error)
+	GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (response.StudentResponse, error)
+	CreateStudent(ctx context.Context, req request.CreateStudentRequest, ownerID uuid.UUID) (response.StudentResponse, error)
+	CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (response.TransactionResponse, error)
+	UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (response.StudentResponse, error)
 	DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error
 }
 
@@ -53,7 +54,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @ID           getStudentsSummary
 // @Tags         student-controller
 // @Security     BearerAuth
-// @Success      200  {array}   models.StudentSummaryResponse
+// @Success      200  {array}   response.StudentSummaryResponse
 // @Router       /api/v1/students/overview [get]
 func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -77,7 +78,7 @@ func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
 // @Param        studentId  path      string  true   "Student ID"             Format(uuid)
 // @Param        from       query     string  false  "Start date (RFC3339)"   Format(date-time)
 // @Param        to         query     string  false  "End date (RFC3339)"     Format(date-time)
-// @Success      200        {array}   models.VisitWithLessonResponse
+// @Success      200        {array}   response.VisitWithLessonResponse
 // @Router       /api/v1/students/{studentId}/visits [get]
 func (h *Handler) GetStudentVisits(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -107,7 +108,7 @@ func (h *Handler) GetStudentVisits(c *gin.Context) {
 // @Tags         student-controller
 // @Security     BearerAuth
 // @Param        studentId  path      string  true  "Student ID"  Format(uuid)
-// @Success      200        {array}   models.TransactionResponse
+// @Success      200        {array}   response.TransactionResponse
 // @Router       /api/v1/students/{studentId}/payments [get]
 func (h *Handler) GetStudentPayments(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -133,8 +134,8 @@ func (h *Handler) GetStudentPayments(c *gin.Context) {
 // @ID           createStudent
 // @Tags         student-controller
 // @Security     BearerAuth
-// @Param        body  body      models.CreateStudentRequest  true  "Create student request"
-// @Success      201   {object}  models.StudentResponse
+// @Param        body  body      request.CreateStudentRequest  true  "Create student request"
+// @Success      201   {object}  response.StudentResponse
 // @Router       /api/v1/students [post]
 func (h *Handler) CreateStudent(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -142,7 +143,7 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 		return
 	}
 
-	var req models.CreateStudentRequest
+	var req request.CreateStudentRequest
 	if !httputil.BindJSON(c, &req) {
 		return
 	}
@@ -170,8 +171,8 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 // @Tags         student-controller
 // @Security     BearerAuth
 // @Param        studentId  path      string                              true  "Student ID"              Format(uuid)
-// @Param        body       body      models.CreateStudentPaymentRequest  true  "Student payment request"
-// @Success      201        {object}  models.TransactionResponse
+// @Param        body       body      request.CreateStudentPaymentRequest  true  "Student payment request"
+// @Success      201        {object}  response.TransactionResponse
 // @Router       /api/v1/students/{studentId}/payments [post]
 func (h *Handler) CreateStudentPayment(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -184,7 +185,7 @@ func (h *Handler) CreateStudentPayment(c *gin.Context) {
 		return
 	}
 
-	var req models.CreateStudentPaymentRequest
+	var req request.CreateStudentPaymentRequest
 	if !httputil.BindJSON(c, &req) {
 		return
 	}
@@ -204,7 +205,7 @@ func (h *Handler) CreateStudentPayment(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        studentId  path      string             true  "Student ID"        Format(uuid)
 // @Param        body       body      map[string]object  true  "Fields to update"
-// @Success      200        {object}  models.StudentResponse
+// @Success      200        {object}  response.StudentResponse
 // @Router       /api/v1/students/{studentId} [patch]
 func (h *Handler) UpdateStudent(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)

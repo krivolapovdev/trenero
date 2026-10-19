@@ -1,4 +1,4 @@
-package models
+package response
 
 // @name JwtResponse
 type JwtResponse struct {

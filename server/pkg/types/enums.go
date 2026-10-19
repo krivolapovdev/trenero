@@ -122,10 +122,12 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 		*d = Date{}
 		return nil
 	}
+
 	parsed, err := ParseDate(s)
 	if err != nil {
 		return err
 	}
+
 	*d = parsed
 	return nil
 }
@@ -134,6 +136,7 @@ func (d Date) String() string {
 	if d.IsZero() {
 		return ""
 	}
+
 	return d.Format(time.DateOnly)
 }
 
@@ -141,6 +144,7 @@ func ParseUUIDSlice(raw any) []uuid.UUID {
 	if raw == nil {
 		return nil
 	}
+
 	switch v := raw.(type) {
 	case []uuid.UUID:
 		return v
@@ -167,5 +171,6 @@ func ParseUUIDSlice(raw any) []uuid.UUID {
 			return []uuid.UUID{id}
 		}
 	}
+
 	return nil
 }

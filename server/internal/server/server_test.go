@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,7 +15,6 @@ import (
 	"github.com/krivolapovdev/trenerio/internal/db"
 	"github.com/krivolapovdev/trenerio/internal/user"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -81,30 +81,30 @@ func TestNoRouteAndNoMethod(t *testing.T) {
 }
 
 type testAuthService struct {
-	loginReviewerFn func(ctx context.Context, reviewerKey string) (auth.LoginResponse, error)
+	loginReviewerFn func(ctx context.Context, reviewerKey string) (response.LoginResponse, error)
 }
 
-func (m *testAuthService) LoginGoogle(ctx context.Context, token string) (auth.LoginResponse, error) {
-	return auth.LoginResponse{}, nil
+func (m *testAuthService) LoginGoogle(ctx context.Context, token string) (response.LoginResponse, error) {
+	return response.LoginResponse{}, nil
 }
 
-func (m *testAuthService) RefreshTokens(ctx context.Context, refreshToken string) (models.JwtResponse, error) {
-	return models.JwtResponse{}, nil
+func (m *testAuthService) RefreshTokens(ctx context.Context, refreshToken string) (response.JwtResponse, error) {
+	return response.JwtResponse{}, nil
 }
 
-func (m *testAuthService) LoginReviewer(ctx context.Context, reviewerKey string) (auth.LoginResponse, error) {
+func (m *testAuthService) LoginReviewer(ctx context.Context, reviewerKey string) (response.LoginResponse, error) {
 	if m.loginReviewerFn != nil {
 		return m.loginReviewerFn(ctx, reviewerKey)
 	}
-	return auth.LoginResponse{}, nil
+	return response.LoginResponse{}, nil
 }
 
 type testUserService struct {
 	deleteUserFn func(ctx context.Context, jwtUser security.JwtUser) error
 }
 
-func (m *testUserService) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (user.UserResponse, error) {
-	return user.UserResponse{}, nil
+func (m *testUserService) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (response.UserResponse, error) {
+	return response.UserResponse{}, nil
 }
 
 func (m *testUserService) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
@@ -123,21 +123,21 @@ func TestServer_AuthAndProtectedRoutes(t *testing.T) {
 	testUser := security.JwtUser{ID: uuid.New(), Email: "test@trenerio.ru"}
 
 	authHandler := auth.NewHandler(&testAuthService{
-		loginReviewerFn: func(ctx context.Context, reviewerKey string) (auth.LoginResponse, error) {
+		loginReviewerFn: func(ctx context.Context, reviewerKey string) (response.LoginResponse, error) {
 			if reviewerKey == "valid-key" {
 				acc, ref, err := tokenProvider.GenerateTokenPair(testUser)
 				if err != nil {
-					return auth.LoginResponse{}, err
+					return response.LoginResponse{}, err
 				}
-				return auth.LoginResponse{
-					User: models.UserResponse{ID: testUser.ID, Email: testUser.Email},
-					JwtTokens: models.JwtResponse{
+				return response.LoginResponse{
+					User: response.UserResponse{ID: testUser.ID, Email: testUser.Email},
+					JwtTokens: response.JwtResponse{
 						AccessToken:  acc,
 						RefreshToken: ref,
 					},
 				}, nil
 			}
-			return auth.LoginResponse{}, pkgerrors.NewUnauthorized("Invalid reviewer key")
+			return response.LoginResponse{}, pkgerrors.NewUnauthorized("Invalid reviewer key")
 		},
 	})
 
@@ -157,7 +157,7 @@ func TestServer_AuthAndProtectedRoutes(t *testing.T) {
 		srv.Engine().ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var resp auth.LoginResponse
+		var resp response.LoginResponse
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		require.NoError(t, err)
 		assert.Equal(t, testUser.Email, resp.User.Email)

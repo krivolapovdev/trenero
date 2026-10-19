@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/krivolapovdev/trenerio/pkg/request"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,7 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 	"github.com/krivolapovdev/trenerio/pkg/testutil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
@@ -21,63 +22,63 @@ import (
 )
 
 type mockStudentService struct {
-	getAllStudentsSummaryFn func(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error)
-	getStudentDetailsByIDFn func(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error)
-	getStudentVisitsFn      func(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error)
-	getStudentPaymentsFn    func(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error)
-	createStudentFn         func(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error)
-	createStudentPaymentFn  func(ctx context.Context, studentID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error)
-	updateStudentFn         func(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error)
+	getAllStudentsSummaryFn func(ctx context.Context, ownerID uuid.UUID) ([]response.StudentSummaryResponse, error)
+	getStudentDetailsByIDFn func(ctx context.Context, studentID, ownerID uuid.UUID) (response.StudentResponse, error)
+	getStudentVisitsFn      func(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]response.VisitWithLessonResponse, error)
+	getStudentPaymentsFn    func(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.TransactionResponse, error)
+	createStudentFn         func(ctx context.Context, req request.CreateStudentRequest, ownerID uuid.UUID) (response.StudentResponse, error)
+	createStudentPaymentFn  func(ctx context.Context, studentID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (response.TransactionResponse, error)
+	updateStudentFn         func(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (response.StudentResponse, error)
 	deleteStudentFn         func(ctx context.Context, studentID, ownerID uuid.UUID) error
 }
 
-func (m *mockStudentService) GetAllStudents(ctx context.Context, ownerID uuid.UUID) ([]models.StudentResponse, error) {
+func (m *mockStudentService) GetAllStudents(ctx context.Context, ownerID uuid.UUID) ([]response.StudentResponse, error) {
 	return nil, nil
 }
-func (m *mockStudentService) GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error) {
+func (m *mockStudentService) GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]response.StudentResponse, error) {
 	return nil, nil
 }
-func (m *mockStudentService) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error) {
+func (m *mockStudentService) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]response.StudentSummaryResponse, error) {
 	if m.getAllStudentsSummaryFn != nil {
 		return m.getAllStudentsSummaryFn(ctx, ownerID)
 	}
 	return nil, nil
 }
-func (m *mockStudentService) GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error) {
+func (m *mockStudentService) GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (response.StudentResponse, error) {
 	if m.getStudentDetailsByIDFn != nil {
 		return m.getStudentDetailsByIDFn(ctx, studentID, ownerID)
 	}
-	return models.StudentResponse{}, nil
+	return response.StudentResponse{}, nil
 }
-func (m *mockStudentService) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error) {
+func (m *mockStudentService) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]response.VisitWithLessonResponse, error) {
 	if m.getStudentVisitsFn != nil {
 		return m.getStudentVisitsFn(ctx, studentID, ownerID, from, to)
 	}
 	return nil, nil
 }
-func (m *mockStudentService) GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+func (m *mockStudentService) GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
 	if m.getStudentPaymentsFn != nil {
 		return m.getStudentPaymentsFn(ctx, studentID, ownerID)
 	}
 	return nil, nil
 }
-func (m *mockStudentService) CreateStudent(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
+func (m *mockStudentService) CreateStudent(ctx context.Context, req request.CreateStudentRequest, ownerID uuid.UUID) (response.StudentResponse, error) {
 	if m.createStudentFn != nil {
 		return m.createStudentFn(ctx, req, ownerID)
 	}
-	return models.StudentResponse{}, nil
+	return response.StudentResponse{}, nil
 }
-func (m *mockStudentService) CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
+func (m *mockStudentService) CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (response.TransactionResponse, error) {
 	if m.createStudentPaymentFn != nil {
 		return m.createStudentPaymentFn(ctx, studentID, ownerID, req)
 	}
-	return models.TransactionResponse{}, nil
+	return response.TransactionResponse{}, nil
 }
-func (m *mockStudentService) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error) {
+func (m *mockStudentService) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (response.StudentResponse, error) {
 	if m.updateStudentFn != nil {
 		return m.updateStudentFn(ctx, studentID, ownerID, updates)
 	}
-	return models.StudentResponse{}, nil
+	return response.StudentResponse{}, nil
 }
 func (m *mockStudentService) DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error {
 	if m.deleteStudentFn != nil {
@@ -85,7 +86,7 @@ func (m *mockStudentService) DeleteStudent(ctx context.Context, studentID, owner
 	}
 	return nil
 }
-func (m *mockStudentService) ComputeStudentStatuses(student models.StudentResponse, visits []models.VisitResponse, payments []models.TransactionResponse, lessonsMap map[uuid.UUID]models.LessonResponse, groupLessonsMap map[uuid.UUID]models.LessonResponse, today time.Time) []types.StudentStatus {
+func (m *mockStudentService) ComputeStudentStatuses(student response.StudentResponse, visits []response.VisitResponse, payments []response.TransactionResponse, lessonsMap map[uuid.UUID]response.LessonResponse, groupLessonsMap map[uuid.UUID]response.LessonResponse, today time.Time) []types.StudentStatus {
 	return nil
 }
 
@@ -108,7 +109,7 @@ func TestStudentHandler_GetAllStudentsSummary(t *testing.T) {
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		expected := []models.StudentSummaryResponse{
+		expected := []response.StudentSummaryResponse{
 			{
 				ID:       uuid.New(),
 				FullName: "Ivan Ivanov",
@@ -116,7 +117,7 @@ func TestStudentHandler_GetAllStudentsSummary(t *testing.T) {
 		}
 
 		mockSvc := &mockStudentService{
-			getAllStudentsSummaryFn: func(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error) {
+			getAllStudentsSummaryFn: func(ctx context.Context, ownerID uuid.UUID) ([]response.StudentSummaryResponse, error) {
 				assert.Equal(t, testUser.ID, ownerID)
 				return expected, nil
 			},
@@ -128,7 +129,7 @@ func TestStudentHandler_GetAllStudentsSummary(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var actual []models.StudentSummaryResponse
+		var actual []response.StudentSummaryResponse
 		err := json.Unmarshal(w.Body.Bytes(), &actual)
 		require.NoError(t, err)
 		assert.Len(t, actual, 1)
@@ -137,7 +138,7 @@ func TestStudentHandler_GetAllStudentsSummary(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			getAllStudentsSummaryFn: func(ctx context.Context, ownerID uuid.UUID) ([]models.StudentSummaryResponse, error) {
+			getAllStudentsSummaryFn: func(ctx context.Context, ownerID uuid.UUID) ([]response.StudentSummaryResponse, error) {
 				return nil, assert.AnError
 			},
 		}
@@ -157,10 +158,10 @@ func TestStudentHandler_CreateStudent(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		expectedID := uuid.New()
 		mockSvc := &mockStudentService{
-			createStudentFn: func(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
+			createStudentFn: func(ctx context.Context, req request.CreateStudentRequest, ownerID uuid.UUID) (response.StudentResponse, error) {
 				assert.Equal(t, "Anna Smith", req.FullName)
 				assert.Equal(t, testUser.ID, ownerID)
-				return models.StudentResponse{
+				return response.StudentResponse{
 					ID:       expectedID,
 					FullName: req.FullName,
 				}, nil
@@ -174,7 +175,7 @@ func TestStudentHandler_CreateStudent(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
-		var actual models.StudentResponse
+		var actual response.StudentResponse
 		err := json.Unmarshal(w.Body.Bytes(), &actual)
 		require.NoError(t, err)
 		assert.Equal(t, expectedID, actual.ID)
@@ -204,13 +205,13 @@ func TestStudentHandler_CreateStudent(t *testing.T) {
 	t.Run("TrimmedData", func(t *testing.T) {
 		expectedID := uuid.New()
 		mockSvc := &mockStudentService{
-			createStudentFn: func(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
+			createStudentFn: func(ctx context.Context, req request.CreateStudentRequest, ownerID uuid.UUID) (response.StudentResponse, error) {
 				assert.Equal(t, "Anna Smith", req.FullName)
 				require.NotNil(t, req.Phone)
 				assert.Equal(t, "123456", *req.Phone)
 				require.NotNil(t, req.Note)
 				assert.Equal(t, "student note", *req.Note)
-				return models.StudentResponse{
+				return response.StudentResponse{
 					ID:       expectedID,
 					FullName: req.FullName,
 					Phone:    req.Phone,
@@ -230,8 +231,8 @@ func TestStudentHandler_CreateStudent(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			createStudentFn: func(ctx context.Context, req models.CreateStudentRequest, ownerID uuid.UUID) (models.StudentResponse, error) {
-				return models.StudentResponse{}, assert.AnError
+			createStudentFn: func(ctx context.Context, req request.CreateStudentRequest, ownerID uuid.UUID) (response.StudentResponse, error) {
+				return response.StudentResponse{}, assert.AnError
 			},
 		}
 
@@ -326,15 +327,15 @@ func TestStudentHandler_GetStudentVisits(t *testing.T) {
 
 	t.Run("SuccessWithoutDates", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			getStudentVisitsFn: func(ctx context.Context, sID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error) {
+			getStudentVisitsFn: func(ctx context.Context, sID, ownerID uuid.UUID, from, to *time.Time) ([]response.VisitWithLessonResponse, error) {
 				assert.Equal(t, studentID, sID)
 				assert.Equal(t, testUser.ID, ownerID)
 				assert.Nil(t, from)
 				assert.Nil(t, to)
-				return []models.VisitWithLessonResponse{
+				return []response.VisitWithLessonResponse{
 					{
-						Visit:  models.VisitResponse{ID: uuid.New()},
-						Lesson: models.LessonResponse{ID: uuid.New()},
+						Visit:  response.VisitResponse{ID: uuid.New()},
+						Lesson: response.LessonResponse{ID: uuid.New()},
 					},
 				}, nil
 			},
@@ -353,12 +354,12 @@ func TestStudentHandler_GetStudentVisits(t *testing.T) {
 		toDate := time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC)
 
 		mockSvc := &mockStudentService{
-			getStudentVisitsFn: func(ctx context.Context, sID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error) {
+			getStudentVisitsFn: func(ctx context.Context, sID, ownerID uuid.UUID, from, to *time.Time) ([]response.VisitWithLessonResponse, error) {
 				require.NotNil(t, from)
 				require.NotNil(t, to)
 				assert.True(t, fromDate.Equal(*from))
 				assert.True(t, toDate.Equal(*to))
-				return []models.VisitWithLessonResponse{}, nil
+				return []response.VisitWithLessonResponse{}, nil
 			},
 		}
 
@@ -373,7 +374,7 @@ func TestStudentHandler_GetStudentVisits(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			getStudentVisitsFn: func(ctx context.Context, sID, ownerID uuid.UUID, from, to *time.Time) ([]models.VisitWithLessonResponse, error) {
+			getStudentVisitsFn: func(ctx context.Context, sID, ownerID uuid.UUID, from, to *time.Time) ([]response.VisitWithLessonResponse, error) {
 				return nil, assert.AnError
 			},
 		}
@@ -402,10 +403,10 @@ func TestStudentHandler_GetStudentPayments(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			getStudentPaymentsFn: func(ctx context.Context, sID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+			getStudentPaymentsFn: func(ctx context.Context, sID, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
 				assert.Equal(t, studentID, sID)
 				assert.Equal(t, testUser.ID, ownerID)
-				return []models.TransactionResponse{{ID: uuid.New(), Amount: 5000}}, nil
+				return []response.TransactionResponse{{ID: uuid.New(), Amount: 5000}}, nil
 			},
 		}
 
@@ -419,7 +420,7 @@ func TestStudentHandler_GetStudentPayments(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			getStudentPaymentsFn: func(ctx context.Context, sID, ownerID uuid.UUID) ([]models.TransactionResponse, error) {
+			getStudentPaymentsFn: func(ctx context.Context, sID, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
 				return nil, assert.AnError
 			},
 		}
@@ -463,11 +464,11 @@ func TestStudentHandler_CreateStudentPayment(t *testing.T) {
 		paidUntil := time.Date(2026, 11, 17, 0, 0, 0, 0, time.UTC)
 
 		mockSvc := &mockStudentService{
-			createStudentPaymentFn: func(ctx context.Context, sID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
+			createStudentPaymentFn: func(ctx context.Context, sID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (response.TransactionResponse, error) {
 				assert.Equal(t, studentID, sID)
 				assert.Equal(t, testUser.ID, ownerID)
 				assert.Equal(t, 4500.0, req.Amount)
-				return models.TransactionResponse{ID: expectedID, Amount: req.Amount}, nil
+				return response.TransactionResponse{ID: expectedID, Amount: req.Amount}, nil
 			},
 		}
 
@@ -483,8 +484,8 @@ func TestStudentHandler_CreateStudentPayment(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			createStudentPaymentFn: func(ctx context.Context, sID, ownerID uuid.UUID, req models.CreateStudentPaymentRequest) (models.TransactionResponse, error) {
-				return models.TransactionResponse{}, assert.AnError
+			createStudentPaymentFn: func(ctx context.Context, sID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (response.TransactionResponse, error) {
+				return response.TransactionResponse{}, assert.AnError
 			},
 		}
 
@@ -525,11 +526,11 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			updateStudentFn: func(ctx context.Context, sID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error) {
+			updateStudentFn: func(ctx context.Context, sID, ownerID uuid.UUID, updates map[string]any) (response.StudentResponse, error) {
 				assert.Equal(t, studentID, sID)
 				assert.Equal(t, testUser.ID, ownerID)
 				assert.Equal(t, "Boris", updates["fullName"])
-				return models.StudentResponse{ID: studentID, FullName: "Boris"}, nil
+				return response.StudentResponse{ID: studentID, FullName: "Boris"}, nil
 			},
 		}
 
@@ -544,8 +545,8 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 
 	t.Run("NotFound", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			updateStudentFn: func(ctx context.Context, sID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error) {
-				return models.StudentResponse{}, pkgerrors.NewNotFound("Student", sID, ownerID)
+			updateStudentFn: func(ctx context.Context, sID, ownerID uuid.UUID, updates map[string]any) (response.StudentResponse, error) {
+				return response.StudentResponse{}, pkgerrors.NewNotFound("Student", sID, ownerID)
 			},
 		}
 
@@ -570,13 +571,13 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 
 	t.Run("TrimmedData", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			updateStudentFn: func(ctx context.Context, sID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error) {
+			updateStudentFn: func(ctx context.Context, sID, ownerID uuid.UUID, updates map[string]any) (response.StudentResponse, error) {
 				assert.Equal(t, studentID, sID)
 				assert.Equal(t, testUser.ID, ownerID)
 				assert.Equal(t, "Boris", updates["fullName"])
 				assert.Equal(t, "98765", updates["phone"])
 				assert.Equal(t, "updated note", updates["note"])
-				return models.StudentResponse{ID: studentID, FullName: "Boris"}, nil
+				return response.StudentResponse{ID: studentID, FullName: "Boris"}, nil
 			},
 		}
 
@@ -591,8 +592,8 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			updateStudentFn: func(ctx context.Context, sID, ownerID uuid.UUID, updates map[string]any) (models.StudentResponse, error) {
-				return models.StudentResponse{}, assert.AnError
+			updateStudentFn: func(ctx context.Context, sID, ownerID uuid.UUID, updates map[string]any) (response.StudentResponse, error) {
+				return response.StudentResponse{}, assert.AnError
 			},
 		}
 

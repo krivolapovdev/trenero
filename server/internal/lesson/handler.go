@@ -2,19 +2,20 @@ package lesson
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/request"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 type lessonService interface {
-	GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (models.LessonDetailsResponse, error)
-	CreateLesson(ctx context.Context, req models.CreateLessonRequest, ownerID uuid.UUID) (models.LessonResponse, error)
-	UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req models.UpdateLessonRequest) (models.LessonResponse, error)
+	GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uuid.UUID) (response.LessonDetailsResponse, error)
+	CreateLesson(ctx context.Context, req request.CreateLessonRequest, ownerID uuid.UUID) (response.LessonResponse, error)
+	UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req request.UpdateLessonRequest) (response.LessonResponse, error)
 	DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID) error
 }
 
@@ -44,7 +45,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @Tags         lesson-controller
 // @Security     BearerAuth
 // @Param        lessonId  path      string  true  "Lesson ID"  Format(uuid)
-// @Success      200       {object}  models.LessonDetailsResponse
+// @Success      200       {object}  response.LessonDetailsResponse
 // @Router       /api/v1/lessons/{lessonId}/details [get]
 func (h *Handler) GetLessonDetails(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -70,8 +71,8 @@ func (h *Handler) GetLessonDetails(c *gin.Context) {
 // @ID           createLesson
 // @Tags         lesson-controller
 // @Security     BearerAuth
-// @Param        body  body      models.CreateLessonRequest  true  "Create lesson request"
-// @Success      201   {object}  models.LessonResponse
+// @Param        body  body      request.CreateLessonRequest  true  "Create lesson request"
+// @Success      201   {object}  response.LessonResponse
 // @Router       /api/v1/lessons [post]
 func (h *Handler) CreateLesson(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -79,7 +80,7 @@ func (h *Handler) CreateLesson(c *gin.Context) {
 		return
 	}
 
-	var req models.CreateLessonRequest
+	var req request.CreateLessonRequest
 	if !httputil.BindJSON(c, &req) {
 		return
 	}
@@ -98,8 +99,8 @@ func (h *Handler) CreateLesson(c *gin.Context) {
 // @Tags         lesson-controller
 // @Security     BearerAuth
 // @Param        lessonId  path      string                      true  "Lesson ID"              Format(uuid)
-// @Param        body      body      models.UpdateLessonRequest  true  "Update lesson request"
-// @Success      200       {object}  models.LessonResponse
+// @Param        body      body      request.UpdateLessonRequest  true  "Update lesson request"
+// @Success      200       {object}  response.LessonResponse
 // @Router       /api/v1/lessons/{lessonId} [patch]
 func (h *Handler) UpdateLesson(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -112,7 +113,7 @@ func (h *Handler) UpdateLesson(c *gin.Context) {
 		return
 	}
 
-	var req models.UpdateLessonRequest
+	var req request.UpdateLessonRequest
 	if !httputil.BindJSON(c, &req) {
 		return
 	}

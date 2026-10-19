@@ -2,6 +2,8 @@ package group
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/request"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"strconv"
 	"strings"
@@ -10,17 +12,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 type groupService interface {
-	GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([]models.GroupSummaryResponse, error)
-	GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]models.GroupStudentSummaryResponse, error)
-	GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]models.LessonResponse, error)
-	GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (models.GroupReportResponse, error)
-	CreateGroup(ctx context.Context, req models.CreateGroupRequest, ownerID uuid.UUID) (models.GroupResponse, error)
-	UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]any) (models.GroupResponse, error)
+	GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([]response.GroupSummaryResponse, error)
+	GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]response.GroupStudentSummaryResponse, error)
+	GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]response.LessonResponse, error)
+	GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (response.GroupReportResponse, error)
+	CreateGroup(ctx context.Context, req request.CreateGroupRequest, ownerID uuid.UUID) (response.GroupResponse, error)
+	UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]any) (response.GroupResponse, error)
 	DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) error
 }
 
@@ -52,7 +53,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @ID           getAllGroupsSummary
 // @Tags         group-controller
 // @Security     BearerAuth
-// @Success      200  {array}   models.GroupSummaryResponse
+// @Success      200  {array}   response.GroupSummaryResponse
 // @Router       /api/v1/groups [get]
 func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -74,7 +75,7 @@ func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
 // @Tags         group-controller
 // @Security     BearerAuth
 // @Param        groupId  path      string  true  "Group ID"  Format(uuid)
-// @Success      200      {array}   models.GroupStudentSummaryResponse
+// @Success      200      {array}   response.GroupStudentSummaryResponse
 // @Router       /api/v1/groups/{groupId}/students [get]
 func (h *Handler) GetGroupStudents(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -103,7 +104,7 @@ func (h *Handler) GetGroupStudents(c *gin.Context) {
 // @Param        groupId  path      string  true  "Group ID"               Format(uuid)
 // @Param        from     query     string  true  "Start date (RFC3339)"   Format(date-time)
 // @Param        to       query     string  true  "End date (RFC3339)"     Format(date-time)
-// @Success      200      {array}   models.LessonResponse
+// @Success      200      {array}   response.LessonResponse
 // @Router       /api/v1/groups/{groupId}/lessons [get]
 func (h *Handler) GetGroupLessons(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -137,7 +138,7 @@ func (h *Handler) GetGroupLessons(c *gin.Context) {
 // @Param        groupId  path      string  true  "Group ID"  Format(uuid)
 // @Param        year     query     int     true  "Year"
 // @Param        month    query     int     true  "Month"
-// @Success      200      {object}  models.GroupReportResponse
+// @Success      200      {object}  response.GroupReportResponse
 // @Router       /api/v1/groups/{groupId}/report [get]
 func (h *Handler) GetGroupReport(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -182,8 +183,8 @@ func (h *Handler) GetGroupReport(c *gin.Context) {
 // @ID           createGroup
 // @Tags         group-controller
 // @Security     BearerAuth
-// @Param        body  body      models.CreateGroupRequest  true  "Create group request"
-// @Success      201   {object}  models.GroupResponse
+// @Param        body  body      request.CreateGroupRequest  true  "Create group request"
+// @Success      201   {object}  response.GroupResponse
 // @Router       /api/v1/groups [post]
 func (h *Handler) CreateGroup(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)
@@ -191,7 +192,7 @@ func (h *Handler) CreateGroup(c *gin.Context) {
 		return
 	}
 
-	var req models.CreateGroupRequest
+	var req request.CreateGroupRequest
 	if !httputil.BindJSON(c, &req) {
 		return
 	}
@@ -219,7 +220,7 @@ func (h *Handler) CreateGroup(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        groupId  path      string             true  "Group ID"          Format(uuid)
 // @Param        body     body      map[string]object  true  "Fields to update"
-// @Success      200      {object}  models.GroupResponse
+// @Success      200      {object}  response.GroupResponse
 // @Router       /api/v1/groups/{groupId} [patch]
 func (h *Handler) UpdateGroup(c *gin.Context) {
 	jwtUser, ok := httputil.GetAuthUser(c)

@@ -1,25 +1,25 @@
 package group
 
 import (
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 	timeutil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 func BuildGroupReport(
-	grp models.GroupResponse,
+	grp response.GroupResponse,
 	year, month int,
-	students []models.StudentResponse,
-	lessons []models.LessonResponse,
-	visitsByStudentID map[uuid.UUID][]models.VisitResponse,
-	paymentsByStudentID map[uuid.UUID][]models.TransactionResponse,
+	students []response.StudentResponse,
+	lessons []response.LessonResponse,
+	visitsByStudentID map[uuid.UUID][]response.VisitResponse,
+	paymentsByStudentID map[uuid.UUID][]response.TransactionResponse,
 	today time.Time,
-) models.GroupReportResponse {
+) response.GroupReportResponse {
 	lastDay := time.Date(year, time.Month(month)+1, 0, 0, 0, 0, 0, time.UTC)
 	dayCount := lastDay.Day()
 
@@ -46,13 +46,13 @@ func BuildGroupReport(
 		statusesByStudentID[sid] = byLesson
 	}
 
-	sortedStudents := make([]models.StudentResponse, len(students))
+	sortedStudents := make([]response.StudentResponse, len(students))
 	copy(sortedStudents, students)
 	sort.Slice(sortedStudents, func(i, j int) bool {
 		return strings.ToLower(sortedStudents[i].FullName) < strings.ToLower(sortedStudents[j].FullName)
 	})
 
-	rows := make([]models.GroupReportStudentResponse, 0, len(sortedStudents))
+	rows := make([]response.GroupReportStudentResponse, 0, len(sortedStudents))
 	totalPresent := 0
 	totalLessons := 0
 
@@ -82,7 +82,7 @@ func BuildGroupReport(
 		totalPresent += pCount
 		totalLessons += lCount
 
-		rows = append(rows, models.GroupReportStudentResponse{
+		rows = append(rows, response.GroupReportStudentResponse{
 			StudentID:    student.ID,
 			FullName:     student.FullName,
 			Paid:         paid,
@@ -92,7 +92,7 @@ func BuildGroupReport(
 		})
 	}
 
-	return models.GroupReportResponse{
+	return response.GroupReportResponse{
 		GroupID:      grp.ID,
 		GroupName:    grp.Name,
 		Year:         year,
@@ -105,7 +105,7 @@ func BuildGroupReport(
 	}
 }
 
-func isPaid(payments []models.TransactionResponse, year, month int, today time.Time) bool {
+func isPaid(payments []response.TransactionResponse, year, month int, today time.Time) bool {
 	maxPaidUntil := timeutil.MaxPaidUntil(payments)
 	if maxPaidUntil == nil {
 		return false

@@ -1,30 +1,30 @@
 package student
 
 import (
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 	timeutil "github.com/krivolapovdev/trenerio/pkg/utils"
 )
 
 func ComputeStudentStatuses(
-	student models.StudentResponse,
-	visits []models.VisitResponse,
-	payments []models.TransactionResponse,
-	lessonsMap map[uuid.UUID]models.LessonResponse,
+	student response.StudentResponse,
+	visits []response.VisitResponse,
+	payments []response.TransactionResponse,
+	lessonsMap map[uuid.UUID]response.LessonResponse,
 	today time.Time,
 ) []types.StudentStatus {
 	return ComputeStudentStatusesWithVisitLessons(student, visits, payments, lessonsMap, lessonsMap, today)
 }
 
 func ComputeStudentStatusesWithVisitLessons(
-	student models.StudentResponse,
-	visits []models.VisitResponse,
-	payments []models.TransactionResponse,
-	lessonsMap map[uuid.UUID]models.LessonResponse,
-	visitLessonsMap map[uuid.UUID]models.LessonResponse,
+	student response.StudentResponse,
+	visits []response.VisitResponse,
+	payments []response.TransactionResponse,
+	lessonsMap map[uuid.UUID]response.LessonResponse,
+	visitLessonsMap map[uuid.UUID]response.LessonResponse,
 	today time.Time,
 ) []types.StudentStatus {
 	if len(visits) == 0 && len(payments) == 0 {

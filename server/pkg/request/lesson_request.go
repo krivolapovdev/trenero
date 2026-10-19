@@ -1,4 +1,4 @@
-package models
+package request
 
 import (
 	"time"
@@ -17,7 +17,7 @@ type StudentVisit struct {
 // @name CreateLessonRequest
 type CreateLessonRequest struct {
 	GroupID  *uuid.UUID     `json:"groupId" format:"uuid"`
-	Date     time.Time      `json:"date" binding:"required" validate:"required" format:"date-time"`
+	Date     time.Time      `json:"date" binding:"required" format:"date-time"`
 	Students []StudentVisit `json:"students"`
 }
 

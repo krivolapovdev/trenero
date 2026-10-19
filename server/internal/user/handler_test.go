@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,8 +20,8 @@ type mockUserService struct {
 	deleteUserFn func(ctx context.Context, jwtUser security.JwtUser) error
 }
 
-func (m *mockUserService) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (UserResponse, error) {
-	return UserResponse{}, nil
+func (m *mockUserService) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (response.UserResponse, error) {
+	return response.UserResponse{}, nil
 }
 
 func (m *mockUserService) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {

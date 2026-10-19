@@ -3,6 +3,7 @@ package metric
 import (
 	"context"
 	"encoding/json"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 	"github.com/krivolapovdev/trenerio/pkg/testutil"
 	"github.com/krivolapovdev/trenerio/pkg/types"
@@ -20,10 +20,10 @@ import (
 )
 
 type mockMetricService struct {
-	getPaymentStatisticsFn func(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error)
+	getPaymentStatisticsFn func(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.PaymentMetricResponse, error)
 }
 
-func (m *mockMetricService) GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
+func (m *mockMetricService) GetPaymentStatistics(ctx context.Context, scopeStr string, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.PaymentMetricResponse, error) {
 	if m.getPaymentStatisticsFn != nil {
 		return m.getPaymentStatisticsFn(ctx, scopeStr, startDate, endDate, ownerID)
 	}
@@ -69,12 +69,12 @@ func TestMetricHandler_GetPaymentStatistics(t *testing.T) {
 	})
 
 	t.Run("SuccessWithDefaultScope", func(t *testing.T) {
-		expected := []models.PaymentMetricResponse{
+		expected := []response.PaymentMetricResponse{
 			{Date: startDate, Total: 15000.0},
 		}
 
 		mockSvc := &mockMetricService{
-			getPaymentStatisticsFn: func(ctx context.Context, scopeStr string, start, end time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
+			getPaymentStatisticsFn: func(ctx context.Context, scopeStr string, start, end time.Time, ownerID uuid.UUID) ([]response.PaymentMetricResponse, error) {
 				assert.Equal(t, string(types.MetricScopeMonth), scopeStr)
 				assert.True(t, startDate.Equal(start))
 				assert.True(t, endDate.Equal(end))
@@ -90,7 +90,7 @@ func TestMetricHandler_GetPaymentStatistics(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var actual []models.PaymentMetricResponse
+		var actual []response.PaymentMetricResponse
 		err := json.Unmarshal(w.Body.Bytes(), &actual)
 		require.NoError(t, err)
 		assert.Len(t, actual, 1)
@@ -99,9 +99,9 @@ func TestMetricHandler_GetPaymentStatistics(t *testing.T) {
 
 	t.Run("SuccessWithExplicitScope", func(t *testing.T) {
 		mockSvc := &mockMetricService{
-			getPaymentStatisticsFn: func(ctx context.Context, scopeStr string, start, end time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
+			getPaymentStatisticsFn: func(ctx context.Context, scopeStr string, start, end time.Time, ownerID uuid.UUID) ([]response.PaymentMetricResponse, error) {
 				assert.Equal(t, "WEEK", scopeStr)
-				return []models.PaymentMetricResponse{}, nil
+				return []response.PaymentMetricResponse{}, nil
 			},
 		}
 
@@ -116,7 +116,7 @@ func TestMetricHandler_GetPaymentStatistics(t *testing.T) {
 
 	t.Run("DateRangeServiceError", func(t *testing.T) {
 		mockSvc := &mockMetricService{
-			getPaymentStatisticsFn: func(ctx context.Context, scopeStr string, start, end time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
+			getPaymentStatisticsFn: func(ctx context.Context, scopeStr string, start, end time.Time, ownerID uuid.UUID) ([]response.PaymentMetricResponse, error) {
 				return nil, pkgerrors.NewBadRequest("endDate must not be before startDate")
 			},
 		}
@@ -141,7 +141,7 @@ func TestMetricHandler_GetPaymentStatistics(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockMetricService{
-			getPaymentStatisticsFn: func(ctx context.Context, scopeStr string, start, end time.Time, ownerID uuid.UUID) ([]models.PaymentMetricResponse, error) {
+			getPaymentStatisticsFn: func(ctx context.Context, scopeStr string, start, end time.Time, ownerID uuid.UUID) ([]response.PaymentMetricResponse, error) {
 				return nil, assert.AnError
 			},
 		}

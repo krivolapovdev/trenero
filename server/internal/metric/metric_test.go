@@ -2,12 +2,12 @@ package metric
 
 import (
 	"context"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -74,8 +74,8 @@ func TestMetricService_Calculation(t *testing.T) {
 	endDate := time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC)
 	ownerID := uuid.New()
 
-	mockFetch := func(ctx context.Context, s, e time.Time, o uuid.UUID) ([]models.TransactionResponse, error) {
-		return []models.TransactionResponse{
+	mockFetch := func(ctx context.Context, s, e time.Time, o uuid.UUID) ([]response.TransactionResponse, error) {
+		return []response.TransactionResponse{
 			{
 				Amount: 1000,
 				Date:   time.Date(2026, 1, 15, 12, 0, 0, 0, time.UTC),

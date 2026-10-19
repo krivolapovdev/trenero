@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"github.com/krivolapovdev/trenerio/pkg/response"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,7 +18,6 @@ import (
 	"github.com/krivolapovdev/trenerio/internal/transaction"
 	"github.com/krivolapovdev/trenerio/internal/user"
 	"github.com/krivolapovdev/trenerio/internal/visit"
-	"github.com/krivolapovdev/trenerio/pkg/models"
 	"github.com/krivolapovdev/trenerio/pkg/security"
 	"github.com/krivolapovdev/trenerio/pkg/types"
 )
@@ -42,20 +42,20 @@ func wireServer(dbConn *sql.DB, cfg Config) *server.Server {
 
 	var studentService *student.Service
 
-	fetchStudentsByIDs := func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]models.StudentResponse, error) {
+	fetchStudentsByIDs := func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]response.StudentResponse, error) {
 		return studentService.GetStudentsByIDs(ctx, studentIDs, ownerID)
 	}
 
-	fetchStudentByID := func(ctx context.Context, studentID, ownerID uuid.UUID) (models.StudentResponse, error) {
+	fetchStudentByID := func(ctx context.Context, studentID, ownerID uuid.UUID) (response.StudentResponse, error) {
 		return studentService.GetStudentDetailsByID(ctx, studentID, ownerID)
 	}
 
 	computeStudentStatuses := func(
-		st models.StudentResponse,
-		visits []models.VisitResponse,
-		payments []models.TransactionResponse,
-		lessonsMap map[uuid.UUID]models.LessonResponse,
-		groupLessonsMap map[uuid.UUID]models.LessonResponse,
+		st response.StudentResponse,
+		visits []response.VisitResponse,
+		payments []response.TransactionResponse,
+		lessonsMap map[uuid.UUID]response.LessonResponse,
+		groupLessonsMap map[uuid.UUID]response.LessonResponse,
 		today time.Time,
 	) []types.StudentStatus {
 		return studentService.ComputeStudentStatuses(st, visits, payments, lessonsMap, groupLessonsMap, today)
