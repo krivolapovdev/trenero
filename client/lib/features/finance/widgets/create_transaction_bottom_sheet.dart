@@ -270,11 +270,12 @@ class _CreateTransactionBottomSheetState
     final studentsState = ref.watch(studentListControllerProvider);
     final students = studentsState.value ?? const <StudentSummaryResponse>[];
 
-    final isAmountEmpty = _amountController.text.trim().isEmpty;
+    final amount = double.tryParse(_amountController.text.trim());
+    final isAmountPositive = amount != null && amount > 0;
     final isPaidUntilMissing = _isStudentPayment && _paidUntil == null;
     final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
     final canSubmit =
-        !isAmountEmpty && !isPaidUntilMissing && _isDateValid && !_isLoading;
+        isAmountPositive && !isPaidUntilMissing && _isDateValid && !_isLoading;
 
     return SafeArea(
       child: Padding(

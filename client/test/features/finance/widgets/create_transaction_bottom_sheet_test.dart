@@ -186,6 +186,34 @@ void main() {
     );
   });
 
+  testWidgets('an amount of 0 blocks saving', (tester) async {
+    await _pump(tester);
+
+    await tester.enterText(_field('${t.finance.amount}*'), '0');
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<TextButton>(find.widgetWithText(TextButton, t.create))
+          .onPressed,
+      isNull,
+    );
+  });
+
+  testWidgets('a positive amount activates the create button', (tester) async {
+    await _pump(tester);
+
+    await tester.enterText(_field('${t.finance.amount}*'), '100');
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<TextButton>(find.widgetWithText(TextButton, t.create))
+          .onPressed,
+      isNotNull,
+    );
+  });
+
   testWidgets('the student picker offers the other students by default', (
     tester,
   ) async {
