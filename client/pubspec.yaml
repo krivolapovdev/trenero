@@ -66,6 +66,10 @@ swagger_parser:
       replacement: ""
     - pattern: "^[Ss]cope$"
       replacement: "MetricScope"
+    - pattern: "^[Rr]esponse"
+      replacement: ""
+    - pattern: "^[Rr]equest"
+      replacement: ""
   field_parsers:
     - apply_to_type: "DateTime"
       parser_name: "LocalDateTimeConverter"

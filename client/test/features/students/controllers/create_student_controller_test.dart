@@ -56,7 +56,7 @@ class _FakeStudentClient implements StudentControllerClient {
       id: 'student-1',
       fullName: body.fullName,
       createdAt: DateTime(2026, 10, 13),
-      free: body.free,
+      free: body.free ?? false,
     );
   }
 
