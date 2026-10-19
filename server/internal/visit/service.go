@@ -3,13 +3,10 @@ package visit
 import (
 	"context"
 	"database/sql"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
-	"github.com/krivolapovdev/trenerio/pkg/logger"
-	"github.com/krivolapovdev/trenerio/pkg/types"
+	"github.com/krivolapovdev/trenerio/internal/shared/logger"
 )
 
 type Service struct {
@@ -32,7 +29,7 @@ func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) er
 	return db.WithTx(ctx, s.sqlDB, s.db, fn)
 }
 
-func (s *Service) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) ([]response.VisitResponse, error) {
+func (s *Service) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) ([]VisitResponse, error) {
 	logger.InfoContext(ctx, "Getting visits by lesson id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindVisitsByLessonIDAndOwnerID(ctx, db.FindVisitsByLessonIDAndOwnerIDParams{
 		LessonID: lessonID,
@@ -43,7 +40,7 @@ func (s *Service) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uui
 		return nil, err
 	}
 
-	visits := make([]response.VisitResponse, 0, len(rows))
+	visits := make([]VisitResponse, 0, len(rows))
 	for _, r := range rows {
 		visits = append(visits, toVisitResponse(r))
 	}
@@ -51,11 +48,11 @@ func (s *Service) GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uui
 	return visits, nil
 }
 
-func (s *Service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]response.VisitResponse, error) {
+func (s *Service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]VisitResponse, error) {
 	logger.InfoContext(ctx, "Getting visits by lesson ids", "count", len(lessonIDs), "user_id", ownerID.String())
 	if len(lessonIDs) == 0 {
 		logger.DebugContext(ctx, "No lesson IDs provided to get visits", "user_id", ownerID.String())
-		return []response.VisitResponse{}, nil
+		return []VisitResponse{}, nil
 	}
 
 	rows, err := s.db.FindVisitsByLessonIDsAndOwnerID(ctx, db.FindVisitsByLessonIDsAndOwnerIDParams{
@@ -67,7 +64,7 @@ func (s *Service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUI
 		return nil, err
 	}
 
-	visits := make([]response.VisitResponse, 0, len(rows))
+	visits := make([]VisitResponse, 0, len(rows))
 	for _, r := range rows {
 		visits = append(visits, toVisitResponse(r))
 	}
@@ -75,7 +72,7 @@ func (s *Service) GetVisitsByLessonIDs(ctx context.Context, lessonIDs []uuid.UUI
 	return visits, nil
 }
 
-func (s *Service) GetVisitsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.VisitResponse, error) {
+func (s *Service) GetVisitsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]VisitResponse, error) {
 	logger.InfoContext(ctx, "Getting visits by student id", "student_id", studentID.String(), "user_id", ownerID.String())
 	rows, err := s.db.FindVisitsByStudentIDAndOwnerID(ctx, db.FindVisitsByStudentIDAndOwnerIDParams{
 		StudentID: studentID,
@@ -86,7 +83,7 @@ func (s *Service) GetVisitsByStudentID(ctx context.Context, studentID, ownerID u
 		return nil, err
 	}
 
-	visits := make([]response.VisitResponse, 0, len(rows))
+	visits := make([]VisitResponse, 0, len(rows))
 	for _, r := range rows {
 		visits = append(visits, toVisitResponse(r))
 	}
@@ -94,11 +91,11 @@ func (s *Service) GetVisitsByStudentID(ctx context.Context, studentID, ownerID u
 	return visits, nil
 }
 
-func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]response.VisitResponse, error) {
+func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]VisitResponse, error) {
 	logger.InfoContext(ctx, "Getting visits by student ids", "count", len(studentIDs), "user_id", ownerID.String())
 	if len(studentIDs) == 0 {
 		logger.DebugContext(ctx, "No student IDs provided to get visits", "user_id", ownerID.String())
-		return map[uuid.UUID][]response.VisitResponse{}, nil
+		return map[uuid.UUID][]VisitResponse{}, nil
 	}
 
 	rows, err := s.db.FindVisitsByStudentIDsAndOwnerID(ctx, db.FindVisitsByStudentIDsAndOwnerIDParams{
@@ -110,9 +107,9 @@ func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 		return nil, err
 	}
 
-	visitsByStudent := make(map[uuid.UUID][]response.VisitResponse, len(studentIDs))
+	visitsByStudent := make(map[uuid.UUID][]VisitResponse, len(studentIDs))
 	for _, sid := range studentIDs {
-		visitsByStudent[sid] = []response.VisitResponse{}
+		visitsByStudent[sid] = []VisitResponse{}
 	}
 	for _, r := range rows {
 		visitsByStudent[r.StudentID] = append(visitsByStudent[r.StudentID], toVisitResponse(r))
@@ -121,7 +118,7 @@ func (s *Service) GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.U
 	return visitsByStudent, nil
 }
 
-func (s *Service) CreateVisits(ctx context.Context, lessonID uuid.UUID, studentVisits []request.StudentVisit, ownerID uuid.UUID) error {
+func (s *Service) CreateVisits(ctx context.Context, lessonID uuid.UUID, studentVisits []StudentVisit, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Creating visits", "lesson_id", lessonID.String(), "count", len(studentVisits), "user_id", ownerID.String())
 	err := s.withTx(ctx, func(qtx *db.Queries) error {
 		for _, sv := range studentVisits {
@@ -161,7 +158,7 @@ func (s *Service) RemoveVisitsByLessonID(ctx context.Context, lessonID, ownerID 
 	return nil
 }
 
-func (s *Service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID, requests []request.StudentVisit, ownerID uuid.UUID) error {
+func (s *Service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID, requests []StudentVisit, ownerID uuid.UUID) error {
 	logger.InfoContext(ctx, "Updating visits by lesson id", "lesson_id", lessonID.String(), "count", len(requests), "user_id", ownerID.String())
 	err := s.withTx(ctx, func(qtx *db.Queries) error {
 		existingVisits, err := qtx.FindVisitsByLessonIDAndOwnerID(ctx, db.FindVisitsByLessonIDAndOwnerIDParams{
@@ -178,7 +175,7 @@ func (s *Service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID
 			existingMap[ev.StudentID] = ev
 		}
 
-		reqMap := make(map[uuid.UUID]request.StudentVisit, len(requests))
+		reqMap := make(map[uuid.UUID]StudentVisit, len(requests))
 		for _, req := range requests {
 			reqMap[req.StudentID] = req
 		}
@@ -239,11 +236,11 @@ func (s *Service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID
 	return nil
 }
 
-func toVisitResponse(v db.VisitsModuleVisit) response.VisitResponse {
-	return response.VisitResponse{
+func toVisitResponse(v db.VisitsModuleVisit) VisitResponse {
+	return VisitResponse{
 		ID:        v.ID,
-		Status:    types.VisitStatus(v.Status),
-		Type:      types.VisitType(v.Type),
+		Status:    VisitStatus(v.Status),
+		Type:      VisitType(v.Type),
 		LessonID:  v.LessonID,
 		StudentID: v.StudentID,
 		CreatedAt: v.CreatedAt,

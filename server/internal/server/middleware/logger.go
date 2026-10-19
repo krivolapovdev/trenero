@@ -7,16 +7,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/krivolapovdev/trenerio/pkg/logger"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/types"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	"github.com/krivolapovdev/trenerio/internal/shared/logger"
+	"github.com/krivolapovdev/trenerio/internal/shared/web"
 )
 
 func SlogMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		reqID := c.GetString(types.ContextKeyRequestID)
+		reqID := c.GetString(web.ContextKeyRequestID)
 		if reqID == "" {
-			reqID = c.GetHeader(types.HeaderXRequestID)
+			reqID = c.GetHeader(web.HeaderXRequestID)
 		}
 		if reqID == "" {
 			reqID = uuid.New().String()
@@ -49,8 +49,8 @@ func SlogMiddleware() gin.HandlerFunc {
 			attrs = append(attrs, "query", query)
 		}
 
-		if userVal, exists := c.Get(types.ContextKeyJWTUser); exists {
-			if u, ok := userVal.(security.JwtUser); ok {
+		if userVal, exists := c.Get(auth.ContextKeyJWTUser); exists {
+			if u, ok := userVal.(auth.JwtUser); ok {
 				attrs = append(attrs, "user_id", u.ID.String(), "user_email", u.Email)
 			}
 		}

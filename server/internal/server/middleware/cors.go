@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/krivolapovdev/trenerio/pkg/types"
+	"github.com/krivolapovdev/trenerio/internal/shared/web"
 )
 
 func CorsMiddleware(allowedOrigins []string) gin.HandlerFunc {
@@ -18,8 +18,8 @@ func CorsMiddleware(allowedOrigins []string) gin.HandlerFunc {
 
 	config := cors.Config{
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions},
-		AllowHeaders:     []string{types.HeaderAuthorization, "Content-Type", types.HeaderXReviewerKey, types.HeaderXRequestID, "Origin", "Accept"},
-		ExposeHeaders:    []string{types.HeaderXRequestID},
+		AllowHeaders:     []string{web.HeaderAuthorization, "Content-Type", web.HeaderXReviewerKey, web.HeaderXRequestID, "Origin", "Accept"},
+		ExposeHeaders:    []string{web.HeaderXRequestID},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}

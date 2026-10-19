@@ -2,20 +2,17 @@ package auth
 
 import (
 	"context"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/types"
-	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/web"
 )
 
 type authService interface {
-	LoginGoogle(ctx context.Context, token string) (response.LoginResponse, error)
-	LoginReviewer(ctx context.Context, reviewerKey string) (response.LoginResponse, error)
-	RefreshTokens(ctx context.Context, refreshToken string) (response.JwtResponse, error)
+	LoginGoogle(ctx context.Context, token string) (LoginResponse, error)
+	LoginReviewer(ctx context.Context, reviewerKey string) (LoginResponse, error)
+	RefreshTokens(ctx context.Context, refreshToken string) (JwtResponse, error)
 }
 
 type Handler struct {
@@ -53,8 +50,8 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @Success      200   {object}  response.LoginResponse
 // @Router       /api/v1/oauth2/google [post]
 func (h *Handler) GoogleLogin(c *gin.Context) {
-	var req request.OAuth2LoginRequest
-	if !httputil.BindJSON(c, &req) {
+	var req OAuth2LoginRequest
+	if !web.BindJSON(c, &req) {
 		return
 	}
 
@@ -74,8 +71,8 @@ func (h *Handler) GoogleLogin(c *gin.Context) {
 // @Success      200   {object}  response.JwtResponse
 // @Router       /api/v1/jwt/refresh [post]
 func (h *Handler) RefreshTokens(c *gin.Context) {
-	var req request.RefreshTokenRequest
-	if !httputil.BindJSON(c, &req) {
+	var req RefreshTokenRequest
+	if !web.BindJSON(c, &req) {
 		return
 	}
 
@@ -95,7 +92,7 @@ func (h *Handler) RefreshTokens(c *gin.Context) {
 // @Success      200             {object}  response.LoginResponse
 // @Router       /api/v1/reviewer/login [post]
 func (h *Handler) ReviewerLogin(c *gin.Context) {
-	reviewerKey := c.GetHeader(types.HeaderXReviewerKey)
+	reviewerKey := c.GetHeader(web.HeaderXReviewerKey)
 	if reviewerKey == "" {
 		pkgerrors.RespondUnauthorized(c, "Authentication failed or token is invalid")
 		return

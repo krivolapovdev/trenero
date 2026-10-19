@@ -4,50 +4,47 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/logger"
-	"github.com/krivolapovdev/trenerio/pkg/utils"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/logger"
+	"github.com/krivolapovdev/trenerio/internal/shared/request"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
+	"github.com/krivolapovdev/trenerio/internal/shared/utils"
+	"github.com/krivolapovdev/trenerio/internal/shared/validator"
 )
 
-type FetchVisitsByLessonIDFunc func(ctx context.Context, lessonID, ownerID uuid.UUID) ([]response.VisitResponse, error)
-type FetchStudentsByIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]response.StudentResponse, error)
-type CreateVisitsFunc func(ctx context.Context, lessonID uuid.UUID, studentVisits []request.StudentVisit, ownerID uuid.UUID) error
-type UpdateVisitsByLessonIDFunc func(ctx context.Context, lessonID uuid.UUID, requests []request.StudentVisit, ownerID uuid.UUID) error
-type RemoveVisitsByLessonIDFunc func(ctx context.Context, lessonID, ownerID uuid.UUID) error
+type VisitProvider interface {
+	GetVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) ([]response.VisitResponse, error)
+	CreateVisits(ctx context.Context, lessonID uuid.UUID, studentVisits []request.StudentVisit, ownerID uuid.UUID) error
+	UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID, requests []request.StudentVisit, ownerID uuid.UUID) error
+	RemoveVisitsByLessonID(ctx context.Context, lessonID, ownerID uuid.UUID) error
+}
+
+type StudentProvider interface {
+	GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]response.StudentResponse, error)
+}
 
 type Service struct {
-	db                     *db.Queries
-	sqlDB                  *sql.DB
-	fetchVisitsByLessonID  FetchVisitsByLessonIDFunc
-	fetchStudentsByIDs     FetchStudentsByIDsFunc
-	createVisits           CreateVisitsFunc
-	updateVisitsByLessonID UpdateVisitsByLessonIDFunc
-	removeVisitsByLessonID RemoveVisitsByLessonIDFunc
+	db              *db.Queries
+	sqlDB           *sql.DB
+	visitProvider   VisitProvider
+	studentProvider StudentProvider
 }
 
 func NewService(
 	queries *db.Queries,
 	sqlDB *sql.DB,
-	fetchVisitsByLessonID FetchVisitsByLessonIDFunc,
-	fetchStudentsByIDs FetchStudentsByIDsFunc,
-	createVisits CreateVisitsFunc,
-	updateVisitsByLessonID UpdateVisitsByLessonIDFunc,
-	removeVisitsByLessonID RemoveVisitsByLessonIDFunc,
+	visitProvider VisitProvider,
+	studentProvider StudentProvider,
 ) *Service {
 	return &Service{
-		db:                     queries,
-		sqlDB:                  sqlDB,
-		fetchVisitsByLessonID:  fetchVisitsByLessonID,
-		fetchStudentsByIDs:     fetchStudentsByIDs,
-		createVisits:           createVisits,
-		updateVisitsByLessonID: updateVisitsByLessonID,
-		removeVisitsByLessonID: removeVisitsByLessonID,
+		db:              queries,
+		sqlDB:           sqlDB,
+		visitProvider:   visitProvider,
+		studentProvider: studentProvider,
 	}
 }
 
@@ -82,10 +79,14 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 		return response.LessonDetailsResponse{}, err
 	}
 
-	visitResponses, err := s.fetchVisitsByLessonID(ctx, lessonID, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch visits for lesson details", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
-		return response.LessonDetailsResponse{}, err
+	var visitResponses []response.VisitResponse
+	if s.visitProvider != nil {
+		var err error
+		visitResponses, err = s.visitProvider.GetVisitsByLessonID(ctx, lessonID, ownerID)
+		if err != nil {
+			logger.ErrorContext(ctx, "Failed to fetch visits for lesson details", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
+			return response.LessonDetailsResponse{}, err
+		}
 	}
 
 	studentIDs := make([]uuid.UUID, 0, len(visitResponses))
@@ -95,8 +96,8 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 	studentIDs = utils.UniqueUUIDs(studentIDs)
 
 	students := make([]response.StudentResponse, 0, len(studentIDs))
-	if len(studentIDs) > 0 && s.fetchStudentsByIDs != nil {
-		stRows, err := s.fetchStudentsByIDs(ctx, studentIDs, ownerID)
+	if len(studentIDs) > 0 && s.studentProvider != nil {
+		stRows, err := s.studentProvider.GetStudentsByIDs(ctx, studentIDs, ownerID)
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to fetch students for lesson details", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 			return response.LessonDetailsResponse{}, err
@@ -125,7 +126,7 @@ func (s *Service) GetLessonDetailsByID(ctx context.Context, lessonID, ownerID uu
 
 func (s *Service) CreateLesson(ctx context.Context, req request.CreateLessonRequest, ownerID uuid.UUID) (response.LessonResponse, error) {
 	logger.InfoContext(ctx, "Creating lesson", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
-	if err := utils.ValidateDateNotFuture(req.Date, "date"); err != nil {
+	if err := validator.ValidateDateNotFuture(req.Date, "date"); err != nil {
 		logger.WarnContext(ctx, "Lesson date cannot be in the future", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
 		return response.LessonResponse{}, err
 	}
@@ -145,7 +146,7 @@ func (s *Service) CreateLesson(ctx context.Context, req request.CreateLessonRequ
 		return response.LessonResponse{}, err
 	}
 
-	if len(req.Students) > 0 && s.createVisits != nil {
+	if len(req.Students) > 0 && s.visitProvider != nil {
 		studentVisitMap := make(map[uuid.UUID]request.StudentVisit, len(req.Students))
 		for _, sv := range req.Students {
 			studentVisitMap[sv.StudentID] = sv
@@ -155,7 +156,7 @@ func (s *Service) CreateLesson(ctx context.Context, req request.CreateLessonRequ
 			uniqueVisits = append(uniqueVisits, sv)
 		}
 
-		if err := s.createVisits(ctx, createdLesson.ID, uniqueVisits, ownerID); err != nil {
+		if err := s.visitProvider.CreateVisits(ctx, createdLesson.ID, uniqueVisits, ownerID); err != nil {
 			logger.ErrorContext(ctx, "Failed to create visits for lesson, rolling back lesson creation", "lesson_id", createdLesson.ID.String(), "error", err, "user_id", ownerID.String())
 			_ = s.db.DeleteLessonByIDAndOwnerID(ctx, db.DeleteLessonByIDAndOwnerIDParams{
 				ID:      createdLesson.ID,
@@ -172,7 +173,7 @@ func (s *Service) CreateLesson(ctx context.Context, req request.CreateLessonRequ
 func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID, req request.UpdateLessonRequest) (response.LessonResponse, error) {
 	logger.InfoContext(ctx, "Updating lesson", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	if req.Date != nil {
-		if err := utils.ValidateDateNotFuture(*req.Date, "date"); err != nil {
+		if err := validator.ValidateDateNotFuture(*req.Date, "date"); err != nil {
 			logger.WarnContext(ctx, "Updated lesson date cannot be in the future", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
 			return response.LessonResponse{}, err
 		}
@@ -206,8 +207,8 @@ func (s *Service) UpdateLesson(ctx context.Context, lessonID, ownerID uuid.UUID,
 		return response.LessonResponse{}, err
 	}
 
-	if req.Students != nil && s.updateVisitsByLessonID != nil {
-		if err := s.updateVisitsByLessonID(ctx, lessonID, req.Students, ownerID); err != nil {
+	if req.Students != nil && s.visitProvider != nil {
+		if err := s.visitProvider.UpdateVisitsByLessonID(ctx, lessonID, req.Students, ownerID); err != nil {
 			logger.ErrorContext(ctx, "Failed to update visits for lesson", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 			return response.LessonResponse{}, err
 		}
@@ -232,8 +233,8 @@ func (s *Service) DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID)
 		return err
 	}
 
-	if s.removeVisitsByLessonID != nil {
-		if err := s.removeVisitsByLessonID(ctx, lessonID, ownerID); err != nil {
+	if s.visitProvider != nil {
+		if err := s.visitProvider.RemoveVisitsByLessonID(ctx, lessonID, ownerID); err != nil {
 			logger.ErrorContext(ctx, "Failed to remove visits for lesson deletion", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 			return err
 		}

@@ -2,15 +2,15 @@ package metric
 
 import (
 	"context"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/types"
-	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
+	"github.com/krivolapovdev/trenerio/internal/shared/web"
 )
 
 type metricService interface {
@@ -45,13 +45,13 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @Success      200        {array}   response.PaymentMetricResponse
 // @Router       /api/v1/metrics/payments [get]
 func (h *Handler) GetPaymentStatistics(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	scope := c.DefaultQuery("scope", string(types.MetricScopeMonth))
-	startDate, endDate, ok := httputil.ParseRequiredRFC3339Range(c, "startDate", "endDate", "startDate and endDate are required")
+	scope := c.DefaultQuery("scope", string(Month))
+	startDate, endDate, ok := web.ParseRequiredRFC3339Range(c, "startDate", "endDate", "startDate and endDate are required")
 	if !ok {
 		return
 	}

@@ -2,14 +2,12 @@ package auth
 
 import (
 	"context"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 
-	"github.com/krivolapovdev/trenerio/pkg/logger"
-	"github.com/krivolapovdev/trenerio/pkg/security"
+	"github.com/krivolapovdev/trenerio/internal/shared/logger"
 )
 
-func generateLoginResponse(ctx context.Context, tp *security.TokenProvider, u response.UserResponse, loginType string) (response.LoginResponse, error) {
-	jwtUser := security.JwtUser{
+func generateLoginResponse(ctx context.Context, tp *TokenProvider, u UserResponse, loginType string) (LoginResponse, error) {
+	jwtUser := JwtUser{
 		ID:    u.ID,
 		Email: u.Email,
 	}
@@ -17,12 +15,12 @@ func generateLoginResponse(ctx context.Context, tp *security.TokenProvider, u re
 	accessToken, refreshToken, err := tp.GenerateTokenPair(jwtUser)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to generate tokens for "+loginType+" login", "error", err, "user_id", u.ID.String())
-		return response.LoginResponse{}, err
+		return LoginResponse{}, err
 	}
 
-	return response.LoginResponse{
+	return LoginResponse{
 		User: u,
-		JwtTokens: response.JwtResponse{
+		JwtTokens: JwtResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		},

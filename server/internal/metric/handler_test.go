@@ -3,7 +3,6 @@ package metric
 import (
 	"context"
 	"encoding/json"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,10 +10,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/testutil"
-	"github.com/krivolapovdev/trenerio/pkg/types"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/harness"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,19 +29,19 @@ func (m *mockMetricService) GetPaymentStatistics(ctx context.Context, scopeStr s
 	return nil, nil
 }
 
-func setupMetricRouter(svc metricService, user security.JwtUser) *gin.Engine {
-	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
+func setupMetricRouter(svc metricService, user auth.JwtUser) *gin.Engine {
+	return harness.SetupTestRouter(user, func(rg *gin.RouterGroup) {
 		NewHandler(svc).RegisterRoutes(rg)
 	})
 }
 
 func TestMetricHandler_GetPaymentStatistics(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 	startDate := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	endDate := time.Date(2026, 12, 31, 23, 59, 59, 0, time.UTC)
 
 	t.Run("Unauthorized", func(t *testing.T) {
-		r := setupMetricRouter(&mockMetricService{}, security.JwtUser{})
+		r := setupMetricRouter(&mockMetricService{}, auth.JwtUser{})
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/metrics/payments", nil)
 		r.ServeHTTP(w, req)
@@ -75,7 +74,7 @@ func TestMetricHandler_GetPaymentStatistics(t *testing.T) {
 
 		mockSvc := &mockMetricService{
 			getPaymentStatisticsFn: func(ctx context.Context, scopeStr string, start, end time.Time, ownerID uuid.UUID) ([]response.PaymentMetricResponse, error) {
-				assert.Equal(t, string(types.MetricScopeMonth), scopeStr)
+				assert.Equal(t, string(Month), scopeStr)
 				assert.True(t, startDate.Equal(start))
 				assert.True(t, endDate.Equal(end))
 				assert.Equal(t, testUser.ID, ownerID)

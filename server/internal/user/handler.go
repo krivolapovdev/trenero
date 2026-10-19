@@ -5,13 +5,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
 )
 
 type userService interface {
-	DeleteUser(ctx context.Context, jwtUser security.JwtUser) error
+	DeleteUser(ctx context.Context, jwtUser auth.JwtUser) error
 }
 
 type Handler struct {
@@ -39,7 +38,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @Success      204  "No Content"
 // @Router       /api/v1/users/me [delete]
 func (h *Handler) DeleteMyAccount(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}

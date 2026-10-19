@@ -2,17 +2,19 @@ package metric
 
 import (
 	"context"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/logger"
-	"github.com/krivolapovdev/trenerio/pkg/types"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/logger"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
+	"github.com/krivolapovdev/trenerio/internal/transaction"
 )
 
-type FetchTransactionsBetweenFunc func(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.TransactionResponse, error)
+type TransactionProvider interface {
+	GetTransactionsBetween(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.TransactionResponse, error)
+}
 
 type ScopeStrategy interface {
 	Truncate(t time.Time, loc *time.Location) time.Time
@@ -58,19 +60,19 @@ func (yearStrategy) Next(t time.Time) time.Time {
 	return t.AddDate(1, 0, 0)
 }
 
-var scopeStrategies = map[types.MetricScope]ScopeStrategy{
-	types.MetricScopeWeek:  weekStrategy{},
-	types.MetricScopeMonth: monthStrategy{},
-	types.MetricScopeYear:  yearStrategy{},
+var scopeStrategies = map[Scope]ScopeStrategy{
+	Week:  weekStrategy{},
+	Month: monthStrategy{},
+	Year:  yearStrategy{},
 }
 
 type Service struct {
-	fetchTransactions FetchTransactionsBetweenFunc
+	transactionProvider TransactionProvider
 }
 
-func NewService(fetchTransactions FetchTransactionsBetweenFunc) *Service {
+func NewService(transactionProvider TransactionProvider) *Service {
 	return &Service{
-		fetchTransactions: fetchTransactions,
+		transactionProvider: transactionProvider,
 	}
 }
 
@@ -86,12 +88,12 @@ func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, sta
 
 	scope := strings.ToUpper(strings.TrimSpace(scopeStr))
 	if scope == "" {
-		scope = string(types.MetricScopeMonth)
+		scope = string(Month)
 	}
 
-	strategy, ok := scopeStrategies[types.MetricScope(scope)]
+	strategy, ok := scopeStrategies[Scope(scope)]
 	if !ok {
-		strategy = scopeStrategies[types.MetricScopeMonth]
+		strategy = scopeStrategies[Month]
 	}
 
 	logger.InfoContext(ctx, "Getting payment statistics",
@@ -101,22 +103,26 @@ func (s *Service) GetPaymentStatistics(ctx context.Context, scopeStr string, sta
 		"user_id", ownerID.String(),
 	)
 
-	txList, err := s.fetchTransactions(ctx, startDate, endDate, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch transactions for payment statistics",
-			"error", err,
-			"start_date", startDate.Format(time.RFC3339),
-			"end_date", endDate.Format(time.RFC3339),
-			"user_id", ownerID.String(),
-		)
-		return nil, err
+	var txList []response.TransactionResponse
+	if s.transactionProvider != nil {
+		var err error
+		txList, err = s.transactionProvider.GetTransactionsBetween(ctx, startDate, endDate, ownerID)
+		if err != nil {
+			logger.ErrorContext(ctx, "Failed to fetch transactions for payment statistics",
+				"error", err,
+				"start_date", startDate.Format(time.RFC3339),
+				"end_date", endDate.Format(time.RFC3339),
+				"user_id", ownerID.String(),
+			)
+			return nil, err
+		}
 	}
 
 	loc := startDate.Location()
 	totalsByBucket := make(map[int64]float64)
 	for _, tx := range txList {
 		bucket := strategy.Truncate(tx.Date, loc)
-		if tx.Type == types.TransactionTypeIncome {
+		if tx.Type == transaction.TransactionTypeIncome {
 			totalsByBucket[bucket.Unix()] += tx.Amount
 		} else {
 			totalsByBucket[bucket.Unix()] -= tx.Amount

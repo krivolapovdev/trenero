@@ -2,8 +2,6 @@ package group
 
 import (
 	"context"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,15 +9,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/request"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
+	"github.com/krivolapovdev/trenerio/internal/shared/validator"
+	"github.com/krivolapovdev/trenerio/internal/shared/web"
 )
 
 type groupService interface {
 	GetAllGroupsSummary(ctx context.Context, ownerID uuid.UUID) ([]response.GroupSummaryResponse, error)
-	GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]response.GroupStudentSummaryResponse, error)
+	GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]GroupStudentSummaryResponse, error)
 	GetGroupLessons(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]response.LessonResponse, error)
-	GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (response.GroupReportResponse, error)
+	GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (GroupReportResponse, error)
 	CreateGroup(ctx context.Context, req request.CreateGroupRequest, ownerID uuid.UUID) (response.GroupResponse, error)
 	UpdateGroup(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]any) (response.GroupResponse, error)
 	DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) error
@@ -56,7 +58,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @Success      200  {array}   response.GroupSummaryResponse
 // @Router       /api/v1/groups [get]
 func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
@@ -75,15 +77,15 @@ func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
 // @Tags         group-controller
 // @Security     BearerAuth
 // @Param        groupId  path      string  true  "Group ID"  Format(uuid)
-// @Success      200      {array}   response.GroupStudentSummaryResponse
+// @Success      200      {array}   GroupStudentSummaryResponse
 // @Router       /api/v1/groups/{groupId}/students [get]
 func (h *Handler) GetGroupStudents(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	groupID, ok := httputil.ParseUUIDParam(c, "groupId")
+	groupID, ok := web.ParseUUIDParam(c, "groupId")
 	if !ok {
 		return
 	}
@@ -107,17 +109,17 @@ func (h *Handler) GetGroupStudents(c *gin.Context) {
 // @Success      200      {array}   response.LessonResponse
 // @Router       /api/v1/groups/{groupId}/lessons [get]
 func (h *Handler) GetGroupLessons(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	groupID, ok := httputil.ParseUUIDParam(c, "groupId")
+	groupID, ok := web.ParseUUIDParam(c, "groupId")
 	if !ok {
 		return
 	}
 
-	from, to, ok := httputil.ParseRequiredRFC3339Range(c, "from", "to", "from and to query parameters are required")
+	from, to, ok := web.ParseRequiredRFC3339Range(c, "from", "to", "from and to query parameters are required")
 	if !ok {
 		return
 	}
@@ -138,15 +140,15 @@ func (h *Handler) GetGroupLessons(c *gin.Context) {
 // @Param        groupId  path      string  true  "Group ID"  Format(uuid)
 // @Param        year     query     int     true  "Year"
 // @Param        month    query     int     true  "Month"
-// @Success      200      {object}  response.GroupReportResponse
+// @Success      200      {object}  GroupReportResponse
 // @Router       /api/v1/groups/{groupId}/report [get]
 func (h *Handler) GetGroupReport(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	groupID, ok := httputil.ParseUUIDParam(c, "groupId")
+	groupID, ok := web.ParseUUIDParam(c, "groupId")
 	if !ok {
 		return
 	}
@@ -187,23 +189,23 @@ func (h *Handler) GetGroupReport(c *gin.Context) {
 // @Success      201   {object}  response.GroupResponse
 // @Router       /api/v1/groups [post]
 func (h *Handler) CreateGroup(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
 	var req request.CreateGroupRequest
-	if !httputil.BindJSON(c, &req) {
+	if !web.BindJSON(c, &req) {
 		return
 	}
 
-	trimmedName, err := httputil.ValidateRequiredName(req.Name, "name")
+	trimmedName, err := validator.ValidateRequiredName(req.Name, "name")
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
 	req.Name = trimmedName
-	req.Note = httputil.TrimStringPtr(req.Note)
+	req.Note = validator.TrimStringPtr(req.Note)
 
 	createdGroup, err := h.service.CreateGroup(c.Request.Context(), req, jwtUser.ID)
 	if err != nil {
@@ -223,24 +225,24 @@ func (h *Handler) CreateGroup(c *gin.Context) {
 // @Success      200      {object}  response.GroupResponse
 // @Router       /api/v1/groups/{groupId} [patch]
 func (h *Handler) UpdateGroup(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	groupID, ok := httputil.ParseUUIDParam(c, "groupId")
+	groupID, ok := web.ParseUUIDParam(c, "groupId")
 	if !ok {
 		return
 	}
 
 	var updates map[string]any
-	if !httputil.BindJSON(c, &updates) {
+	if !web.BindJSON(c, &updates) {
 		return
 	}
 
 	if rawName, ok := updates["name"]; ok && rawName != nil {
 		if nameStr, ok := rawName.(string); ok {
-			trimmedName, err := httputil.ValidateRequiredName(nameStr, "name")
+			trimmedName, err := validator.ValidateRequiredName(nameStr, "name")
 			if err != nil {
 				pkgerrors.HandleError(c, err)
 				return
@@ -274,12 +276,12 @@ func (h *Handler) UpdateGroup(c *gin.Context) {
 // @Success      204      "No Content"
 // @Router       /api/v1/groups/{groupId} [delete]
 func (h *Handler) DeleteGroup(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	groupID, ok := httputil.ParseUUIDParam(c, "groupId")
+	groupID, ok := web.ParseUUIDParam(c, "groupId")
 	if !ok {
 		return
 	}

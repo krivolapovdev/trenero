@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,9 +12,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/auth"
 	"github.com/krivolapovdev/trenerio/internal/db"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
 	"github.com/krivolapovdev/trenerio/internal/user"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/security"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,7 +24,7 @@ func init() {
 }
 
 func TestSwaggerEndpoint(t *testing.T) {
-	tokenProvider := security.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
+	tokenProvider := auth.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
 	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil)
 
 	w := httptest.NewRecorder()
@@ -38,7 +37,7 @@ func TestSwaggerEndpoint(t *testing.T) {
 }
 
 func TestHealthEndpoint(t *testing.T) {
-	tokenProvider := security.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
+	tokenProvider := auth.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
 	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil)
 
 	w := httptest.NewRecorder()
@@ -50,7 +49,7 @@ func TestHealthEndpoint(t *testing.T) {
 }
 
 func TestNoRouteAndNoMethod(t *testing.T) {
-	tokenProvider := security.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
+	tokenProvider := auth.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
 	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil)
 
 	t.Run("NotFoundRoute", func(t *testing.T) {
@@ -100,7 +99,7 @@ func (m *testAuthService) LoginReviewer(ctx context.Context, reviewerKey string)
 }
 
 type testUserService struct {
-	deleteUserFn func(ctx context.Context, jwtUser security.JwtUser) error
+	deleteUserFn func(ctx context.Context, jwtUser auth.JwtUser) error
 }
 
 func (m *testUserService) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (response.UserResponse, error) {
@@ -111,7 +110,7 @@ func (m *testUserService) ExistsByID(ctx context.Context, id uuid.UUID) (bool, e
 	return true, nil
 }
 
-func (m *testUserService) DeleteUser(ctx context.Context, jwtUser security.JwtUser) error {
+func (m *testUserService) DeleteUser(ctx context.Context, jwtUser auth.JwtUser) error {
 	if m.deleteUserFn != nil {
 		return m.deleteUserFn(ctx, jwtUser)
 	}
@@ -119,8 +118,8 @@ func (m *testUserService) DeleteUser(ctx context.Context, jwtUser security.JwtUs
 }
 
 func TestServer_AuthAndProtectedRoutes(t *testing.T) {
-	tokenProvider := security.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
-	testUser := security.JwtUser{ID: uuid.New(), Email: "test@trenerio.ru"}
+	tokenProvider := auth.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "test@trenerio.ru"}
 
 	authHandler := auth.NewHandler(&testAuthService{
 		loginReviewerFn: func(ctx context.Context, reviewerKey string) (response.LoginResponse, error) {
@@ -142,7 +141,7 @@ func TestServer_AuthAndProtectedRoutes(t *testing.T) {
 	})
 
 	userHandler := user.NewHandler(&testUserService{
-		deleteUserFn: func(ctx context.Context, u security.JwtUser) error {
+		deleteUserFn: func(ctx context.Context, u auth.JwtUser) error {
 			assert.Equal(t, testUser.ID, u.ID)
 			return nil
 		},
@@ -208,7 +207,7 @@ func TestServer_AuthAndProtectedRoutes(t *testing.T) {
 }
 
 func TestServer_MiddlewareIntegration(t *testing.T) {
-	tokenProvider := security.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
+	tokenProvider := auth.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
 	srv := NewServer(tokenProvider, []string{"https://app.trenerio.ru"}, nil, nil, nil, nil, nil, nil, nil)
 
 	t.Run("RequestIDMiddleware_PreservesCustomID", func(t *testing.T) {

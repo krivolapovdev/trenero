@@ -4,16 +4,18 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/logger"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/types"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/logger"
+	"github.com/krivolapovdev/trenerio/internal/shared/web"
 )
 
-func AuthMiddleware(tokenProvider *security.TokenProvider) gin.HandlerFunc {
+const BearerPrefix = "Bearer "
+
+func AuthMiddleware(tokenProvider *auth.TokenProvider) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader(types.HeaderAuthorization)
-		if authHeader == "" || !strings.HasPrefix(authHeader, types.BearerPrefix) {
+		authHeader := c.GetHeader(web.HeaderAuthorization)
+		if authHeader == "" || !strings.HasPrefix(authHeader, BearerPrefix) {
 			logger.WarnContext(c.Request.Context(), "Missing or invalid Bearer token",
 				"path", c.Request.URL.Path,
 				"ip", c.ClientIP(),
@@ -23,8 +25,8 @@ func AuthMiddleware(tokenProvider *security.TokenProvider) gin.HandlerFunc {
 			return
 		}
 
-		token := strings.TrimSpace(strings.TrimPrefix(authHeader, types.BearerPrefix))
-		if token == "" || !tokenProvider.IsTokenValid(token, types.TokenTypeAccess) {
+		token := strings.TrimSpace(strings.TrimPrefix(authHeader, BearerPrefix))
+		if token == "" || !tokenProvider.IsTokenValid(token, auth.TokenTypeAccess) {
 			logger.WarnContext(c.Request.Context(), "Token is invalid or expired",
 				"path", c.Request.URL.Path,
 				"ip", c.ClientIP(),
@@ -45,7 +47,7 @@ func AuthMiddleware(tokenProvider *security.TokenProvider) gin.HandlerFunc {
 			return
 		}
 
-		c.Set(types.ContextKeyJWTUser, user)
+		c.Set(auth.ContextKeyJWTUser, user)
 		c.Request = c.Request.WithContext(logger.WithUserID(c.Request.Context(), user.ID.String()))
 		c.Next()
 	}

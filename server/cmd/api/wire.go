@@ -1,12 +1,7 @@
 package main
 
 import (
-	"context"
 	"database/sql"
-	"github.com/krivolapovdev/trenerio/pkg/response"
-	"time"
-
-	"github.com/google/uuid"
 
 	"github.com/krivolapovdev/trenerio/internal/auth"
 	"github.com/krivolapovdev/trenerio/internal/db"
@@ -18,13 +13,11 @@ import (
 	"github.com/krivolapovdev/trenerio/internal/transaction"
 	"github.com/krivolapovdev/trenerio/internal/user"
 	"github.com/krivolapovdev/trenerio/internal/visit"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/types"
 )
 
 func wireServer(dbConn *sql.DB, cfg Config) *server.Server {
 	queries := db.New(dbConn)
-	tokenProvider := security.NewTokenProvider(
+	tokenProvider := auth.NewTokenProvider(
 		cfg.JWTSecret,
 		cfg.AccessTokenExpiry,
 		cfg.RefreshTokenExpiry,
@@ -34,76 +27,43 @@ func wireServer(dbConn *sql.DB, cfg Config) *server.Server {
 	userService := user.NewService(queries)
 	visitService := visit.NewService(queries, dbConn)
 	authService := auth.NewService(
-		userService.GetOrCreateUserFromOAuth2,
-		userService.ExistsByID,
+		userService,
 		tokenProvider,
 		cfg.GoogleClientID,
 	)
 
-	var studentService *student.Service
-
-	fetchStudentsByIDs := func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]response.StudentResponse, error) {
-		return studentService.GetStudentsByIDs(ctx, studentIDs, ownerID)
-	}
-
-	fetchStudentByID := func(ctx context.Context, studentID, ownerID uuid.UUID) (response.StudentResponse, error) {
-		return studentService.GetStudentDetailsByID(ctx, studentID, ownerID)
-	}
-
-	computeStudentStatuses := func(
-		st response.StudentResponse,
-		visits []response.VisitResponse,
-		payments []response.TransactionResponse,
-		lessonsMap map[uuid.UUID]response.LessonResponse,
-		groupLessonsMap map[uuid.UUID]response.LessonResponse,
-		today time.Time,
-	) []types.StudentStatus {
-		return studentService.ComputeStudentStatuses(st, visits, payments, lessonsMap, groupLessonsMap, today)
-	}
+	studentService := student.NewService(queries, dbConn)
 
 	txService := transaction.NewService(
 		queries,
 		dbConn,
-		fetchStudentsByIDs,
-		fetchStudentByID,
+		studentService,
 	)
 
 	lessonService := lesson.NewService(
 		queries,
 		dbConn,
-		visitService.GetVisitsByLessonID,
-		fetchStudentsByIDs,
-		visitService.CreateVisits,
-		visitService.UpdateVisitsByLessonID,
-		visitService.RemoveVisitsByLessonID,
+		visitService,
+		studentService,
 	)
 
 	groupService := group.NewService(
 		queries,
 		dbConn,
-		fetchStudentsByIDs,
-		computeStudentStatuses,
-		visitService.GetVisitsByStudentIDs,
-		visitService.GetVisitsByLessonIDs,
-		txService.GetTransactionsByStudentIDs,
-		lessonService.GetLessonsByGroupIDAndDateRange,
-		lessonService.GetLessonsByIDs,
+		studentService,
+		visitService,
+		txService,
+		lessonService,
 	)
 
-	studentService = student.NewService(
-		queries,
-		dbConn,
-		visitService.GetVisitsByStudentIDs,
-		visitService.GetVisitsByStudentID,
-		txService.GetTransactionsByStudentIDs,
-		txService.GetTransactionsByStudentID,
-		txService.CreateStudentPayment,
-		groupService.GetGroupsByStudentIDs,
-		groupService.SetStudentGroups,
-		lessonService.GetLessonsByIDs,
+	studentService.SetDependencies(
+		visitService,
+		txService,
+		groupService,
+		lessonService,
 	)
 
-	metricService := metric.NewService(txService.GetTransactionsBetween)
+	metricService := metric.NewService(txService)
 
 	authHandler := auth.NewHandler(authService)
 	userHandler := user.NewHandler(userService)

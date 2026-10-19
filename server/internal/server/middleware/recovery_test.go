@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

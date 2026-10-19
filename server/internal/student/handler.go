@@ -2,25 +2,28 @@ package student
 
 import (
 	"context"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/request"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
+	"github.com/krivolapovdev/trenerio/internal/shared/validator"
+	"github.com/krivolapovdev/trenerio/internal/shared/web"
+	"github.com/krivolapovdev/trenerio/internal/transaction"
 )
 
 type studentService interface {
-	GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]response.StudentSummaryResponse, error)
+	GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]StudentSummaryResponse, error)
 	GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]response.VisitWithLessonResponse, error)
-	GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.TransactionResponse, error)
+	GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]transaction.TransactionResponse, error)
 	GetStudentDetailsByID(ctx context.Context, studentID, ownerID uuid.UUID) (response.StudentResponse, error)
 	CreateStudent(ctx context.Context, req request.CreateStudentRequest, ownerID uuid.UUID) (response.StudentResponse, error)
-	CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (response.TransactionResponse, error)
+	CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (transaction.TransactionResponse, error)
 	UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (response.StudentResponse, error)
 	DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUID) error
 }
@@ -54,10 +57,10 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @ID           getStudentsSummary
 // @Tags         student-controller
 // @Security     BearerAuth
-// @Success      200  {array}   response.StudentSummaryResponse
+// @Success      200  {array}   StudentSummaryResponse
 // @Router       /api/v1/students/overview [get]
 func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
@@ -81,18 +84,18 @@ func (h *Handler) GetAllStudentsSummary(c *gin.Context) {
 // @Success      200        {array}   response.VisitWithLessonResponse
 // @Router       /api/v1/students/{studentId}/visits [get]
 func (h *Handler) GetStudentVisits(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	studentID, ok := httputil.ParseUUIDParam(c, "studentId")
+	studentID, ok := web.ParseUUIDParam(c, "studentId")
 	if !ok {
 		return
 	}
 
-	fromPtr := httputil.ParseOptionalRFC3339(c, "from")
-	toPtr := httputil.ParseOptionalRFC3339(c, "to")
+	fromPtr := web.ParseOptionalRFC3339(c, "from")
+	toPtr := web.ParseOptionalRFC3339(c, "to")
 
 	visits, err := h.service.GetStudentVisits(c.Request.Context(), studentID, jwtUser.ID, fromPtr, toPtr)
 	if err != nil {
@@ -108,15 +111,15 @@ func (h *Handler) GetStudentVisits(c *gin.Context) {
 // @Tags         student-controller
 // @Security     BearerAuth
 // @Param        studentId  path      string  true  "Student ID"  Format(uuid)
-// @Success      200        {array}   response.TransactionResponse
+// @Success      200        {array}   transaction.TransactionResponse
 // @Router       /api/v1/students/{studentId}/payments [get]
 func (h *Handler) GetStudentPayments(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	studentID, ok := httputil.ParseUUIDParam(c, "studentId")
+	studentID, ok := web.ParseUUIDParam(c, "studentId")
 	if !ok {
 		return
 	}
@@ -138,24 +141,24 @@ func (h *Handler) GetStudentPayments(c *gin.Context) {
 // @Success      201   {object}  response.StudentResponse
 // @Router       /api/v1/students [post]
 func (h *Handler) CreateStudent(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
 	var req request.CreateStudentRequest
-	if !httputil.BindJSON(c, &req) {
+	if !web.BindJSON(c, &req) {
 		return
 	}
 
 	var err error
-	req.FullName, err = httputil.ValidateRequiredName(req.FullName, "fullName")
+	req.FullName, err = validator.ValidateRequiredName(req.FullName, "fullName")
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}
-	req.Phone = httputil.TrimStringPtr(req.Phone)
-	req.Note = httputil.TrimStringPtr(req.Note)
+	req.Phone = validator.TrimStringPtr(req.Phone)
+	req.Note = validator.TrimStringPtr(req.Note)
 
 	createdStudent, err := h.service.CreateStudent(c.Request.Context(), req, jwtUser.ID)
 	if err != nil {
@@ -172,21 +175,21 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        studentId  path      string                              true  "Student ID"              Format(uuid)
 // @Param        body       body      request.CreateStudentPaymentRequest  true  "Student payment request"
-// @Success      201        {object}  response.TransactionResponse
+// @Success      201        {object}  transaction.TransactionResponse
 // @Router       /api/v1/students/{studentId}/payments [post]
 func (h *Handler) CreateStudentPayment(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	studentID, ok := httputil.ParseUUIDParam(c, "studentId")
+	studentID, ok := web.ParseUUIDParam(c, "studentId")
 	if !ok {
 		return
 	}
 
 	var req request.CreateStudentPaymentRequest
-	if !httputil.BindJSON(c, &req) {
+	if !web.BindJSON(c, &req) {
 		return
 	}
 
@@ -208,24 +211,24 @@ func (h *Handler) CreateStudentPayment(c *gin.Context) {
 // @Success      200        {object}  response.StudentResponse
 // @Router       /api/v1/students/{studentId} [patch]
 func (h *Handler) UpdateStudent(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	studentID, ok := httputil.ParseUUIDParam(c, "studentId")
+	studentID, ok := web.ParseUUIDParam(c, "studentId")
 	if !ok {
 		return
 	}
 
 	var updates map[string]any
-	if !httputil.BindJSON(c, &updates) {
+	if !web.BindJSON(c, &updates) {
 		return
 	}
 
 	if rawName, ok := updates["fullName"]; ok && rawName != nil {
 		if nameStr, ok := rawName.(string); ok {
-			trimmedName, err := httputil.ValidateRequiredName(nameStr, "fullName")
+			trimmedName, err := validator.ValidateRequiredName(nameStr, "fullName")
 			if err != nil {
 				pkgerrors.HandleError(c, err)
 				return
@@ -264,12 +267,12 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 // @Success      204        "No Content"
 // @Router       /api/v1/students/{studentId} [delete]
 func (h *Handler) DeleteStudent(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	studentID, ok := httputil.ParseUUIDParam(c, "studentId")
+	studentID, ok := web.ParseUUIDParam(c, "studentId")
 	if !ok {
 		return
 	}

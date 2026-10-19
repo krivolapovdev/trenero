@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,55 +11,55 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/testutil"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/harness"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 type mockTxService struct {
-	getPaginatedTransactionsFn func(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error)
-	createTransactionFn        func(ctx context.Context, req request.CreateTransactionRequest, ownerID uuid.UUID) (response.TransactionResponse, error)
-	updateTransactionFn        func(ctx context.Context, txID, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error)
+	getPaginatedTransactionsFn func(ctx context.Context, page, size int, ownerID uuid.UUID) (PageTransactionResponse, error)
+	createTransactionFn        func(ctx context.Context, req CreateTransactionRequest, ownerID uuid.UUID) (TransactionResponse, error)
+	updateTransactionFn        func(ctx context.Context, txID, ownerID uuid.UUID, updates map[string]any) (TransactionResponse, error)
 	deleteTransactionFn        func(ctx context.Context, txID, ownerID uuid.UUID) error
 }
 
-func (m *mockTxService) GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error) {
+func (m *mockTxService) GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (PageTransactionResponse, error) {
 	if m.getPaginatedTransactionsFn != nil {
 		return m.getPaginatedTransactionsFn(ctx, page, size, ownerID)
 	}
-	return response.PageTransactionResponse{}, nil
+	return PageTransactionResponse{}, nil
 }
 
-func (m *mockTxService) GetTransactionsBetween(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
+func (m *mockTxService) GetTransactionsBetween(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]TransactionResponse, error) {
 	return nil, nil
 }
 
-func (m *mockTxService) GetTransactionsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
+func (m *mockTxService) GetTransactionsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]TransactionResponse, error) {
 	return nil, nil
 }
 
-func (m *mockTxService) GetTransactionsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]response.TransactionResponse, error) {
+func (m *mockTxService) GetTransactionsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]TransactionResponse, error) {
 	return nil, nil
 }
 
-func (m *mockTxService) CreateTransaction(ctx context.Context, req request.CreateTransactionRequest, ownerID uuid.UUID) (response.TransactionResponse, error) {
+func (m *mockTxService) CreateTransaction(ctx context.Context, req CreateTransactionRequest, ownerID uuid.UUID) (TransactionResponse, error) {
 	if m.createTransactionFn != nil {
 		return m.createTransactionFn(ctx, req, ownerID)
 	}
-	return response.TransactionResponse{}, nil
+	return TransactionResponse{}, nil
 }
 
-func (m *mockTxService) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (response.TransactionResponse, error) {
-	return response.TransactionResponse{}, nil
+func (m *mockTxService) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (TransactionResponse, error) {
+	return TransactionResponse{}, nil
 }
 
-func (m *mockTxService) UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error) {
+func (m *mockTxService) UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (TransactionResponse, error) {
 	if m.updateTransactionFn != nil {
 		return m.updateTransactionFn(ctx, transactionID, ownerID, updates)
 	}
-	return response.TransactionResponse{}, nil
+	return TransactionResponse{}, nil
 }
 
 func (m *mockTxService) DeleteTransaction(ctx context.Context, transactionID, ownerID uuid.UUID) error {
@@ -71,17 +69,17 @@ func (m *mockTxService) DeleteTransaction(ctx context.Context, transactionID, ow
 	return nil
 }
 
-func setupTxRouter(svc transactionService, user security.JwtUser) *gin.Engine {
-	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
+func setupTxRouter(svc transactionService, user auth.JwtUser) *gin.Engine {
+	return harness.SetupTestRouter(user, func(rg *gin.RouterGroup) {
 		NewHandler(svc).RegisterRoutes(rg)
 	})
 }
 
 func TestTransactionHandler_GetPaginatedTransactions(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 
 	t.Run("Unauthorized", func(t *testing.T) {
-		r := setupTxRouter(&mockTxService{}, security.JwtUser{})
+		r := setupTxRouter(&mockTxService{}, auth.JwtUser{})
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/transactions", nil)
 		r.ServeHTTP(w, req)
@@ -91,11 +89,11 @@ func TestTransactionHandler_GetPaginatedTransactions(t *testing.T) {
 
 	t.Run("SuccessWithDefaults", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error) {
+			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (PageTransactionResponse, error) {
 				assert.Equal(t, 1, page)
 				assert.Equal(t, 20, size)
 				assert.Equal(t, testUser.ID, ownerID)
-				return response.PageTransactionResponse{
+				return PageTransactionResponse{
 					Number:        page,
 					Size:          size,
 					TotalElements: 1,
@@ -110,7 +108,7 @@ func TestTransactionHandler_GetPaginatedTransactions(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var actual response.PageTransactionResponse
+		var actual PageTransactionResponse
 		err := json.Unmarshal(w.Body.Bytes(), &actual)
 		require.NoError(t, err)
 		assert.Equal(t, 1, actual.Number)
@@ -118,10 +116,10 @@ func TestTransactionHandler_GetPaginatedTransactions(t *testing.T) {
 
 	t.Run("SuccessWithQueryParams", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error) {
+			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (PageTransactionResponse, error) {
 				assert.Equal(t, 2, page)
 				assert.Equal(t, 50, size)
-				return response.PageTransactionResponse{Number: page, Size: size}, nil
+				return PageTransactionResponse{Number: page, Size: size}, nil
 			},
 		}
 
@@ -135,8 +133,8 @@ func TestTransactionHandler_GetPaginatedTransactions(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error) {
-				return response.PageTransactionResponse{}, assert.AnError
+			getPaginatedTransactionsFn: func(ctx context.Context, page, size int, ownerID uuid.UUID) (PageTransactionResponse, error) {
+				return PageTransactionResponse{}, assert.AnError
 			},
 		}
 
@@ -150,7 +148,7 @@ func TestTransactionHandler_GetPaginatedTransactions(t *testing.T) {
 }
 
 func TestTransactionHandler_CreateTransaction(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 
 	t.Run("InvalidJSON", func(t *testing.T) {
 		r := setupTxRouter(&mockTxService{}, testUser)
@@ -167,10 +165,10 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		expectedID := uuid.New()
 
 		mockSvc := &mockTxService{
-			createTransactionFn: func(ctx context.Context, req request.CreateTransactionRequest, ownerID uuid.UUID) (response.TransactionResponse, error) {
+			createTransactionFn: func(ctx context.Context, req CreateTransactionRequest, ownerID uuid.UUID) (TransactionResponse, error) {
 				assert.Equal(t, testUser.ID, ownerID)
 				assert.Equal(t, 2500.0, req.Amount)
-				return response.TransactionResponse{ID: expectedID, Amount: req.Amount}, nil
+				return TransactionResponse{ID: expectedID, Amount: req.Amount}, nil
 			},
 		}
 
@@ -182,7 +180,7 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
-		var actual response.TransactionResponse
+		var actual TransactionResponse
 		err := json.Unmarshal(w.Body.Bytes(), &actual)
 		require.NoError(t, err)
 		assert.Equal(t, expectedID, actual.ID)
@@ -190,8 +188,8 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			createTransactionFn: func(ctx context.Context, req request.CreateTransactionRequest, ownerID uuid.UUID) (response.TransactionResponse, error) {
-				return response.TransactionResponse{}, assert.AnError
+			createTransactionFn: func(ctx context.Context, req CreateTransactionRequest, ownerID uuid.UUID) (TransactionResponse, error) {
+				return TransactionResponse{}, assert.AnError
 			},
 		}
 
@@ -207,7 +205,7 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 }
 
 func TestTransactionHandler_UpdateTransaction(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 	txID := uuid.New()
 
 	t.Run("InvalidTxID", func(t *testing.T) {
@@ -232,11 +230,11 @@ func TestTransactionHandler_UpdateTransaction(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error) {
+			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (TransactionResponse, error) {
 				assert.Equal(t, txID, id)
 				assert.Equal(t, testUser.ID, ownerID)
 				assert.Equal(t, 3000.0, updates["amount"])
-				return response.TransactionResponse{ID: txID, Amount: 3000.0}, nil
+				return TransactionResponse{ID: txID, Amount: 3000.0}, nil
 			},
 		}
 
@@ -251,8 +249,8 @@ func TestTransactionHandler_UpdateTransaction(t *testing.T) {
 
 	t.Run("NotFound", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error) {
-				return response.TransactionResponse{}, pkgerrors.NewNotFound("Transaction", id, ownerID)
+			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (TransactionResponse, error) {
+				return TransactionResponse{}, pkgerrors.NewNotFound("Transaction", id, ownerID)
 			},
 		}
 
@@ -267,8 +265,8 @@ func TestTransactionHandler_UpdateTransaction(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockTxService{
-			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error) {
-				return response.TransactionResponse{}, assert.AnError
+			updateTransactionFn: func(ctx context.Context, id, ownerID uuid.UUID, updates map[string]any) (TransactionResponse, error) {
+				return TransactionResponse{}, assert.AnError
 			},
 		}
 
@@ -283,7 +281,7 @@ func TestTransactionHandler_UpdateTransaction(t *testing.T) {
 }
 
 func TestTransactionHandler_DeleteTransaction(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 	txID := uuid.New()
 
 	t.Run("InvalidTxID", func(t *testing.T) {

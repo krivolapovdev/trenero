@@ -1,14 +1,14 @@
 package group
 
 import (
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/krivolapovdev/trenerio/pkg/types"
-	timeutil "github.com/krivolapovdev/trenerio/pkg/utils"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
+	"github.com/krivolapovdev/trenerio/internal/transaction"
+	"github.com/krivolapovdev/trenerio/internal/visit"
 )
 
 func BuildGroupReport(
@@ -16,10 +16,10 @@ func BuildGroupReport(
 	year, month int,
 	students []response.StudentResponse,
 	lessons []response.LessonResponse,
-	visitsByStudentID map[uuid.UUID][]response.VisitResponse,
-	paymentsByStudentID map[uuid.UUID][]response.TransactionResponse,
+	visitsByStudentID map[uuid.UUID][]visit.VisitResponse,
+	paymentsByStudentID map[uuid.UUID][]transaction.TransactionResponse,
 	today time.Time,
-) response.GroupReportResponse {
+) GroupReportResponse {
 	lastDay := time.Date(year, time.Month(month)+1, 0, 0, 0, 0, 0, time.UTC)
 	dayCount := lastDay.Day()
 
@@ -37,9 +37,9 @@ func BuildGroupReport(
 	}
 	sort.Ints(lessonDays)
 
-	statusesByStudentID := make(map[uuid.UUID]map[uuid.UUID][]types.VisitStatus, len(visitsByStudentID))
+	statusesByStudentID := make(map[uuid.UUID]map[uuid.UUID][]visit.VisitStatus, len(visitsByStudentID))
 	for sid, visits := range visitsByStudentID {
-		byLesson := make(map[uuid.UUID][]types.VisitStatus, len(visits))
+		byLesson := make(map[uuid.UUID][]visit.VisitStatus, len(visits))
 		for _, v := range visits {
 			byLesson[v.LessonID] = append(byLesson[v.LessonID], v.Status)
 		}
@@ -52,7 +52,7 @@ func BuildGroupReport(
 		return strings.ToLower(sortedStudents[i].FullName) < strings.ToLower(sortedStudents[j].FullName)
 	})
 
-	rows := make([]response.GroupReportStudentResponse, 0, len(sortedStudents))
+	rows := make([]GroupReportStudentResponse, 0, len(sortedStudents))
 	totalPresent := 0
 	totalLessons := 0
 
@@ -64,14 +64,13 @@ func BuildGroupReport(
 				stList := statusesByLessonID[lessonID]
 				isPresent := false
 				for _, st := range stList {
-					if st == types.VisitStatusPresent {
+					if st == visit.VisitStatusPresent {
 						isPresent = true
 						break
 					}
 				}
 				if isPresent {
 					presentDays = append(presentDays, day)
-					break
 				}
 			}
 		}
@@ -82,7 +81,7 @@ func BuildGroupReport(
 		totalPresent += pCount
 		totalLessons += lCount
 
-		rows = append(rows, response.GroupReportStudentResponse{
+		rows = append(rows, GroupReportStudentResponse{
 			StudentID:    student.ID,
 			FullName:     student.FullName,
 			Paid:         paid,
@@ -92,7 +91,7 @@ func BuildGroupReport(
 		})
 	}
 
-	return response.GroupReportResponse{
+	return GroupReportResponse{
 		GroupID:      grp.ID,
 		GroupName:    grp.Name,
 		Year:         year,
@@ -105,8 +104,8 @@ func BuildGroupReport(
 	}
 }
 
-func isPaid(payments []response.TransactionResponse, year, month int, today time.Time) bool {
-	maxPaidUntil := timeutil.MaxPaidUntil(payments)
+func isPaid(payments []transaction.TransactionResponse, year, month int, today time.Time) bool {
+	maxPaidUntil := transaction.MaxPaidUntil(payments)
 	if maxPaidUntil == nil {
 		return false
 	}
@@ -124,5 +123,5 @@ func isPaid(payments []response.TransactionResponse, year, month int, today time
 		referenceDate = todayDay
 	}
 
-	return timeutil.IsSubscriptionActive(maxPaidUntil, referenceDate)
+	return transaction.IsSubscriptionActive(maxPaidUntil, referenceDate)
 }

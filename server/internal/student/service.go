@@ -5,66 +5,86 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"sort"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/krivolapovdev/trenerio/internal/db"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/logger"
-	"github.com/krivolapovdev/trenerio/pkg/types"
-	"github.com/krivolapovdev/trenerio/pkg/utils"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/logger"
+	"github.com/krivolapovdev/trenerio/internal/shared/request"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
+	"github.com/krivolapovdev/trenerio/internal/shared/types"
+	"github.com/krivolapovdev/trenerio/internal/shared/validator"
+	"github.com/krivolapovdev/trenerio/internal/transaction"
+	"github.com/krivolapovdev/trenerio/internal/visit"
 	"golang.org/x/sync/errgroup"
 )
 
-type FetchVisitsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]response.VisitResponse, error)
-type FetchVisitsByStudentIDFunc func(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.VisitResponse, error)
-type FetchPaymentsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]response.TransactionResponse, error)
-type FetchPaymentsByStudentIDFunc func(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.TransactionResponse, error)
-type CreateStudentPaymentFunc func(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (response.TransactionResponse, error)
-type FetchStudentGroupsByStudentIDsFunc func(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]response.GroupResponse, error)
-type SetStudentGroupsFunc func(ctx context.Context, studentID, ownerID uuid.UUID, groupIDs []uuid.UUID) error
-type FetchLessonsByIDsFunc func(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]response.LessonResponse, error)
-
-type Service struct {
-	db                        *db.Queries
-	sqlDB                     *sql.DB
-	fetchVisitsByStudentIDs   FetchVisitsByStudentIDsFunc
-	fetchVisitsByStudentID    FetchVisitsByStudentIDFunc
-	fetchPaymentsByStudentIDs FetchPaymentsByStudentIDsFunc
-	fetchPaymentsByStudentID  FetchPaymentsByStudentIDFunc
-	createStudentPayment      CreateStudentPaymentFunc
-	fetchStudentGroups        FetchStudentGroupsByStudentIDsFunc
-	setStudentGroups          SetStudentGroupsFunc
-	fetchLessonsByIDs         FetchLessonsByIDsFunc
+type VisitProvider interface {
+	GetVisitsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]visit.VisitResponse, error)
+	GetVisitsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]visit.VisitResponse, error)
 }
 
-func NewService(
+type TransactionProvider interface {
+	GetTransactionsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]transaction.TransactionResponse, error)
+	GetTransactionsByStudentID(ctx context.Context, studentID, ownerID uuid.UUID) ([]transaction.TransactionResponse, error)
+	CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (transaction.TransactionResponse, error)
+}
+
+type GroupProvider interface {
+	GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]response.GroupResponse, error)
+	SetStudentGroups(ctx context.Context, studentID, ownerID uuid.UUID, groupIDs []uuid.UUID) error
+}
+
+type LessonProvider interface {
+	GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]response.LessonResponse, error)
+}
+
+type Service struct {
+	db                  *db.Queries
+	sqlDB               *sql.DB
+	visitProvider       VisitProvider
+	transactionProvider TransactionProvider
+	groupProvider       GroupProvider
+	lessonProvider      LessonProvider
+}
+
+func NewService(queries *db.Queries, sqlDB *sql.DB) *Service {
+	return &Service{
+		db:    queries,
+		sqlDB: sqlDB,
+	}
+}
+
+func (s *Service) SetDependencies(
+	visitProvider VisitProvider,
+	transactionProvider TransactionProvider,
+	groupProvider GroupProvider,
+	lessonProvider LessonProvider,
+) {
+	s.visitProvider = visitProvider
+	s.transactionProvider = transactionProvider
+	s.groupProvider = groupProvider
+	s.lessonProvider = lessonProvider
+}
+
+func NewServiceWithDependencies(
 	queries *db.Queries,
 	sqlDB *sql.DB,
-	fetchVisitsByStudentIDs FetchVisitsByStudentIDsFunc,
-	fetchVisitsByStudentID FetchVisitsByStudentIDFunc,
-	fetchPaymentsByStudentIDs FetchPaymentsByStudentIDsFunc,
-	fetchPaymentsByStudentID FetchPaymentsByStudentIDFunc,
-	createStudentPayment CreateStudentPaymentFunc,
-	fetchStudentGroups FetchStudentGroupsByStudentIDsFunc,
-	setStudentGroups SetStudentGroupsFunc,
-	fetchLessonsByIDs FetchLessonsByIDsFunc,
+	visitProvider VisitProvider,
+	transactionProvider TransactionProvider,
+	groupProvider GroupProvider,
+	lessonProvider LessonProvider,
 ) *Service {
-	return &Service{
-		db:                        queries,
-		sqlDB:                     sqlDB,
-		fetchVisitsByStudentIDs:   fetchVisitsByStudentIDs,
-		fetchVisitsByStudentID:    fetchVisitsByStudentID,
-		fetchPaymentsByStudentIDs: fetchPaymentsByStudentIDs,
-		fetchPaymentsByStudentID:  fetchPaymentsByStudentID,
-		createStudentPayment:      createStudentPayment,
-		fetchStudentGroups:        fetchStudentGroups,
-		setStudentGroups:          setStudentGroups,
-		fetchLessonsByIDs:         fetchLessonsByIDs,
-	}
+	s := NewService(queries, sqlDB)
+	s.SetDependencies(
+		visitProvider,
+		transactionProvider,
+		groupProvider,
+		lessonProvider,
+	)
+	return s
 }
 
 func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
@@ -107,7 +127,19 @@ func (s *Service) GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, 
 	return students, nil
 }
 
-func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]response.StudentSummaryResponse, error) {
+func (s *Service) GetTransactionStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]transaction.StudentSummaryInfo, error) {
+	students, err := s.GetStudentsByIDs(ctx, studentIDs, ownerID)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]transaction.StudentSummaryInfo, len(students))
+	for i, st := range students {
+		res[i] = transaction.StudentSummaryInfo{ID: st.ID, FullName: st.FullName}
+	}
+	return res, nil
+}
+
+func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]StudentSummaryResponse, error) {
 	logger.InfoContext(ctx, "Getting students overview", "user_id", ownerID.String())
 	students, err := s.GetAllStudents(ctx, ownerID)
 	if err != nil {
@@ -116,7 +148,7 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 	}
 	if len(students) == 0 {
 		logger.InfoContext(ctx, "No students found for overview", "user_id", ownerID.String())
-		return []response.StudentSummaryResponse{}, nil
+		return []StudentSummaryResponse{}, nil
 	}
 
 	studentIDs := make([]uuid.UUID, 0, len(students))
@@ -125,15 +157,15 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 	}
 
 	var (
-		visitsMap        map[uuid.UUID][]response.VisitResponse
-		paymentsMap      map[uuid.UUID][]response.TransactionResponse
+		visitsMap        map[uuid.UUID][]visit.VisitResponse
+		paymentsMap      map[uuid.UUID][]transaction.TransactionResponse
 		studentGroupsMap map[uuid.UUID][]response.GroupResponse
 	)
 
 	g, gCtx := errgroup.WithContext(ctx)
-	if s.fetchVisitsByStudentIDs != nil {
+	if s.visitProvider != nil {
 		g.Go(func() error {
-			vm, err := s.fetchVisitsByStudentIDs(gCtx, studentIDs, ownerID)
+			vm, err := s.visitProvider.GetVisitsByStudentIDs(gCtx, studentIDs, ownerID)
 			if err != nil {
 				return err
 			}
@@ -141,9 +173,9 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 			return nil
 		})
 	}
-	if s.fetchPaymentsByStudentIDs != nil {
+	if s.transactionProvider != nil {
 		g.Go(func() error {
-			pm, err := s.fetchPaymentsByStudentIDs(gCtx, studentIDs, ownerID)
+			pm, err := s.transactionProvider.GetTransactionsByStudentIDs(gCtx, studentIDs, ownerID)
 			if err != nil {
 				return err
 			}
@@ -151,9 +183,9 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 			return nil
 		})
 	}
-	if s.fetchStudentGroups != nil {
+	if s.groupProvider != nil {
 		g.Go(func() error {
-			gm, err := s.fetchStudentGroups(gCtx, studentIDs, ownerID)
+			gm, err := s.groupProvider.GetGroupsByStudentIDs(gCtx, studentIDs, ownerID)
 			if err != nil {
 				return err
 			}
@@ -180,8 +212,8 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 	}
 
 	lessonsMap := make(map[uuid.UUID]response.LessonResponse, len(allLessonIDs))
-	if len(allLessonIDs) > 0 && s.fetchLessonsByIDs != nil {
-		lRows, err := s.fetchLessonsByIDs(ctx, allLessonIDs, ownerID)
+	if len(allLessonIDs) > 0 && s.lessonProvider != nil {
+		lRows, err := s.lessonProvider.GetLessonsByIDs(ctx, allLessonIDs, ownerID)
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to fetch lessons for students overview", "error", err, "user_id", ownerID.String())
 			return nil, err
@@ -198,7 +230,7 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 	)
 
 	today := time.Now().UTC()
-	summaries := make([]response.StudentSummaryResponse, 0, len(students))
+	summaries := make([]StudentSummaryResponse, 0, len(students))
 	for _, st := range students {
 		stVisits := visitsMap[st.ID]
 		stPayments := paymentsMap[st.ID]
@@ -209,7 +241,7 @@ func (s *Service) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) 
 			stGroups = []response.GroupResponse{}
 		}
 
-		summaries = append(summaries, response.StudentSummaryResponse{
+		summaries = append(summaries, StudentSummaryResponse{
 			ID:            st.ID,
 			FullName:      st.FullName,
 			Birthdate:     st.Birthdate,
@@ -244,6 +276,11 @@ func (s *Service) GetStudentDetailsByID(ctx context.Context, studentID, ownerID 
 	return toStudentResponse(st), nil
 }
 
+func (s *Service) ValidateStudentExistsByID(ctx context.Context, studentID, ownerID uuid.UUID) error {
+	_, err := s.GetStudentDetailsByID(ctx, studentID, ownerID)
+	return err
+}
+
 func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]response.VisitWithLessonResponse, error) {
 	logger.InfoContext(ctx, "Getting student visits", "student_id", studentID.String(), "user_id", ownerID.String())
 	if _, err := s.GetStudentDetailsByID(ctx, studentID, ownerID); err != nil {
@@ -251,10 +288,14 @@ func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.
 		return nil, err
 	}
 
-	vRows, err := s.fetchVisitsByStudentID(ctx, studentID, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch student visits", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
-		return nil, err
+	var vRows []visit.VisitResponse
+	if s.visitProvider != nil {
+		var err error
+		vRows, err = s.visitProvider.GetVisitsByStudentID(ctx, studentID, ownerID)
+		if err != nil {
+			logger.ErrorContext(ctx, "Failed to fetch student visits", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
+			return nil, err
+		}
 	}
 	if len(vRows) == 0 {
 		return []response.VisitWithLessonResponse{}, nil
@@ -266,8 +307,8 @@ func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.
 	}
 
 	lessonsMap := make(map[uuid.UUID]response.LessonResponse, len(lessonIDs))
-	if len(lessonIDs) > 0 && s.fetchLessonsByIDs != nil {
-		lRows, err := s.fetchLessonsByIDs(ctx, lessonIDs, ownerID)
+	if len(lessonIDs) > 0 && s.lessonProvider != nil {
+		lRows, err := s.lessonProvider.GetLessonsByIDs(ctx, lessonIDs, ownerID)
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to fetch lessons for student visits", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 			return nil, err
@@ -308,17 +349,21 @@ func (s *Service) GetStudentVisits(ctx context.Context, studentID, ownerID uuid.
 	return visitsWithLessons, nil
 }
 
-func (s *Service) GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
+func (s *Service) GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]transaction.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Getting payments for student", "student_id", studentID.String(), "user_id", ownerID.String())
 	if _, err := s.GetStudentDetailsByID(ctx, studentID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Student not found for payments", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return nil, err
 	}
 
-	payments, err := s.fetchPaymentsByStudentID(ctx, studentID, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to fetch student payments", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
-		return nil, err
+	var payments []transaction.TransactionResponse
+	if s.transactionProvider != nil {
+		var err error
+		payments, err = s.transactionProvider.GetTransactionsByStudentID(ctx, studentID, ownerID)
+		if err != nil {
+			logger.ErrorContext(ctx, "Failed to fetch student payments", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
+			return nil, err
+		}
 	}
 	logger.InfoContext(ctx, "Retrieved student payments", "student_id", studentID.String(), "count", len(payments), "user_id", ownerID.String())
 	return payments, nil
@@ -326,7 +371,7 @@ func (s *Service) GetStudentPayments(ctx context.Context, studentID, ownerID uui
 
 func (s *Service) CreateStudent(ctx context.Context, req request.CreateStudentRequest, ownerID uuid.UUID) (response.StudentResponse, error) {
 	logger.InfoContext(ctx, "Creating student", "name", req.FullName, "user_id", ownerID.String())
-	fullName, err := utils.ValidateRequiredName(req.FullName, "fullName")
+	fullName, err := validator.ValidateRequiredName(req.FullName, "fullName")
 	if err != nil {
 		logger.WarnContext(ctx, "Student full name validation failed", "user_id", ownerID.String())
 		return response.StudentResponse{}, err
@@ -334,7 +379,7 @@ func (s *Service) CreateStudent(ctx context.Context, req request.CreateStudentRe
 
 	var birthdate sql.NullTime
 	if req.Birthdate != nil {
-		if err := utils.ValidateDateNotFuture(req.Birthdate.Time, "birthdate"); err != nil {
+		if err := validator.ValidateDateNotFuture(req.Birthdate.Time, "birthdate"); err != nil {
 			logger.WarnContext(ctx, "Student birthdate cannot be in the future", "birthdate", req.Birthdate.Format(time.DateOnly), "user_id", ownerID.String())
 			return response.StudentResponse{}, err
 		}
@@ -352,7 +397,7 @@ func (s *Service) CreateStudent(ctx context.Context, req request.CreateStudentRe
 	if taken {
 		logger.WarnContext(ctx, "Student with name already exists", "name", fullName, "user_id", ownerID.String())
 		return response.StudentResponse{}, pkgerrors.NewConflict(
-			types.ErrStudentNameNotUnique,
+			ErrNameNotUnique,
 			fmt.Sprintf("A student named \"%s\" already exists", fullName),
 		)
 	}
@@ -382,22 +427,26 @@ func (s *Service) CreateStudent(ctx context.Context, req request.CreateStudentRe
 	return toStudentResponse(created), nil
 }
 
-func (s *Service) CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (response.TransactionResponse, error) {
+func (s *Service) CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (transaction.TransactionResponse, error) {
 	logger.InfoContext(ctx, "Creating payment for student", "student_id", studentID.String(), "amount", req.Amount, "user_id", ownerID.String())
-	if err := utils.ValidateDateNotFuture(req.Date, "date"); err != nil {
+	if err := validator.ValidateDateNotFuture(req.Date, "date"); err != nil {
 		logger.WarnContext(ctx, "Student payment date cannot be in the future", "date", req.Date.Format(time.RFC3339), "user_id", ownerID.String())
-		return response.TransactionResponse{}, err
+		return transaction.TransactionResponse{}, err
 	}
 
 	if _, err := s.GetStudentDetailsByID(ctx, studentID, ownerID); err != nil {
 		logger.WarnContext(ctx, "Student not found for creating payment", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
-		return response.TransactionResponse{}, err
+		return transaction.TransactionResponse{}, err
 	}
 
-	payment, err := s.createStudentPayment(ctx, studentID, req.Amount, req.Date, req.PaidUntil, ownerID)
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to create payment for student", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
-		return response.TransactionResponse{}, err
+	var payment transaction.TransactionResponse
+	if s.transactionProvider != nil {
+		var err error
+		payment, err = s.transactionProvider.CreateStudentPayment(ctx, studentID, req.Amount, req.Date, req.PaidUntil, ownerID)
+		if err != nil {
+			logger.ErrorContext(ctx, "Failed to create payment for student", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
+			return transaction.TransactionResponse{}, err
+		}
 	}
 
 	logger.InfoContext(ctx, "Student payment created successfully", "student_id", studentID.String(), "transaction_id", payment.ID.String(), "user_id", ownerID.String())
@@ -429,7 +478,7 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 				logger.WarnContext(ctx, "Updated student name must not be blank", "student_id", studentID.String(), "user_id", ownerID.String())
 				return pkgerrors.NewBadRequest("fullName must not be blank")
 			}
-			trimmed, err := utils.ValidateRequiredName(nameStr, "fullName")
+			trimmed, err := validator.ValidateRequiredName(nameStr, "fullName")
 			if err != nil {
 				logger.WarnContext(ctx, "Updated student name validation failed", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 				return err
@@ -446,7 +495,7 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 			if taken {
 				logger.WarnContext(ctx, "Student name already exists for update", "name", trimmed, "student_id", studentID.String(), "user_id", ownerID.String())
 				return pkgerrors.NewConflict(
-					types.ErrStudentNameNotUnique,
+					ErrNameNotUnique,
 					fmt.Sprintf("A student named \"%s\" already exists", trimmed),
 				)
 			}
@@ -463,7 +512,7 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 					t, err = time.Parse(time.RFC3339, s)
 				}
 				if err == nil {
-					if err := utils.ValidateDateNotFuture(t, "birthdate"); err != nil {
+					if err := validator.ValidateDateNotFuture(t, "birthdate"); err != nil {
 						logger.WarnContext(ctx, "Updated student birthdate cannot be in the future", "birthdate", s, "user_id", ownerID.String())
 						return err
 					}
@@ -504,9 +553,9 @@ func (s *Service) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUI
 			groupKey = "groupId"
 		}
 
-		if groupKey != "" && s.setStudentGroups != nil {
+		if groupKey != "" && s.groupProvider != nil {
 			requestedGroupIDs := types.ParseUUIDSlice(updates[groupKey])
-			if err := s.setStudentGroups(ctx, studentID, ownerID, requestedGroupIDs); err != nil {
+			if err := s.groupProvider.SetStudentGroups(ctx, studentID, ownerID, requestedGroupIDs); err != nil {
 				logger.ErrorContext(ctx, "Failed to set student groupIds", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 				return err
 			}
@@ -563,12 +612,12 @@ func (s *Service) DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUI
 
 func (s *Service) ComputeStudentStatuses(
 	student response.StudentResponse,
-	visits []response.VisitResponse,
-	payments []response.TransactionResponse,
+	visits []visit.VisitResponse,
+	payments []transaction.TransactionResponse,
 	lessonsMap map[uuid.UUID]response.LessonResponse,
 	groupLessonsMap map[uuid.UUID]response.LessonResponse,
 	today time.Time,
-) []types.StudentStatus {
+) []StudentStatus {
 	return ComputeStudentStatusesWithVisitLessons(student, visits, payments, lessonsMap, groupLessonsMap, today)
 }
 

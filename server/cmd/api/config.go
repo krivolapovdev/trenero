@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/krivolapovdev/trenerio/pkg/utils"
+	"github.com/krivolapovdev/trenerio/internal/shared/env"
 )
 
 const (
@@ -56,9 +56,9 @@ func loadConfig() Config {
 	}
 
 	return Config{
-		Port:               utils.GetEnv("PORT", defaultPort),
+		Port:               env.GetEnv("PORT", defaultPort),
 		DBURL:              buildDatabaseURL(),
-		JWTSecret:          utils.GetEnv("JWT_SECRET_KEY", defaultJWTSecret),
+		JWTSecret:          env.GetEnv("JWT_SECRET_KEY", defaultJWTSecret),
 		ReviewerKey:        reviewerKey,
 		GoogleClientID:     os.Getenv("GOOGLE_WEB_CLIENT_ID"),
 		AllowedOrigins:     allowedOrigins,
@@ -74,8 +74,8 @@ func buildDatabaseURL() string {
 		return rawURL
 	}
 
-	user := utils.GetEnv("DB_USERNAME", defaultDBUser)
-	pass := utils.GetEnv("DB_PASSWORD", defaultDBPassword)
+	user := env.GetEnv("DB_USERNAME", defaultDBUser)
+	pass := env.GetEnv("DB_PASSWORD", defaultDBPassword)
 
 	return fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, pass, defaultDBHost, defaultDBName)
 }

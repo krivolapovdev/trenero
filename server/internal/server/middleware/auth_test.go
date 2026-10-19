@@ -9,16 +9,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/security"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAuthMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	tokenProvider := security.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
-	user := security.JwtUser{
+	tokenProvider := auth.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
+	user := auth.JwtUser{
 		ID:    uuid.New(),
 		Email: "teacher@trenerio.ru",
 	}
@@ -37,7 +37,7 @@ func TestAuthMiddleware(t *testing.T) {
 			c.Status(http.StatusInternalServerError)
 			return
 		}
-		u := val.(security.JwtUser)
+		u := val.(auth.JwtUser)
 		c.JSON(http.StatusOK, gin.H{
 			"id":    u.ID.String(),
 			"email": u.Email,

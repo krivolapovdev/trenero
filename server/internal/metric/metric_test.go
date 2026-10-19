@@ -2,13 +2,13 @@ package metric
 
 import (
 	"context"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/types"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
+	"github.com/krivolapovdev/trenerio/internal/transaction"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -69,6 +69,17 @@ func TestMetricScopeStrategy_Year(t *testing.T) {
 	assert.Equal(t, time.Date(2027, 1, 1, 0, 0, 0, 0, loc), next)
 }
 
+type mockTransactionProvider struct {
+	getTransactionsBetween func(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.TransactionResponse, error)
+}
+
+func (m mockTransactionProvider) GetTransactionsBetween(ctx context.Context, startDate, endDate time.Time, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
+	if m.getTransactionsBetween != nil {
+		return m.getTransactionsBetween(ctx, startDate, endDate, ownerID)
+	}
+	return nil, nil
+}
+
 func TestMetricService_Calculation(t *testing.T) {
 	startDate := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	endDate := time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC)
@@ -79,22 +90,22 @@ func TestMetricService_Calculation(t *testing.T) {
 			{
 				Amount: 1000,
 				Date:   time.Date(2026, 1, 15, 12, 0, 0, 0, time.UTC),
-				Type:   types.TransactionTypeIncome,
+				Type:   transaction.TransactionTypeIncome,
 			},
 			{
 				Amount: 200,
 				Date:   time.Date(2026, 1, 20, 12, 0, 0, 0, time.UTC),
-				Type:   types.TransactionTypeExpense,
+				Type:   transaction.TransactionTypeExpense,
 			},
 			{
 				Amount: 500,
 				Date:   time.Date(2026, 3, 5, 12, 0, 0, 0, time.UTC),
-				Type:   types.TransactionTypeIncome,
+				Type:   transaction.TransactionTypeIncome,
 			},
 		}, nil
 	}
 
-	service := NewService(mockFetch)
+	service := NewService(mockTransactionProvider{getTransactionsBetween: mockFetch})
 	metrics, err := service.GetPaymentStatistics(context.Background(), "MONTH", startDate, endDate, ownerID)
 	require.NoError(t, err)
 

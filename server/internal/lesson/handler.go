@@ -2,14 +2,15 @@ package lesson
 
 import (
 	"context"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/request"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
+	"github.com/krivolapovdev/trenerio/internal/shared/web"
 )
 
 type lessonService interface {
@@ -48,12 +49,12 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @Success      200       {object}  response.LessonDetailsResponse
 // @Router       /api/v1/lessons/{lessonId}/details [get]
 func (h *Handler) GetLessonDetails(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	lessonID, ok := httputil.ParseUUIDParam(c, "lessonId")
+	lessonID, ok := web.ParseUUIDParam(c, "lessonId")
 	if !ok {
 		return
 	}
@@ -75,13 +76,13 @@ func (h *Handler) GetLessonDetails(c *gin.Context) {
 // @Success      201   {object}  response.LessonResponse
 // @Router       /api/v1/lessons [post]
 func (h *Handler) CreateLesson(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
 	var req request.CreateLessonRequest
-	if !httputil.BindJSON(c, &req) {
+	if !web.BindJSON(c, &req) {
 		return
 	}
 
@@ -103,18 +104,18 @@ func (h *Handler) CreateLesson(c *gin.Context) {
 // @Success      200       {object}  response.LessonResponse
 // @Router       /api/v1/lessons/{lessonId} [patch]
 func (h *Handler) UpdateLesson(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	lessonID, ok := httputil.ParseUUIDParam(c, "lessonId")
+	lessonID, ok := web.ParseUUIDParam(c, "lessonId")
 	if !ok {
 		return
 	}
 
 	var req request.UpdateLessonRequest
-	if !httputil.BindJSON(c, &req) {
+	if !web.BindJSON(c, &req) {
 		return
 	}
 
@@ -135,12 +136,12 @@ func (h *Handler) UpdateLesson(c *gin.Context) {
 // @Success      204       "No Content"
 // @Router       /api/v1/lessons/{lessonId} [delete]
 func (h *Handler) DeleteLesson(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	lessonID, ok := httputil.ParseUUIDParam(c, "lessonId")
+	lessonID, ok := web.ParseUUIDParam(c, "lessonId")
 	if !ok {
 		return
 	}

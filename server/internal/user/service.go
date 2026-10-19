@@ -4,14 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/krivolapovdev/trenerio/internal/auth"
 	"github.com/krivolapovdev/trenerio/internal/db"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/logger"
-	"github.com/krivolapovdev/trenerio/pkg/security"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/logger"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
 )
 
 type Service struct {
@@ -80,7 +80,7 @@ func (s *Service) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
 	return exists, err
 }
 
-func (s *Service) DeleteUser(ctx context.Context, jwtUser security.JwtUser) error {
+func (s *Service) DeleteUser(ctx context.Context, jwtUser auth.JwtUser) error {
 	logger.InfoContext(ctx, "Deleting user", "user_id", jwtUser.ID.String())
 
 	exists, err := s.db.ExistsUserByID(ctx, jwtUser.ID)

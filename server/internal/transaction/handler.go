@@ -2,20 +2,19 @@ package transaction
 
 import (
 	"context"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	httputil "github.com/krivolapovdev/trenerio/pkg/utils"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/web"
 )
 
 type transactionService interface {
-	GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (response.PageTransactionResponse, error)
-	CreateTransaction(ctx context.Context, req request.CreateTransactionRequest, ownerID uuid.UUID) (response.TransactionResponse, error)
-	UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (response.TransactionResponse, error)
+	GetPaginatedTransactions(ctx context.Context, page, size int, ownerID uuid.UUID) (PageTransactionResponse, error)
+	CreateTransaction(ctx context.Context, req CreateTransactionRequest, ownerID uuid.UUID) (TransactionResponse, error)
+	UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (TransactionResponse, error)
 	DeleteTransaction(ctx context.Context, transactionID, ownerID uuid.UUID) error
 }
 
@@ -49,12 +48,12 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @Success      200   {object}  response.PageTransactionResponse
 // @Router       /api/v1/transactions [get]
 func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	page, size := httputil.ParsePagination(c, 1, 20)
+	page, size := web.ParsePagination(c, 1, 20)
 
 	pageResponse, err := h.service.GetPaginatedTransactions(c.Request.Context(), page, size, jwtUser.ID)
 	if err != nil {
@@ -73,13 +72,13 @@ func (h *Handler) GetPaginatedTransactions(c *gin.Context) {
 // @Success      201   {object}  response.TransactionResponse
 // @Router       /api/v1/transactions [post]
 func (h *Handler) CreateTransaction(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	var req request.CreateTransactionRequest
-	if !httputil.BindJSON(c, &req) {
+	var req CreateTransactionRequest
+	if !web.BindJSON(c, &req) {
 		return
 	}
 
@@ -101,18 +100,18 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 // @Success      200            {object}  response.TransactionResponse
 // @Router       /api/v1/transactions/{transactionId} [patch]
 func (h *Handler) UpdateTransaction(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	txID, ok := httputil.ParseUUIDParam(c, "transactionId")
+	txID, ok := web.ParseUUIDParam(c, "transactionId")
 	if !ok {
 		return
 	}
 
 	var updates map[string]any
-	if !httputil.BindJSON(c, &updates) {
+	if !web.BindJSON(c, &updates) {
 		return
 	}
 
@@ -133,12 +132,12 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 // @Success      204            "No Content"
 // @Router       /api/v1/transactions/{transactionId} [delete]
 func (h *Handler) DeleteTransaction(c *gin.Context) {
-	jwtUser, ok := httputil.GetAuthUser(c)
+	jwtUser, ok := auth.GetUserFromContext(c)
 	if !ok {
 		return
 	}
 
-	txID, ok := httputil.ParseUUIDParam(c, "transactionId")
+	txID, ok := web.ParseUUIDParam(c, "transactionId")
 	if !ok {
 		return
 	}

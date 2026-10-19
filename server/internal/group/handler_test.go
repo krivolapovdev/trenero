@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,10 +11,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/testutil"
-	"github.com/krivolapovdev/trenerio/pkg/types"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/harness"
+	"github.com/krivolapovdev/trenerio/internal/shared/request"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,9 +23,9 @@ import (
 type mockGroupService struct {
 	getAllGroupsSummaryFn func(ctx context.Context, ownerID uuid.UUID) ([]response.GroupSummaryResponse, error)
 	getGroupByIDFn        func(ctx context.Context, groupID, ownerID uuid.UUID) (response.GroupResponse, error)
-	getGroupStudentsFn    func(ctx context.Context, groupID, ownerID uuid.UUID) ([]response.GroupStudentSummaryResponse, error)
+	getGroupStudentsFn    func(ctx context.Context, groupID, ownerID uuid.UUID) ([]GroupStudentSummaryResponse, error)
 	getGroupLessonsFn     func(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]response.LessonResponse, error)
-	getGroupReportFn      func(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (response.GroupReportResponse, error)
+	getGroupReportFn      func(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (GroupReportResponse, error)
 	createGroupFn         func(ctx context.Context, req request.CreateGroupRequest, ownerID uuid.UUID) (response.GroupResponse, error)
 	updateGroupFn         func(ctx context.Context, groupID, ownerID uuid.UUID, updates map[string]any) (response.GroupResponse, error)
 	deleteGroupFn         func(ctx context.Context, groupID, ownerID uuid.UUID) error
@@ -46,7 +45,7 @@ func (m *mockGroupService) GetGroupByID(ctx context.Context, groupID, ownerID uu
 	return response.GroupResponse{}, nil
 }
 
-func (m *mockGroupService) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]response.GroupStudentSummaryResponse, error) {
+func (m *mockGroupService) GetGroupStudents(ctx context.Context, groupID, ownerID uuid.UUID) ([]GroupStudentSummaryResponse, error) {
 	if m.getGroupStudentsFn != nil {
 		return m.getGroupStudentsFn(ctx, groupID, ownerID)
 	}
@@ -60,11 +59,11 @@ func (m *mockGroupService) GetGroupLessons(ctx context.Context, groupID, ownerID
 	return nil, nil
 }
 
-func (m *mockGroupService) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (response.GroupReportResponse, error) {
+func (m *mockGroupService) GetGroupReport(ctx context.Context, groupID, ownerID uuid.UUID, year, month int) (GroupReportResponse, error) {
 	if m.getGroupReportFn != nil {
 		return m.getGroupReportFn(ctx, groupID, ownerID, year, month)
 	}
-	return response.GroupReportResponse{}, nil
+	return GroupReportResponse{}, nil
 }
 
 func (m *mockGroupService) GetGroupsByStudentIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) (map[uuid.UUID][]response.GroupResponse, error) {
@@ -96,17 +95,17 @@ func (m *mockGroupService) DeleteGroup(ctx context.Context, groupID, ownerID uui
 	return nil
 }
 
-func setupGroupRouter(svc groupService, user security.JwtUser) *gin.Engine {
-	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
+func setupGroupRouter(svc groupService, user auth.JwtUser) *gin.Engine {
+	return harness.SetupTestRouter(user, func(rg *gin.RouterGroup) {
 		NewHandler(svc).RegisterRoutes(rg)
 	})
 }
 
 func TestGroupHandler_GetAllGroupsSummary(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 
 	t.Run("Unauthorized", func(t *testing.T) {
-		r := setupGroupRouter(&mockGroupService{}, security.JwtUser{})
+		r := setupGroupRouter(&mockGroupService{}, auth.JwtUser{})
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/groups", nil)
 		r.ServeHTTP(w, req)
@@ -155,7 +154,7 @@ func TestGroupHandler_GetAllGroupsSummary(t *testing.T) {
 }
 
 func TestGroupHandler_GetGroupStudents(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 	groupID := uuid.New()
 
 	t.Run("InvalidGroupID", func(t *testing.T) {
@@ -169,10 +168,10 @@ func TestGroupHandler_GetGroupStudents(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := &mockGroupService{
-			getGroupStudentsFn: func(ctx context.Context, gID, ownerID uuid.UUID) ([]response.GroupStudentSummaryResponse, error) {
+			getGroupStudentsFn: func(ctx context.Context, gID, ownerID uuid.UUID) ([]GroupStudentSummaryResponse, error) {
 				assert.Equal(t, groupID, gID)
 				assert.Equal(t, testUser.ID, ownerID)
-				return []response.GroupStudentSummaryResponse{
+				return []GroupStudentSummaryResponse{
 					{ID: uuid.New(), FullName: "Student 1"},
 				}, nil
 			},
@@ -188,7 +187,7 @@ func TestGroupHandler_GetGroupStudents(t *testing.T) {
 
 	t.Run("NotFound", func(t *testing.T) {
 		mockSvc := &mockGroupService{
-			getGroupStudentsFn: func(ctx context.Context, gID, ownerID uuid.UUID) ([]response.GroupStudentSummaryResponse, error) {
+			getGroupStudentsFn: func(ctx context.Context, gID, ownerID uuid.UUID) ([]GroupStudentSummaryResponse, error) {
 				return nil, pkgerrors.NewNotFound("Group", gID, ownerID)
 			},
 		}
@@ -203,7 +202,7 @@ func TestGroupHandler_GetGroupStudents(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockGroupService{
-			getGroupStudentsFn: func(ctx context.Context, gID, ownerID uuid.UUID) ([]response.GroupStudentSummaryResponse, error) {
+			getGroupStudentsFn: func(ctx context.Context, gID, ownerID uuid.UUID) ([]GroupStudentSummaryResponse, error) {
 				return nil, assert.AnError
 			},
 		}
@@ -218,7 +217,7 @@ func TestGroupHandler_GetGroupStudents(t *testing.T) {
 }
 
 func TestGroupHandler_GetGroupLessons(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 	groupID := uuid.New()
 
 	t.Run("MissingQueryParams", func(t *testing.T) {
@@ -278,7 +277,7 @@ func TestGroupHandler_GetGroupLessons(t *testing.T) {
 }
 
 func TestGroupHandler_GetGroupReport(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 	groupID := uuid.New()
 
 	t.Run("MissingParams", func(t *testing.T) {
@@ -319,10 +318,10 @@ func TestGroupHandler_GetGroupReport(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := &mockGroupService{
-			getGroupReportFn: func(ctx context.Context, gID, ownerID uuid.UUID, year, month int) (response.GroupReportResponse, error) {
+			getGroupReportFn: func(ctx context.Context, gID, ownerID uuid.UUID, year, month int) (GroupReportResponse, error) {
 				assert.Equal(t, 2026, year)
 				assert.Equal(t, 10, month)
-				return response.GroupReportResponse{Year: year, Month: month}, nil
+				return GroupReportResponse{Year: year, Month: month}, nil
 			},
 		}
 
@@ -336,8 +335,8 @@ func TestGroupHandler_GetGroupReport(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockGroupService{
-			getGroupReportFn: func(ctx context.Context, gID, ownerID uuid.UUID, year, month int) (response.GroupReportResponse, error) {
-				return response.GroupReportResponse{}, assert.AnError
+			getGroupReportFn: func(ctx context.Context, gID, ownerID uuid.UUID, year, month int) (GroupReportResponse, error) {
+				return GroupReportResponse{}, assert.AnError
 			},
 		}
 
@@ -351,7 +350,7 @@ func TestGroupHandler_GetGroupReport(t *testing.T) {
 }
 
 func TestGroupHandler_CreateGroup(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 
 	t.Run("InvalidJSON", func(t *testing.T) {
 		r := setupGroupRouter(&mockGroupService{}, testUser)
@@ -384,7 +383,7 @@ func TestGroupHandler_CreateGroup(t *testing.T) {
 	t.Run("ConflictError", func(t *testing.T) {
 		mockSvc := &mockGroupService{
 			createGroupFn: func(ctx context.Context, req request.CreateGroupRequest, ownerID uuid.UUID) (response.GroupResponse, error) {
-				return response.GroupResponse{}, pkgerrors.NewConflict(types.ErrGroupNameNotUnique, "Group already exists")
+				return response.GroupResponse{}, pkgerrors.NewConflict(ErrGroupNameNotUnique, "Group already exists")
 			},
 		}
 
@@ -498,7 +497,7 @@ func TestGroupHandler_CreateGroup(t *testing.T) {
 }
 
 func TestGroupHandler_UpdateGroup(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 	groupID := uuid.New()
 
 	t.Run("InvalidGroupID", func(t *testing.T) {
@@ -586,7 +585,7 @@ func TestGroupHandler_UpdateGroup(t *testing.T) {
 }
 
 func TestGroupHandler_DeleteGroup(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 	groupID := uuid.New()
 
 	t.Run("InvalidGroupID", func(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,7 +43,7 @@ func TestParseTime(t *testing.T) {
 }
 
 func TestGetPaginatedTransactions_InvalidPageSize(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil)
+	svc := NewService(nil, nil, nil)
 	ctx := context.Background()
 
 	_, err := svc.GetPaginatedTransactions(ctx, 1, 0, uuid.New())

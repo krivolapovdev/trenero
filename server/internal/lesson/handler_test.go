@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,9 +11,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/testutil"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/harness"
+	"github.com/krivolapovdev/trenerio/internal/shared/request"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -71,18 +71,18 @@ func (m *mockLessonService) GetLessonsByIDs(ctx context.Context, lessonIDs []uui
 	return nil, nil
 }
 
-func setupLessonRouter(svc lessonService, user security.JwtUser) *gin.Engine {
-	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
+func setupLessonRouter(svc lessonService, user auth.JwtUser) *gin.Engine {
+	return harness.SetupTestRouter(user, func(rg *gin.RouterGroup) {
 		NewHandler(svc).RegisterRoutes(rg)
 	})
 }
 
 func TestLessonHandler_GetLessonDetails(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 	lessonID := uuid.New()
 
 	t.Run("Unauthorized", func(t *testing.T) {
-		r := setupLessonRouter(&mockLessonService{}, security.JwtUser{})
+		r := setupLessonRouter(&mockLessonService{}, auth.JwtUser{})
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/lessons/"+lessonID.String()+"/details", nil)
 		r.ServeHTTP(w, req)
@@ -155,7 +155,7 @@ func TestLessonHandler_GetLessonDetails(t *testing.T) {
 }
 
 func TestLessonHandler_CreateLesson(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 
 	t.Run("InvalidJSON", func(t *testing.T) {
 		r := setupLessonRouter(&mockLessonService{}, testUser)
@@ -219,7 +219,7 @@ func TestLessonHandler_CreateLesson(t *testing.T) {
 }
 
 func TestLessonHandler_UpdateLesson(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 	lessonID := uuid.New()
 
 	t.Run("InvalidLessonID", func(t *testing.T) {
@@ -298,7 +298,7 @@ func TestLessonHandler_UpdateLesson(t *testing.T) {
 }
 
 func TestLessonHandler_DeleteLesson(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@example.com"}
 	lessonID := uuid.New()
 
 	t.Run("InvalidLessonID", func(t *testing.T) {

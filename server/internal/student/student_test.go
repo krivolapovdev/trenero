@@ -2,19 +2,19 @@ package student
 
 import (
 	"context"
-	"github.com/krivolapovdev/trenerio/pkg/request"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/types"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/request"
+	"github.com/krivolapovdev/trenerio/internal/shared/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestStudentService_DateValidation(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	svc := NewService(nil, nil)
 	ctx := context.Background()
 	ownerID := uuid.New()
 
@@ -42,4 +42,21 @@ func TestStudentService_DateValidation(t *testing.T) {
 		require.ErrorAs(t, err, &badReq)
 		assert.Equal(t, "date cannot be in the future", badReq.Message)
 	})
+
+	t.Run("GetTransactionStudentsByIDs_Empty", func(t *testing.T) {
+		res, err := svc.GetTransactionStudentsByIDs(ctx, []uuid.UUID{}, ownerID)
+		require.NoError(t, err)
+		assert.Empty(t, res)
+	})
+}
+
+func TestStudentService_Dependencies(t *testing.T) {
+	svc := NewService(nil, nil)
+	require.NotNil(t, svc)
+
+	svc.SetDependencies(nil, nil, nil, nil)
+	assert.Nil(t, svc.visitProvider)
+
+	svcWithDeps := NewServiceWithDependencies(nil, nil, nil, nil, nil, nil)
+	require.NotNil(t, svcWithDeps)
 }

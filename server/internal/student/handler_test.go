@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/krivolapovdev/trenerio/pkg/request"
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,21 +11,24 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/security"
-	"github.com/krivolapovdev/trenerio/pkg/testutil"
-	"github.com/krivolapovdev/trenerio/pkg/types"
+	"github.com/krivolapovdev/trenerio/internal/auth"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/harness"
+	"github.com/krivolapovdev/trenerio/internal/shared/request"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
+	"github.com/krivolapovdev/trenerio/internal/transaction"
+	"github.com/krivolapovdev/trenerio/internal/visit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 type mockStudentService struct {
-	getAllStudentsSummaryFn func(ctx context.Context, ownerID uuid.UUID) ([]response.StudentSummaryResponse, error)
+	getAllStudentsSummaryFn func(ctx context.Context, ownerID uuid.UUID) ([]StudentSummaryResponse, error)
 	getStudentDetailsByIDFn func(ctx context.Context, studentID, ownerID uuid.UUID) (response.StudentResponse, error)
 	getStudentVisitsFn      func(ctx context.Context, studentID, ownerID uuid.UUID, from, to *time.Time) ([]response.VisitWithLessonResponse, error)
-	getStudentPaymentsFn    func(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.TransactionResponse, error)
+	getStudentPaymentsFn    func(ctx context.Context, studentID, ownerID uuid.UUID) ([]transaction.TransactionResponse, error)
 	createStudentFn         func(ctx context.Context, req request.CreateStudentRequest, ownerID uuid.UUID) (response.StudentResponse, error)
-	createStudentPaymentFn  func(ctx context.Context, studentID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (response.TransactionResponse, error)
+	createStudentPaymentFn  func(ctx context.Context, studentID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (transaction.TransactionResponse, error)
 	updateStudentFn         func(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (response.StudentResponse, error)
 	deleteStudentFn         func(ctx context.Context, studentID, ownerID uuid.UUID) error
 }
@@ -38,7 +39,7 @@ func (m *mockStudentService) GetAllStudents(ctx context.Context, ownerID uuid.UU
 func (m *mockStudentService) GetStudentsByIDs(ctx context.Context, studentIDs []uuid.UUID, ownerID uuid.UUID) ([]response.StudentResponse, error) {
 	return nil, nil
 }
-func (m *mockStudentService) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]response.StudentSummaryResponse, error) {
+func (m *mockStudentService) GetAllStudentsSummary(ctx context.Context, ownerID uuid.UUID) ([]StudentSummaryResponse, error) {
 	if m.getAllStudentsSummaryFn != nil {
 		return m.getAllStudentsSummaryFn(ctx, ownerID)
 	}
@@ -56,7 +57,7 @@ func (m *mockStudentService) GetStudentVisits(ctx context.Context, studentID, ow
 	}
 	return nil, nil
 }
-func (m *mockStudentService) GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
+func (m *mockStudentService) GetStudentPayments(ctx context.Context, studentID, ownerID uuid.UUID) ([]transaction.TransactionResponse, error) {
 	if m.getStudentPaymentsFn != nil {
 		return m.getStudentPaymentsFn(ctx, studentID, ownerID)
 	}
@@ -68,11 +69,11 @@ func (m *mockStudentService) CreateStudent(ctx context.Context, req request.Crea
 	}
 	return response.StudentResponse{}, nil
 }
-func (m *mockStudentService) CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (response.TransactionResponse, error) {
+func (m *mockStudentService) CreateStudentPayment(ctx context.Context, studentID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (transaction.TransactionResponse, error) {
 	if m.createStudentPaymentFn != nil {
 		return m.createStudentPaymentFn(ctx, studentID, ownerID, req)
 	}
-	return response.TransactionResponse{}, nil
+	return transaction.TransactionResponse{}, nil
 }
 func (m *mockStudentService) UpdateStudent(ctx context.Context, studentID, ownerID uuid.UUID, updates map[string]any) (response.StudentResponse, error) {
 	if m.updateStudentFn != nil {
@@ -86,21 +87,21 @@ func (m *mockStudentService) DeleteStudent(ctx context.Context, studentID, owner
 	}
 	return nil
 }
-func (m *mockStudentService) ComputeStudentStatuses(student response.StudentResponse, visits []response.VisitResponse, payments []response.TransactionResponse, lessonsMap map[uuid.UUID]response.LessonResponse, groupLessonsMap map[uuid.UUID]response.LessonResponse, today time.Time) []types.StudentStatus {
+func (m *mockStudentService) ComputeStudentStatuses(student response.StudentResponse, visits []visit.VisitResponse, payments []transaction.TransactionResponse, lessonsMap map[uuid.UUID]response.LessonResponse, groupLessonsMap map[uuid.UUID]response.LessonResponse, today time.Time) []StudentStatus {
 	return nil
 }
 
-func setupStudentRouter(svc studentService, user security.JwtUser) *gin.Engine {
-	return testutil.SetupTestRouter(user, func(rg *gin.RouterGroup) {
+func setupStudentRouter(svc studentService, user auth.JwtUser) *gin.Engine {
+	return harness.SetupTestRouter(user, func(rg *gin.RouterGroup) {
 		NewHandler(svc).RegisterRoutes(rg)
 	})
 }
 
 func TestStudentHandler_GetAllStudentsSummary(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
 
 	t.Run("Unauthorized", func(t *testing.T) {
-		r := setupStudentRouter(&mockStudentService{}, security.JwtUser{})
+		r := setupStudentRouter(&mockStudentService{}, auth.JwtUser{})
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/students/overview", nil)
 		r.ServeHTTP(w, req)
@@ -109,7 +110,7 @@ func TestStudentHandler_GetAllStudentsSummary(t *testing.T) {
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		expected := []response.StudentSummaryResponse{
+		expected := []StudentSummaryResponse{
 			{
 				ID:       uuid.New(),
 				FullName: "Ivan Ivanov",
@@ -117,7 +118,7 @@ func TestStudentHandler_GetAllStudentsSummary(t *testing.T) {
 		}
 
 		mockSvc := &mockStudentService{
-			getAllStudentsSummaryFn: func(ctx context.Context, ownerID uuid.UUID) ([]response.StudentSummaryResponse, error) {
+			getAllStudentsSummaryFn: func(ctx context.Context, ownerID uuid.UUID) ([]StudentSummaryResponse, error) {
 				assert.Equal(t, testUser.ID, ownerID)
 				return expected, nil
 			},
@@ -129,7 +130,7 @@ func TestStudentHandler_GetAllStudentsSummary(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var actual []response.StudentSummaryResponse
+		var actual []StudentSummaryResponse
 		err := json.Unmarshal(w.Body.Bytes(), &actual)
 		require.NoError(t, err)
 		assert.Len(t, actual, 1)
@@ -138,7 +139,7 @@ func TestStudentHandler_GetAllStudentsSummary(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			getAllStudentsSummaryFn: func(ctx context.Context, ownerID uuid.UUID) ([]response.StudentSummaryResponse, error) {
+			getAllStudentsSummaryFn: func(ctx context.Context, ownerID uuid.UUID) ([]StudentSummaryResponse, error) {
 				return nil, assert.AnError
 			},
 		}
@@ -153,7 +154,7 @@ func TestStudentHandler_GetAllStudentsSummary(t *testing.T) {
 }
 
 func TestStudentHandler_CreateStudent(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
 
 	t.Run("Success", func(t *testing.T) {
 		expectedID := uuid.New()
@@ -247,7 +248,7 @@ func TestStudentHandler_CreateStudent(t *testing.T) {
 }
 
 func TestStudentHandler_DeleteStudent(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
 
 	t.Run("InvalidUUID", func(t *testing.T) {
 		r := setupStudentRouter(&mockStudentService{}, testUser)
@@ -313,7 +314,7 @@ func TestStudentHandler_DeleteStudent(t *testing.T) {
 }
 
 func TestStudentHandler_GetStudentVisits(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
 	studentID := uuid.New()
 
 	t.Run("InvalidStudentID", func(t *testing.T) {
@@ -389,7 +390,7 @@ func TestStudentHandler_GetStudentVisits(t *testing.T) {
 }
 
 func TestStudentHandler_GetStudentPayments(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
 	studentID := uuid.New()
 
 	t.Run("InvalidStudentID", func(t *testing.T) {
@@ -403,10 +404,10 @@ func TestStudentHandler_GetStudentPayments(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			getStudentPaymentsFn: func(ctx context.Context, sID, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
+			getStudentPaymentsFn: func(ctx context.Context, sID, ownerID uuid.UUID) ([]transaction.TransactionResponse, error) {
 				assert.Equal(t, studentID, sID)
 				assert.Equal(t, testUser.ID, ownerID)
-				return []response.TransactionResponse{{ID: uuid.New(), Amount: 5000}}, nil
+				return []transaction.TransactionResponse{{ID: uuid.New(), Amount: 5000}}, nil
 			},
 		}
 
@@ -420,7 +421,7 @@ func TestStudentHandler_GetStudentPayments(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			getStudentPaymentsFn: func(ctx context.Context, sID, ownerID uuid.UUID) ([]response.TransactionResponse, error) {
+			getStudentPaymentsFn: func(ctx context.Context, sID, ownerID uuid.UUID) ([]transaction.TransactionResponse, error) {
 				return nil, assert.AnError
 			},
 		}
@@ -435,7 +436,7 @@ func TestStudentHandler_GetStudentPayments(t *testing.T) {
 }
 
 func TestStudentHandler_CreateStudentPayment(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
 	studentID := uuid.New()
 
 	t.Run("InvalidStudentID", func(t *testing.T) {
@@ -464,11 +465,11 @@ func TestStudentHandler_CreateStudentPayment(t *testing.T) {
 		paidUntil := time.Date(2026, 11, 17, 0, 0, 0, 0, time.UTC)
 
 		mockSvc := &mockStudentService{
-			createStudentPaymentFn: func(ctx context.Context, sID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (response.TransactionResponse, error) {
+			createStudentPaymentFn: func(ctx context.Context, sID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (transaction.TransactionResponse, error) {
 				assert.Equal(t, studentID, sID)
 				assert.Equal(t, testUser.ID, ownerID)
 				assert.Equal(t, 4500.0, req.Amount)
-				return response.TransactionResponse{ID: expectedID, Amount: req.Amount}, nil
+				return transaction.TransactionResponse{ID: expectedID, Amount: req.Amount}, nil
 			},
 		}
 
@@ -484,8 +485,8 @@ func TestStudentHandler_CreateStudentPayment(t *testing.T) {
 
 	t.Run("InternalServerError", func(t *testing.T) {
 		mockSvc := &mockStudentService{
-			createStudentPaymentFn: func(ctx context.Context, sID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (response.TransactionResponse, error) {
-				return response.TransactionResponse{}, assert.AnError
+			createStudentPaymentFn: func(ctx context.Context, sID, ownerID uuid.UUID, req request.CreateStudentPaymentRequest) (transaction.TransactionResponse, error) {
+				return transaction.TransactionResponse{}, assert.AnError
 			},
 		}
 
@@ -501,7 +502,7 @@ func TestStudentHandler_CreateStudentPayment(t *testing.T) {
 }
 
 func TestStudentHandler_UpdateStudent(t *testing.T) {
-	testUser := security.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
+	testUser := auth.JwtUser{ID: uuid.New(), Email: "coach@trenerio.ru"}
 	studentID := uuid.New()
 
 	t.Run("InvalidStudentID", func(t *testing.T) {

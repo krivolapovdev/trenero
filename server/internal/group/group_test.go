@@ -2,17 +2,17 @@ package group
 
 import (
 	"context"
-	"github.com/krivolapovdev/trenerio/pkg/request"
 	"testing"
 
 	"github.com/google/uuid"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
+	"github.com/krivolapovdev/trenerio/internal/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGroupService_DefaultPriceValidation(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	svc := NewService(nil, nil, nil, nil, nil, nil)
 	ctx := context.Background()
 	ownerID := uuid.New()
 

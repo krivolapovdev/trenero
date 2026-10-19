@@ -1,12 +1,13 @@
 package group
 
 import (
-	"github.com/krivolapovdev/trenerio/pkg/response"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/krivolapovdev/trenerio/pkg/types"
+	"github.com/krivolapovdev/trenerio/internal/shared/response"
+	"github.com/krivolapovdev/trenerio/internal/transaction"
+	"github.com/krivolapovdev/trenerio/internal/visit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,12 +31,12 @@ func TestBuildGroupReport_DayGrid(t *testing.T) {
 
 	visits := map[uuid.UUID][]response.VisitResponse{
 		annaID: {
-			{ID: uuid.New(), LessonID: firstLessonID, StudentID: annaID, Status: types.VisitStatusPresent, CreatedAt: createdAt},
-			{ID: uuid.New(), LessonID: secondLessonID, StudentID: annaID, Status: types.VisitStatusPresent, CreatedAt: createdAt},
+			{ID: uuid.New(), LessonID: firstLessonID, StudentID: annaID, Status: visit.VisitStatusPresent, CreatedAt: createdAt},
+			{ID: uuid.New(), LessonID: secondLessonID, StudentID: annaID, Status: visit.VisitStatusPresent, CreatedAt: createdAt},
 		},
 		ivanID: {
-			{ID: uuid.New(), LessonID: firstLessonID, StudentID: ivanID, Status: types.VisitStatusPresent, CreatedAt: createdAt},
-			{ID: uuid.New(), LessonID: secondLessonID, StudentID: ivanID, Status: types.VisitStatusAbsent, CreatedAt: createdAt},
+			{ID: uuid.New(), LessonID: firstLessonID, StudentID: ivanID, Status: visit.VisitStatusPresent, CreatedAt: createdAt},
+			{ID: uuid.New(), LessonID: secondLessonID, StudentID: ivanID, Status: visit.VisitStatusAbsent, CreatedAt: createdAt},
 		},
 	}
 
@@ -142,7 +143,7 @@ func TestBuildGroupReport_PaidFlags(t *testing.T) {
 				Amount:    3000,
 				Date:      createdAt,
 				CreatedAt: createdAt,
-				Type:      types.TransactionTypeIncome,
+				Type:      transaction.TransactionTypeIncome,
 				PaymentDetails: &response.StudentPaymentDetailsResponse{
 					StudentID: decID,
 					PaidUntil: time.Date(2026, 12, 31, 23, 59, 59, 0, time.UTC),
@@ -155,7 +156,7 @@ func TestBuildGroupReport_PaidFlags(t *testing.T) {
 				Amount:    3000,
 				Date:      createdAt,
 				CreatedAt: createdAt,
-				Type:      types.TransactionTypeIncome,
+				Type:      transaction.TransactionTypeIncome,
 				PaymentDetails: &response.StudentPaymentDetailsResponse{
 					StudentID: oct1ID,
 					PaidUntil: time.Date(2026, 10, 1, 23, 59, 59, 0, time.UTC),
@@ -168,7 +169,7 @@ func TestBuildGroupReport_PaidFlags(t *testing.T) {
 				Amount:    3000,
 				Date:      createdAt,
 				CreatedAt: createdAt,
-				Type:      types.TransactionTypeIncome,
+				Type:      transaction.TransactionTypeIncome,
 				PaymentDetails: &response.StudentPaymentDetailsResponse{
 					StudentID: oct31ID,
 					PaidUntil: time.Date(2026, 10, 31, 23, 59, 59, 0, time.UTC),

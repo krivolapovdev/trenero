@@ -10,16 +10,15 @@ import (
 	"github.com/krivolapovdev/trenerio/internal/metric"
 	"github.com/krivolapovdev/trenerio/internal/server/middleware"
 	"github.com/krivolapovdev/trenerio/internal/server/swagger"
+	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
 	"github.com/krivolapovdev/trenerio/internal/student"
 	"github.com/krivolapovdev/trenerio/internal/transaction"
 	"github.com/krivolapovdev/trenerio/internal/user"
-	pkgerrors "github.com/krivolapovdev/trenerio/pkg/errors"
-	"github.com/krivolapovdev/trenerio/pkg/security"
 )
 
 type Server struct {
 	engine        *gin.Engine
-	tokenProvider *security.TokenProvider
+	tokenProvider *auth.TokenProvider
 
 	authHandler    *auth.Handler
 	userHandler    *user.Handler
@@ -31,7 +30,7 @@ type Server struct {
 }
 
 func NewServer(
-	tokenProvider *security.TokenProvider,
+	tokenProvider *auth.TokenProvider,
 	allowedOrigins []string,
 	authHandler *auth.Handler,
 	userHandler *user.Handler,
