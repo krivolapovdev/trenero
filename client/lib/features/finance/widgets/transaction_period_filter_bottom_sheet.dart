@@ -334,10 +334,7 @@ class _TransactionPeriodFilterBottomSheetState
     children: [
       TextButton(
         onPressed: canReset ? _reset : null,
-        child: Text(
-          context.t.finance.filter.reset,
-          style: const TextStyle(fontSize: 18),
-        ),
+        child: Text(context.t.reset, style: const TextStyle(fontSize: 18)),
       ),
       const Spacer(),
       TextButton(

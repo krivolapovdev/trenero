@@ -11,6 +11,7 @@ class StudentCard extends StatelessWidget {
 
   final String? overrideInitials;
   final bool showBirthdate;
+  final BorderRadius? borderRadius;
 
   const new({
     super.key,
@@ -18,6 +19,7 @@ class StudentCard extends StatelessWidget {
     required this.onTap,
     this.overrideInitials,
     this.showBirthdate = false,
+    this.borderRadius,
   });
 
   @override
@@ -30,15 +32,16 @@ class StudentCard extends StatelessWidget {
     final groupLabels = _groupLabels(student);
     final hasGroup = groupLabels.isNotEmpty;
     final badges = student.statuses.toBadges(context);
+    final cardRadius = borderRadius ?? BorderRadius.circular(16);
 
     return Card(
       elevation: 0,
       margin: EdgeInsets.zero,
       color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: cardRadius),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: cardRadius,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(

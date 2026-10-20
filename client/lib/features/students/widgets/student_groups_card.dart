@@ -19,7 +19,8 @@ class StudentGroupsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    clipBehavior: Clip.antiAlias,
+    padding: const EdgeInsets.only(top: 8),
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
@@ -28,22 +29,25 @@ class StudentGroupsCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              context.t.groups.title,
-              style: const TextStyle(fontSize: 18, color: Colors.black),
-            ),
-            if (onEdit != null)
-              TextButton(
-                onPressed: onEdit,
-                child: Text(
-                  context.t.edit,
-                  style: const TextStyle(fontSize: 16),
-                ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                context.t.groups.title,
+                style: const TextStyle(fontSize: 18, color: Colors.black),
               ),
-          ],
+              if (onEdit != null)
+                TextButton(
+                  onPressed: onEdit,
+                  child: Text(
+                    context.t.edit,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+            ],
+          ),
         ),
         ListView.separated(
           shrinkWrap: true,
@@ -51,7 +55,7 @@ class StudentGroupsCard extends StatelessWidget {
           padding: EdgeInsets.zero,
           itemCount: groups.length,
           separatorBuilder: (context, index) =>
-              const Divider(height: 16, thickness: 1),
+              const Divider(height: 1, thickness: 1, indent: 16, endIndent: 16),
           itemBuilder: (context, index) {
             final group = _summaryOf(groups[index], listedGroups);
 
@@ -59,6 +63,7 @@ class StudentGroupsCard extends StatelessWidget {
               key: ValueKey(group.id),
               group: group,
               noteVisible: false,
+              borderRadius: BorderRadius.zero,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(

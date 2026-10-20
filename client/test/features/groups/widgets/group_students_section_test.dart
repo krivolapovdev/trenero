@@ -175,7 +175,7 @@ void main() {
     );
 
     expect(find.text(t.students.title), findsOneWidget);
-    expect(find.text('1. Anna Smirnova'), findsOneWidget);
+    expect(find.text('Anna Smirnova'), findsOneWidget);
 
     await tester.tap(find.text(t.edit));
     await tester.pumpAndSettle();
@@ -188,9 +188,9 @@ void main() {
   ) async {
     await _pumpSection(tester, _container(students: _listedStudents));
 
-    expect(find.text('1. Anna Smirnova'), findsOneWidget);
+    expect(find.text('Anna Smirnova'), findsOneWidget);
 
-    await tester.tap(find.text('1. Anna Smirnova'));
+    await tester.tap(find.text('Anna Smirnova'));
     await tester.pumpAndSettle();
 
     final page = tester.widget<StudentPage>(find.byType(StudentPage));
@@ -209,7 +209,7 @@ void main() {
     (tester) async {
       await _pumpSection(tester, _container());
 
-      await tester.tap(find.text('1. Anna Smirnova'));
+      await tester.tap(find.text('Anna Smirnova'));
       await tester.pumpAndSettle();
 
       final page = tester.widget<StudentPage>(find.byType(StudentPage));

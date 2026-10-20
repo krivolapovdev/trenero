@@ -44,6 +44,7 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get repeat => 'Повторить';
 	@override String get create => 'Создать';
 	@override String get update => 'Обновить';
+	@override String get reset => 'Сбросить';
 	@override String get edit => 'Редактировать';
 	@override String get delete => 'Удалить';
 	@override String get all => 'Все';
@@ -268,7 +269,6 @@ class _Translations$students$filter$ru implements Translations$students$filter$e
 	@override String get group => 'Группа';
 	@override String get status => 'Статус';
 	@override String get apply => 'Применить';
-	@override String get reset => 'Сбросить фильтры';
 	@override String get empty => 'Ученики не найдены';
 }
 
@@ -298,7 +298,6 @@ class _Translations$finance$filter$ru implements Translations$finance$filter$en 
 	@override String get start => 'Начало';
 	@override String get end => 'Конец';
 	@override String get apply => 'Продолжить';
-	@override String get reset => 'Сбросить фильтры';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -315,6 +314,7 @@ extension on TranslationsRu {
 			'repeat' => 'Повторить',
 			'create' => 'Создать',
 			'update' => 'Обновить',
+			'reset' => 'Сбросить',
 			'edit' => 'Редактировать',
 			'delete' => 'Удалить',
 			'all' => 'Все',
@@ -408,7 +408,6 @@ extension on TranslationsRu {
 			'students.filter.group' => 'Группа',
 			'students.filter.status' => 'Статус',
 			'students.filter.apply' => 'Применить',
-			'students.filter.reset' => 'Сбросить фильтры',
 			'students.filter.empty' => 'Ученики не найдены',
 			'students.status.inactive' => 'Неактивен',
 			'students.status.present' => 'Посетил',
@@ -459,7 +458,6 @@ extension on TranslationsRu {
 			'finance.filter.start' => 'Начало',
 			'finance.filter.end' => 'Конец',
 			'finance.filter.apply' => 'Продолжить',
-			'finance.filter.reset' => 'Сбросить фильтры',
 			_ => null,
 		};
 	}

@@ -5,6 +5,7 @@
   "repeat": "Repeat",
   "create": "Create",
   "update": "Update",
+  "reset": "Reset",
   "edit": "Edit",
   "delete": "Delete",
   "all": "All",
@@ -108,7 +109,6 @@
       "group": "Group",
       "status": "Status",
       "apply": "Apply",
-      "reset": "Reset filters",
       "empty": "No students found"
     },
     "status": {
@@ -168,8 +168,7 @@
       "title": "Period",
       "start": "Start",
       "end": "End",
-      "apply": "Continue",
-      "reset": "Reset filters"
+      "apply": "Continue"
     }
   }
 }

@@ -80,7 +80,7 @@ void main() {
 
     expect(find.text(t.students.filter.title), findsOneWidget);
 
-    await tester.tap(find.text(t.students.filter.reset));
+    await tester.tap(find.text(t.reset));
     await tester.pumpAndSettle();
 
     expect(find.text(t.students.filter.title), findsNothing);

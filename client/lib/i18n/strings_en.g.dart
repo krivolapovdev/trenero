@@ -60,6 +60,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Update'
 	String get update => 'Update';
 
+	/// en: 'Reset'
+	String get reset => 'Reset';
+
 	/// en: 'Edit'
 	String get edit => 'Edit';
 
@@ -551,9 +554,6 @@ class Translations$students$filter$en {
 	/// en: 'Apply'
 	String get apply => 'Apply';
 
-	/// en: 'Reset filters'
-	String get reset => 'Reset filters';
-
 	/// en: 'No students found'
 	String get empty => 'No students found';
 }
@@ -604,9 +604,6 @@ class Translations$finance$filter$en {
 
 	/// en: 'Continue'
 	String get apply => 'Continue';
-
-	/// en: 'Reset filters'
-	String get reset => 'Reset filters';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -623,6 +620,7 @@ extension on Translations {
 			'repeat' => 'Repeat',
 			'create' => 'Create',
 			'update' => 'Update',
+			'reset' => 'Reset',
 			'edit' => 'Edit',
 			'delete' => 'Delete',
 			'all' => 'All',
@@ -716,7 +714,6 @@ extension on Translations {
 			'students.filter.group' => 'Group',
 			'students.filter.status' => 'Status',
 			'students.filter.apply' => 'Apply',
-			'students.filter.reset' => 'Reset filters',
 			'students.filter.empty' => 'No students found',
 			'students.status.inactive' => 'Inactive',
 			'students.status.present' => 'Present',
@@ -767,7 +764,6 @@ extension on Translations {
 			'finance.filter.start' => 'Start',
 			'finance.filter.end' => 'End',
 			'finance.filter.apply' => 'Continue',
-			'finance.filter.reset' => 'Reset filters',
 			_ => null,
 		};
 	}

@@ -10,7 +10,7 @@ class StudentFilterEmpty extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => RetryView(
     message: context.t.students.filter.empty,
-    actionLabel: context.t.students.filter.reset,
+    actionLabel: context.t.reset,
     scrollable: true,
     onRetry: () => ref.read(studentFilterControllerProvider.notifier).clear(),
   );

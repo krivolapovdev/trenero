@@ -93,7 +93,7 @@ void main() {
 
     expect(find.text(t.finance.filter.title), findsOneWidget);
     expect(find.text(t.finance.filter.apply), findsOneWidget);
-    expect(find.text(t.finance.filter.reset), findsOneWidget);
+    expect(find.text(t.reset), findsOneWidget);
     expect(_fieldText(tester, 0), '16.09.2026');
     expect(_fieldText(tester, 1), '13.10.2026');
     expect(find.text('September 2026'), findsOneWidget);
@@ -107,7 +107,7 @@ void main() {
     await _openSheet(tester, container);
 
     final title = tester.widget<Text>(find.text(t.finance.filter.title));
-    final reset = tester.getCenter(find.text(t.finance.filter.reset));
+    final reset = tester.getCenter(find.text(t.reset));
     final apply = tester.getCenter(find.text(t.finance.filter.apply));
     final monthHeader = tester.getCenter(find.text('September 2026'));
 
@@ -253,7 +253,7 @@ void main() {
 
     await _openSheet(tester, container);
 
-    await tester.tap(find.text(t.finance.filter.reset));
+    await tester.tap(find.text(t.reset));
     await tester.pumpAndSettle();
 
     expect(container.read(transactionFilterControllerProvider).isEmpty, isTrue);

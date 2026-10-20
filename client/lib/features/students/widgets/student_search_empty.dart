@@ -18,7 +18,7 @@ class StudentSearchEmpty extends ConsumerWidget {
         FilledButton(
           onPressed: () =>
               ref.read(studentFilterControllerProvider.notifier).clear(),
-          child: Text(context.t.students.filter.reset),
+          child: Text(context.t.reset),
         ),
       ],
     ),

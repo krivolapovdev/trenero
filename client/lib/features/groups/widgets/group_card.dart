@@ -10,12 +10,14 @@ class GroupCard extends StatelessWidget {
   final VoidCallback onTap;
 
   final bool noteVisible;
+  final BorderRadius? borderRadius;
 
   const new({
     super.key,
     required this.group,
     required this.onTap,
     this.noteVisible = true,
+    this.borderRadius,
   });
 
   @override
@@ -24,15 +26,16 @@ class GroupCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final hasNote =
         noteVisible && group.note != null && group.note!.trim().isNotEmpty;
+    final cardRadius = borderRadius ?? BorderRadius.circular(16);
 
     return Card(
       elevation: 0,
       margin: EdgeInsets.zero,
       color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: cardRadius),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: cardRadius,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
