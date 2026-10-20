@@ -105,3 +105,11 @@ RETURNING transaction_id, student_id, paid_until;
 -- name: DeleteStudentPaymentByTransactionID :exec
 DELETE FROM payments_module.student_payments
 WHERE transaction_id = $1;
+
+-- name: DeleteStudentPaymentsByStudentID :exec
+DELETE FROM payments_module.student_payments
+WHERE student_id = $1;
+
+-- name: DeleteTransactionsByOwnerID :exec
+DELETE FROM payments_module.transactions
+WHERE owner_id = $1;

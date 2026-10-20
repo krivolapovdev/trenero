@@ -54,6 +54,31 @@ func (q *Queries) DeleteLessonByIDAndOwnerID(ctx context.Context, arg DeleteLess
 	return err
 }
 
+const deleteLessonsByGroupIDAndOwnerID = `-- name: DeleteLessonsByGroupIDAndOwnerID :exec
+DELETE FROM lessons_module.lessons
+WHERE group_id = $1 AND owner_id = $2
+`
+
+type DeleteLessonsByGroupIDAndOwnerIDParams struct {
+	GroupID uuid.NullUUID `json:"group_id"`
+	OwnerID uuid.UUID     `json:"owner_id"`
+}
+
+func (q *Queries) DeleteLessonsByGroupIDAndOwnerID(ctx context.Context, arg DeleteLessonsByGroupIDAndOwnerIDParams) error {
+	_, err := q.db.ExecContext(ctx, deleteLessonsByGroupIDAndOwnerID, arg.GroupID, arg.OwnerID)
+	return err
+}
+
+const deleteLessonsByOwnerID = `-- name: DeleteLessonsByOwnerID :exec
+DELETE FROM lessons_module.lessons
+WHERE owner_id = $1
+`
+
+func (q *Queries) DeleteLessonsByOwnerID(ctx context.Context, ownerID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteLessonsByOwnerID, ownerID)
+	return err
+}
+
 const findAllLessonsByGroupIDAndOwnerID = `-- name: FindAllLessonsByGroupIDAndOwnerID :many
 SELECT id, owner_id, group_id, date, created_at, updated_at
 FROM lessons_module.lessons

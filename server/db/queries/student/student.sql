@@ -44,3 +44,7 @@ RETURNING id, owner_id, full_name, birthdate, phone, note, free, created_at, upd
 -- name: DeleteStudentByIDAndOwnerID :exec
 DELETE FROM students_module.students
 WHERE id = $1 AND owner_id = $2;
+
+-- name: DeleteStudentsByOwnerID :exec
+DELETE FROM students_module.students
+WHERE owner_id = $1;

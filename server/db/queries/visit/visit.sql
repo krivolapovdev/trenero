@@ -55,3 +55,11 @@ WHERE lesson_id = $1 AND owner_id = $2;
 -- name: DeleteVisitsByLessonIDAndStudentIDsAndOwnerID :exec
 DELETE FROM visits_module.visits
 WHERE lesson_id = $1 AND owner_id = $2 AND student_id = ANY($3::uuid[]);
+
+-- name: DeleteVisitsByStudentIDAndOwnerID :exec
+DELETE FROM visits_module.visits
+WHERE student_id = $1 AND owner_id = $2;
+
+-- name: DeleteVisitsByOwnerID :exec
+DELETE FROM visits_module.visits
+WHERE owner_id = $1;

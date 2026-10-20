@@ -158,6 +158,41 @@ func (q *Queries) DeleteGroupStudentsByGroupID(ctx context.Context, arg DeleteGr
 	return err
 }
 
+const deleteGroupStudentsByOwnerID = `-- name: DeleteGroupStudentsByOwnerID :exec
+DELETE FROM groups_module.group_students
+WHERE owner_id = $1
+`
+
+func (q *Queries) DeleteGroupStudentsByOwnerID(ctx context.Context, ownerID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteGroupStudentsByOwnerID, ownerID)
+	return err
+}
+
+const deleteGroupStudentsByStudentIDAndOwnerID = `-- name: DeleteGroupStudentsByStudentIDAndOwnerID :exec
+DELETE FROM groups_module.group_students
+WHERE student_id = $1 AND owner_id = $2
+`
+
+type DeleteGroupStudentsByStudentIDAndOwnerIDParams struct {
+	StudentID uuid.UUID `json:"student_id"`
+	OwnerID   uuid.UUID `json:"owner_id"`
+}
+
+func (q *Queries) DeleteGroupStudentsByStudentIDAndOwnerID(ctx context.Context, arg DeleteGroupStudentsByStudentIDAndOwnerIDParams) error {
+	_, err := q.db.ExecContext(ctx, deleteGroupStudentsByStudentIDAndOwnerID, arg.StudentID, arg.OwnerID)
+	return err
+}
+
+const deleteGroupsByOwnerID = `-- name: DeleteGroupsByOwnerID :exec
+DELETE FROM groups_module.groups
+WHERE owner_id = $1
+`
+
+func (q *Queries) DeleteGroupsByOwnerID(ctx context.Context, ownerID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteGroupsByOwnerID, ownerID)
+	return err
+}
+
 const existsGroupByOwnerIDAndName = `-- name: ExistsGroupByOwnerIDAndName :one
 SELECT EXISTS(
     SELECT 1 FROM groups_module.groups

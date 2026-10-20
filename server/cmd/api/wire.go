@@ -24,7 +24,7 @@ func wireServer(dbConn *sql.DB, cfg Config) *server.Server {
 		cfg.ReviewerKey,
 	)
 
-	userService := user.NewService(queries)
+	userService := user.NewService(queries, dbConn)
 	visitService := visit.NewService(queries, dbConn)
 	authService := auth.NewService(
 		userService,
