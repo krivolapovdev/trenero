@@ -40,7 +40,6 @@ type TransactionProvider interface {
 type LessonProvider interface {
 	GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]response.LessonResponse, error)
 	GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ownerID uuid.UUID) ([]response.LessonResponse, error)
-	DeleteLessonsByGroupID(ctx context.Context, groupID, ownerID uuid.UUID) error
 }
 
 type Service struct {
@@ -840,59 +839,11 @@ func (s *Service) DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) e
 		return err
 	}
 
-	err = s.withTx(ctx, func(qtx *db.Queries) error {
-		// Find lessons belonging to this group
-		lessons, err := qtx.FindAllLessonsByGroupIDAndOwnerID(ctx, db.FindAllLessonsByGroupIDAndOwnerIDParams{
-			GroupID: uuid.NullUUID{UUID: groupID, Valid: true},
-			OwnerID: ownerID,
-		})
-		if err != nil {
-			logger.ErrorContext(ctx, "Failed to find lessons for group deletion", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
-			return err
-		}
-
-		// Delete visits for each lesson
-		for _, l := range lessons {
-			if err := qtx.DeleteVisitsByLessonIDAndOwnerID(ctx, db.DeleteVisitsByLessonIDAndOwnerIDParams{
-				LessonID: l.ID,
-				OwnerID:  ownerID,
-			}); err != nil {
-				logger.ErrorContext(ctx, "Failed to delete visits for group lesson", "lesson_id", l.ID.String(), "error", err, "user_id", ownerID.String())
-				return err
-			}
-		}
-
-		// Delete all lessons of this group
-		if err := qtx.DeleteLessonsByGroupIDAndOwnerID(ctx, db.DeleteLessonsByGroupIDAndOwnerIDParams{
-			GroupID: uuid.NullUUID{UUID: groupID, Valid: true},
-			OwnerID: ownerID,
-		}); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete lessons for group deletion", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
-			return err
-		}
-
-		// Delete student links for this group
-		if err := qtx.DeleteGroupStudentsByGroupID(ctx, db.DeleteGroupStudentsByGroupIDParams{
-			GroupID: groupID,
-			OwnerID: ownerID,
-		}); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete group students for group deletion", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
-			return err
-		}
-
-		// Delete the group record
-		if err := qtx.DeleteGroupByIDAndOwnerID(ctx, db.DeleteGroupByIDAndOwnerIDParams{
-			ID:      groupID,
-			OwnerID: ownerID,
-		}); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete group record", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to delete group in database", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
+	if err := s.db.DeleteGroupByIDAndOwnerID(ctx, db.DeleteGroupByIDAndOwnerIDParams{
+		ID:      groupID,
+		OwnerID: ownerID,
+	}); err != nil {
+		logger.ErrorContext(ctx, "Failed to delete group record", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
 		return err
 	}
 

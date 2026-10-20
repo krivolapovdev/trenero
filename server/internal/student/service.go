@@ -603,62 +603,11 @@ func (s *Service) DeleteStudent(ctx context.Context, studentID, ownerID uuid.UUI
 		return err
 	}
 
-	err = s.withTx(ctx, func(qtx *db.Queries) error {
-		// Find and delete student payment transactions
-		payments, err := qtx.FindStudentPaymentsByStudentIDAndOwnerID(ctx, db.FindStudentPaymentsByStudentIDAndOwnerIDParams{
-			StudentID: studentID,
-			OwnerID:   ownerID,
-		})
-		if err != nil {
-			logger.ErrorContext(ctx, "Failed to find student payments for deletion", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
-			return err
-		}
-
-		for _, p := range payments {
-			if err := qtx.DeleteStudentPaymentByTransactionID(ctx, p.ID); err != nil {
-				logger.ErrorContext(ctx, "Failed to delete student payment record", "transaction_id", p.ID.String(), "error", err, "user_id", ownerID.String())
-				return err
-			}
-			if err := qtx.DeleteTransactionByIDAndOwnerID(ctx, db.DeleteTransactionByIDAndOwnerIDParams{
-				ID:      p.ID,
-				OwnerID: ownerID,
-			}); err != nil {
-				logger.ErrorContext(ctx, "Failed to delete student transaction record", "transaction_id", p.ID.String(), "error", err, "user_id", ownerID.String())
-				return err
-			}
-		}
-
-		// Delete visits of this student
-		if err := qtx.DeleteVisitsByStudentIDAndOwnerID(ctx, db.DeleteVisitsByStudentIDAndOwnerIDParams{
-			StudentID: studentID,
-			OwnerID:   ownerID,
-		}); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete visits for student deletion", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
-			return err
-		}
-
-		// Delete group enrollments for this student
-		if err := qtx.DeleteGroupStudentsByStudentIDAndOwnerID(ctx, db.DeleteGroupStudentsByStudentIDAndOwnerIDParams{
-			StudentID: studentID,
-			OwnerID:   ownerID,
-		}); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete group students for student deletion", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
-			return err
-		}
-
-		// Delete student record
-		if err := qtx.DeleteStudentByIDAndOwnerID(ctx, db.DeleteStudentByIDAndOwnerIDParams{
-			ID:      studentID,
-			OwnerID: ownerID,
-		}); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete student record", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
-		logger.ErrorContext(ctx, "Failed to delete student in database", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
+	if err := s.db.DeleteStudentByIDAndOwnerID(ctx, db.DeleteStudentByIDAndOwnerIDParams{
+		ID:      studentID,
+		OwnerID: ownerID,
+	}); err != nil {
+		logger.ErrorContext(ctx, "Failed to delete student record", "student_id", studentID.String(), "error", err, "user_id", ownerID.String())
 		return err
 	}
 

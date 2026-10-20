@@ -8,8 +8,7 @@ import (
 )
 
 func TestUserService_NewService(t *testing.T) {
-	svc := NewService(nil, nil)
+	svc := NewService(nil)
 	require.NotNil(t, svc)
 	assert.Nil(t, svc.db)
-	assert.Nil(t, svc.sqlDB)
 }

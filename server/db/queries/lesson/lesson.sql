@@ -35,11 +35,3 @@ RETURNING id, owner_id, group_id, date, created_at, updated_at;
 -- name: DeleteLessonByIDAndOwnerID :exec
 DELETE FROM lessons_module.lessons
 WHERE id = $1 AND owner_id = $2;
-
--- name: DeleteLessonsByGroupIDAndOwnerID :exec
-DELETE FROM lessons_module.lessons
-WHERE group_id = $1 AND owner_id = $2;
-
--- name: DeleteLessonsByOwnerID :exec
-DELETE FROM lessons_module.lessons
-WHERE owner_id = $1;

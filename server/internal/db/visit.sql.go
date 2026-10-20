@@ -94,31 +94,6 @@ func (q *Queries) DeleteVisitsByLessonIDAndStudentIDsAndOwnerID(ctx context.Cont
 	return err
 }
 
-const deleteVisitsByOwnerID = `-- name: DeleteVisitsByOwnerID :exec
-DELETE FROM visits_module.visits
-WHERE owner_id = $1
-`
-
-func (q *Queries) DeleteVisitsByOwnerID(ctx context.Context, ownerID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteVisitsByOwnerID, ownerID)
-	return err
-}
-
-const deleteVisitsByStudentIDAndOwnerID = `-- name: DeleteVisitsByStudentIDAndOwnerID :exec
-DELETE FROM visits_module.visits
-WHERE student_id = $1 AND owner_id = $2
-`
-
-type DeleteVisitsByStudentIDAndOwnerIDParams struct {
-	StudentID uuid.UUID `json:"student_id"`
-	OwnerID   uuid.UUID `json:"owner_id"`
-}
-
-func (q *Queries) DeleteVisitsByStudentIDAndOwnerID(ctx context.Context, arg DeleteVisitsByStudentIDAndOwnerIDParams) error {
-	_, err := q.db.ExecContext(ctx, deleteVisitsByStudentIDAndOwnerID, arg.StudentID, arg.OwnerID)
-	return err
-}
-
 const findAllVisitsByOwnerID = `-- name: FindAllVisitsByOwnerID :many
 SELECT id, owner_id, lesson_id, student_id, status, type, created_at, updated_at
 FROM visits_module.visits

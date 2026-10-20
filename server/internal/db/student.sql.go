@@ -67,16 +67,6 @@ func (q *Queries) DeleteStudentByIDAndOwnerID(ctx context.Context, arg DeleteStu
 	return err
 }
 
-const deleteStudentsByOwnerID = `-- name: DeleteStudentsByOwnerID :exec
-DELETE FROM students_module.students
-WHERE owner_id = $1
-`
-
-func (q *Queries) DeleteStudentsByOwnerID(ctx context.Context, ownerID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteStudentsByOwnerID, ownerID)
-	return err
-}
-
 const existsStudentByOwnerIDAndFullName = `-- name: ExistsStudentByOwnerIDAndFullName :one
 SELECT EXISTS(
     SELECT 1 FROM students_module.students

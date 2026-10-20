@@ -48,13 +48,6 @@ func NewService(
 	}
 }
 
-func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
-	if s.sqlDB == nil {
-		return fn(s.db)
-	}
-	return db.WithTx(ctx, s.sqlDB, s.db, fn)
-}
-
 func (s *Service) GetLessonByID(ctx context.Context, lessonID, ownerID uuid.UUID) (response.LessonResponse, error) {
 	logger.InfoContext(ctx, "Getting lesson by id", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 
@@ -240,58 +233,16 @@ func (s *Service) DeleteLesson(ctx context.Context, lessonID, ownerID uuid.UUID)
 		return err
 	}
 
-	err = s.withTx(ctx, func(qtx *db.Queries) error {
-		if err := qtx.DeleteVisitsByLessonIDAndOwnerID(ctx, db.DeleteVisitsByLessonIDAndOwnerIDParams{
-			LessonID: lessonID,
-			OwnerID:  ownerID,
-		}); err != nil {
-			logger.ErrorContext(ctx, "Failed to remove visits for lesson deletion", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
-			return err
-		}
-
-		if err := qtx.DeleteLessonByIDAndOwnerID(ctx, db.DeleteLessonByIDAndOwnerIDParams{
-			ID:      lessonID,
-			OwnerID: ownerID,
-		}); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete lesson record", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
+	if err := s.db.DeleteLessonByIDAndOwnerID(ctx, db.DeleteLessonByIDAndOwnerIDParams{
+		ID:      lessonID,
+		OwnerID: ownerID,
+	}); err != nil {
+		logger.ErrorContext(ctx, "Failed to delete lesson record", "lesson_id", lessonID.String(), "error", err, "user_id", ownerID.String())
 		return err
 	}
 
 	logger.InfoContext(ctx, "Lesson deleted successfully", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	return nil
-}
-
-func (s *Service) DeleteLessonsByGroupID(ctx context.Context, groupID, ownerID uuid.UUID) error {
-	logger.InfoContext(ctx, "Deleting lessons by group id", "group_id", groupID.String(), "user_id", ownerID.String())
-	return s.withTx(ctx, func(qtx *db.Queries) error {
-		lessons, err := qtx.FindAllLessonsByGroupIDAndOwnerID(ctx, db.FindAllLessonsByGroupIDAndOwnerIDParams{
-			GroupID: uuid.NullUUID{UUID: groupID, Valid: true},
-			OwnerID: ownerID,
-		})
-		if err != nil {
-			logger.ErrorContext(ctx, "Failed to find lessons for group deletion", "group_id", groupID.String(), "error", err, "user_id", ownerID.String())
-			return err
-		}
-		for _, l := range lessons {
-			if err := qtx.DeleteVisitsByLessonIDAndOwnerID(ctx, db.DeleteVisitsByLessonIDAndOwnerIDParams{
-				LessonID: l.ID,
-				OwnerID:  ownerID,
-			}); err != nil {
-				logger.ErrorContext(ctx, "Failed to remove visits for lesson deletion", "lesson_id", l.ID.String(), "error", err, "user_id", ownerID.String())
-				return err
-			}
-		}
-		return qtx.DeleteLessonsByGroupIDAndOwnerID(ctx, db.DeleteLessonsByGroupIDAndOwnerIDParams{
-			GroupID: uuid.NullUUID{UUID: groupID, Valid: true},
-			OwnerID: ownerID,
-		})
-	})
 }
 
 func (s *Service) GetLessonsByGroupIDAndDateRange(ctx context.Context, groupID, ownerID uuid.UUID, from, to time.Time) ([]response.LessonResponse, error) {

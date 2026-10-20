@@ -89,16 +89,6 @@ func (q *Queries) DeleteStudentPaymentByTransactionID(ctx context.Context, trans
 	return err
 }
 
-const deleteStudentPaymentsByStudentID = `-- name: DeleteStudentPaymentsByStudentID :exec
-DELETE FROM payments_module.student_payments
-WHERE student_id = $1
-`
-
-func (q *Queries) DeleteStudentPaymentsByStudentID(ctx context.Context, studentID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteStudentPaymentsByStudentID, studentID)
-	return err
-}
-
 const deleteTransactionByIDAndOwnerID = `-- name: DeleteTransactionByIDAndOwnerID :exec
 DELETE FROM payments_module.transactions
 WHERE id = $1 AND owner_id = $2
@@ -111,16 +101,6 @@ type DeleteTransactionByIDAndOwnerIDParams struct {
 
 func (q *Queries) DeleteTransactionByIDAndOwnerID(ctx context.Context, arg DeleteTransactionByIDAndOwnerIDParams) error {
 	_, err := q.db.ExecContext(ctx, deleteTransactionByIDAndOwnerID, arg.ID, arg.OwnerID)
-	return err
-}
-
-const deleteTransactionsByOwnerID = `-- name: DeleteTransactionsByOwnerID :exec
-DELETE FROM payments_module.transactions
-WHERE owner_id = $1
-`
-
-func (q *Queries) DeleteTransactionsByOwnerID(ctx context.Context, ownerID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteTransactionsByOwnerID, ownerID)
 	return err
 }
 

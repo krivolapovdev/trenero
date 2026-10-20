@@ -15,22 +15,13 @@ import (
 )
 
 type Service struct {
-	db    *db.Queries
-	sqlDB *sql.DB
+	db *db.Queries
 }
 
-func NewService(queries *db.Queries, sqlDB *sql.DB) *Service {
+func NewService(queries *db.Queries) *Service {
 	return &Service{
-		db:    queries,
-		sqlDB: sqlDB,
+		db: queries,
 	}
-}
-
-func (s *Service) withTx(ctx context.Context, fn func(qtx *db.Queries) error) error {
-	if s.sqlDB == nil {
-		return fn(s.db)
-	}
-	return db.WithTx(ctx, s.sqlDB, s.db, fn)
 }
 
 func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.UsersModuleOauth2Provider, providerID, email string) (response.UserResponse, error) {
@@ -104,45 +95,7 @@ func (s *Service) DeleteUser(ctx context.Context, jwtUser auth.JwtUser) error {
 		return pkgerrors.NewNotFound("OAuth2User", jwtUser.ID, jwtUser.ID)
 	}
 
-	err = s.withTx(ctx, func(qtx *db.Queries) error {
-		// Delete visits owned by user
-		if err := qtx.DeleteVisitsByOwnerID(ctx, jwtUser.ID); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete visits for user deletion", "user_id", jwtUser.ID.String(), "error", err)
-			return err
-		}
-		// Delete lessons owned by user
-		if err := qtx.DeleteLessonsByOwnerID(ctx, jwtUser.ID); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete lessons for user deletion", "user_id", jwtUser.ID.String(), "error", err)
-			return err
-		}
-		// Delete group students owned by user
-		if err := qtx.DeleteGroupStudentsByOwnerID(ctx, jwtUser.ID); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete group students for user deletion", "user_id", jwtUser.ID.String(), "error", err)
-			return err
-		}
-		// Delete groups owned by user
-		if err := qtx.DeleteGroupsByOwnerID(ctx, jwtUser.ID); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete groups for user deletion", "user_id", jwtUser.ID.String(), "error", err)
-			return err
-		}
-		// Delete transactions owned by user
-		if err := qtx.DeleteTransactionsByOwnerID(ctx, jwtUser.ID); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete transactions for user deletion", "user_id", jwtUser.ID.String(), "error", err)
-			return err
-		}
-		// Delete students owned by user
-		if err := qtx.DeleteStudentsByOwnerID(ctx, jwtUser.ID); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete students for user deletion", "user_id", jwtUser.ID.String(), "error", err)
-			return err
-		}
-		// Delete user
-		if err := qtx.DeleteUserByID(ctx, jwtUser.ID); err != nil {
-			logger.ErrorContext(ctx, "Failed to delete user record", "user_id", jwtUser.ID.String(), "error", err)
-			return err
-		}
-		return nil
-	})
-	if err != nil {
+	if err := s.db.DeleteUserByID(ctx, jwtUser.ID); err != nil {
 		logger.ErrorContext(ctx, "Failed to delete user from database", "user_id", jwtUser.ID.String(), "error", err)
 		return err
 	}

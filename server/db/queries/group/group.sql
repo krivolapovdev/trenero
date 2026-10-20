@@ -82,15 +82,3 @@ WHERE group_id = $1 AND owner_id = $2;
 -- name: DeleteGroupStudentByStudentAndGroupID :exec
 DELETE FROM groups_module.group_students
 WHERE group_id = $1 AND student_id = $2 AND owner_id = $3;
-
--- name: DeleteGroupStudentsByStudentIDAndOwnerID :exec
-DELETE FROM groups_module.group_students
-WHERE student_id = $1 AND owner_id = $2;
-
--- name: DeleteGroupStudentsByOwnerID :exec
-DELETE FROM groups_module.group_students
-WHERE owner_id = $1;
-
--- name: DeleteGroupsByOwnerID :exec
-DELETE FROM groups_module.groups
-WHERE owner_id = $1;
