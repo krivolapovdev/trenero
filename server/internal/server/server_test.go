@@ -25,7 +25,7 @@ func init() {
 
 func TestSwaggerEndpoint(t *testing.T) {
 	tokenProvider := auth.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
-	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil)
+	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil, nil)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/swagger/doc.json", nil)
@@ -38,7 +38,7 @@ func TestSwaggerEndpoint(t *testing.T) {
 
 func TestHealthEndpoint(t *testing.T) {
 	tokenProvider := auth.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
-	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil)
+	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil, nil)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
@@ -50,7 +50,7 @@ func TestHealthEndpoint(t *testing.T) {
 
 func TestNoRouteAndNoMethod(t *testing.T) {
 	tokenProvider := auth.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
-	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil)
+	srv := NewServer(tokenProvider, []string{"*"}, nil, nil, nil, nil, nil, nil, nil, nil)
 
 	t.Run("NotFoundRoute", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -147,7 +147,7 @@ func TestServer_AuthAndProtectedRoutes(t *testing.T) {
 		},
 	})
 
-	srv := NewServer(tokenProvider, []string{"https://trenerio.ru"}, authHandler, userHandler, nil, nil, nil, nil, nil)
+	srv := NewServer(tokenProvider, []string{"https://trenerio.ru"}, authHandler, userHandler, nil, nil, nil, nil, nil, nil)
 
 	t.Run("PublicRoute_ReviewerLogin_Success", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -208,7 +208,7 @@ func TestServer_AuthAndProtectedRoutes(t *testing.T) {
 
 func TestServer_MiddlewareIntegration(t *testing.T) {
 	tokenProvider := auth.NewTokenProvider("super-secret-key-32-bytes-long!", time.Hour, 24*time.Hour, "reviewer-key")
-	srv := NewServer(tokenProvider, []string{"https://app.trenerio.ru"}, nil, nil, nil, nil, nil, nil, nil)
+	srv := NewServer(tokenProvider, []string{"https://app.trenerio.ru"}, nil, nil, nil, nil, nil, nil, nil, nil)
 
 	t.Run("RequestIDMiddleware_PreservesCustomID", func(t *testing.T) {
 		customID := "custom-request-id-12345"

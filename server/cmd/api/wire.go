@@ -8,6 +8,7 @@ import (
 	"github.com/krivolapovdev/trenerio/internal/group"
 	"github.com/krivolapovdev/trenerio/internal/lesson"
 	"github.com/krivolapovdev/trenerio/internal/metric"
+	"github.com/krivolapovdev/trenerio/internal/roster"
 	"github.com/krivolapovdev/trenerio/internal/server"
 	"github.com/krivolapovdev/trenerio/internal/student"
 	"github.com/krivolapovdev/trenerio/internal/transaction"
@@ -64,6 +65,7 @@ func wireServer(dbConn *sql.DB, cfg Config) *server.Server {
 	)
 
 	metricService := metric.NewService(txService)
+	rosterService := roster.NewService(queries, dbConn, studentService)
 
 	authHandler := auth.NewHandler(authService)
 	userHandler := user.NewHandler(userService)
@@ -72,6 +74,7 @@ func wireServer(dbConn *sql.DB, cfg Config) *server.Server {
 	lessonHandler := lesson.NewHandler(lessonService)
 	txHandler := transaction.NewHandler(txService)
 	metricHandler := metric.NewHandler(metricService)
+	rosterHandler := roster.NewHandler(rosterService)
 
 	return server.NewServer(
 		tokenProvider,
@@ -83,5 +86,6 @@ func wireServer(dbConn *sql.DB, cfg Config) *server.Server {
 		lessonHandler,
 		txHandler,
 		metricHandler,
+		rosterHandler,
 	)
 }

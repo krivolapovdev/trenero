@@ -235,14 +235,3 @@ func (s *Service) UpdateVisitsByLessonID(ctx context.Context, lessonID uuid.UUID
 	logger.InfoContext(ctx, "Visits updated successfully", "lesson_id", lessonID.String(), "user_id", ownerID.String())
 	return nil
 }
-
-func toVisitResponse(v db.VisitsModuleVisit) VisitResponse {
-	return VisitResponse{
-		ID:        v.ID,
-		Status:    VisitStatus(v.Status),
-		Type:      VisitType(v.Type),
-		LessonID:  v.LessonID,
-		StudentID: v.StudentID,
-		CreatedAt: v.CreatedAt,
-	}
-}

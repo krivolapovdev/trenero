@@ -285,16 +285,3 @@ func (s *Service) GetLessonsByIDs(ctx context.Context, lessonIDs []uuid.UUID, ow
 	logger.DebugContext(ctx, "Retrieved lessons by IDs", "count", len(lessons), "user_id", ownerID.String())
 	return lessons, nil
 }
-
-func toLessonResponse(l db.LessonsModuleLesson) response.LessonResponse {
-	var groupID *uuid.UUID
-	if l.GroupID.Valid {
-		groupID = &l.GroupID.UUID
-	}
-	return response.LessonResponse{
-		ID:        l.ID,
-		Date:      l.Date,
-		CreatedAt: l.CreatedAt,
-		GroupID:   groupID,
-	}
-}

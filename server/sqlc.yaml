@@ -9,6 +9,7 @@ sql:
       - "db/queries/lesson"
       - "db/queries/visit"
       - "db/queries/transaction"
+      - "db/queries/roster"
     gen:
       go:
         package: "db"

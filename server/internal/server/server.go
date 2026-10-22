@@ -8,6 +8,7 @@ import (
 	"github.com/krivolapovdev/trenerio/internal/group"
 	"github.com/krivolapovdev/trenerio/internal/lesson"
 	"github.com/krivolapovdev/trenerio/internal/metric"
+	"github.com/krivolapovdev/trenerio/internal/roster"
 	"github.com/krivolapovdev/trenerio/internal/server/middleware"
 	"github.com/krivolapovdev/trenerio/internal/server/swagger"
 	pkgerrors "github.com/krivolapovdev/trenerio/internal/shared/errors"
@@ -27,6 +28,7 @@ type Server struct {
 	lessonHandler  *lesson.Handler
 	txHandler      *transaction.Handler
 	metricHandler  *metric.Handler
+	rosterHandler  *roster.Handler
 }
 
 func NewServer(
@@ -39,6 +41,7 @@ func NewServer(
 	lessonHandler *lesson.Handler,
 	txHandler *transaction.Handler,
 	metricHandler *metric.Handler,
+	rosterHandler *roster.Handler,
 ) *Server {
 	engine := gin.New()
 	engine.HandleMethodNotAllowed = true
@@ -62,6 +65,7 @@ func NewServer(
 		lessonHandler:  lessonHandler,
 		txHandler:      txHandler,
 		metricHandler:  metricHandler,
+		rosterHandler:  rosterHandler,
 	}
 
 	s.setupRoutes(allowedOrigins)
@@ -116,6 +120,9 @@ func (s *Server) setupRoutes(allowedOrigins []string) {
 			}
 			if s.metricHandler != nil {
 				s.metricHandler.RegisterRoutes(authRequired)
+			}
+			if s.rosterHandler != nil {
+				s.rosterHandler.RegisterRoutes(authRequired)
 			}
 		}
 	}

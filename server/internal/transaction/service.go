@@ -114,15 +114,7 @@ func (s *Service) GetPaginatedTransactions(ctx context.Context, page, size int, 
 			}
 		}
 
-		amt, _ := strconv.ParseFloat(r.Amount, 64)
-		transactions = append(transactions, TransactionResponse{
-			ID:             r.ID,
-			Amount:         amt,
-			Date:           r.Date,
-			Type:           TransactionType(r.Type),
-			CreatedAt:      r.CreatedAt,
-			PaymentDetails: details,
-		})
+		transactions = append(transactions, toTransactionResponseFromPaginatedRow(r, details))
 	}
 
 	totalPages := 0
@@ -187,14 +179,7 @@ func (s *Service) GetTransactionsBetween(ctx context.Context, startDate, endDate
 
 	transactions := make([]TransactionResponse, 0, len(rows))
 	for _, r := range rows {
-		amt, _ := strconv.ParseFloat(r.Amount, 64)
-		transactions = append(transactions, TransactionResponse{
-			ID:        r.ID,
-			Amount:    amt,
-			Date:      r.Date,
-			Type:      TransactionType(r.Type),
-			CreatedAt: r.CreatedAt,
-		})
+		transactions = append(transactions, toTransactionResponseFromDateBetweenRow(r))
 	}
 
 	logger.DebugContext(ctx, "Retrieved transactions between dates", "count", len(transactions), "user_id", ownerID.String())
@@ -215,19 +200,7 @@ func (s *Service) GetTransactionsByStudentID(ctx context.Context, studentID, own
 
 	transactions := make([]TransactionResponse, 0, len(rows))
 	for _, r := range rows {
-		amt, _ := strconv.ParseFloat(r.Amount, 64)
-		transactions = append(transactions, TransactionResponse{
-			ID:        r.ID,
-			Amount:    amt,
-			Date:      r.Date,
-			Type:      TransactionType(r.Type),
-			CreatedAt: r.CreatedAt,
-			PaymentDetails: &StudentPaymentDetailsResponse{
-				DetailsType: DetailsTypeStudent,
-				StudentID:   r.StudentID,
-				PaidUntil:   r.PaidUntil,
-			},
-		})
+		transactions = append(transactions, toTransactionResponseFromStudentPaymentRow(r))
 	}
 	logger.DebugContext(ctx, "Retrieved transactions by student id", "student_id", studentID.String(), "count", len(transactions), "user_id", ownerID.String())
 	return transactions, nil
@@ -256,19 +229,7 @@ func (s *Service) GetTransactionsByStudentIDs(ctx context.Context, studentIDs []
 	}
 
 	for _, r := range rows {
-		amt, _ := strconv.ParseFloat(r.Amount, 64)
-		transactionsByStudent[r.StudentID] = append(transactionsByStudent[r.StudentID], TransactionResponse{
-			ID:        r.ID,
-			Amount:    amt,
-			Date:      r.Date,
-			Type:      TransactionType(r.Type),
-			CreatedAt: r.CreatedAt,
-			PaymentDetails: &StudentPaymentDetailsResponse{
-				DetailsType: DetailsTypeStudent,
-				StudentID:   r.StudentID,
-				PaidUntil:   r.PaidUntil,
-			},
-		})
+		transactionsByStudent[r.StudentID] = append(transactionsByStudent[r.StudentID], toTransactionResponseFromStudentPaymentsRow(r))
 	}
 
 	logger.DebugContext(ctx, "Retrieved transactions by student ids", "count", len(rows), "user_id", ownerID.String())
@@ -345,14 +306,7 @@ func (s *Service) CreateTransaction(ctx context.Context, req CreateTransactionRe
 
 	amt, _ := strconv.ParseFloat(createdTx.Amount, 64)
 	logger.InfoContext(ctx, "Transaction created successfully", "transaction_id", createdTx.ID.String(), "amount", amt, "type", string(createdTx.Type), "user_id", ownerID.String())
-	return TransactionResponse{
-		ID:             createdTx.ID,
-		Amount:         amt,
-		Date:           createdTx.Date,
-		Type:           TransactionType(createdTx.Type),
-		CreatedAt:      createdTx.CreatedAt,
-		PaymentDetails: details,
-	}, nil
+	return toTransactionResponse(createdTx, details), nil
 }
 
 func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID, amount float64, date, paidUntil time.Time, ownerID uuid.UUID) (TransactionResponse, error) {
@@ -417,18 +371,11 @@ func (s *Service) CreateStudentPayment(ctx context.Context, studentID uuid.UUID,
 
 	amt, _ := strconv.ParseFloat(createdTx.Amount, 64)
 	logger.InfoContext(ctx, "Student payment created successfully", "transaction_id", createdTx.ID.String(), "student_id", studentID.String(), "amount", amt, "user_id", ownerID.String())
-	return TransactionResponse{
-		ID:        createdTx.ID,
-		Amount:    amt,
-		Date:      createdTx.Date,
-		Type:      TransactionType(createdTx.Type),
-		CreatedAt: createdTx.CreatedAt,
-		PaymentDetails: &StudentPaymentDetailsResponse{
-			DetailsType: DetailsTypeStudent,
-			StudentID:   sp.StudentID,
-			PaidUntil:   sp.PaidUntil,
-		},
-	}, nil
+	return toTransactionResponse(createdTx, &StudentPaymentDetailsResponse{
+		DetailsType: DetailsTypeStudent,
+		StudentID:   sp.StudentID,
+		PaidUntil:   sp.PaidUntil,
+	}), nil
 }
 
 func (s *Service) UpdateTransaction(ctx context.Context, transactionID, ownerID uuid.UUID, updates map[string]any) (TransactionResponse, error) {
@@ -531,14 +478,7 @@ func (s *Service) UpdateTransaction(ctx context.Context, transactionID, ownerID 
 
 	amt, _ := strconv.ParseFloat(updatedTx.Amount, 64)
 	logger.InfoContext(ctx, "Transaction updated successfully", "transaction_id", updatedTx.ID.String(), "amount", amt, "user_id", ownerID.String())
-	return TransactionResponse{
-		ID:             updatedTx.ID,
-		Amount:         amt,
-		Date:           updatedTx.Date,
-		Type:           TransactionType(updatedTx.Type),
-		CreatedAt:      updatedTx.CreatedAt,
-		PaymentDetails: details,
-	}, nil
+	return toTransactionResponse(updatedTx, details), nil
 }
 
 func (s *Service) DeleteTransaction(ctx context.Context, transactionID, ownerID uuid.UUID) error {

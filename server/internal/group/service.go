@@ -850,22 +850,3 @@ func (s *Service) DeleteGroup(ctx context.Context, groupID, ownerID uuid.UUID) e
 	logger.InfoContext(ctx, "Group deleted successfully", "group_id", groupID.String(), "user_id", ownerID.String())
 	return nil
 }
-
-func toGroupResponse(g db.GroupsModuleGroup) response.GroupResponse {
-	var defPrice *float64
-	if g.DefaultPrice.Valid {
-		f, _ := strconv.ParseFloat(g.DefaultPrice.String, 64)
-		defPrice = &f
-	}
-	var note *string
-	if g.Note.Valid {
-		note = &g.Note.String
-	}
-	return response.GroupResponse{
-		ID:           g.ID,
-		Name:         g.Name,
-		DefaultPrice: defPrice,
-		Note:         note,
-		CreatedAt:    g.CreatedAt,
-	}
-}

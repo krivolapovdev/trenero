@@ -34,10 +34,7 @@ func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.Use
 
 	if err == nil {
 		logger.DebugContext(ctx, "Existing OAuth2 user found", "user_id", existingUser.ID.String(), "provider", string(provider))
-		return response.UserResponse{
-			ID:    existingUser.ID,
-			Email: existingUser.Email,
-		}, nil
+		return toUserResponse(existingUser), nil
 	}
 
 	if !errors.Is(err, sql.ErrNoRows) {
@@ -62,10 +59,7 @@ func (s *Service) GetOrCreateUserFromOAuth2(ctx context.Context, provider db.Use
 
 	logger.InfoContext(ctx, "User created successfully", "user_id", created.ID.String(), "email", created.Email)
 
-	return response.UserResponse{
-		ID:    created.ID,
-		Email: created.Email,
-	}, nil
+	return toUserResponse(created), nil
 }
 
 func (s *Service) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {

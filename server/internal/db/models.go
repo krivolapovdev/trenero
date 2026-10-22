@@ -226,6 +226,24 @@ type PaymentsModuleTransaction struct {
 	UpdatedAt time.Time                     `json:"updated_at"`
 }
 
+type RostersModuleParticipant struct {
+	ID        uuid.UUID `json:"id"`
+	RosterID  uuid.UUID `json:"roster_id"`
+	StudentID uuid.UUID `json:"student_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type RostersModuleRoster struct {
+	ID         uuid.UUID      `json:"id"`
+	OwnerID    uuid.UUID      `json:"owner_id"`
+	Name       string         `json:"name"`
+	RosterDate sql.NullTime   `json:"roster_date"`
+	Note       sql.NullString `json:"note"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+}
+
 type StudentsModuleStudent struct {
 	ID        uuid.UUID      `json:"id"`
 	OwnerID   uuid.UUID      `json:"owner_id"`
