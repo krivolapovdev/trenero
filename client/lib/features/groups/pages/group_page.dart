@@ -1,17 +1,16 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/groups/pages/group_students_page.dart';
-import 'package:phone/features/groups/widgets/group_hero_card.dart';
+import 'package:phone/features/groups/widgets/group_header.dart';
 import 'package:phone/features/groups/widgets/group_lessons_section.dart';
-import 'package:phone/features/groups/widgets/group_popup_menu.dart';
 import 'package:phone/features/groups/widgets/group_students_section.dart';
 import 'package:phone/generated/export.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 class GroupPage extends ConsumerStatefulWidget {
   final GroupSummaryResponse group;
@@ -24,6 +23,14 @@ class GroupPage extends ConsumerStatefulWidget {
 
 class _GroupPageState extends ConsumerState<GroupPage> {
   late GroupSummaryResponse _group = widget.group;
+  late final ScrollController _scrollController = ScrollController();
+  ScrollDirection _lastScrollDirection = ScrollDirection.idle;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   Future<void> _openGroupStudentsPage() async {
     await Navigator.of(context).push(
@@ -31,9 +38,54 @@ class _GroupPageState extends ConsumerState<GroupPage> {
     );
   }
 
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification is UserScrollNotification) {
+      if (notification.direction != ScrollDirection.idle) {
+        _lastScrollDirection = notification.direction;
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _snapIfNeeded();
+        });
+      }
+    } else if (notification is ScrollEndNotification) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _snapIfNeeded();
+      });
+    }
+    return false;
+  }
+
+  void _snapIfNeeded() {
+    if (!mounted || !_scrollController.hasClients) return;
+    final position = _scrollController.position;
+
+    // Do not snap if overscrolling (pull-to-refresh)
+    if (position.outOfRange) return;
+
+    final offset = position.pixels;
+    const snapOffset = GroupHeaderDelegate.contentHeight;
+
+    if (offset > 1.0 && offset < snapOffset - 1.0) {
+      final double target;
+      if (_lastScrollDirection == ScrollDirection.reverse && offset > 20.0) {
+        target = snapOffset;
+      } else if (_lastScrollDirection == ScrollDirection.forward &&
+          offset < snapOffset - 20.0) {
+        target = 0.0;
+      } else {
+        target = offset < (snapOffset / 2) ? 0.0 : snapOffset;
+      }
+
+      _scrollController.animateTo(
+        target,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final routeAnimation = ModalRoute.of(context)?.animation;
     final isGroupRefreshing = ref.watch(
       groupListControllerProvider.select((state) => state.isLoading),
     );
@@ -48,75 +100,93 @@ class _GroupPageState extends ConsumerState<GroupPage> {
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_group.name),
-        actions: [
-          GroupPopupMenu(group: _group),
-          const SizedBox(width: 8),
-        ],
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        surfaceTintColor: Theme.of(context).colorScheme.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: AppRadius.bottomRounded,
-        ),
-      ),
-      body: CustomMaterialIndicator(
-        color: Colors.black,
-        clipBehavior: Clip.antiAlias,
-        onRefresh: () async {
-          await Future.wait([
-            ref.read(groupLessonsProvider(_group.id).notifier).refresh(),
-            ref.read(groupStudentsProvider(_group.id).notifier).refresh(),
-            ref
-                .read(groupListControllerProvider.notifier)
-                .getAllGroups(forceRefresh: true),
-          ]);
+    final topPadding = MediaQuery.paddingOf(context).top;
+    final headerMaxHeight =
+        topPadding + kToolbarHeight + GroupHeaderDelegate.contentHeight;
 
-          if (!context.mounted) return;
+    const overlayStyle = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    );
 
-          final listState = ref.read(groupListControllerProvider);
-          if (listState.hasError) return;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlayStyle,
+      child: Scaffold(
+        body: CustomMaterialIndicator(
+          edgeOffset: headerMaxHeight,
+          displacement: 20,
+          color: Colors.black,
+          clipBehavior: Clip.antiAlias,
+          onRefresh: () async {
+            await Future.wait([
+              ref.read(groupLessonsProvider(_group.id).notifier).refresh(),
+              ref.read(groupStudentsProvider(_group.id).notifier).refresh(),
+              ref
+                  .read(groupListControllerProvider.notifier)
+                  .getAllGroups(forceRefresh: true),
+            ]);
 
-          final updated = (listState.value ?? const [])
-              .where((g) => g.id == _group.id)
-              .firstOrNull;
+            if (!context.mounted) return;
 
-          if (updated == null) {
-            Navigator.of(context).pop();
-            return;
-          }
+            final listState = ref.read(groupListControllerProvider);
+            if (listState.hasError) return;
 
-          setState(() => _group = updated);
-        },
-        child: SingleChildScrollView(
-          clipBehavior: Clip.none,
-          padding: const EdgeInsets.all(16),
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          child: Column(
-            spacing: 16,
-            children: [
-              Skeletonizer(
-                enabled: isGroupRefreshing,
-                ignorePointers: false,
-                child: GroupHeroCard(
-                  group: _group,
-                  routeAnimation: routeAnimation,
+            final updated = (listState.value ?? const [])
+                .where((g) => g.id == _group.id)
+                .firstOrNull;
+
+            if (updated == null) {
+              Navigator.of(context).pop();
+              return;
+            }
+
+            setState(() => _group = updated);
+          },
+          child: NotificationListener<ScrollNotification>(
+            onNotification: _handleScrollNotification,
+            child: CustomScrollView(
+              controller: _scrollController,
+              clipBehavior: Clip.none,
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: GroupHeaderDelegate(
+                    group: _group,
+                    topPadding: topPadding,
+                    isRefreshing: isGroupRefreshing,
+                  ),
                 ),
-              ),
-
-              GroupLessonsSection(groupId: _group.id, groupName: _group.name),
-
-              GroupStudentsSection(
-                groupId: _group.id,
-                studentCount: _group.countOfStudents == 0
-                    ? null
-                    : _group.countOfStudents,
-                onEdit: _openGroupStudentsPage,
-              ),
-            ],
+                SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList.list(
+                    children: [
+                      GroupLessonsSection(
+                        groupId: _group.id,
+                        groupName: _group.name,
+                      ),
+                      const SizedBox(height: 16),
+                      GroupStudentsSection(
+                        groupId: _group.id,
+                        studentCount: _group.countOfStudents == 0
+                            ? null
+                            : _group.countOfStudents,
+                        onEdit: _openGroupStudentsPage,
+                      ),
+                    ],
+                  ),
+                ),
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: SizedBox(
+                    height: GroupHeaderDelegate.contentHeight + 24,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

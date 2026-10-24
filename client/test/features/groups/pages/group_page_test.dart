@@ -1,14 +1,18 @@
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:phone/core/extensions/number_extension.dart';
 import 'package:phone/core/providers/language_provider.dart';
+import 'package:phone/core/widgets/card_badge.dart';
 import 'package:phone/features/groups/pages/group_page.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/features/groups/services/lesson_service.dart';
 import 'package:phone/features/groups/widgets/delete_group_bottom_sheet.dart';
 import 'package:phone/features/groups/widgets/group_day_lessons_bottom_sheet.dart';
+import 'package:phone/features/groups/widgets/group_header.dart';
 import 'package:phone/features/groups/widgets/group_report_bottom_sheet.dart';
 import 'package:phone/generated/group_controller/group_controller_client.dart';
 import 'package:phone/generated/lesson_controller/lesson_controller_client.dart';
@@ -39,13 +43,15 @@ String _formatDate(DateTime date) {
 
 class _FakeGroupClient implements GroupControllerClient {
   final List<LessonResponse> lessons;
+  final List<GroupSummaryResponse> groups;
 
   final List<String> deletedGroupIds = [];
 
-  new({this.lessons = const []});
+  new({this.lessons = const [], this.groups = const []});
 
   @override
-  Future<List<GroupSummaryResponse>> getAllGroupsSummary() async => [_group];
+  Future<List<GroupSummaryResponse>> getAllGroupsSummary() async =>
+      groups.isEmpty ? [_group] : groups;
 
   @override
   Future<GroupReportResponse> getGroupReport({
@@ -314,4 +320,127 @@ void main() {
 
     expect(find.byType(GroupPage), findsNothing);
   });
+
+  testWidgets(
+    'merged header displays large title and badges when unscrolled, and collapses when scrolled',
+    (tester) async {
+      final groupWithPrice = GroupSummaryResponse(
+        id: 'group-1',
+        name: 'Group A',
+        countOfStudents: 5,
+        defaultPrice: 3500,
+        createdAt: DateTime(2026, 1, 15),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            groupServiceProvider.overrideWithValue(
+              _FakeGroupClient(groups: [groupWithPrice]),
+            ),
+            lessonServiceProvider.overrideWithValue(_FakeLessonClient()),
+            languageProvider.overrideWith(_FakeLanguageNotifier.new),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(home: GroupPage(group: groupWithPrice)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Unscrolled:
+      // Large title is visible
+      expect(find.text('Group A'), findsOneWidget);
+      // Student count badge and price badge are visible
+      expect(
+        find.descendant(of: find.byType(CardBadge), matching: find.text('5')),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          groupWithPrice.defaultPrice!.toFormattedAmount(showSign: false),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(find.byType(PopupMenuButton<String>), findsOneWidget);
+
+      // Scroll down to collapse header
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+
+      // Scrolled:
+      // Pinned compact title is now visible
+      expect(find.text('Group A'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(find.byType(PopupMenuButton<String>), findsOneWidget);
+
+      // Refresh indicator edgeOffset is positioned under the group header
+      final indicator = tester.widget<CustomMaterialIndicator>(
+        find.byType(CustomMaterialIndicator),
+      );
+      expect(
+        indicator.edgeOffset,
+        greaterThan(GroupHeaderDelegate.contentHeight),
+      );
+    },
+  );
+
+  testWidgets(
+    'allows only two stable versions: snaps to full or short when scroll finishes',
+    (tester) async {
+      tester.view.physicalSize = const Size(400, 500);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final dummyLessons = List.generate(
+        10,
+        (i) => LessonResponse(
+          id: 'lesson-$i',
+          date: DateTime(2026, 10, i + 1),
+          createdAt: DateTime(2026, 10, i + 1),
+          groupId: _group.id,
+        ),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            groupServiceProvider.overrideWithValue(
+              _FakeGroupClient(lessons: dummyLessons),
+            ),
+            lessonServiceProvider.overrideWithValue(_FakeLessonClient()),
+            languageProvider.overrideWith(_FakeLanguageNotifier.new),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(home: GroupPage(group: _group)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final scrollable = tester.state<ScrollableState>(
+        find
+            .descendant(
+              of: find.byType(CustomScrollView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+
+      // Drag slightly (30px) and release -> should snap back to 0 (Full)
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -30));
+      await tester.pumpAndSettle();
+      expect(scrollable.position.pixels, equals(0.0));
+
+      // Drag past midpoint (90px) and release -> should snap to short (contentHeight)
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -90));
+      await tester.pumpAndSettle();
+      expect(
+        scrollable.position.pixels,
+        equals(GroupHeaderDelegate.contentHeight),
+      );
+    },
+  );
 }
