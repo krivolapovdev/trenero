@@ -16,11 +16,13 @@ func GetUserFromContext(c *gin.Context) (JwtUser, bool) {
 		c.Abort()
 		return JwtUser{}, false
 	}
+
 	u, ok := val.(JwtUser)
 	if !ok {
 		pkgerrors.RespondUnauthorized(c, "")
 		c.Abort()
 		return JwtUser{}, false
 	}
+
 	return u, true
 }

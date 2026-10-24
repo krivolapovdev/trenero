@@ -21,14 +21,15 @@ import (
 )
 
 type mockRosterService struct {
-	getAllRostersFn     func(ctx context.Context, ownerID uuid.UUID) ([]response.RosterResponse, error)
-	getRosterByIDFn     func(ctx context.Context, rosterID, ownerID uuid.UUID) (response.RosterResponse, error)
-	getRosterStudentsFn func(ctx context.Context, rosterID, ownerID uuid.UUID) ([]response.StudentResponse, error)
-	createRosterFn      func(ctx context.Context, req request.CreateRosterRequest, ownerID uuid.UUID) (response.RosterResponse, error)
-	updateRosterFn      func(ctx context.Context, rosterID, ownerID uuid.UUID, updates map[string]any) (response.RosterResponse, error)
-	deleteRosterFn      func(ctx context.Context, rosterID, ownerID uuid.UUID) error
-	addStudentsFn       func(ctx context.Context, rosterID, ownerID uuid.UUID, studentIDs []uuid.UUID) (response.RosterResponse, error)
-	removeStudentFn     func(ctx context.Context, rosterID, studentID, ownerID uuid.UUID) error
+	getAllRostersFn         func(ctx context.Context, ownerID uuid.UUID) ([]response.RosterResponse, error)
+	getRosterByIDFn         func(ctx context.Context, rosterID, ownerID uuid.UUID) (response.RosterResponse, error)
+	getRosterStudentsFn     func(ctx context.Context, rosterID, ownerID uuid.UUID) ([]response.StudentResponse, error)
+	createRosterFn          func(ctx context.Context, req request.CreateRosterRequest, ownerID uuid.UUID) (response.RosterResponse, error)
+	updateRosterFn          func(ctx context.Context, rosterID, ownerID uuid.UUID, updates map[string]any) (response.RosterResponse, error)
+	deleteRosterFn          func(ctx context.Context, rosterID, ownerID uuid.UUID) error
+	addStudentsFn           func(ctx context.Context, rosterID, ownerID uuid.UUID, studentIDs []uuid.UUID, note *string) (response.RosterResponse, error)
+	updateParticipantNoteFn func(ctx context.Context, rosterID, studentID, ownerID uuid.UUID, note *string) error
+	removeStudentFn         func(ctx context.Context, rosterID, studentID, ownerID uuid.UUID) error
 }
 
 func (m *mockRosterService) GetAllRosters(ctx context.Context, ownerID uuid.UUID) ([]response.RosterResponse, error) {
@@ -73,11 +74,18 @@ func (m *mockRosterService) DeleteRoster(ctx context.Context, rosterID, ownerID 
 	return nil
 }
 
-func (m *mockRosterService) AddStudents(ctx context.Context, rosterID, ownerID uuid.UUID, studentIDs []uuid.UUID) (response.RosterResponse, error) {
+func (m *mockRosterService) AddStudents(ctx context.Context, rosterID, ownerID uuid.UUID, studentIDs []uuid.UUID, note *string) (response.RosterResponse, error) {
 	if m.addStudentsFn != nil {
-		return m.addStudentsFn(ctx, rosterID, ownerID, studentIDs)
+		return m.addStudentsFn(ctx, rosterID, ownerID, studentIDs, note)
 	}
 	return response.RosterResponse{}, nil
+}
+
+func (m *mockRosterService) UpdateParticipantNote(ctx context.Context, rosterID, studentID, ownerID uuid.UUID, note *string) error {
+	if m.updateParticipantNoteFn != nil {
+		return m.updateParticipantNoteFn(ctx, rosterID, studentID, ownerID, note)
+	}
+	return nil
 }
 
 func (m *mockRosterService) RemoveStudent(ctx context.Context, rosterID, studentID, ownerID uuid.UUID) error {
@@ -189,9 +197,9 @@ func TestRosterHandler_CreateRoster(t *testing.T) {
 		now := time.Now().UTC()
 		note := "Championship"
 		reqBody := request.CreateRosterRequest{
-			Name:       "Competition A",
-			RosterDate: &now,
-			Note:       &note,
+			Name: "Competition A",
+			Date: &now,
+			Note: &note,
 		}
 
 		mockSvc := &mockRosterService{
@@ -200,10 +208,10 @@ func TestRosterHandler_CreateRoster(t *testing.T) {
 				assert.Equal(t, &note, req.Note)
 				assert.Equal(t, testUser.ID, ownerID)
 				return response.RosterResponse{
-					ID:         uuid.New(),
-					Name:       req.Name,
-					RosterDate: req.RosterDate,
-					Note:       req.Note,
+					ID:   uuid.New(),
+					Name: req.Name,
+					Date: req.Date,
+					Note: req.Note,
 				}, nil
 			},
 		}
@@ -289,7 +297,7 @@ func TestRosterHandler_AddAndRemoveStudents(t *testing.T) {
 
 	t.Run("AddStudents_Success", func(t *testing.T) {
 		mockSvc := &mockRosterService{
-			addStudentsFn: func(ctx context.Context, rID, ownerID uuid.UUID, studentIDs []uuid.UUID) (response.RosterResponse, error) {
+			addStudentsFn: func(ctx context.Context, rID, ownerID uuid.UUID, studentIDs []uuid.UUID, note *string) (response.RosterResponse, error) {
 				assert.Equal(t, rosterID, rID)
 				assert.Equal(t, []uuid.UUID{studentID}, studentIDs)
 				return response.RosterResponse{
@@ -325,6 +333,30 @@ func TestRosterHandler_AddAndRemoveStudents(t *testing.T) {
 		r := setupRosterRouter(mockSvc, testUser)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodDelete, "/api/v1/rosters/"+rosterID.String()+"/students/"+studentID.String(), nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNoContent, w.Code)
+	})
+
+	t.Run("UpdateStudentNote_Success", func(t *testing.T) {
+		noteVal := "new note"
+		mockSvc := &mockRosterService{
+			updateParticipantNoteFn: func(ctx context.Context, rID, sID, ownerID uuid.UUID, note *string) error {
+				assert.Equal(t, rosterID, rID)
+				assert.Equal(t, studentID, sID)
+				assert.Equal(t, &noteVal, note)
+				return nil
+			},
+		}
+
+		reqBody := request.UpdateRosterStudentNoteRequest{
+			Note: &noteVal,
+		}
+		bodyBytes, _ := json.Marshal(reqBody)
+		r := setupRosterRouter(mockSvc, testUser)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/rosters/"+rosterID.String()+"/students/"+studentID.String(), bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusNoContent, w.Code)

@@ -36,9 +36,11 @@ func NewTokenProvider(secretKey string, accessExp, refreshExp time.Duration, rev
 	if accessExp == 0 {
 		accessExp = 15 * time.Minute
 	}
+
 	if refreshExp == 0 {
 		refreshExp = 14 * 24 * time.Hour
 	}
+
 	return &TokenProvider{
 		secretKey:              []byte(secretKey),
 		accessTokenExpiration:  accessExp,
@@ -61,10 +63,12 @@ func (p *TokenProvider) GenerateTokenPair(user JwtUser) (accessToken, refreshTok
 	if err != nil {
 		return "", "", err
 	}
+
 	refreshToken, err = p.GenerateRefreshToken(user)
 	if err != nil {
 		return "", "", err
 	}
+
 	return accessToken, refreshToken, nil
 }
 
@@ -86,6 +90,7 @@ func (p *TokenProvider) ExtractUser(tokenStr string) (JwtUser, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrUnexpectedSigningMethod
 		}
+
 		return p.secretKey, nil
 	})
 	if err != nil || !token.Valid {
@@ -101,6 +106,7 @@ func (p *TokenProvider) ExtractUser(tokenStr string) (JwtUser, error) {
 	if !ok {
 		return JwtUser{}, ErrMissingSubjectClaim
 	}
+
 	id, err := uuid.Parse(subStr)
 	if err != nil {
 		return JwtUser{}, ErrInvalidSubjectFormat
@@ -141,5 +147,6 @@ func (p *TokenProvider) ValidateReviewerKey(reviewerKey string) bool {
 	if p.reviewerKey == "" || reviewerKey == "" {
 		return false
 	}
+
 	return subtle.ConstantTimeCompare([]byte(reviewerKey), []byte(p.reviewerKey)) == 1
 }

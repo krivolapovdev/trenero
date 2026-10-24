@@ -18,11 +18,11 @@ func TestToRosterResponse(t *testing.T) {
 	noteText := "Test Note"
 
 	r := db.RostersModuleRoster{
-		ID:         rosterID,
-		Name:       "Morning Roster",
-		RosterDate: sql.NullTime{Time: date, Valid: true},
-		Note:       sql.NullString{String: noteText, Valid: true},
-		CreatedAt:  now,
+		ID:        rosterID,
+		Name:      "Morning Roster",
+		Date:      sql.NullTime{Time: date, Valid: true},
+		Note:      sql.NullString{String: noteText, Valid: true},
+		CreatedAt: now,
 	}
 
 	students := []response.StudentResponse{
@@ -32,8 +32,8 @@ func TestToRosterResponse(t *testing.T) {
 	resp := toRosterResponse(r, int64(len(students)), students)
 	assert.Equal(t, rosterID, resp.ID)
 	assert.Equal(t, "Morning Roster", resp.Name)
-	assert.NotNil(t, resp.RosterDate)
-	assert.Equal(t, date, *resp.RosterDate)
+	assert.NotNil(t, resp.Date)
+	assert.Equal(t, date, *resp.Date)
 	assert.NotNil(t, resp.Note)
 	assert.Equal(t, noteText, *resp.Note)
 	assert.Equal(t, now, resp.CreatedAt)
@@ -47,7 +47,7 @@ func TestToRosterResponse(t *testing.T) {
 		CreatedAt: now,
 	}
 	respEmpty := toRosterResponse(rEmpty, 0, nil)
-	assert.Nil(t, respEmpty.RosterDate)
+	assert.Nil(t, respEmpty.Date)
 	assert.Nil(t, respEmpty.Note)
 	assert.NotNil(t, respEmpty.Students)
 	assert.Empty(t, respEmpty.Students)

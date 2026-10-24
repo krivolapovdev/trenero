@@ -8,9 +8,9 @@ import (
 )
 
 func toRosterResponse(r db.RostersModuleRoster, countOfStudents int64, students []response.StudentResponse) response.RosterResponse {
-	var rosterDate *time.Time
-	if r.RosterDate.Valid {
-		rosterDate = &r.RosterDate.Time
+	var date *time.Time
+	if r.Date.Valid {
+		date = &r.Date.Time
 	}
 
 	var note *string
@@ -25,7 +25,7 @@ func toRosterResponse(r db.RostersModuleRoster, countOfStudents int64, students 
 	return response.RosterResponse{
 		ID:              r.ID,
 		Name:            r.Name,
-		RosterDate:      rosterDate,
+		Date:            date,
 		Note:            note,
 		CreatedAt:       r.CreatedAt,
 		CountOfStudents: countOfStudents,

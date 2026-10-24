@@ -140,9 +140,9 @@ func (s *Service) CreateRoster(ctx context.Context, req request.CreateRosterRequ
 
 	var created db.RostersModuleRoster
 	err = s.withTx(ctx, func(qtx *db.Queries) error {
-		var rosterDate sql.NullTime
-		if req.RosterDate != nil {
-			rosterDate = sql.NullTime{Time: *req.RosterDate, Valid: true}
+		var date sql.NullTime
+		if req.Date != nil {
+			date = sql.NullTime{Time: *req.Date, Valid: true}
 		}
 
 		var note sql.NullString
@@ -152,20 +152,21 @@ func (s *Service) CreateRoster(ctx context.Context, req request.CreateRosterRequ
 
 		var err error
 		created, err = qtx.CreateRoster(ctx, db.CreateRosterParams{
-			OwnerID:    ownerID,
-			Name:       name,
-			RosterDate: rosterDate,
-			Note:       note,
+			OwnerID: ownerID,
+			Name:    name,
+			Date:    date,
+			Note:    note,
 		})
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to create roster record", "name", name, "error", err, "user_id", ownerID.String())
 			return err
 		}
 
-		for _, sid := range uniqueStudentIDs {
+		for _, sid := range req.StudentIds {
 			_, err := qtx.CreateParticipant(ctx, db.CreateParticipantParams{
 				RosterID:  created.ID,
 				StudentID: sid,
+				Note:      sql.NullString{},
 			})
 			if err != nil {
 				logger.ErrorContext(ctx, "Failed to create participant", "roster_id", created.ID.String(), "student_id", sid.String(), "error", err, "user_id", ownerID.String())
@@ -224,23 +225,23 @@ func (s *Service) UpdateRoster(ctx context.Context, rosterID, ownerID uuid.UUID,
 			name = trimmed
 		}
 
-		rosterDate := existing.RosterDate
-		if rawDate, ok := updates["rosterDate"]; ok {
+		date := existing.Date
+		if rawDate, ok := updates["date"]; ok {
 			if rawDate == nil {
-				rosterDate = sql.NullTime{Valid: false}
+				date = sql.NullTime{Valid: false}
 			} else {
 				switch v := rawDate.(type) {
 				case time.Time:
-					rosterDate = sql.NullTime{Time: v, Valid: true}
+					date = sql.NullTime{Time: v, Valid: true}
 				case string:
 					t, err := time.Parse(time.RFC3339, v)
 					if err != nil {
-						logger.WarnContext(ctx, "Invalid rosterDate format for update", "roster_id", rosterID.String(), "user_id", ownerID.String())
-						return pkgerrors.NewBadRequest("invalid rosterDate format, expected RFC3339")
+						logger.WarnContext(ctx, "Invalid date format for update", "roster_id", rosterID.String(), "user_id", ownerID.String())
+						return pkgerrors.NewBadRequest("invalid date format, expected RFC3339")
 					}
-					rosterDate = sql.NullTime{Time: t, Valid: true}
+					date = sql.NullTime{Time: t, Valid: true}
 				default:
-					return pkgerrors.NewBadRequest("invalid rosterDate format")
+					return pkgerrors.NewBadRequest("invalid date format")
 				}
 			}
 		}
@@ -296,6 +297,7 @@ func (s *Service) UpdateRoster(ctx context.Context, rosterID, ownerID uuid.UUID,
 				if _, err := qtx.CreateParticipant(ctx, db.CreateParticipantParams{
 					RosterID:  rosterID,
 					StudentID: sid,
+					Note:      sql.NullString{},
 				}); err != nil {
 					logger.ErrorContext(ctx, "Failed to link student during roster update", "roster_id", rosterID.String(), "student_id", sid.String(), "error", err, "user_id", ownerID.String())
 					return err
@@ -305,11 +307,11 @@ func (s *Service) UpdateRoster(ctx context.Context, rosterID, ownerID uuid.UUID,
 
 		var errUpdate error
 		updated, errUpdate = qtx.UpdateRoster(ctx, db.UpdateRosterParams{
-			ID:         rosterID,
-			OwnerID:    ownerID,
-			Name:       name,
-			RosterDate: rosterDate,
-			Note:       note,
+			ID:      rosterID,
+			OwnerID: ownerID,
+			Name:    name,
+			Date:    date,
+			Note:    note,
 		})
 		if errUpdate != nil {
 			logger.ErrorContext(ctx, "Failed to update roster record", "roster_id", rosterID.String(), "error", errUpdate, "user_id", ownerID.String())
@@ -359,7 +361,7 @@ func (s *Service) DeleteRoster(ctx context.Context, rosterID, ownerID uuid.UUID)
 	return nil
 }
 
-func (s *Service) AddStudents(ctx context.Context, rosterID, ownerID uuid.UUID, studentIDs []uuid.UUID) (response.RosterResponse, error) {
+func (s *Service) AddStudents(ctx context.Context, rosterID, ownerID uuid.UUID, studentIDs []uuid.UUID, note *string) (response.RosterResponse, error) {
 	logger.InfoContext(ctx, "Adding students to roster", "roster_id", rosterID.String(), "count", len(studentIDs), "user_id", ownerID.String())
 	roster, err := s.db.FindRosterByIDAndOwnerID(ctx, db.FindRosterByIDAndOwnerIDParams{
 		ID:      rosterID,
@@ -381,28 +383,19 @@ func (s *Service) AddStudents(ctx context.Context, rosterID, ownerID uuid.UUID, 
 		return response.RosterResponse{}, err
 	}
 
+	var sqlNote sql.NullString
+	if note != nil && strings.TrimSpace(*note) != "" {
+		sqlNote = sql.NullString{String: strings.TrimSpace(*note), Valid: true}
+	}
+
 	err = s.withTx(ctx, func(qtx *db.Queries) error {
-		currentLinks, err := qtx.FindParticipantsByRosterIDAndOwnerID(ctx, db.FindParticipantsByRosterIDAndOwnerIDParams{
-			RosterID: rosterID,
-			OwnerID:  ownerID,
-		})
-		if err != nil {
-			return err
-		}
-
-		existingMap := make(map[uuid.UUID]bool, len(currentLinks))
-		for _, link := range currentLinks {
-			existingMap[link.StudentID] = true
-		}
-
-		for _, sid := range uniqueStudentIDs {
-			if !existingMap[sid] {
-				if _, err := qtx.CreateParticipant(ctx, db.CreateParticipantParams{
-					RosterID:  rosterID,
-					StudentID: sid,
-				}); err != nil {
-					return err
-				}
+		for _, sid := range studentIDs {
+			if _, err := qtx.CreateParticipant(ctx, db.CreateParticipantParams{
+				RosterID:  rosterID,
+				StudentID: sid,
+				Note:      sqlNote,
+			}); err != nil {
+				return err
 			}
 		}
 		return nil
@@ -418,6 +411,39 @@ func (s *Service) AddStudents(ctx context.Context, rosterID, ownerID uuid.UUID, 
 	}
 
 	return toRosterResponse(roster, int64(len(students)), students), nil
+}
+
+func (s *Service) UpdateParticipantNote(ctx context.Context, rosterID, studentID, ownerID uuid.UUID, note *string) error {
+	logger.InfoContext(ctx, "Updating participant note", "roster_id", rosterID.String(), "student_id", studentID.String(), "user_id", ownerID.String())
+	if _, err := s.db.FindRosterByIDAndOwnerID(ctx, db.FindRosterByIDAndOwnerIDParams{
+		ID:      rosterID,
+		OwnerID: ownerID,
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return pkgerrors.NewNotFound("Roster", rosterID, ownerID)
+		}
+		return err
+	}
+
+	var sqlNote sql.NullString
+	if note != nil && strings.TrimSpace(*note) != "" {
+		sqlNote = sql.NullString{String: strings.TrimSpace(*note), Valid: true}
+	}
+
+	_, err := s.db.UpdateParticipantNote(ctx, db.UpdateParticipantNoteParams{
+		RosterID:  rosterID,
+		StudentID: studentID,
+		Note:      sqlNote,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return pkgerrors.NewNotFound("Participant", studentID, ownerID)
+		}
+		logger.ErrorContext(ctx, "Failed to update participant note", "roster_id", rosterID.String(), "student_id", studentID.String(), "error", err)
+		return err
+	}
+
+	return nil
 }
 
 func (s *Service) RemoveStudent(ctx context.Context, rosterID, studentID, ownerID uuid.UUID) error {
@@ -487,7 +513,25 @@ func (s *Service) getParticipantsForRoster(ctx context.Context, rosterID, ownerI
 			logger.ErrorContext(ctx, "Failed to fetch student details for roster", "roster_id", rosterID.String(), "error", err, "user_id", ownerID.String())
 			return nil, err
 		}
-		return stList, nil
+		studentMap := make(map[uuid.UUID]response.StudentResponse, len(stList))
+		for _, st := range stList {
+			studentMap[st.ID] = st
+		}
+
+		result := make([]response.StudentResponse, 0, len(participantRows))
+		for _, p := range participantRows {
+			if st, ok := studentMap[p.StudentID]; ok {
+				item := st
+				if p.Note.Valid && p.Note.String != "" {
+					val := p.Note.String
+					item.Note = &val
+				} else {
+					item.Note = nil
+				}
+				result = append(result, item)
+			}
+		}
+		return result, nil
 	}
 
 	return []response.StudentResponse{}, nil

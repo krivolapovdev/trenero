@@ -22,7 +22,8 @@ type rosterService interface {
 	CreateRoster(ctx context.Context, req request.CreateRosterRequest, ownerID uuid.UUID) (response.RosterResponse, error)
 	UpdateRoster(ctx context.Context, rosterID, ownerID uuid.UUID, updates map[string]any) (response.RosterResponse, error)
 	DeleteRoster(ctx context.Context, rosterID, ownerID uuid.UUID) error
-	AddStudents(ctx context.Context, rosterID, ownerID uuid.UUID, studentIDs []uuid.UUID) (response.RosterResponse, error)
+	AddStudents(ctx context.Context, rosterID, ownerID uuid.UUID, studentIDs []uuid.UUID, note *string) (response.RosterResponse, error)
+	UpdateParticipantNote(ctx context.Context, rosterID, studentID, ownerID uuid.UUID, note *string) error
 	RemoveStudent(ctx context.Context, rosterID, studentID, ownerID uuid.UUID) error
 }
 
@@ -47,6 +48,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 		rosters.PATCH("/:rosterId", h.UpdateRoster)
 		rosters.DELETE("/:rosterId", h.DeleteRoster)
 		rosters.POST("/:rosterId/students", h.AddStudents)
+		rosters.PATCH("/:rosterId/students/:studentId", h.UpdateStudentNote)
 		rosters.DELETE("/:rosterId/students/:studentId", h.RemoveStudent)
 	}
 }
@@ -263,7 +265,7 @@ func (h *Handler) AddStudents(c *gin.Context) {
 		return
 	}
 
-	updatedRoster, err := h.service.AddStudents(c.Request.Context(), rosterID, jwtUser.ID, req.StudentIds)
+	updatedRoster, err := h.service.AddStudents(c.Request.Context(), rosterID, jwtUser.ID, req.StudentIds, req.Note)
 	if err != nil {
 		pkgerrors.HandleError(c, err)
 		return
@@ -297,6 +299,44 @@ func (h *Handler) RemoveStudent(c *gin.Context) {
 	}
 
 	if err := h.service.RemoveStudent(c.Request.Context(), rosterID, studentID, jwtUser.ID); err != nil {
+		pkgerrors.HandleError(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+// UpdateStudentNote
+// @ID           updateRosterStudentNote
+// @Tags         roster-controller
+// @Security     BearerAuth
+// @Param        rosterId   path  string                                  true  "Roster ID"   Format(uuid)
+// @Param        studentId  path  string                                  true  "Student ID"  Format(uuid)
+// @Param        body       body  request.UpdateRosterStudentNoteRequest  true  "Student note"
+// @Success      204        "No Content"
+// @Router       /api/v1/rosters/{rosterId}/students/{studentId} [patch]
+func (h *Handler) UpdateStudentNote(c *gin.Context) {
+	jwtUser, ok := auth.GetUserFromContext(c)
+	if !ok {
+		return
+	}
+
+	rosterID, ok := web.ParseUUIDParam(c, "rosterId")
+	if !ok {
+		return
+	}
+
+	studentID, ok := web.ParseUUIDParam(c, "studentId")
+	if !ok {
+		return
+	}
+
+	var req request.UpdateRosterStudentNoteRequest
+	if !web.BindJSON(c, &req) {
+		return
+	}
+
+	if err := h.service.UpdateParticipantNote(c.Request.Context(), rosterID, studentID, jwtUser.ID, req.Note); err != nil {
 		pkgerrors.HandleError(c, err)
 		return
 	}

@@ -7,7 +7,7 @@ CREATE TABLE rosters_module.rosters
     owner_id UUID         NOT NULL REFERENCES users_module.oauth2_users (id) ON DELETE CASCADE,
     name     VARCHAR(255) NOT NULL CHECK (name = trim(name) AND name != ''
 ) ,
-    roster_date TIMESTAMPTZ,
+    date TIMESTAMPTZ,
     note        VARCHAR(255) CHECK (note = trim(note) AND note != ''),
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
@@ -15,10 +15,11 @@ CREATE TABLE rosters_module.rosters
 
 CREATE TABLE rosters_module.participants
 (
-    id         UUID                 DEFAULT uuidv7() PRIMARY KEY,
-    roster_id  UUID        NOT NULL REFERENCES rosters_module.rosters (id) ON DELETE CASCADE,
-    student_id UUID        NOT NULL REFERENCES students_module.students (id) ON DELETE CASCADE,
-    note        VARCHAR(255) CHECK (note = trim(note) AND note != ''),
+    id         UUID DEFAULT uuidv7() PRIMARY KEY,
+    roster_id  UUID NOT NULL REFERENCES rosters_module.rosters (id) ON DELETE CASCADE,
+    student_id UUID NOT NULL REFERENCES students_module.students (id) ON DELETE CASCADE,
+    note       VARCHAR(255) CHECK (note = trim(note) AND note != ''
+) ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

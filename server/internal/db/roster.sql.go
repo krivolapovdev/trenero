@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -55,23 +56,25 @@ func (q *Queries) CountParticipantsByRosterIDs(ctx context.Context, arg CountPar
 }
 
 const createParticipant = `-- name: CreateParticipant :one
-INSERT INTO rosters_module.participants (roster_id, student_id)
-VALUES ($1, $2)
-RETURNING id, roster_id, student_id, created_at, updated_at
+INSERT INTO rosters_module.participants (roster_id, student_id, note)
+VALUES ($1, $2, $3)
+RETURNING id, roster_id, student_id, note, created_at, updated_at
 `
 
 type CreateParticipantParams struct {
-	RosterID  uuid.UUID `json:"roster_id"`
-	StudentID uuid.UUID `json:"student_id"`
+	RosterID  uuid.UUID      `json:"roster_id"`
+	StudentID uuid.UUID      `json:"student_id"`
+	Note      sql.NullString `json:"note"`
 }
 
 func (q *Queries) CreateParticipant(ctx context.Context, arg CreateParticipantParams) (RostersModuleParticipant, error) {
-	row := q.db.QueryRowContext(ctx, createParticipant, arg.RosterID, arg.StudentID)
+	row := q.db.QueryRowContext(ctx, createParticipant, arg.RosterID, arg.StudentID, arg.Note)
 	var i RostersModuleParticipant
 	err := row.Scan(
 		&i.ID,
 		&i.RosterID,
 		&i.StudentID,
+		&i.Note,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -79,23 +82,23 @@ func (q *Queries) CreateParticipant(ctx context.Context, arg CreateParticipantPa
 }
 
 const createRoster = `-- name: CreateRoster :one
-INSERT INTO rosters_module.rosters (owner_id, name, roster_date, note)
+INSERT INTO rosters_module.rosters (owner_id, name, date, note)
 VALUES ($1, $2, $3, $4)
-RETURNING id, owner_id, name, roster_date, note, created_at, updated_at
+RETURNING id, owner_id, name, date, note, created_at, updated_at
 `
 
 type CreateRosterParams struct {
-	OwnerID    uuid.UUID      `json:"owner_id"`
-	Name       string         `json:"name"`
-	RosterDate sql.NullTime   `json:"roster_date"`
-	Note       sql.NullString `json:"note"`
+	OwnerID uuid.UUID      `json:"owner_id"`
+	Name    string         `json:"name"`
+	Date    sql.NullTime   `json:"date"`
+	Note    sql.NullString `json:"note"`
 }
 
 func (q *Queries) CreateRoster(ctx context.Context, arg CreateRosterParams) (RostersModuleRoster, error) {
 	row := q.db.QueryRowContext(ctx, createRoster,
 		arg.OwnerID,
 		arg.Name,
-		arg.RosterDate,
+		arg.Date,
 		arg.Note,
 	)
 	var i RostersModuleRoster
@@ -103,7 +106,7 @@ func (q *Queries) CreateRoster(ctx context.Context, arg CreateRosterParams) (Ros
 		&i.ID,
 		&i.OwnerID,
 		&i.Name,
-		&i.RosterDate,
+		&i.Date,
 		&i.Note,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -113,7 +116,12 @@ func (q *Queries) CreateRoster(ctx context.Context, arg CreateRosterParams) (Ros
 
 const deleteParticipantByStudentAndRosterID = `-- name: DeleteParticipantByStudentAndRosterID :exec
 DELETE FROM rosters_module.participants
-WHERE roster_id = $1 AND student_id = $2
+WHERE id = (
+    SELECT p.id FROM rosters_module.participants p
+    WHERE p.roster_id = $1 AND p.student_id = $2
+    ORDER BY p.created_at ASC
+    LIMIT 1
+)
 `
 
 type DeleteParticipantByStudentAndRosterIDParams struct {
@@ -171,7 +179,7 @@ func (q *Queries) ExistsParticipant(ctx context.Context, arg ExistsParticipantPa
 }
 
 const findAllRostersByOwnerID = `-- name: FindAllRostersByOwnerID :many
-SELECT id, owner_id, name, roster_date, note, created_at, updated_at
+SELECT id, owner_id, name, date, note, created_at, updated_at
 FROM rosters_module.rosters
 WHERE owner_id = $1
 ORDER BY created_at DESC
@@ -190,7 +198,7 @@ func (q *Queries) FindAllRostersByOwnerID(ctx context.Context, ownerID uuid.UUID
 			&i.ID,
 			&i.OwnerID,
 			&i.Name,
-			&i.RosterDate,
+			&i.Date,
 			&i.Note,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -209,7 +217,7 @@ func (q *Queries) FindAllRostersByOwnerID(ctx context.Context, ownerID uuid.UUID
 }
 
 const findParticipantsByOwnerID = `-- name: FindParticipantsByOwnerID :many
-SELECT p.id, p.roster_id, p.student_id, p.created_at, p.updated_at
+SELECT p.id, p.roster_id, p.student_id, p.note, p.created_at, p.updated_at
 FROM rosters_module.participants p
 JOIN rosters_module.rosters r ON r.id = p.roster_id
 WHERE r.owner_id = $1
@@ -229,6 +237,7 @@ func (q *Queries) FindParticipantsByOwnerID(ctx context.Context, ownerID uuid.UU
 			&i.ID,
 			&i.RosterID,
 			&i.StudentID,
+			&i.Note,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -246,7 +255,7 @@ func (q *Queries) FindParticipantsByOwnerID(ctx context.Context, ownerID uuid.UU
 }
 
 const findParticipantsByRosterIDAndOwnerID = `-- name: FindParticipantsByRosterIDAndOwnerID :many
-SELECT p.id, p.roster_id, p.student_id, p.created_at, p.updated_at
+SELECT p.id, p.roster_id, p.student_id, p.note, p.created_at, p.updated_at
 FROM rosters_module.participants p
 JOIN rosters_module.rosters r ON r.id = p.roster_id
 WHERE p.roster_id = $1 AND r.owner_id = $2
@@ -271,6 +280,7 @@ func (q *Queries) FindParticipantsByRosterIDAndOwnerID(ctx context.Context, arg 
 			&i.ID,
 			&i.RosterID,
 			&i.StudentID,
+			&i.Note,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -299,15 +309,23 @@ type FindParticipantsByStudentIDAndOwnerIDParams struct {
 	OwnerID   uuid.UUID `json:"owner_id"`
 }
 
-func (q *Queries) FindParticipantsByStudentIDAndOwnerID(ctx context.Context, arg FindParticipantsByStudentIDAndOwnerIDParams) ([]RostersModuleParticipant, error) {
+type FindParticipantsByStudentIDAndOwnerIDRow struct {
+	ID        uuid.UUID `json:"id"`
+	RosterID  uuid.UUID `json:"roster_id"`
+	StudentID uuid.UUID `json:"student_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (q *Queries) FindParticipantsByStudentIDAndOwnerID(ctx context.Context, arg FindParticipantsByStudentIDAndOwnerIDParams) ([]FindParticipantsByStudentIDAndOwnerIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, findParticipantsByStudentIDAndOwnerID, arg.StudentID, arg.OwnerID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []RostersModuleParticipant{}
+	items := []FindParticipantsByStudentIDAndOwnerIDRow{}
 	for rows.Next() {
-		var i RostersModuleParticipant
+		var i FindParticipantsByStudentIDAndOwnerIDRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.RosterID,
@@ -329,7 +347,7 @@ func (q *Queries) FindParticipantsByStudentIDAndOwnerID(ctx context.Context, arg
 }
 
 const findRosterByIDAndOwnerID = `-- name: FindRosterByIDAndOwnerID :one
-SELECT id, owner_id, name, roster_date, note, created_at, updated_at
+SELECT id, owner_id, name, date, note, created_at, updated_at
 FROM rosters_module.rosters
 WHERE id = $1 AND owner_id = $2
 `
@@ -346,7 +364,39 @@ func (q *Queries) FindRosterByIDAndOwnerID(ctx context.Context, arg FindRosterBy
 		&i.ID,
 		&i.OwnerID,
 		&i.Name,
-		&i.RosterDate,
+		&i.Date,
+		&i.Note,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateParticipantNote = `-- name: UpdateParticipantNote :one
+UPDATE rosters_module.participants
+SET note = $3
+WHERE id = (
+    SELECT p.id FROM rosters_module.participants p
+    WHERE p.roster_id = $1 AND p.student_id = $2
+    ORDER BY p.created_at ASC
+    LIMIT 1
+)
+RETURNING id, roster_id, student_id, note, created_at, updated_at
+`
+
+type UpdateParticipantNoteParams struct {
+	RosterID  uuid.UUID      `json:"roster_id"`
+	StudentID uuid.UUID      `json:"student_id"`
+	Note      sql.NullString `json:"note"`
+}
+
+func (q *Queries) UpdateParticipantNote(ctx context.Context, arg UpdateParticipantNoteParams) (RostersModuleParticipant, error) {
+	row := q.db.QueryRowContext(ctx, updateParticipantNote, arg.RosterID, arg.StudentID, arg.Note)
+	var i RostersModuleParticipant
+	err := row.Scan(
+		&i.ID,
+		&i.RosterID,
+		&i.StudentID,
 		&i.Note,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -357,18 +407,18 @@ func (q *Queries) FindRosterByIDAndOwnerID(ctx context.Context, arg FindRosterBy
 const updateRoster = `-- name: UpdateRoster :one
 UPDATE rosters_module.rosters
 SET name = $3,
-    roster_date = $4,
+    date = $4,
     note = $5
 WHERE id = $1 AND owner_id = $2
-RETURNING id, owner_id, name, roster_date, note, created_at, updated_at
+RETURNING id, owner_id, name, date, note, created_at, updated_at
 `
 
 type UpdateRosterParams struct {
-	ID         uuid.UUID      `json:"id"`
-	OwnerID    uuid.UUID      `json:"owner_id"`
-	Name       string         `json:"name"`
-	RosterDate sql.NullTime   `json:"roster_date"`
-	Note       sql.NullString `json:"note"`
+	ID      uuid.UUID      `json:"id"`
+	OwnerID uuid.UUID      `json:"owner_id"`
+	Name    string         `json:"name"`
+	Date    sql.NullTime   `json:"date"`
+	Note    sql.NullString `json:"note"`
 }
 
 func (q *Queries) UpdateRoster(ctx context.Context, arg UpdateRosterParams) (RostersModuleRoster, error) {
@@ -376,7 +426,7 @@ func (q *Queries) UpdateRoster(ctx context.Context, arg UpdateRosterParams) (Ros
 		arg.ID,
 		arg.OwnerID,
 		arg.Name,
-		arg.RosterDate,
+		arg.Date,
 		arg.Note,
 	)
 	var i RostersModuleRoster
@@ -384,7 +434,7 @@ func (q *Queries) UpdateRoster(ctx context.Context, arg UpdateRosterParams) (Ros
 		&i.ID,
 		&i.OwnerID,
 		&i.Name,
-		&i.RosterDate,
+		&i.Date,
 		&i.Note,
 		&i.CreatedAt,
 		&i.UpdatedAt,
