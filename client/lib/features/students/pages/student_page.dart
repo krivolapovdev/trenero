@@ -1,7 +1,8 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phone/core/constants/app_radius.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/recent_transactions.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
@@ -11,15 +12,14 @@ import 'package:phone/features/students/controllers/student_payment_list_control
 import 'package:phone/features/students/pages/student_app_menu.dart';
 import 'package:phone/features/students/pages/student_group_page.dart';
 import 'package:phone/features/students/pages/student_lesson_page.dart';
-import 'package:phone/features/students/widgets/student_hero_card.dart';
 import 'package:phone/features/students/pages/student_payment_list_page.dart';
 import 'package:phone/features/students/widgets/delete_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_groups_section.dart';
+import 'package:phone/features/students/widgets/student_header.dart';
 import 'package:phone/features/students/widgets/student_lessons_section.dart';
 import 'package:phone/features/students/widgets/student_report_bottom_sheet.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 class StudentPage extends ConsumerStatefulWidget {
   final StudentSummaryResponse student;
@@ -32,7 +32,15 @@ class StudentPage extends ConsumerStatefulWidget {
 
 class _StudentPageState extends ConsumerState<StudentPage> {
   late StudentSummaryResponse _student = widget.student;
+  late final ScrollController _scrollController = ScrollController();
+  ScrollDirection _lastScrollDirection = ScrollDirection.idle;
   bool _isRefreshing = false;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   Future<void> _openEditStudentSheet() async {
     await AppBottomSheet.show(
@@ -137,9 +145,54 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     }
   }
 
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification is UserScrollNotification) {
+      if (notification.direction != ScrollDirection.idle) {
+        _lastScrollDirection = notification.direction;
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _snapIfNeeded();
+        });
+      }
+    } else if (notification is ScrollEndNotification) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _snapIfNeeded();
+      });
+    }
+    return false;
+  }
+
+  void _snapIfNeeded() {
+    if (!mounted || !_scrollController.hasClients) return;
+    final position = _scrollController.position;
+
+    // Do not snap if overscrolling (pull-to-refresh)
+    if (position.outOfRange) return;
+
+    final offset = position.pixels;
+    const snapOffset = StudentHeaderDelegate.contentHeight;
+
+    if (offset > 1.0 && offset < snapOffset - 1.0) {
+      final double target;
+      if (_lastScrollDirection == ScrollDirection.reverse && offset > 20.0) {
+        target = snapOffset;
+      } else if (_lastScrollDirection == ScrollDirection.forward &&
+          offset < snapOffset - 20.0) {
+        target = 0.0;
+      } else {
+        target = offset < (snapOffset / 2) ? 0.0 : snapOffset;
+      }
+
+      _scrollController.animateTo(
+        target,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final routeAnimation = ModalRoute.of(context)?.animation;
     final paymentsAsync = ref.watch(
       studentPaymentsControllerProvider(_student.id),
     );
@@ -154,73 +207,89 @@ class _StudentPageState extends ConsumerState<StudentPage> {
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_student.fullName),
-        actions: [
-          StudentAppMenu(
-            onEdit: _openEditStudentSheet,
-            onCreateLesson: _openCreateLessonPage,
-            onCreatePayment: _openCreatePaymentSheet,
-            onAssignGroup: _openAssignGroupPage,
-            onReport: _openReportSheet,
-            onDelete: _confirmDelete,
-          ),
-          const SizedBox(width: 8),
-        ],
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        surfaceTintColor: Theme.of(context).colorScheme.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: AppRadius.bottomRounded,
-        ),
-      ),
-      body: CustomMaterialIndicator(
-        color: Colors.black,
-        clipBehavior: Clip.antiAlias,
-        onRefresh: _refresh,
-        child: SingleChildScrollView(
-          clipBehavior: Clip.none,
-          padding: const EdgeInsets.all(16),
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          child: Column(
-            spacing: 16,
-            children: [
-              Skeletonizer(
-                enabled: _isRefreshing,
-                ignorePointers: false,
-                child: StudentHeroCard(
-                  student: _student,
-                  routeAnimation: routeAnimation,
-                ),
-              ),
+    final topPadding = MediaQuery.paddingOf(context).top;
+    final headerMaxHeight =
+        topPadding + kToolbarHeight + StudentHeaderDelegate.contentHeight;
 
-              StudentLessonsSection(
-                studentId: _student.id,
-                studentName: _student.fullName,
-                studentGroups: _student.studentGroups ?? const [],
-              ),
+    const overlayStyle = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    );
 
-              RecentTransactions(
-                asyncTransactions: paymentsAsync,
-                overrideTitle: _student.fullName,
-                onSeeAllPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          StudentPaymentListPage(student: _student),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlayStyle,
+      child: Scaffold(
+        body: CustomMaterialIndicator(
+          edgeOffset: headerMaxHeight,
+          displacement: 20,
+          color: Colors.black,
+          clipBehavior: Clip.antiAlias,
+          onRefresh: _refresh,
+          child: NotificationListener<ScrollNotification>(
+            onNotification: _handleScrollNotification,
+            child: CustomScrollView(
+              controller: _scrollController,
+              clipBehavior: Clip.none,
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StudentHeaderDelegate(
+                    student: _student,
+                    topPadding: topPadding,
+                    isRefreshing: _isRefreshing,
+                    menu: StudentAppMenu(
+                      onEdit: _openEditStudentSheet,
+                      onCreateLesson: _openCreateLessonPage,
+                      onCreatePayment: _openCreatePaymentSheet,
+                      onAssignGroup: _openAssignGroupPage,
+                      onReport: _openReportSheet,
+                      onDelete: _confirmDelete,
                     ),
-                  );
-                },
-                onAddPressed: _openCreatePaymentSheet,
-              ),
-
-              StudentGroupsSection(
-                student: _student,
-                onEdit: _openAssignGroupPage,
-              ),
-            ],
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList.list(
+                    children: [
+                      StudentLessonsSection(
+                        studentId: _student.id,
+                        studentName: _student.fullName,
+                        studentGroups: _student.studentGroups ?? const [],
+                      ),
+                      const SizedBox(height: 16),
+                      RecentTransactions(
+                        asyncTransactions: paymentsAsync,
+                        overrideTitle: _student.fullName,
+                        onSeeAllPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  StudentPaymentListPage(student: _student),
+                            ),
+                          );
+                        },
+                        onAddPressed: _openCreatePaymentSheet,
+                      ),
+                      const SizedBox(height: 16),
+                      StudentGroupsSection(
+                        student: _student,
+                        onEdit: _openAssignGroupPage,
+                      ),
+                    ],
+                  ),
+                ),
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: SizedBox(
+                    height: StudentHeaderDelegate.contentHeight + 24,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

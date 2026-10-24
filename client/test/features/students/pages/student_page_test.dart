@@ -1,3 +1,4 @@
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,10 +14,12 @@ import 'package:phone/features/groups/controllers/group_students_controller.dart
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/pages/student_page.dart';
+import 'package:phone/features/students/widgets/student_header.dart';
 import 'package:phone/features/students/widgets/student_report_bottom_sheet.dart';
 import 'package:phone/generated/models/group_response.dart';
 import 'package:phone/generated/models/group_student_summary_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
+import 'package:phone/generated/models/student_status.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 import 'package:phone/generated/models/visit_with_lesson_response.dart';
@@ -201,4 +204,74 @@ void main() {
     expect(page.studentName, _studentWithGroup.fullName);
     expect(page.lesson, isNull);
   });
+
+  testWidgets(
+    'merged header displays large name and badges when unscrolled, and collapses when scrolled',
+    (tester) async {
+      final studentWithStatus = StudentSummaryResponse(
+        id: _studentId,
+        fullName: 'Anna Smirnova',
+        createdAt: DateTime(2025, 8, 22),
+        free: false,
+        statuses: const [StudentStatus.paid],
+      );
+
+      await _pumpPage(tester, studentWithStatus);
+
+      // Unscrolled:
+      // Large name is visible
+      expect(find.text('Anna Smirnova'), findsOneWidget);
+      // Status badge is visible
+      expect(find.text(t.students.status.paid), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(find.byType(PopupMenuButton<String>), findsOneWidget);
+
+      // Refresh indicator edgeOffset is under the header
+      final indicator = tester.widget<CustomMaterialIndicator>(
+        find.byType(CustomMaterialIndicator),
+      );
+      expect(
+        indicator.edgeOffset,
+        greaterThan(StudentHeaderDelegate.contentHeight),
+      );
+
+      // Scroll down to collapse header
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+
+      // Scrolled:
+      expect(find.text('Anna Smirnova'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(find.byType(PopupMenuButton<String>), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'allows only two stable versions: snaps to full or short when scroll finishes',
+    (tester) async {
+      await _pumpPage(tester, _studentWithGroup);
+
+      final scrollable = tester.state<ScrollableState>(
+        find
+            .descendant(
+              of: find.byType(CustomScrollView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+
+      // Drag slightly (30px) and release -> should snap back to 0 (Full)
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -30));
+      await tester.pumpAndSettle();
+      expect(scrollable.position.pixels, equals(0.0));
+
+      // Drag past midpoint (90px) and release -> should snap to short (contentHeight)
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -90));
+      await tester.pumpAndSettle();
+      expect(
+        scrollable.position.pixels,
+        equals(StudentHeaderDelegate.contentHeight),
+      );
+    },
+  );
 }
