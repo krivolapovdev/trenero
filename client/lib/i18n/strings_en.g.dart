@@ -99,8 +99,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Invalid date'
 	String get invalidDate => 'Invalid date';
 
-	/// en: '$title [$count]'
-	String titleWithCount({required Object title, required Object count}) => '${title} [${count}]';
+	/// en: '$title: $count'
+	String titleWithCount({required Object title, required Object count}) => '${title}: ${count}';
 
 	/// en: 'Error loading data: $error'
 	String errorLoadingData({required Object error}) => 'Error loading data: ${error}';
@@ -110,6 +110,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$groups$en groups = Translations$groups$en._(_root);
 	late final Translations$lessons$en lessons = Translations$lessons$en._(_root);
 	late final Translations$students$en students = Translations$students$en._(_root);
+	late final Translations$rosters$en rosters = Translations$rosters$en._(_root);
 	late final Translations$settings$en settings = Translations$settings$en._(_root);
 	late final Translations$reports$en reports = Translations$reports$en._(_root);
 	late final Translations$finance$en finance = Translations$finance$en._(_root);
@@ -388,6 +389,72 @@ class Translations$students$en {
 	late final Translations$students$status$en status = Translations$students$status$en._(_root);
 }
 
+// Path: rosters
+class Translations$rosters$en {
+	Translations$rosters$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Temporary rosters'
+	String get title => 'Temporary rosters';
+
+	/// en: 'Temporary rosters'
+	String get temporaryRosters => 'Temporary rosters';
+
+	/// en: 'No temporary rosters yet'
+	String get emptySubtitle => 'No temporary rosters yet';
+
+	/// en: 'Create First Roster'
+	String get createFirstRoster => 'Create First Roster';
+
+	/// en: 'Add Roster'
+	String get createRoster => 'Add Roster';
+
+	/// en: 'Edit Roster'
+	String get editRoster => 'Edit Roster';
+
+	/// en: 'Delete roster?'
+	String get deleteRoster => 'Delete roster?';
+
+	/// en: 'The roster will be deleted permanently. This action cannot be undone.'
+	String get deleteRosterMessage => 'The roster will be deleted permanently. This action cannot be undone.';
+
+	/// en: 'No rosters found'
+	String get notFound => 'No rosters found';
+
+	/// en: '$count students'
+	String studentsCount({required Object count}) => '${count} students';
+
+	/// en: 'No students in this roster yet'
+	String get noStudents => 'No students in this roster yet';
+
+	/// en: 'Add students'
+	String get addStudents => 'Add students';
+
+	/// en: 'Remove from roster'
+	String get removeStudent => 'Remove from roster';
+
+	/// en: 'Date'
+	String get date => 'Date';
+
+	/// en: 'Note'
+	String get note => 'Note';
+
+	/// en: 'Open'
+	String get open => 'Open';
+
+	/// en: 'Preview'
+	String get preview => 'Preview';
+
+	/// en: 'Search rosters...'
+	String get search => 'Search rosters...';
+
+	/// en: 'Error loading rosters: $error'
+	String errorLoading({required Object error}) => 'Error loading rosters: ${error}';
+}
+
 // Path: settings
 class Translations$settings$en {
 	Translations$settings$en._(this._root);
@@ -633,7 +700,7 @@ extension on Translations {
 			'noTransactions' => 'No transactions',
 			'pleaseUpdateApp' => 'Please, update the app',
 			'invalidDate' => 'Invalid date',
-			'titleWithCount' => ({required Object title, required Object count}) => '${title} [${count}]',
+			'titleWithCount' => ({required Object title, required Object count}) => '${title}: ${count}',
 			'errorLoadingData' => ({required Object error}) => 'Error loading data: ${error}',
 			'errors.network' => 'You appear to be offline. Check your connection and try again.',
 			'errors.timeout' => 'The server took too long to respond. Please try again.',
@@ -721,6 +788,25 @@ extension on Translations {
 			'students.status.paid' => 'Paid',
 			'students.status.unpaid' => 'Unpaid',
 			'students.status.free' => 'Free',
+			'rosters.title' => 'Temporary rosters',
+			'rosters.temporaryRosters' => 'Temporary rosters',
+			'rosters.emptySubtitle' => 'No temporary rosters yet',
+			'rosters.createFirstRoster' => 'Create First Roster',
+			'rosters.createRoster' => 'Add Roster',
+			'rosters.editRoster' => 'Edit Roster',
+			'rosters.deleteRoster' => 'Delete roster?',
+			'rosters.deleteRosterMessage' => 'The roster will be deleted permanently. This action cannot be undone.',
+			'rosters.notFound' => 'No rosters found',
+			'rosters.studentsCount' => ({required Object count}) => '${count} students',
+			'rosters.noStudents' => 'No students in this roster yet',
+			'rosters.addStudents' => 'Add students',
+			'rosters.removeStudent' => 'Remove from roster',
+			'rosters.date' => 'Date',
+			'rosters.note' => 'Note',
+			'rosters.open' => 'Open',
+			'rosters.preview' => 'Preview',
+			'rosters.search' => 'Search rosters...',
+			'rosters.errorLoading' => ({required Object error}) => 'Error loading rosters: ${error}',
 			'settings.title' => 'Settings',
 			'settings.appearance' => 'Appearance',
 			'settings.language' => 'Language',

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/features/students/pages/student_page.dart';
+import 'package:phone/features/students/widgets/edit_student_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 
@@ -36,6 +38,12 @@ class StudentListView extends StatelessWidget {
                       ),
                     );
                   },
+            onLongPress: isLoading
+                ? null
+                : () => AppBottomSheet.show(
+                    context: context,
+                    child: EditStudentBottomSheet(student: student),
+                  ),
           ),
         ),
       );

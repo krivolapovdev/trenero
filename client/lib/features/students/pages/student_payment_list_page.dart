@@ -21,6 +21,8 @@ class StudentPaymentListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     final paymentsAsync = ref.watch(
       studentPaymentsControllerProvider(student.id),
     );
@@ -33,6 +35,8 @@ class StudentPaymentListPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.t.students.paymentTitle(name: student.fullName)),
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: colorScheme.surface,
         elevation: 0,
         actions: [
           const TransactionFilterButton(),

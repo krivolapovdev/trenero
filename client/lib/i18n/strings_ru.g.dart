@@ -57,13 +57,14 @@ class TranslationsRu with BaseTranslations<AppLocale, Translations> implements T
 	@override String get noTransactions => 'Нет операций';
 	@override String get pleaseUpdateApp => 'Пожалуйста, обновите приложение';
 	@override String get invalidDate => 'Некорректная дата';
-	@override String titleWithCount({required Object title, required Object count}) => '${title} [${count}]';
+	@override String titleWithCount({required Object title, required Object count}) => '${title}: ${count}';
 	@override String errorLoadingData({required Object error}) => 'Ошибка загрузки данных: ${error}';
 	@override late final _Translations$errors$ru errors = _Translations$errors$ru._(_root);
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
 	@override late final _Translations$groups$ru groups = _Translations$groups$ru._(_root);
 	@override late final _Translations$lessons$ru lessons = _Translations$lessons$ru._(_root);
 	@override late final _Translations$students$ru students = _Translations$students$ru._(_root);
+	@override late final _Translations$rosters$ru rosters = _Translations$rosters$ru._(_root);
 	@override late final _Translations$settings$ru settings = _Translations$settings$ru._(_root);
 	@override late final _Translations$reports$ru reports = _Translations$reports$ru._(_root);
 	@override late final _Translations$finance$ru finance = _Translations$finance$ru._(_root);
@@ -189,6 +190,34 @@ class _Translations$students$ru implements Translations$students$en {
 	@override String get deleteStudentMessage => 'Ученик и его уроки будут удалены безвозвратно. Действие нельзя отменить.';
 	@override late final _Translations$students$filter$ru filter = _Translations$students$filter$ru._(_root);
 	@override late final _Translations$students$status$ru status = _Translations$students$status$ru._(_root);
+}
+
+// Path: rosters
+class _Translations$rosters$ru implements Translations$rosters$en {
+	_Translations$rosters$ru._(this._root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Временные списки';
+	@override String get temporaryRosters => 'Временные списки';
+	@override String get emptySubtitle => 'Временных списков пока нет';
+	@override String get createFirstRoster => 'Создать первый список';
+	@override String get createRoster => 'Добавить список';
+	@override String get editRoster => 'Редактировать список';
+	@override String get deleteRoster => 'Удалить список?';
+	@override String get deleteRosterMessage => 'Список будет удален безвозвратно. Действие нельзя отменить.';
+	@override String get notFound => 'Списки не найдены';
+	@override String studentsCount({required Object count}) => '${count} учеников';
+	@override String get noStudents => 'В этом списке пока нет учеников';
+	@override String get addStudents => 'Добавить учеников';
+	@override String get removeStudent => 'Удалить из списка';
+	@override String get date => 'Дата';
+	@override String get note => 'Заметка';
+	@override String get open => 'Открыть';
+	@override String get preview => 'Просмотр';
+	@override String get search => 'Поиск списков...';
+	@override String errorLoading({required Object error}) => 'Ошибка загрузки списков: ${error}';
 }
 
 // Path: settings
@@ -327,7 +356,7 @@ extension on TranslationsRu {
 			'noTransactions' => 'Нет операций',
 			'pleaseUpdateApp' => 'Пожалуйста, обновите приложение',
 			'invalidDate' => 'Некорректная дата',
-			'titleWithCount' => ({required Object title, required Object count}) => '${title} [${count}]',
+			'titleWithCount' => ({required Object title, required Object count}) => '${title}: ${count}',
 			'errorLoadingData' => ({required Object error}) => 'Ошибка загрузки данных: ${error}',
 			'errors.network' => 'Похоже, нет подключения к интернету. Проверьте соединение и попробуйте снова.',
 			'errors.timeout' => 'Сервер слишком долго не отвечает. Попробуйте снова.',
@@ -415,6 +444,25 @@ extension on TranslationsRu {
 			'students.status.paid' => 'Оплачено',
 			'students.status.unpaid' => 'Не оплачено',
 			'students.status.free' => 'Бесплатно',
+			'rosters.title' => 'Временные списки',
+			'rosters.temporaryRosters' => 'Временные списки',
+			'rosters.emptySubtitle' => 'Временных списков пока нет',
+			'rosters.createFirstRoster' => 'Создать первый список',
+			'rosters.createRoster' => 'Добавить список',
+			'rosters.editRoster' => 'Редактировать список',
+			'rosters.deleteRoster' => 'Удалить список?',
+			'rosters.deleteRosterMessage' => 'Список будет удален безвозвратно. Действие нельзя отменить.',
+			'rosters.notFound' => 'Списки не найдены',
+			'rosters.studentsCount' => ({required Object count}) => '${count} учеников',
+			'rosters.noStudents' => 'В этом списке пока нет учеников',
+			'rosters.addStudents' => 'Добавить учеников',
+			'rosters.removeStudent' => 'Удалить из списка',
+			'rosters.date' => 'Дата',
+			'rosters.note' => 'Заметка',
+			'rosters.open' => 'Открыть',
+			'rosters.preview' => 'Просмотр',
+			'rosters.search' => 'Поиск списков...',
+			'rosters.errorLoading' => ({required Object error}) => 'Ошибка загрузки списков: ${error}',
 			'settings.title' => 'Настройки',
 			'settings.appearance' => 'Внешний вид',
 			'settings.language' => 'Язык',

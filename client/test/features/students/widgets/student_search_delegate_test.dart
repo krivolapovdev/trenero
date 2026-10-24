@@ -176,7 +176,7 @@ void main() {
 
     expect(find.text('No students found'), findsOneWidget);
 
-    await tester.tap(find.text('Reset filters'));
+    await tester.tap(find.text(t.reset));
     await tester.pumpAndSettle();
 
     expect(find.text('Petr Sidorov'), findsOneWidget);

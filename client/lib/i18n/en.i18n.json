@@ -18,7 +18,7 @@
   "noTransactions": "No transactions",
   "pleaseUpdateApp": "Please, update the app",
   "invalidDate": "Invalid date",
-  "titleWithCount": "$title [$count]",
+  "titleWithCount": "$title: $count",
   "errorLoadingData": "Error loading data: $error",
   "errors": {
     "network": "You appear to be offline. Check your connection and try again.",
@@ -119,6 +119,27 @@
       "unpaid": "Unpaid",
       "free": "Free"
     }
+  },
+  "rosters": {
+    "title": "Temporary rosters",
+    "temporaryRosters": "Temporary rosters",
+    "emptySubtitle": "No temporary rosters yet",
+    "createFirstRoster": "Create First Roster",
+    "createRoster": "Add Roster",
+    "editRoster": "Edit Roster",
+    "deleteRoster": "Delete roster?",
+    "deleteRosterMessage": "The roster will be deleted permanently. This action cannot be undone.",
+    "notFound": "No rosters found",
+    "studentsCount": "$count students",
+    "noStudents": "No students in this roster yet",
+    "addStudents": "Add students",
+    "removeStudent": "Remove from roster",
+    "date": "Date",
+    "note": "Note",
+    "open": "Open",
+    "preview": "Preview",
+    "search": "Search rosters...",
+    "errorLoading": "Error loading rosters: $error"
   },
   "settings": {
     "title": "Settings",

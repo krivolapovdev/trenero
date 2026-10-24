@@ -18,7 +18,7 @@
   "noTransactions": "Нет операций",
   "pleaseUpdateApp": "Пожалуйста, обновите приложение",
   "invalidDate": "Некорректная дата",
-  "titleWithCount": "$title [$count]",
+  "titleWithCount": "$title: $count",
   "errorLoadingData": "Ошибка загрузки данных: $error",
   "errors": {
     "network": "Похоже, нет подключения к интернету. Проверьте соединение и попробуйте снова.",
@@ -119,6 +119,27 @@
       "unpaid": "Не оплачено",
       "free": "Бесплатно"
     }
+  },
+  "rosters": {
+    "title": "Временные списки",
+    "temporaryRosters": "Временные списки",
+    "emptySubtitle": "Временных списков пока нет",
+    "createFirstRoster": "Создать первый список",
+    "createRoster": "Добавить список",
+    "editRoster": "Редактировать список",
+    "deleteRoster": "Удалить список?",
+    "deleteRosterMessage": "Список будет удален безвозвратно. Действие нельзя отменить.",
+    "notFound": "Списки не найдены",
+    "studentsCount": "$count учеников",
+    "noStudents": "В этом списке пока нет учеников",
+    "addStudents": "Добавить учеников",
+    "removeStudent": "Удалить из списка",
+    "date": "Дата",
+    "note": "Заметка",
+    "open": "Открыть",
+    "preview": "Просмотр",
+    "search": "Поиск списков...",
+    "errorLoading": "Ошибка загрузки списков: $error"
   },
   "settings": {
     "title": "Настройки",

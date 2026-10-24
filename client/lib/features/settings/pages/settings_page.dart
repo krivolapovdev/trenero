@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phone/core/constants/app_constants.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/shell_page.dart';
+import 'package:phone/features/rosters/pages/roster_list_page.dart';
 import 'package:phone/features/settings/pages/contacts_page.dart';
 import 'package:phone/features/settings/widgets/app_version_tile.dart';
 import 'package:phone/features/settings/widgets/delete_account_bottom_sheet.dart';
@@ -64,6 +65,17 @@ class SettingsPage extends ShellPage {
         SettingsGroupCard(
           children: [
             const AppVersionTile(),
+            SettingsNavTile(
+              leading: const Icon(
+                Icons.format_list_bulleted_outlined,
+                color: Colors.black87,
+              ),
+              title: context.t.rosters.temporaryRosters,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RosterListPage()),
+              ),
+            ),
             SettingsNavTile(
               leading: const Icon(
                 Icons.account_circle_outlined,

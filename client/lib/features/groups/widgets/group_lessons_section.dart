@@ -121,6 +121,7 @@ class GroupLessonsSection extends ConsumerWidget {
               onDayTapped: (selectedDay, dayLessons) =>
                   _openDayLessons(context, selectedDay, dayLessons),
               surfaceVisible: false,
+              swipeEnabled: false,
             ),
             Align(
               alignment: Alignment.centerRight,

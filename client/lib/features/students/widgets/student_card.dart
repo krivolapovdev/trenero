@@ -8,6 +8,7 @@ import 'package:phone/generated/models/student_summary_response.dart';
 class StudentCard extends StatelessWidget {
   final StudentSummaryResponse student;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   final String? overrideInitials;
   final bool showBirthdate;
@@ -17,6 +18,7 @@ class StudentCard extends StatelessWidget {
     super.key,
     required this.student,
     required this.onTap,
+    this.onLongPress,
     this.overrideInitials,
     this.showBirthdate = false,
     this.borderRadius,
@@ -41,6 +43,7 @@ class StudentCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: cardRadius),
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: cardRadius,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
