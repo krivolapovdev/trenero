@@ -257,6 +257,11 @@ Finder _checkboxOf(String fullName) =>
 Finder _markOf(String fullName) =>
     find.descendant(of: _rowOf(fullName), matching: find.byType(Icon));
 
+Finder _moreButtonOf(String fullName) => find.descendant(
+  of: _rowOf(fullName),
+  matching: find.byIcon(Icons.more_vert),
+);
+
 bool _isChecked(WidgetTester tester, String fullName) =>
     _checkboxOf(fullName).evaluate().isNotEmpty
     ? tester.widget<Checkbox>(_checkboxOf(fullName)).value!
@@ -748,4 +753,67 @@ void main() {
       );
     },
   );
+
+  testWidgets('the creating lesson page shows the Students container title', (
+    tester,
+  ) async {
+    await _openPage(tester);
+
+    expect(find.text(t.students.title), findsOneWidget);
+    expect(find.text(t.lessons.notMarked), findsNothing);
+  });
+
+  testWidgets(
+    'tapping ⋮ opens the attendance bottom sheet for marked student',
+    (tester) async {
+      await _openPage(tester);
+
+      expect(_moreButtonOf('Ivan Petrov'), findsOneWidget);
+
+      await tester.tap(_moreButtonOf('Ivan Petrov'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(t.lessons.regular), findsOneWidget);
+      expect(find.text(t.lessons.free), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'tapping ⋮ opens the attendance bottom sheet for unmarked student in separate container',
+    (tester) async {
+      await _openPage(
+        tester,
+        lesson: _lesson,
+        lessonClient: _FakeLessonClient(
+          visits: [_visit(studentId: 'student-1', status: VisitStatus.present)],
+        ),
+      );
+
+      await _startEditing(tester);
+
+      expect(find.text(t.students.title), findsOneWidget);
+      expect(find.text(t.lessons.notMarked), findsOneWidget);
+      expect(_moreButtonOf('Anna Smirnova'), findsOneWidget);
+
+      await tester.tap(_moreButtonOf('Anna Smirnova'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(t.lessons.present), findsOneWidget);
+      expect(find.text(t.lessons.absent), findsOneWidget);
+    },
+  );
+
+  testWidgets('tapping on row full width toggles marked student', (
+    tester,
+  ) async {
+    await _openPage(tester);
+
+    expect(_isChecked(tester, 'Ivan Petrov'), isTrue);
+
+    // Tap on the text of the row rather than the checkbox
+    await tester.tap(find.text('Ivan Petrov'));
+    await tester.pumpAndSettle();
+
+    expect(_isChecked(tester, 'Ivan Petrov'), isFalse);
+  });
 }

@@ -39,46 +39,55 @@ class StudentAttendanceTile extends StatelessWidget {
       if (attendance?.type == VisitType.free) context.t.lessons.freeLesson,
     ];
 
-    return InkWell(
-      onTap: canEdit && !unmarked ? onToggle : null,
+    final trailingWidgets = <Widget>[
+      if (!unmarked)
+        if (canEdit)
+          Checkbox(
+            value: isPresent,
+            activeColor: isFree ? freeCheckColor : null,
+            onChanged: (_) => onToggle(),
+            visualDensity: VisualDensity.compact,
+          )
+        else
+          AttendanceMark(
+            isPresent: isPresent,
+            isFree: isFree,
+            status: attendance?.status,
+          ),
+      if (canEdit)
+        IconButton(
+          icon: const Icon(Icons.more_vert, color: Color(0xFF8E8E93)),
+          onPressed: onLongPress,
+          visualDensity: VisualDensity.compact,
+        ),
+    ];
+
+    return ListTile(
+      contentPadding: const EdgeInsets.only(left: 16, right: 8),
+      dense: true,
+      onTap: canEdit ? (unmarked ? onLongPress : onToggle) : null,
       onLongPress: canEdit ? onLongPress : null,
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        dense: true,
-        leading: SizedBox(
-          width: 24,
-          child: Text(
-            '$number.',
-            style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant),
-          ),
+      leading: SizedBox(
+        width: 24,
+        child: Text(
+          '$number.',
+          style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant),
         ),
-        title: Text(
-          student.fullName,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 16,
-            decoration: unmarked ? TextDecoration.lineThrough : null,
-            color: unmarked ? colorScheme.onSurfaceVariant : null,
-          ),
-        ),
-        subtitle: modifiers.isEmpty
-            ? null
-            : ModifiersText(modifiers: modifiers),
-        trailing: unmarked
-            ? null
-            : canEdit
-            ? Checkbox(
-                value: isPresent,
-                activeColor: isFree ? freeCheckColor : null,
-                onChanged: (_) => onToggle(),
-              )
-            : AttendanceMark(
-                isPresent: isPresent,
-                isFree: isFree,
-                status: attendance?.status,
-              ),
       ),
+      title: Text(
+        student.fullName,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 16,
+          decoration: unmarked ? TextDecoration.lineThrough : null,
+          color: unmarked ? colorScheme.onSurfaceVariant : null,
+        ),
+      ),
+      subtitle: modifiers.isEmpty ? null : ModifiersText(modifiers: modifiers),
+      trailing: trailingWidgets.isEmpty
+          ? null
+          : Row(mainAxisSize: MainAxisSize.min, children: trailingWidgets),
     );
   }
 }
