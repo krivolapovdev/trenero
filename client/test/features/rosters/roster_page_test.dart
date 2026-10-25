@@ -183,7 +183,7 @@ void main() {
     expect(find.text('Special medical condition'), findsOneWidget);
   });
 
-  testWidgets('Popup menu in RosterDetailsPage has students item', (
+  testWidgets('Popup menu in RosterDetailsPage has edit and delete items', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -207,9 +207,25 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(PopupMenuItem<String>),
-        matching: find.text('Students'),
+        matching: find.text(LocaleSettings.instance.currentTranslations.edit),
       ),
       findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(PopupMenuItem<String>),
+        matching: find.text(LocaleSettings.instance.currentTranslations.delete),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(PopupMenuItem<String>),
+        matching: find.text(
+          LocaleSettings.instance.currentTranslations.students.title,
+        ),
+      ),
+      findsNothing,
     );
   });
 
@@ -243,6 +259,100 @@ void main() {
         find.text(LocaleSettings.instance.currentTranslations.update),
         findsOneWidget,
       );
+    },
+  );
+
+  testWidgets(
+    'Long press on student item in RosterDetailsPage opens EditRosterStudentBottomSheet',
+    (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          child: RosterDetailsPage(roster: testRoster),
+          rosters: [testRoster],
+          students: [testStudent],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Alex Johnson'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EditRosterStudentBottomSheet), findsOneWidget);
+      expect(
+        find.text(LocaleSettings.instance.currentTranslations.delete),
+        findsOneWidget,
+      );
+      expect(
+        find.text(LocaleSettings.instance.currentTranslations.update),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'Long press on roster title in RosterDetailsPage opens EditRosterBottomSheet',
+    (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          child: RosterDetailsPage(roster: testRoster),
+          rosters: [testRoster],
+          students: [testStudent],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Morning Swim Group'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          LocaleSettings.instance.currentTranslations.rosters.editRoster,
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'RosterStudentListView does not render default student note when roster note is null',
+    (tester) async {
+      final studentWithoutNote = StudentResponse(
+        id: 'student-2',
+        fullName: 'Jane Doe',
+        note: null,
+        createdAt: DateTime(2026, 10, 20),
+        free: false,
+      );
+      final defaultStudentSummary = StudentSummaryResponse(
+        id: 'student-2',
+        fullName: 'Jane Doe',
+        note: 'Default general student note',
+        createdAt: DateTime(2026, 10, 20),
+        free: false,
+        statuses: const [],
+      );
+
+      await tester.pumpWidget(
+        TranslationProvider(
+          child: MaterialApp(
+            home: Scaffold(
+              body: RosterStudentListView(
+                students: [studentWithoutNote],
+                fullSummaries: [defaultStudentSummary],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Jane Doe'), findsOneWidget);
+      expect(find.text('Default general student note'), findsNothing);
     },
   );
 

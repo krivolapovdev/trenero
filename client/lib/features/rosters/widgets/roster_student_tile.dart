@@ -9,6 +9,7 @@ class RosterStudentTile extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onRemove;
+  final VoidCallback? onLongPress;
   final bool enabled;
   final BorderRadius? borderRadius;
 
@@ -18,6 +19,7 @@ class RosterStudentTile extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onRemove,
+    this.onLongPress,
     this.fullSummary,
     this.enabled = true,
     this.borderRadius = const BorderRadius.all(Radius.circular(16)),
@@ -39,13 +41,14 @@ class RosterStudentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final note = student.note ?? fullSummary?.note;
+    final note = student.note;
     final hasNote = note != null && note.trim().isNotEmpty;
 
     return Material(
       color: Colors.white,
       borderRadius: borderRadius,
       child: ListTile(
+        contentPadding: const EdgeInsets.only(left: 16, right: 6),
         shape: borderRadius != null
             ? RoundedRectangleBorder(borderRadius: borderRadius!)
             : null,
@@ -75,6 +78,7 @@ class RosterStudentTile extends StatelessWidget {
                 );
               }
             : null,
+        onLongPress: enabled ? (onLongPress ?? onEdit) : null,
       ),
     );
   }

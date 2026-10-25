@@ -10,7 +10,6 @@ import 'package:phone/core/widgets/retry_view.dart';
 import 'package:phone/core/widgets/scrollable_fit.dart';
 import 'package:phone/features/rosters/controllers/roster_list_controller.dart';
 import 'package:phone/features/rosters/controllers/roster_students_controller.dart';
-import 'package:phone/features/rosters/pages/roster_students_page.dart';
 import 'package:phone/features/rosters/widgets/add_roster_students_bottom_sheet.dart';
 import 'package:phone/features/rosters/widgets/delete_roster_bottom_sheet.dart';
 import 'package:phone/features/rosters/widgets/edit_roster_bottom_sheet.dart';
@@ -54,10 +53,19 @@ class _RosterDetailsPageState extends ConsumerState<RosterDetailsPage> {
     );
   }
 
-  void _openRosterStudentsPage() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => RosterStudentsPage(roster: _roster),
+  Future<void> _openEditStudent(
+    StudentResponse student,
+    List<StudentSummaryResponse> allListedStudents,
+  ) async {
+    final summary = allListedStudents
+        .where((s) => s.id == student.id)
+        .firstOrNull;
+    await AppBottomSheet.show(
+      context: context,
+      child: EditRosterStudentBottomSheet(
+        rosterId: _roster.id,
+        student: student,
+        fullSummary: summary,
       ),
     );
   }
@@ -96,7 +104,10 @@ class _RosterDetailsPageState extends ConsumerState<RosterDetailsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_roster.name),
+        title: GestureDetector(
+          onLongPress: _openEditRoster,
+          child: Text(_roster.name),
+        ),
         actions: [
           IconButton(
             icon: const Icon(FluentIcons.search_24_regular),
@@ -113,19 +124,10 @@ class _RosterDetailsPageState extends ConsumerState<RosterDetailsPage> {
                             .read(rosterStudentsProvider(_roster.id).notifier)
                             .removeStudent(studentId),
                         '${MaterialLocalizations.of(context).searchFieldLabel}...',
-                        onEditStudent: (student) async {
-                          final summary = allListedStudents
-                              .where((s) => s.id == student.id)
-                              .firstOrNull;
-                          await AppBottomSheet.show(
-                            context: context,
-                            child: EditRosterStudentBottomSheet(
-                              rosterId: _roster.id,
-                              student: student,
-                              fullSummary: summary,
-                            ),
-                          );
-                        },
+                        onEditStudent: (student) =>
+                            _openEditStudent(student, allListedStudents),
+                        onLongPressStudent: (student) =>
+                            _openEditStudent(student, allListedStudents),
                       ),
                     );
                   },
@@ -147,19 +149,6 @@ class _RosterDetailsPageState extends ConsumerState<RosterDetailsPage> {
                     const Icon(CupertinoIcons.pencil, size: 20),
                     const SizedBox(width: 12),
                     Text(context.t.edit),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                onTap: _openRosterStudentsPage,
-                child: Row(
-                  children: [
-                    const Icon(
-                      CupertinoIcons.rectangle_stack_person_crop,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(context.t.students.title),
                   ],
                 ),
               ),
@@ -226,19 +215,10 @@ class _RosterDetailsPageState extends ConsumerState<RosterDetailsPage> {
                       : students,
                   fullSummaries: allListedStudents,
                   isLoading: isLoading,
-                  onEditStudent: (student) async {
-                    final summary = allListedStudents
-                        .where((s) => s.id == student.id)
-                        .firstOrNull;
-                    await AppBottomSheet.show(
-                      context: context,
-                      child: EditRosterStudentBottomSheet(
-                        rosterId: _roster.id,
-                        student: student,
-                        fullSummary: summary,
-                      ),
-                    );
-                  },
+                  onEditStudent: (student) =>
+                      _openEditStudent(student, allListedStudents),
+                  onLongPressStudent: (student) =>
+                      _openEditStudent(student, allListedStudents),
                   onDeleteStudent: (studentId) => ref
                       .read(rosterStudentsProvider(_roster.id).notifier)
                       .removeStudent(studentId),

@@ -9,6 +9,7 @@ class RosterStudentSearchDelegate extends SearchDelegate {
   final List<StudentSummaryResponse> fullSummaries;
   final ValueChanged<String>? onRemoveStudent;
   final ValueChanged<StudentResponse>? onEditStudent;
+  final ValueChanged<StudentResponse>? onLongPressStudent;
 
   new(
     this.students,
@@ -16,6 +17,7 @@ class RosterStudentSearchDelegate extends SearchDelegate {
     this.onRemoveStudent,
     String searchLabel, {
     this.onEditStudent,
+    this.onLongPressStudent,
   }) : super(searchFieldLabel: searchLabel, keyboardType: TextInputType.text);
 
   @override
@@ -64,6 +66,7 @@ class RosterStudentSearchDelegate extends SearchDelegate {
       fullSummaries: fullSummaries,
       onRemoveStudent: onRemoveStudent,
       onEditStudent: onEditStudent,
+      onLongPressStudent: onLongPressStudent ?? onEditStudent,
     );
   }
 }

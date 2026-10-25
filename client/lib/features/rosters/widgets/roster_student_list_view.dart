@@ -7,6 +7,7 @@ class RosterStudentListView extends StatelessWidget {
   final List<StudentResponse> students;
   final List<StudentSummaryResponse> fullSummaries;
   final ValueChanged<StudentResponse>? onEditStudent;
+  final ValueChanged<StudentResponse>? onLongPressStudent;
   final ValueChanged<String>? onDeleteStudent;
   final ValueChanged<String>? onRemoveStudent;
   final bool isLoading;
@@ -19,6 +20,7 @@ class RosterStudentListView extends StatelessWidget {
     required this.students,
     this.fullSummaries = const [],
     this.onEditStudent,
+    this.onLongPressStudent,
     this.onDeleteStudent,
     this.onRemoveStudent,
     this.isLoading = false,
@@ -42,6 +44,7 @@ class RosterStudentListView extends StatelessWidget {
           .where((s) => s.id == student.id)
           .firstOrNull;
       final deleteCallback = onDeleteStudent ?? onRemoveStudent;
+      final onLongPressCallback = onLongPressStudent ?? onEditStudent;
 
       return RosterStudentTile(
         key: ValueKey('${student.id}_$index'),
@@ -50,6 +53,9 @@ class RosterStudentListView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         enabled: !isLoading,
         onEdit: onEditStudent != null ? () => onEditStudent!(student) : null,
+        onLongPress: onLongPressCallback != null
+            ? () => onLongPressCallback(student)
+            : null,
         onDelete: deleteCallback != null
             ? () => deleteCallback(student.id)
             : null,
