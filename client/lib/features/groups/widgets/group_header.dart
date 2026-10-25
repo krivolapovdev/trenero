@@ -41,9 +41,9 @@ class GroupHeaderDelegate extends SliverPersistentHeaderDelegate {
         ? (shrinkOffset / maxShrink).clamp(0.0, 1.0)
         : 0.0;
 
-    // Clean cross-fade centered around 0.5
-    final expandedOpacity = (1.0 - progress / 0.5).clamp(0.0, 1.0);
-    final collapsedOpacity = ((progress - 0.5) / 0.5).clamp(0.0, 1.0);
+    // Smooth cross-fade between expanded and collapsed states
+    final expandedOpacity = (1.0 - progress * 1.5).clamp(0.0, 1.0);
+    final collapsedOpacity = ((progress - 0.35) / 0.65).clamp(0.0, 1.0);
 
     final curveProgress = Curves.easeInOut.transform(progress);
     final headerColor = Color.lerp(

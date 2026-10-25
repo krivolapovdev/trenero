@@ -1,8 +1,9 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/core/widgets/header_bottom_spacer.dart';
+import 'package:phone/core/widgets/header_snap_scroll_physics.dart';
 import 'package:phone/features/groups/controllers/group_lessons_controller.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
@@ -24,7 +25,7 @@ class GroupPage extends ConsumerStatefulWidget {
 class _GroupPageState extends ConsumerState<GroupPage> {
   late GroupSummaryResponse _group = widget.group;
   late final ScrollController _scrollController = ScrollController();
-  ScrollDirection _lastScrollDirection = ScrollDirection.idle;
+  bool _isSnapping = false;
 
   @override
   void dispose() {
@@ -39,15 +40,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
-    if (notification is UserScrollNotification) {
-      if (notification.direction != ScrollDirection.idle) {
-        _lastScrollDirection = notification.direction;
-      } else {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snapIfNeeded();
-        });
-      }
-    } else if (notification is ScrollEndNotification) {
+    if (notification is ScrollEndNotification) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _snapIfNeeded();
       });
@@ -56,7 +49,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
   }
 
   void _snapIfNeeded() {
-    if (!mounted || !_scrollController.hasClients) return;
+    if (!mounted || !_scrollController.hasClients || _isSnapping) return;
     final position = _scrollController.position;
 
     // Do not snap if overscrolling (pull-to-refresh)
@@ -66,21 +59,17 @@ class _GroupPageState extends ConsumerState<GroupPage> {
     const snapOffset = GroupHeaderDelegate.contentHeight;
 
     if (offset > 1.0 && offset < snapOffset - 1.0) {
-      final double target;
-      if (_lastScrollDirection == ScrollDirection.reverse && offset > 20.0) {
-        target = snapOffset;
-      } else if (_lastScrollDirection == ScrollDirection.forward &&
-          offset < snapOffset - 20.0) {
-        target = 0.0;
-      } else {
-        target = offset < (snapOffset / 2) ? 0.0 : snapOffset;
-      }
-
-      _scrollController.animateTo(
-        target,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-      );
+      final target = offset < (snapOffset / 2) ? 0.0 : snapOffset;
+      _isSnapping = true;
+      _scrollController
+          .animateTo(
+            target,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+          )
+          .whenComplete(() {
+            _isSnapping = false;
+          });
     }
   }
 
@@ -148,8 +137,11 @@ class _GroupPageState extends ConsumerState<GroupPage> {
             child: CustomScrollView(
               controller: _scrollController,
               clipBehavior: Clip.none,
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
+              physics: const HeaderSnapScrollPhysics(
+                snapOffset: GroupHeaderDelegate.contentHeight,
+                parent: BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
               ),
               slivers: [
                 SliverPersistentHeader(
@@ -179,11 +171,8 @@ class _GroupPageState extends ConsumerState<GroupPage> {
                     ],
                   ),
                 ),
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: SizedBox(
-                    height: GroupHeaderDelegate.contentHeight + 24,
-                  ),
+                const HeaderBottomSpacer(
+                  snapOffset: GroupHeaderDelegate.contentHeight,
                 ),
               ],
             ),

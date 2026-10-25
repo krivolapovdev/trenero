@@ -1,9 +1,10 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
+import 'package:phone/core/widgets/header_bottom_spacer.dart';
+import 'package:phone/core/widgets/header_snap_scroll_physics.dart';
 import 'package:phone/core/widgets/recent_transactions.dart';
 import 'package:phone/features/finance/widgets/create_transaction_bottom_sheet.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
@@ -33,7 +34,7 @@ class StudentPage extends ConsumerStatefulWidget {
 class _StudentPageState extends ConsumerState<StudentPage> {
   late StudentSummaryResponse _student = widget.student;
   late final ScrollController _scrollController = ScrollController();
-  ScrollDirection _lastScrollDirection = ScrollDirection.idle;
+  bool _isSnapping = false;
   bool _isRefreshing = false;
 
   @override
@@ -146,15 +147,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
-    if (notification is UserScrollNotification) {
-      if (notification.direction != ScrollDirection.idle) {
-        _lastScrollDirection = notification.direction;
-      } else {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snapIfNeeded();
-        });
-      }
-    } else if (notification is ScrollEndNotification) {
+    if (notification is ScrollEndNotification) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _snapIfNeeded();
       });
@@ -163,7 +156,7 @@ class _StudentPageState extends ConsumerState<StudentPage> {
   }
 
   void _snapIfNeeded() {
-    if (!mounted || !_scrollController.hasClients) return;
+    if (!mounted || !_scrollController.hasClients || _isSnapping) return;
     final position = _scrollController.position;
 
     // Do not snap if overscrolling (pull-to-refresh)
@@ -173,21 +166,17 @@ class _StudentPageState extends ConsumerState<StudentPage> {
     const snapOffset = StudentHeaderDelegate.contentHeight;
 
     if (offset > 1.0 && offset < snapOffset - 1.0) {
-      final double target;
-      if (_lastScrollDirection == ScrollDirection.reverse && offset > 20.0) {
-        target = snapOffset;
-      } else if (_lastScrollDirection == ScrollDirection.forward &&
-          offset < snapOffset - 20.0) {
-        target = 0.0;
-      } else {
-        target = offset < (snapOffset / 2) ? 0.0 : snapOffset;
-      }
-
-      _scrollController.animateTo(
-        target,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-      );
+      final target = offset < (snapOffset / 2) ? 0.0 : snapOffset;
+      _isSnapping = true;
+      _scrollController
+          .animateTo(
+            target,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+          )
+          .whenComplete(() {
+            _isSnapping = false;
+          });
     }
   }
 
@@ -231,8 +220,11 @@ class _StudentPageState extends ConsumerState<StudentPage> {
             child: CustomScrollView(
               controller: _scrollController,
               clipBehavior: Clip.none,
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
+              physics: const HeaderSnapScrollPhysics(
+                snapOffset: StudentHeaderDelegate.contentHeight,
+                parent: BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
               ),
               slivers: [
                 SliverPersistentHeader(
@@ -282,11 +274,8 @@ class _StudentPageState extends ConsumerState<StudentPage> {
                     ],
                   ),
                 ),
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: SizedBox(
-                    height: StudentHeaderDelegate.contentHeight + 24,
-                  ),
+                const HeaderBottomSpacer(
+                  snapOffset: StudentHeaderDelegate.contentHeight,
                 ),
               ],
             ),
