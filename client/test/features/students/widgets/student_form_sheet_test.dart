@@ -279,7 +279,6 @@ void main() {
       await tester.pumpWidget(_wrap(_sheet()));
 
       expect(find.text('0/255'), findsNothing);
-      expect(find.text('0/15'), findsNothing);
 
       final nameField = find.byType(TextField).first;
       await tester.tap(nameField);
@@ -298,14 +297,14 @@ void main() {
       await tester.tap(phoneField);
       await tester.pump();
 
-      expect(find.text('0/15'), findsOneWidget);
+      expect(find.text('0/255'), findsOneWidget);
 
-      await tester.enterText(phoneField, '1' * 20);
+      await tester.enterText(phoneField, '1' * 300);
       await tester.pump();
 
       final phoneTextField = tester.widget<TextField>(phoneField);
-      expect(phoneTextField.controller?.text.length, 15);
-      expect(find.text('15/15'), findsOneWidget);
+      expect(phoneTextField.controller?.text.length, 255);
+      expect(find.text('255/255'), findsOneWidget);
 
       final noteField = find.byType(TextField).at(3);
       await tester.tap(noteField);

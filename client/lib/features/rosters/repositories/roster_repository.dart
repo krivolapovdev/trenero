@@ -81,7 +81,7 @@ class RosterRepository {
     await _service.updateRosterStudentNote(
       rosterId: rosterId,
       studentId: studentId,
-      body: {'note': note},
+      body: UpdateRosterStudentNoteRequest(note: note),
     );
     clearCache();
   });

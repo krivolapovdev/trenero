@@ -62,7 +62,7 @@ class _FakeRosterClient implements RosterControllerClient {
   Future<void> updateRosterStudentNote({
     required String rosterId,
     required String studentId,
-    required Map<String, dynamic> body,
+    required UpdateRosterStudentNoteRequest body,
   }) async {}
 
   @override

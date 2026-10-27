@@ -200,7 +200,7 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                       TextField(
                         controller: _phoneController,
                         focusNode: _phoneFocusNode,
-                        maxLength: 15,
+                        maxLength: 255,
                         maxLengthEnforcement: MaxLengthEnforcement.enforced,
                         buildCounter: (
                           _, {
@@ -214,7 +214,7 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
                           prefixIcon: const Icon(FluentIcons.call_16_regular),
                           suffixIcon: _buildCharCounter(
                             _phoneController.text.length,
-                            15,
+                            255,
                             isFocused: _phoneFocusNode.hasFocus,
                           ),
                           suffixIconConstraints: const BoxConstraints(),

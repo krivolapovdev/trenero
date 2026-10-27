@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -201,6 +202,29 @@ func TestStudentHandler_CreateStudent(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("PhoneMaxLen255", func(t *testing.T) {
+		mockSvc := &mockStudentService{
+			createStudentFn: func(ctx context.Context, req request.CreateStudentRequest, ownerID uuid.UUID) (response.StudentResponse, error) {
+				return response.StudentResponse{FullName: req.FullName, Phone: req.Phone}, nil
+			},
+		}
+		r := setupStudentRouter(mockSvc, testUser)
+
+		longPhone := strings.Repeat("1", 255)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/students", bytes.NewBufferString(`{"fullName":"Anna","phone":"`+longPhone+`"}`))
+		req.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusCreated, w.Code)
+
+		tooLongPhone := strings.Repeat("1", 256)
+		wTooLong := httptest.NewRecorder()
+		reqTooLong := httptest.NewRequest(http.MethodPost, "/api/v1/students", bytes.NewBufferString(`{"fullName":"Anna","phone":"`+tooLongPhone+`"}`))
+		reqTooLong.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(wTooLong, reqTooLong)
+		assert.Equal(t, http.StatusBadRequest, wTooLong.Code)
 	})
 
 	t.Run("TrimmedData", func(t *testing.T) {
