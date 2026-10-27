@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/students/controllers/create_student_controller.dart';
+import 'package:phone/features/students/pages/student_page.dart';
 import 'package:phone/features/students/widgets/student_form_sheet.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -23,7 +24,7 @@ class _CreateStudentBottomSheetState
     required String? note,
     required bool free,
   }) async {
-    final success = await ref
+    final student = await ref
         .read(createStudentControllerProvider.notifier)
         .saveStudent(
           fullName: fullName,
@@ -35,8 +36,12 @@ class _CreateStudentBottomSheetState
 
     if (!mounted) return;
 
-    if (success) {
-      Navigator.of(context).pop();
+    if (student != null) {
+      final navigator = Navigator.of(context);
+      navigator.pop(student);
+      navigator.push(
+        MaterialPageRoute(builder: (context) => StudentPage(student: student)),
+      );
     } else {
       final state = ref.read(createStudentControllerProvider);
       final error = state.error;

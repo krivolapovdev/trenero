@@ -101,16 +101,21 @@ ProviderContainer _container(_FakeStudentClient client) {
   return container;
 }
 
-Future<bool> _save(ProviderContainer container, {String fullName = 'Odin'}) =>
-    container
-        .read(createStudentControllerProvider.notifier)
-        .saveStudent(
-          fullName: fullName,
-          birthdate: null,
-          phone: null,
-          note: null,
-          free: false,
-        );
+Future<bool> _save(
+  ProviderContainer container, {
+  String fullName = 'Odin',
+}) async {
+  final student = await container
+      .read(createStudentControllerProvider.notifier)
+      .saveStudent(
+        fullName: fullName,
+        birthdate: null,
+        phone: null,
+        note: null,
+        free: false,
+      );
+  return student != null;
+}
 
 void main() {
   setUpAll(() => LocaleSettings.setLocaleSync(AppLocale.en));
@@ -169,5 +174,25 @@ void main() {
       (failure as AppException).userMessage(TranslationsRu()),
       'Укажите имя ученика.',
     );
+  });
+
+  test('successful save returns the created student summary', () async {
+    final client = _FakeStudentClient();
+    final container = _container(client);
+
+    final student = await container
+        .read(createStudentControllerProvider.notifier)
+        .saveStudent(
+          fullName: 'Thor',
+          birthdate: DateTime(2000, 1, 1),
+          phone: '+1234567890',
+          note: 'God of thunder',
+          free: true,
+        );
+
+    expect(student, isNotNull);
+    expect(student?.id, 'student-1');
+    expect(student?.fullName, 'Thor');
+    expect(student?.free, isTrue);
   });
 }

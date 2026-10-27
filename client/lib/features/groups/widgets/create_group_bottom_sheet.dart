@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/core/errors/dio_error_mapper.dart';
 import 'package:phone/core/widgets/app_snack_bar.dart';
 import 'package:phone/features/groups/controllers/create_group_controller.dart';
+import 'package:phone/features/groups/pages/group_page.dart';
 import 'package:phone/features/groups/widgets/group_form_sheet.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -21,14 +22,18 @@ class _CreateGroupBottomSheetState
     required String priceText,
     required String note,
   }) async {
-    final success = await ref
+    final group = await ref
         .read(createGroupControllerProvider.notifier)
         .saveGroup(name: name, priceText: priceText, note: note);
 
     if (!mounted) return;
 
-    if (success) {
-      Navigator.of(context).pop();
+    if (group != null) {
+      final navigator = Navigator.of(context);
+      navigator.pop(group);
+      navigator.push(
+        MaterialPageRoute(builder: (context) => GroupPage(group: group)),
+      );
     } else {
       final state = ref.read(createGroupControllerProvider);
       final error = state.error;
