@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:phone/core/constants/app_colors.dart';
 import 'package:phone/core/constants/app_spacing.dart';
+import 'package:phone/core/widgets/app_bottom_sheet.dart';
 import 'package:phone/core/widgets/transaction_tile.dart';
 import 'package:phone/features/finance/pages/transaction_page.dart';
+import 'package:phone/features/finance/widgets/edit_transaction_bottom_sheet.dart';
 import 'package:phone/generated/models/transaction_response.dart';
 
 class TransactionDateSection extends StatelessWidget {
@@ -10,6 +12,7 @@ class TransactionDateSection extends StatelessWidget {
   final List<TransactionResponse> transactions;
   final String? overrideTitle;
   final bool isLoading;
+  final ValueChanged<TransactionResponse>? onLongPress;
 
   const new({
     super.key,
@@ -17,6 +20,7 @@ class TransactionDateSection extends StatelessWidget {
     required this.transactions,
     required this.isLoading,
     this.overrideTitle,
+    this.onLongPress,
   });
 
   @override
@@ -64,6 +68,16 @@ class TransactionDateSection extends StatelessWidget {
                           ),
                         ),
                       ),
+                onLongPress: isLoading
+                    ? null
+                    : () => onLongPress != null
+                          ? onLongPress!(transaction)
+                          : AppBottomSheet.show(
+                              context: context,
+                              child: EditTransactionBottomSheet(
+                                transaction: transaction,
+                              ),
+                            ),
               ),
           ],
         ),

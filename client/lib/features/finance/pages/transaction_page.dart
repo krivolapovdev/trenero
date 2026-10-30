@@ -69,6 +69,7 @@ class _TransactionPageState extends ConsumerState<TransactionPage> {
       child: TransactionTicketCard(
         transaction: _transaction,
         overrideTitle: widget.overrideTitle,
+        onLongPress: _openEditTransactionSheet,
       ),
     ),
   );

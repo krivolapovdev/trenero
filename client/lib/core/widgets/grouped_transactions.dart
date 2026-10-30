@@ -7,12 +7,14 @@ class GroupedTransactions extends StatelessWidget {
   final List<TransactionResponse> transactions;
   final String? overrideTitle;
   final bool isTappable;
+  final ValueChanged<TransactionResponse>? onLongPress;
 
   const new({
     super.key,
     required this.transactions,
     this.overrideTitle,
     this.isTappable = true,
+    this.onLongPress,
   });
 
   @override
@@ -29,6 +31,7 @@ class GroupedTransactions extends StatelessWidget {
             transactions: entry.value,
             overrideTitle: overrideTitle,
             isTappable: isTappable,
+            onLongPress: onLongPress,
           ),
       ],
     );

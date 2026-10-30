@@ -10,6 +10,7 @@ class TransactionTile extends StatelessWidget {
   final TransactionResponse transaction;
   final String? overrideTitle;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
   final EdgeInsetsGeometry contentPadding;
 
@@ -20,6 +21,7 @@ class TransactionTile extends StatelessWidget {
     required this.transaction,
     this.overrideTitle,
     this.onTap,
+    this.onLongPress,
     this.contentPadding = EdgeInsets.zero,
     this.borderRadius = const BorderRadius.all(Radius.circular(12)),
   });
@@ -40,6 +42,7 @@ class TransactionTile extends StatelessWidget {
       type: MaterialType.transparency,
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: borderRadius,
         child: Padding(
           padding: contentPadding.add(

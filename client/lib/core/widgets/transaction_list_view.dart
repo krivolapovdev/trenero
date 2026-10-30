@@ -14,6 +14,7 @@ class TransactionListView extends StatefulWidget {
   final bool isLoading;
   final String? overrideTitle;
   final String? emptyText;
+  final ValueChanged<TransactionResponse>? onLongPress;
 
   const new({
     super.key,
@@ -24,6 +25,7 @@ class TransactionListView extends StatefulWidget {
     this.isLoading = false,
     this.overrideTitle,
     this.emptyText,
+    this.onLongPress,
   });
 
   @override
@@ -100,6 +102,7 @@ class _TransactionListViewState extends State<TransactionListView> {
           transactions: entry.value,
           overrideTitle: widget.overrideTitle,
           isLoading: widget.isLoading,
+          onLongPress: widget.onLongPress,
         );
       },
     );

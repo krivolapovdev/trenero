@@ -146,4 +146,22 @@ void main() {
     expect(icon.color, AppColors.income);
     expect(find.text('IP'), findsNothing);
   });
+
+  testWidgets('invokes onLongPress callback when long pressed', (tester) async {
+    var longPressed = false;
+
+    await tester.pumpWidget(
+      _wrap(
+        TransactionTile(
+          transaction: _studentPayment(),
+          onLongPress: () => longPressed = true,
+        ),
+      ),
+    );
+
+    await tester.longPress(find.byType(TransactionTile));
+    await tester.pump();
+
+    expect(longPressed, isTrue);
+  });
 }

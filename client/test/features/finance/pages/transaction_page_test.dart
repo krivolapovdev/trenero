@@ -179,6 +179,62 @@ void main() {
     expect(find.byType(TransactionPage), findsNothing);
   });
 
+  testWidgets(
+    'long-pressing a transaction tile opens the edit transaction bottom sheet',
+    (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          Scaffold(
+            body: TransactionListView(
+              transactions: [_transaction()],
+              onRefresh: () async {},
+            ),
+          ),
+        ),
+      );
+
+      await tester.longPress(find.byType(TransactionTile));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EditTransactionBottomSheet), findsOneWidget);
+    },
+  );
+
+  testWidgets('tiles cannot be long-pressed while the list is loading', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        Scaffold(
+          body: TransactionListView(
+            transactions: [_transaction()],
+            isLoading: true,
+            onRefresh: () async {},
+          ),
+        ),
+      ),
+    );
+
+    await tester.longPress(find.byType(TransactionTile));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EditTransactionBottomSheet), findsNothing);
+  });
+
+  testWidgets(
+    'long-pressing ticket card on transaction page opens the edit sheet',
+    (tester) async {
+      final transaction = _transaction();
+
+      await tester.pumpWidget(_wrap(TransactionPage(transaction: transaction)));
+
+      await tester.longPress(find.byType(TransactionTicketCard));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EditTransactionBottomSheet), findsOneWidget);
+    },
+  );
+
   testWidgets('transaction page shows the ticket header and all details', (
     tester,
   ) async {

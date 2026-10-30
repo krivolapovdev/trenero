@@ -14,8 +14,14 @@ import 'package:phone/i18n/strings.g.dart';
 class TransactionTicketCard extends StatelessWidget {
   final TransactionResponse transaction;
   final String? overrideTitle;
+  final VoidCallback? onLongPress;
 
-  const new({super.key, required this.transaction, this.overrideTitle});
+  const new({
+    super.key,
+    required this.transaction,
+    this.overrideTitle,
+    this.onLongPress,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -66,67 +72,71 @@ class TransactionTicketCard extends StatelessWidget {
       ),
     ];
 
-    return CustomPaint(
-      painter: const TicketPainter(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            height: ticketHeaderHeight,
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: info.backgroundColor.withAlpha(25),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      info.icon,
-                      size: 34,
-                      color: info.backgroundColor,
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      info.title,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onLongPress: onLongPress,
+      child: CustomPaint(
+        painter: const TicketPainter(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: ticketHeaderHeight,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: info.backgroundColor.withAlpha(25),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        info.icon,
+                        size: 34,
+                        color: info.backgroundColor,
                       ),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 16),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        info.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
 
-          const SizedBox(
-            height: ticketDividerHeight,
-            child: CustomPaint(painter: DashedLinePainter()),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 20,
-              children: details,
+            const SizedBox(
+              height: ticketDividerHeight,
+              child: CustomPaint(painter: DashedLinePainter()),
             ),
-          ),
-        ],
+
+            Padding(
+              padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 20,
+                children: details,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
