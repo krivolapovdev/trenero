@@ -2,16 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
-import 'package:phone/features/groups/services/lesson_service.dart';
 import 'package:phone/features/groups/widgets/group_day_lessons_bottom_sheet.dart';
-import 'package:phone/generated/lesson_controller/lesson_controller_client.dart';
-import 'package:phone/generated/models/create_lesson_request.dart';
-import 'package:phone/generated/models/lesson_details_response.dart';
 import 'package:phone/generated/models/lesson_response.dart';
-import 'package:phone/generated/models/update_lesson_request.dart';
-import 'package:phone/generated/models/visit_response.dart';
-import 'package:phone/generated/models/visit_status.dart';
-import 'package:phone/generated/models/visit_type.dart';
 import 'package:phone/i18n/strings.g.dart';
 
 final DateTime _day = DateTime(2026, 10, 8);
@@ -19,64 +11,14 @@ final DateTime _day = DateTime(2026, 10, 8);
 LessonResponse _lesson({String id = 'lesson-1'}) =>
     LessonResponse(id: id, date: _day, createdAt: _day, groupId: 'group-1');
 
-VisitResponse _visit({
-  required String studentId,
-  required VisitStatus status,
-}) => VisitResponse(
-  id: 'visit-$studentId',
-  status: status,
-  type: VisitType.regular,
-  lessonId: 'lesson-1',
-  studentId: studentId,
-  createdAt: _day,
-);
-
-class _FakeLessonClient implements LessonControllerClient {
-  final List<VisitResponse> visits;
-
-  new({this.visits = const []});
-
-  @override
-  Future<LessonDetailsResponse> getLessonDetails({
-    required String lessonId,
-  }) async => LessonDetailsResponse(
-    id: lessonId,
-    date: _day,
-    createdAt: _day,
-    groupId: 'group-1',
-    studentVisits: visits,
-    students: const [],
-  );
-
-  @override
-  Future<LessonResponse> createLesson({required CreateLessonRequest body}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<LessonResponse> updateLesson({
-    required String lessonId,
-    required UpdateLessonRequest body,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<void> deleteLesson({required String lessonId}) =>
-      throw UnimplementedError();
-}
-
 final List<GroupDayLessonSelection?> _results = [];
 
 Future<void> _openSheet(
   WidgetTester tester,
-  GroupDayLessonsBottomSheet sheet, {
-  _FakeLessonClient? lessonClient,
-}) async {
+  GroupDayLessonsBottomSheet sheet,
+) async {
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [
-        lessonServiceProvider.overrideWithValue(
-          lessonClient ?? _FakeLessonClient(),
-        ),
-      ],
       child: TranslationProvider(
         child: MaterialApp(
           home: Scaffold(
@@ -129,7 +71,7 @@ void main() {
       ),
     );
 
-    expect(find.text(t.lessons.groupLessons), findsOneWidget);
+    expect(find.text(t.lessons.groupLessons), findsNothing);
     expect(find.text('${t.lessons.groupLesson} 1'), findsOneWidget);
     expect(find.text('${t.lessons.groupLesson} 2'), findsOneWidget);
 
@@ -161,19 +103,12 @@ void main() {
     expect(_results.single?.lesson, isNull);
   });
 
-  testWidgets('a lesson shows the attendance it has recorded', (tester) async {
+  testWidgets('lessons do not show attendance badges', (tester) async {
     await _openSheet(
       tester,
       GroupDayLessonsBottomSheet(groupLessons: [_lesson()]),
-      lessonClient: _FakeLessonClient(
-        visits: [
-          _visit(studentId: 'student-1', status: VisitStatus.present),
-          _visit(studentId: 'student-2', status: VisitStatus.present),
-          _visit(studentId: 'student-3', status: VisitStatus.absent),
-        ],
-      ),
     );
 
-    expect(find.text('2/3'), findsOneWidget);
+    expect(find.byIcon(Icons.check), findsNothing);
   });
 }
