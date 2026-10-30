@@ -12,6 +12,8 @@ class StudentCard extends StatelessWidget {
 
   final String? overrideInitials;
   final bool showBirthdate;
+  final bool noteVisible;
+  final bool groupsVisible;
   final BorderRadius? borderRadius;
 
   const new({
@@ -21,6 +23,8 @@ class StudentCard extends StatelessWidget {
     this.onLongPress,
     this.overrideInitials,
     this.showBirthdate = false,
+    this.noteVisible = true,
+    this.groupsVisible = true,
     this.borderRadius,
   });
 
@@ -28,11 +32,12 @@ class StudentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final hasNote = student.note != null && student.note!.trim().isNotEmpty;
+    final hasNote =
+        noteVisible && student.note != null && student.note!.trim().isNotEmpty;
     final hasPhone = student.phone != null && student.phone!.isNotEmpty;
     final birthdate = student.birthdate;
     final groupLabels = _groupLabels(student);
-    final hasGroup = groupLabels.isNotEmpty;
+    final hasGroup = groupsVisible && groupLabels.isNotEmpty;
     final badges = student.statuses.toBadges(context);
     final cardRadius = borderRadius ?? BorderRadius.circular(16);
 

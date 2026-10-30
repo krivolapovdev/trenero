@@ -58,29 +58,24 @@ class GroupStudentsCard extends StatelessWidget {
           separatorBuilder: (context, index) =>
               const Divider(height: 1, thickness: 1, indent: 16, endIndent: 16),
           itemBuilder: (context, index) {
-            final student = students[index];
+            final groupStudent = students[index];
             final listedStudent = listedStudents
-                .where((candidate) => candidate.id == student.id)
+                .where((candidate) => candidate.id == groupStudent.id)
                 .firstOrNull;
+            final student = listedStudent ?? _summaryOf(groupStudent);
 
             return StudentCard(
-              key: ValueKey(student.id),
-              student: StudentSummaryResponse(
-                id: student.id,
-                fullName: student.fullName,
-                createdAt: student.createdAt,
-                free: student.free,
-                statuses: student.statuses,
-              ),
+              key: ValueKey(groupStudent.id),
+              student: student,
+              noteVisible: false,
+              groupsVisible: false,
               borderRadius: BorderRadius.zero,
               onTap: isLoading
                   ? () {}
                   : () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => StudentPage(
-                            student: listedStudent ?? _summaryOf(student),
-                          ),
+                          builder: (context) => StudentPage(student: student),
                         ),
                       );
                     },

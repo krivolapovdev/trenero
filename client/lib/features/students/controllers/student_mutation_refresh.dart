@@ -3,10 +3,15 @@ import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
+import 'package:phone/features/groups/controllers/group_report_controller.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 
 Future<void> refreshAfterStudentMutation(Ref ref) async {
+  ref
+    ..invalidate(groupStudentsProvider)
+    ..invalidate(groupReportProvider);
+
   await ref
       .read(studentListControllerProvider.notifier)
       .getAllStudents(forceRefresh: true);

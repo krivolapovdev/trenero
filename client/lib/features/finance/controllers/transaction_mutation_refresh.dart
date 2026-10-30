@@ -4,6 +4,8 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phone/features/finance/controllers/payment_metrics_controller.dart';
 import 'package:phone/features/finance/controllers/transaction_list_controller.dart';
+import 'package:phone/features/groups/controllers/group_report_controller.dart';
+import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
 import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 
@@ -25,7 +27,10 @@ Future<void> refreshAfterTransactionMutation(
 
   if (studentId == null) return;
 
-  ref.invalidate(studentPaymentsControllerProvider(studentId));
+  ref
+    ..invalidate(studentPaymentsControllerProvider(studentId))
+    ..invalidate(groupStudentsProvider)
+    ..invalidate(groupReportProvider);
 
   await ref
       .read(studentListControllerProvider.notifier)

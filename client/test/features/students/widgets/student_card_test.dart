@@ -122,4 +122,36 @@ void main() {
     expect(secondGroup.dy, greaterThan(firstGroup.dy));
     expect(secondGroup.dx, equals(firstGroup.dx));
   });
+
+  testWidgets('groups stay hidden when groupsVisible is false', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        StudentCard(
+          student: _studentWithGroups(['Group A', 'Group B']),
+          groupsVisible: false,
+          onTap: () {},
+        ),
+      ),
+    );
+
+    expect(find.text('Group A'), findsNothing);
+    expect(find.text('Group B'), findsNothing);
+  });
+
+  testWidgets('note stays hidden when noteVisible is false', (tester) async {
+    final student = StudentSummaryResponse(
+      id: 'student-1',
+      fullName: 'Anna Smirnova',
+      createdAt: DateTime(2026, 1, 15),
+      free: false,
+      statuses: const [],
+      note: 'Special student note',
+    );
+
+    await tester.pumpWidget(
+      _wrap(StudentCard(student: student, noteVisible: false, onTap: () {})),
+    );
+
+    expect(find.text('Special student note'), findsNothing);
+  });
 }

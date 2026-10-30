@@ -217,4 +217,37 @@ void main() {
       expect(page.student.studentGroups, isNull);
     },
   );
+
+  testWidgets(
+    'displays updated student name and statuses from listed students',
+    (tester) async {
+      final updatedStudent = StudentSummaryResponse(
+        id: _studentId,
+        fullName: 'Anna Updated',
+        createdAt: DateTime(2025, 8, 22),
+        free: false,
+        statuses: const [StudentStatus.unpaid],
+        studentGroups: [_group],
+        note: 'Secret note',
+      );
+
+      await _pumpSection(tester, _container(students: [updatedStudent]));
+
+      // StudentCard displays the updated name from listedStudents
+      expect(find.text('Anna Updated'), findsOneWidget);
+      expect(find.text('Anna Smirnova'), findsNothing);
+
+      // Student groups and notes are hidden in group page
+      expect(find.text('Group A'), findsNothing);
+      expect(find.text('Secret note'), findsNothing);
+
+      // Opening student page passes the updated student
+      await tester.tap(find.text('Anna Updated'));
+      await tester.pumpAndSettle();
+
+      final page = tester.widget<StudentPage>(find.byType(StudentPage));
+      expect(page.student.fullName, 'Anna Updated');
+      expect(page.student.statuses, [StudentStatus.unpaid]);
+    },
+  );
 }
