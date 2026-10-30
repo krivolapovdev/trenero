@@ -16,6 +16,7 @@
   "error": "Error",
   "noData": "No data",
   "noTransactions": "No transactions",
+  "noStudents": "No students",
   "pleaseUpdateApp": "Please, update the app",
   "invalidDate": "Invalid date",
   "titleWithCount": "$title: $count",

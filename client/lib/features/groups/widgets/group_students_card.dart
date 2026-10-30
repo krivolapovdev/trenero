@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phone/core/widgets/empty_students.dart';
 import 'package:phone/features/students/pages/student_page.dart';
 import 'package:phone/features/students/widgets/student_card.dart';
 import 'package:phone/generated/export.dart';
@@ -50,38 +51,45 @@ class GroupStudentsCard extends StatelessWidget {
             ],
           ),
         ),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          itemCount: students.length,
-          separatorBuilder: (context, index) =>
-              const Divider(height: 1, thickness: 1, indent: 16, endIndent: 16),
-          itemBuilder: (context, index) {
-            final groupStudent = students[index];
-            final listedStudent = listedStudents
-                .where((candidate) => candidate.id == groupStudent.id)
-                .firstOrNull;
-            final student = listedStudent ?? _summaryOf(groupStudent);
+        if (students.isEmpty)
+          const EmptyStudents()
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            itemCount: students.length,
+            separatorBuilder: (context, index) => const Divider(
+              height: 1,
+              thickness: 1,
+              indent: 16,
+              endIndent: 16,
+            ),
+            itemBuilder: (context, index) {
+              final groupStudent = students[index];
+              final listedStudent = listedStudents
+                  .where((candidate) => candidate.id == groupStudent.id)
+                  .firstOrNull;
+              final student = listedStudent ?? _summaryOf(groupStudent);
 
-            return StudentCard(
-              key: ValueKey(groupStudent.id),
-              student: student,
-              noteVisible: false,
-              groupsVisible: false,
-              borderRadius: BorderRadius.zero,
-              onTap: isLoading
-                  ? () {}
-                  : () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => StudentPage(student: student),
-                        ),
-                      );
-                    },
-            );
-          },
-        ),
+              return StudentCard(
+                key: ValueKey(groupStudent.id),
+                student: student,
+                noteVisible: false,
+                groupsVisible: false,
+                borderRadius: BorderRadius.zero,
+                onTap: isLoading
+                    ? () {}
+                    : () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => StudentPage(student: student),
+                          ),
+                        );
+                      },
+              );
+            },
+          ),
       ],
     ),
   );

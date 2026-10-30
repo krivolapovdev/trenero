@@ -39,17 +39,11 @@ class GroupStudentsSection extends ConsumerWidget {
     return studentsAsync.when(
       skipLoadingOnRefresh: false,
 
-      data: (students) {
-        if (students.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return GroupStudentsCard(
-          students: students,
-          listedStudents: listedStudents,
-          onEdit: onEdit,
-        );
-      },
+      data: (students) => GroupStudentsCard(
+        students: students,
+        listedStudents: listedStudents,
+        onEdit: onEdit,
+      ),
       loading: () {
         final previousData = studentsAsync.value;
         final hasValidData = previousData != null && previousData.isNotEmpty;

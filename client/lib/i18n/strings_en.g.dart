@@ -93,6 +93,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'No transactions'
 	String get noTransactions => 'No transactions';
 
+	/// en: 'No students'
+	String get noStudents => 'No students';
+
 	/// en: 'Please, update the app'
 	String get pleaseUpdateApp => 'Please, update the app';
 
@@ -719,6 +722,7 @@ extension on Translations {
 			'error' => 'Error',
 			'noData' => 'No data',
 			'noTransactions' => 'No transactions',
+			'noStudents' => 'No students',
 			'pleaseUpdateApp' => 'Please, update the app',
 			'invalidDate' => 'Invalid date',
 			'titleWithCount' => ({required Object title, required Object count}) => '${title}: ${count}',

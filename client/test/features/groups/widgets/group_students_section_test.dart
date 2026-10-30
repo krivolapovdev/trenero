@@ -74,6 +74,13 @@ class _FakeGroupStudentsController extends GroupStudentsController {
   Future<List<GroupStudentSummaryResponse>> build() async => _groupStudents;
 }
 
+class _FakeEmptyGroupStudentsController extends GroupStudentsController {
+  new(super.groupId);
+
+  @override
+  Future<List<GroupStudentSummaryResponse>> build() async => const [];
+}
+
 class _FakeStudentListController extends StudentListController {
   new(this.students);
 
@@ -248,6 +255,39 @@ void main() {
       final page = tester.widget<StudentPage>(find.byType(StudentPage));
       expect(page.student.fullName, 'Anna Updated');
       expect(page.student.statuses, [StudentStatus.unpaid]);
+    },
+  );
+
+  testWidgets(
+    'shows empty card with title, edit button, and no students text when empty',
+    (tester) async {
+      var updated = false;
+
+      final container = ProviderContainer(
+        overrides: [
+          groupListControllerProvider.overrideWith(
+            _FakeGroupListController.new,
+          ),
+          groupStudentsProvider.overrideWith2(
+            _FakeEmptyGroupStudentsController.new,
+          ),
+          studentListControllerProvider.overrideWith(
+            () => _FakeStudentListController(const []),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await _pumpSection(tester, container, onUpdate: () => updated = true);
+
+      expect(find.text(t.students.title), findsOneWidget);
+      expect(find.text(t.edit), findsOneWidget);
+      expect(find.text(t.noStudents), findsOneWidget);
+
+      await tester.tap(find.text(t.edit));
+      await tester.pumpAndSettle();
+
+      expect(updated, isTrue);
     },
   );
 }
