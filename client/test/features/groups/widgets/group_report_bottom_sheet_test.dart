@@ -51,6 +51,7 @@ class _FakeGroupClient implements GroupControllerClient {
       lessonDays: const [1, 2],
       students: const [
         GroupReportStudentResponse(
+          dayMarks: [],
           studentId: 'student-1',
           fullName: 'Anna Smirnova',
           paid: true,

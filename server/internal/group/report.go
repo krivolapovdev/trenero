@@ -23,11 +23,19 @@ func BuildGroupReport(
 	lastDay := time.Date(year, time.Month(month)+1, 0, 0, 0, 0, 0, time.UTC)
 	dayCount := lastDay.Day()
 
+	sortedLessons := make([]response.LessonResponse, len(lessons))
+	copy(sortedLessons, lessons)
+	sort.Slice(sortedLessons, func(i, j int) bool {
+		return sortedLessons[i].Date.Before(sortedLessons[j].Date)
+	})
+
 	lessonIDsByDay := make(map[int][]uuid.UUID)
-	for _, l := range lessons {
+	totalLessonsInMonth := 0
+	for _, l := range sortedLessons {
 		if l.Date.Year() == year && int(l.Date.Month()) == month {
 			day := l.Date.Day()
 			lessonIDsByDay[day] = append(lessonIDsByDay[day], l.ID)
+			totalLessonsInMonth++
 		}
 	}
 
@@ -59,8 +67,13 @@ func BuildGroupReport(
 	for _, student := range sortedStudents {
 		statusesByLessonID := statusesByStudentID[student.ID]
 		presentDays := make([]int, 0)
+		dayMarks := make([]GroupReportDayMarkResponse, 0, len(lessonDays))
+		studentPresentCount := 0
+
 		for _, day := range lessonDays {
-			for _, lessonID := range lessonIDsByDay[day] {
+			lIDs := lessonIDsByDay[day]
+			marks := make([]bool, 0, len(lIDs))
+			for _, lessonID := range lIDs {
 				stList := statusesByLessonID[lessonID]
 				isPresent := false
 				for _, st := range stList {
@@ -69,25 +82,30 @@ func BuildGroupReport(
 						break
 					}
 				}
+				marks = append(marks, isPresent)
 				if isPresent {
 					presentDays = append(presentDays, day)
+					studentPresentCount++
 				}
 			}
+			dayMarks = append(dayMarks, GroupReportDayMarkResponse{
+				Day:   day,
+				Marks: marks,
+			})
 		}
 
 		paid := isPaid(paymentsByStudentID[student.ID], year, month, today)
-		pCount := len(presentDays)
-		lCount := len(lessonDays)
-		totalPresent += pCount
-		totalLessons += lCount
+		totalPresent += studentPresentCount
+		totalLessons += totalLessonsInMonth
 
 		rows = append(rows, GroupReportStudentResponse{
 			StudentID:    student.ID,
 			FullName:     student.FullName,
 			Paid:         paid,
 			PresentDays:  presentDays,
-			PresentCount: pCount,
-			LessonCount:  lCount,
+			DayMarks:     dayMarks,
+			PresentCount: studentPresentCount,
+			LessonCount:  totalLessonsInMonth,
 		})
 	}
 

@@ -38,6 +38,9 @@ TableRow _studentRow(
   Set<int> lessonDays,
 ) {
   final theme = Theme.of(context);
+  final marksByDay = {
+    for (final dayMark in student.dayMarks) dayMark.day: dayMark.marks,
+  };
   final presentDays = student.presentDays.toSet();
 
   final rowBackground = index.isEven
@@ -68,7 +71,9 @@ TableRow _studentRow(
       ),
       for (var day = 1; day <= dayCount; day++)
         MarkCell(
-          mark: lessonDays.contains(day) ? presentDays.contains(day) : null,
+          marks:
+              marksByDay[day] ??
+              (lessonDays.contains(day) ? [presentDays.contains(day)] : null),
         ),
       MarkCell(mark: student.paid),
       ReportCell(

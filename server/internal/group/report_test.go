@@ -73,6 +73,79 @@ func TestBuildGroupReport_DayGrid(t *testing.T) {
 	assert.Equal(t, 6, report.TotalLessons)
 }
 
+func TestBuildGroupReport_MultipleLessonsInOneDay(t *testing.T) {
+	groupID := uuid.New()
+	annaID := uuid.New()
+	ivanID := uuid.New()
+	createdAt := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	today := time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC)
+
+	morningLessonID := uuid.New()
+	eveningLessonID := uuid.New()
+	singleLessonID := uuid.New()
+
+	lessons := []response.LessonResponse{
+		{ID: eveningLessonID, Date: time.Date(2026, 2, 5, 18, 0, 0, 0, time.UTC), CreatedAt: createdAt, GroupID: &groupID},
+		{ID: morningLessonID, Date: time.Date(2026, 2, 5, 10, 0, 0, 0, time.UTC), CreatedAt: createdAt, GroupID: &groupID},
+		{ID: singleLessonID, Date: time.Date(2026, 2, 10, 10, 0, 0, 0, time.UTC), CreatedAt: createdAt, GroupID: &groupID},
+	}
+
+	visits := map[uuid.UUID][]response.VisitResponse{
+		annaID: {
+			{ID: uuid.New(), LessonID: morningLessonID, StudentID: annaID, Status: visit.VisitStatusPresent, CreatedAt: createdAt},
+			{ID: uuid.New(), LessonID: eveningLessonID, StudentID: annaID, Status: visit.VisitStatusPresent, CreatedAt: createdAt},
+			{ID: uuid.New(), LessonID: singleLessonID, StudentID: annaID, Status: visit.VisitStatusAbsent, CreatedAt: createdAt},
+		},
+		ivanID: {
+			{ID: uuid.New(), LessonID: morningLessonID, StudentID: ivanID, Status: visit.VisitStatusPresent, CreatedAt: createdAt},
+			{ID: uuid.New(), LessonID: eveningLessonID, StudentID: ivanID, Status: visit.VisitStatusAbsent, CreatedAt: createdAt},
+			{ID: uuid.New(), LessonID: singleLessonID, StudentID: ivanID, Status: visit.VisitStatusPresent, CreatedAt: createdAt},
+		},
+	}
+
+	grp := response.GroupResponse{
+		ID:        groupID,
+		Name:      "Beginners",
+		CreatedAt: createdAt,
+	}
+
+	students := []response.StudentResponse{
+		{ID: annaID, FullName: "Anna Smirnova", CreatedAt: createdAt},
+		{ID: ivanID, FullName: "Ivan Petrov", CreatedAt: createdAt},
+	}
+
+	report := BuildGroupReport(grp, 2026, 2, students, lessons, visits, map[uuid.UUID][]response.TransactionResponse{}, today)
+
+	assert.Equal(t, 28, report.DayCount)
+	assert.Equal(t, []int{5, 10}, report.LessonDays)
+	require.Len(t, report.Students, 2)
+
+	anna := report.Students[0]
+	assert.Equal(t, "Anna Smirnova", anna.FullName)
+	assert.Equal(t, []int{5, 5}, anna.PresentDays)
+	assert.Equal(t, 2, anna.PresentCount)
+	assert.Equal(t, 3, anna.LessonCount)
+	require.Len(t, anna.DayMarks, 2)
+	assert.Equal(t, 5, anna.DayMarks[0].Day)
+	assert.Equal(t, []bool{true, true}, anna.DayMarks[0].Marks)
+	assert.Equal(t, 10, anna.DayMarks[1].Day)
+	assert.Equal(t, []bool{false}, anna.DayMarks[1].Marks)
+
+	ivan := report.Students[1]
+	assert.Equal(t, "Ivan Petrov", ivan.FullName)
+	assert.Equal(t, []int{5, 10}, ivan.PresentDays)
+	assert.Equal(t, 2, ivan.PresentCount)
+	assert.Equal(t, 3, ivan.LessonCount)
+	require.Len(t, ivan.DayMarks, 2)
+	assert.Equal(t, 5, ivan.DayMarks[0].Day)
+	assert.Equal(t, []bool{true, false}, ivan.DayMarks[0].Marks)
+	assert.Equal(t, 10, ivan.DayMarks[1].Day)
+	assert.Equal(t, []bool{true}, ivan.DayMarks[1].Marks)
+
+	assert.Equal(t, 4, report.TotalPresent)
+	assert.Equal(t, 6, report.TotalLessons)
+}
+
 func TestBuildGroupReport_OrderingAndEmpty(t *testing.T) {
 	groupID := uuid.New()
 	annaID := uuid.New()

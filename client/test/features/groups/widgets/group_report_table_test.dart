@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:phone/features/groups/widgets/group_report_table.dart';
+import 'package:phone/generated/models/group_report_day_mark_response.dart';
 import 'package:phone/generated/models/group_report_response.dart';
 import 'package:phone/generated/models/group_report_student_response.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -14,6 +15,7 @@ GroupReportResponse _report() => const GroupReportResponse(
   lessonDays: [1, 2],
   students: [
     GroupReportStudentResponse(
+      dayMarks: [],
       studentId: 'student-1',
       fullName: 'Anna Smirnova',
       paid: true,
@@ -22,6 +24,7 @@ GroupReportResponse _report() => const GroupReportResponse(
       lessonCount: 2,
     ),
     GroupReportStudentResponse(
+      dayMarks: [],
       studentId: 'student-2',
       fullName: 'Ivan Petrov',
       paid: false,
@@ -90,5 +93,38 @@ void main() {
         reason: '"$text" should be rendered with a visible height',
       );
     }
+  });
+
+  testWidgets('renders all marks when a day has multiple lessons', (
+    tester,
+  ) async {
+    const reportWithMultipleMarks = GroupReportResponse(
+      groupId: 'group-1',
+      groupName: 'Group A',
+      year: 2026,
+      month: 2,
+      dayCount: 2,
+      lessonDays: [1],
+      students: [
+        GroupReportStudentResponse(
+          dayMarks: [
+            GroupReportDayMarkResponse(day: 1, marks: [true, false]),
+          ],
+          studentId: 'student-1',
+          fullName: 'Anna Smirnova',
+          paid: true,
+          presentDays: [1],
+          presentCount: 1,
+          lessonCount: 2,
+        ),
+      ],
+      totalPresent: 1,
+      totalLessons: 2,
+    );
+
+    await tester.pumpWidget(_wrap(reportWithMultipleMarks));
+
+    expect(find.text('+'), findsNWidgets(2));
+    expect(find.text('-'), findsNWidgets(1));
   });
 }

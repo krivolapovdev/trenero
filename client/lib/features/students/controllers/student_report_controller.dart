@@ -93,6 +93,7 @@ class StudentReportController extends AsyncNotifier<StudentReport> {
       students: [
         row ??
             GroupReportStudentResponse(
+              dayMarks: const [],
               studentId: period.studentId,
               fullName: studentName,
               paid: false,

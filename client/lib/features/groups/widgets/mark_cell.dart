@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:phone/features/groups/widgets/report_cell.dart';
 
 class MarkCell extends StatelessWidget {
-  final bool? mark;
+  final List<bool>? marks;
 
-  const new({super.key, required this.mark});
+  new({super.key, List<bool>? marks, bool? mark})
+    : marks = marks ?? (mark != null ? [mark] : null);
 
-  @override
-  Widget build(BuildContext context) {
-    final mark = this.mark;
-    if (mark == null) return const ReportCell(child: SizedBox.shrink());
-
+  static Widget _badge(
+    BuildContext context,
+    bool mark, {
+    required double size,
+    required double fontSize,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final color = mark
@@ -21,20 +23,46 @@ class MarkCell extends StatelessWidget {
         ? (isDark ? const Color(0xFF14532D) : const Color(0xFFDCFCE7))
         : (isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFFEDD5));
 
-    return ReportCell(
-      child: Container(
-        width: 22,
-        height: 22,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: background, shape: BoxShape.circle),
-        child: Text(
-          mark ? '+' : '-',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: color,
-          ),
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+      child: Text(
+        mark ? '+' : '-',
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w700,
+          color: color,
+          height: 1.0,
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final marks = this.marks;
+    if (marks == null || marks.isEmpty) {
+      return const ReportCell(child: SizedBox.shrink());
+    }
+
+    if (marks.length == 1) {
+      return ReportCell(
+        child: _badge(context, marks.first, size: 22, fontSize: 14),
+      );
+    }
+
+    return ReportCell(
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 2,
+        runSpacing: 2,
+        children: [
+          for (final mark in marks)
+            _badge(context, mark, size: 13, fontSize: 9),
+        ],
       ),
     );
   }

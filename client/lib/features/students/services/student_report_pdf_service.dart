@@ -250,6 +250,9 @@ class StudentReportPdfService {
     int dayCount,
     Set<int> lessonDays,
   ) {
+    final marksByDay = {
+      for (final dayMark in student.dayMarks) dayMark.day: dayMark.marks,
+    };
     final presentDays = student.presentDays.toSet();
 
     return pw.TableRow(
@@ -260,8 +263,9 @@ class StudentReportPdfService {
           alignment: pw.Alignment.centerLeft,
         ),
         for (var day = 1; day <= dayCount; day++)
-          _buildMarkCell(
-            lessonDays.contains(day) ? presentDays.contains(day) : null,
+          _buildMarksCell(
+            marksByDay[day] ??
+                (lessonDays.contains(day) ? [presentDays.contains(day)] : null),
           ),
         _buildMarkCell(student.paid),
         _buildCell(
@@ -274,37 +278,58 @@ class StudentReportPdfService {
     );
   }
 
+  pw.Widget _buildMarksCell(List<bool>? marks) {
+    if (marks == null || marks.isEmpty) return _buildCell(null);
+    if (marks.length == 1) return _buildCell(_buildMark(marks.first));
+
+    final markSize = marks.length == 2 ? 6.5 : 5.0;
+    return _buildCell(
+      pw.Column(
+        mainAxisAlignment: pw.MainAxisAlignment.center,
+        mainAxisSize: pw.MainAxisSize.min,
+        children: [
+          for (var i = 0; i < marks.length; i++) ...[
+            if (i > 0) pw.SizedBox(height: 1.5),
+            _buildMark(marks[i], size: markSize),
+          ],
+        ],
+      ),
+    );
+  }
+
   pw.Widget _buildMarkCell(bool? mark) {
     if (mark == null) return _buildCell(null);
 
     return _buildCell(_buildMark(mark));
   }
 
-  pw.Widget _buildMark(bool isPresent) => pw.CustomPaint(
-    size: const PdfPoint(_markSize, _markSize),
-    painter: (canvas, size) {
-      canvas
-        ..setStrokeColor(isPresent ? _presentColor : _missingColor)
-        ..setLineWidth(_markStroke)
-        ..setLineCap(PdfLineCap.round)
-        ..setLineJoin(PdfLineJoin.round);
+  pw.Widget _buildMark(bool isPresent, {double size = _markSize}) =>
+      pw.CustomPaint(
+        size: PdfPoint(size, size),
+        painter: (canvas, _) {
+          final scale = size / _markSize;
+          canvas
+            ..setStrokeColor(isPresent ? _presentColor : _missingColor)
+            ..setLineWidth(_markStroke * scale)
+            ..setLineCap(PdfLineCap.round)
+            ..setLineJoin(PdfLineJoin.round);
 
-      if (isPresent) {
-        canvas
-          ..moveTo(1.0, 4.6)
-          ..lineTo(3.2, 2.0)
-          ..lineTo(8.0, 7.4);
-      } else {
-        canvas
-          ..moveTo(1.4, 1.4)
-          ..lineTo(7.6, 7.6)
-          ..moveTo(7.6, 1.4)
-          ..lineTo(1.4, 7.6);
-      }
+          if (isPresent) {
+            canvas
+              ..moveTo(1.0 * scale, 4.6 * scale)
+              ..lineTo(3.2 * scale, 2.0 * scale)
+              ..lineTo(8.0 * scale, 7.4 * scale);
+          } else {
+            canvas
+              ..moveTo(1.4 * scale, 1.4 * scale)
+              ..lineTo(7.6 * scale, 7.6 * scale)
+              ..moveTo(7.6 * scale, 1.4 * scale)
+              ..lineTo(1.4 * scale, 7.6 * scale);
+          }
 
-      canvas.strokePath();
-    },
-  );
+          canvas.strokePath();
+        },
+      );
 
   pw.Widget _buildHeaderCell(
     String text, {

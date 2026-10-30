@@ -46,6 +46,7 @@ StudentSummaryResponse _student() => StudentSummaryResponse(
 );
 
 GroupReportStudentResponse _classmate() => const GroupReportStudentResponse(
+  dayMarks: [],
   studentId: 'student-2',
   fullName: 'Ivan Petrov',
   paid: false,
@@ -55,6 +56,7 @@ GroupReportStudentResponse _classmate() => const GroupReportStudentResponse(
 );
 
 GroupReportStudentResponse _studentRow() => const GroupReportStudentResponse(
+  dayMarks: [],
   studentId: _studentId,
   fullName: 'Anna Smirnova',
   paid: true,

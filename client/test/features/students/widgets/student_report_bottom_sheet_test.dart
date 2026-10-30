@@ -52,6 +52,7 @@ class _FakeStudentReportController extends StudentReportController {
           lessonDays: const [1],
           students: [
             GroupReportStudentResponse(
+              dayMarks: const [],
               studentId: period.studentId,
               fullName: 'Anna Smirnova',
               paid: true,

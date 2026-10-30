@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:phone/features/groups/services/group_report_pdf_service.dart';
+import 'package:phone/generated/models/group_report_day_mark_response.dart';
 import 'package:phone/generated/models/group_report_response.dart';
 import 'package:phone/generated/models/group_report_student_response.dart';
 import 'package:phone/i18n/strings.g.dart';
@@ -22,6 +23,7 @@ GroupReportResponse _report({
   lessonDays: const [1, 2],
   students: [
     GroupReportStudentResponse(
+      dayMarks: const [],
       studentId: 'student-1',
       fullName: studentName,
       paid: true,
@@ -160,5 +162,41 @@ void main() {
     expect(content, contains('1 4.6 m 3.2 2 l 8 7.4 l S'));
     expect(content, contains('1.4 1.4 m 7.6 7.6 l 7.6 1.4 m 1.4 7.6 l S'));
     expect(content, contains('1 J 1 j'), reason: 'the marks are rounded');
+  });
+
+  test('draws multiple marks on a day with multiple lessons', () async {
+    final report = const GroupReportResponse(
+      groupId: 'group-1',
+      groupName: 'Group A',
+      year: 2026,
+      month: 2,
+      dayCount: 28,
+      lessonDays: [1],
+      students: [
+        GroupReportStudentResponse(
+          dayMarks: [
+            GroupReportDayMarkResponse(day: 1, marks: [true, false]),
+          ],
+          studentId: 'student-1',
+          fullName: 'Anna Smirnova',
+          paid: true,
+          presentDays: [1],
+          presentCount: 1,
+          lessonCount: 2,
+        ),
+      ],
+      totalPresent: 1,
+      totalLessons: 2,
+    );
+
+    final bytes = await service.build(
+      report,
+      t: LocaleSettings.instance.currentTranslations,
+      locale: 'en',
+    );
+
+    final text = _asText(bytes);
+    expect(text, startsWith('%PDF-1.'));
+    expect(bytes.length, greaterThan(1000));
   });
 }

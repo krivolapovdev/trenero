@@ -29,6 +29,7 @@ StudentReport _report({
       lessonDays: const [1, 2],
       students: [
         GroupReportStudentResponse(
+          dayMarks: const [],
           studentId: 'student-1',
           fullName: studentName,
           paid: true,
@@ -49,6 +50,7 @@ StudentReport _report({
       lessonDays: const [3],
       students: [
         GroupReportStudentResponse(
+          dayMarks: const [],
           studentId: 'student-1',
           fullName: studentName,
           paid: false,

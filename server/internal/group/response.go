@@ -20,14 +20,21 @@ type GroupStudentSummaryResponse struct {
 	Statuses  []student.StudentStatus `json:"statuses" binding:"required"`
 }
 
+// @name GroupReportDayMarkResponse
+type GroupReportDayMarkResponse struct {
+	Day   int    `json:"day" binding:"required"`
+	Marks []bool `json:"marks" binding:"required"`
+}
+
 // @name GroupReportStudentResponse
 type GroupReportStudentResponse struct {
-	StudentID    uuid.UUID `json:"studentId" binding:"required" format:"uuid"`
-	FullName     string    `json:"fullName" binding:"required"`
-	Paid         bool      `json:"paid" binding:"required"`
-	PresentDays  []int     `json:"presentDays" binding:"required"`
-	PresentCount int       `json:"presentCount" binding:"required"`
-	LessonCount  int       `json:"lessonCount" binding:"required"`
+	StudentID    uuid.UUID                    `json:"studentId" binding:"required" format:"uuid"`
+	FullName     string                       `json:"fullName" binding:"required"`
+	Paid         bool                         `json:"paid" binding:"required"`
+	PresentDays  []int                        `json:"presentDays" binding:"required"`
+	DayMarks     []GroupReportDayMarkResponse `json:"dayMarks" binding:"required"`
+	PresentCount int                          `json:"presentCount" binding:"required"`
+	LessonCount  int                          `json:"lessonCount" binding:"required"`
 }
 
 // @name GroupReportResponse
