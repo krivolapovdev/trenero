@@ -308,3 +308,56 @@ func TestStudentStatus_GroupScopedVisits(t *testing.T) {
 	assert.NotContains(t, statuses, StudentStatusPresent)
 	assert.NotContains(t, statuses, StudentStatusPaid)
 }
+
+func TestStudentStatus_IgnoresLessonsForOtherStudents(t *testing.T) {
+	student1ID := uuid.New()
+	lesson1ID := uuid.New()
+	lesson2ID := uuid.New()
+	createdAt := time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC)
+
+	st1 := response.StudentResponse{
+		ID:        student1ID,
+		FullName:  "Student 1",
+		Free:      false,
+		CreatedAt: createdAt,
+	}
+
+	// Student 1 has a visit for lesson 1 on Oct 22 (marked absent)
+	visits1 := []response.VisitResponse{
+		{ID: uuid.New(), LessonID: lesson1ID, StudentID: student1ID, Status: visit.VisitStatusAbsent},
+	}
+
+	// Global lessonsMap has lesson 1 (Oct 22) and lesson 2 (Oct 30) for Student 2
+	lessonsMap := map[uuid.UUID]response.LessonResponse{
+		lesson1ID: {
+			ID:        lesson1ID,
+			Date:      time.Date(2026, 10, 22, 10, 0, 0, 0, time.UTC),
+			CreatedAt: createdAt,
+		},
+		lesson2ID: {
+			ID:        lesson2ID,
+			Date:      time.Date(2026, 10, 30, 10, 0, 0, 0, time.UTC),
+			CreatedAt: createdAt,
+		},
+	}
+
+	// Student 1 paid until Oct 25 (active for lesson 1 on Oct 22, but expired if compared to lesson 2 on Oct 30)
+	payments1 := []response.TransactionResponse{
+		{
+			ID:        uuid.New(),
+			Amount:    1000,
+			CreatedAt: createdAt,
+			PaymentDetails: &response.StudentPaymentDetailsResponse{
+				StudentID: student1ID,
+				PaidUntil: time.Date(2026, 10, 25, 0, 0, 0, 0, time.UTC),
+			},
+		},
+	}
+
+	statuses := ComputeStudentStatuses(st1, visits1, payments1, lessonsMap, time.Now().UTC())
+
+	assert.Contains(t, statuses, StudentStatusMissing)
+	assert.NotContains(t, statuses, StudentStatusPresent)
+	assert.Contains(t, statuses, StudentStatusPaid)
+	assert.NotContains(t, statuses, StudentStatusUnpaid)
+}

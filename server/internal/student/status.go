@@ -37,7 +37,14 @@ func ComputeStudentStatusesWithVisitLessons(
 
 	statuses := make([]StudentStatus, 0)
 
-	lastVisitLesson := lesson.FindLatestLesson(visitLessonsMap)
+	studentVisitLessons := make(map[uuid.UUID]response.LessonResponse)
+	for _, v := range visits {
+		if l, ok := visitLessonsMap[v.LessonID]; ok {
+			studentVisitLessons[v.LessonID] = l
+		}
+	}
+
+	lastVisitLesson := lesson.FindLatestLesson(studentVisitLessons)
 	if lastVisitLesson != nil {
 		if v := visit.FindVisitByLessonID(visits, lastVisitLesson.ID); v != nil {
 			if v.Status.IsPresent() {
@@ -53,7 +60,14 @@ func ComputeStudentStatusesWithVisitLessons(
 		return statuses
 	}
 
-	lastLesson := lesson.FindLatestLesson(lessonsMap)
+	studentLessons := make(map[uuid.UUID]response.LessonResponse)
+	for _, v := range visits {
+		if l, ok := lessonsMap[v.LessonID]; ok {
+			studentLessons[v.LessonID] = l
+		}
+	}
+
+	lastLesson := lesson.FindLatestLesson(studentLessons)
 
 	referenceDate := today
 	if lastLesson != nil {
