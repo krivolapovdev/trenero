@@ -1,6 +1,8 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:phone/core/widgets/app_bottom_sheet.dart';
+import 'package:phone/features/groups/pages/group_payments_page.dart';
 import 'package:phone/features/groups/pages/group_students_page.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/widgets/delete_group_bottom_sheet.dart';
@@ -36,6 +38,12 @@ class GroupPopupMenu extends StatelessWidget {
           date: DateTime.now(),
         ),
       ),
+    );
+  }
+
+  void _openPaymentsPage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => GroupPaymentsPage(group: group)),
     );
   }
 
@@ -96,6 +104,16 @@ class GroupPopupMenu extends StatelessWidget {
             const Icon(CupertinoIcons.calendar, size: 20),
             const SizedBox(width: 12),
             Text(context.t.lessons.title),
+          ],
+        ),
+      ),
+      PopupMenuItem<String>(
+        onTap: () => _openPaymentsPage(context),
+        child: Row(
+          children: [
+            const Icon(FluentIcons.money_24_regular, size: 20),
+            const SizedBox(width: 12),
+            Text(context.t.groups.payments),
           ],
         ),
       ),

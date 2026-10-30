@@ -229,6 +229,27 @@ class Translations$groups$en {
 	/// en: 'Report'
 	String get report => 'Report';
 
+	/// en: 'Payments'
+	String get payments => 'Payments';
+
+	/// en: 'Payments: $name'
+	String groupPaymentsTitle({required Object name}) => 'Payments: ${name}';
+
+	/// en: 'Group payments'
+	String get groupPayments => 'Group payments';
+
+	/// en: 'Amount per student'
+	String get amountPerStudent => 'Amount per student';
+
+	/// en: 'Edit payment'
+	String get editStudentPayment => 'Edit payment';
+
+	/// en: 'Custom amount'
+	String get customAmount => 'Custom amount';
+
+	/// en: 'This group has no students yet'
+	String get noStudents => 'This group has no students yet';
+
 	/// en: 'No groups found'
 	String get notFound => 'No groups found';
 
@@ -731,6 +752,13 @@ extension on Translations {
 			'groups.noGroup' => 'No group',
 			'groups.defaultPrice' => 'Price by default',
 			'groups.report' => 'Report',
+			'groups.payments' => 'Payments',
+			'groups.groupPaymentsTitle' => ({required Object name}) => 'Payments: ${name}',
+			'groups.groupPayments' => 'Group payments',
+			'groups.amountPerStudent' => 'Amount per student',
+			'groups.editStudentPayment' => 'Edit payment',
+			'groups.customAmount' => 'Custom amount',
+			'groups.noStudents' => 'This group has no students yet',
 			'groups.notFound' => 'No groups found',
 			'groups.deleteGroup' => 'Delete group?',
 			'groups.deleteGroupMessage' => 'The group will be deleted permanently. This action cannot be undone.',

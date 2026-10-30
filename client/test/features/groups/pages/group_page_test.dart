@@ -7,6 +7,7 @@ import 'package:phone/core/extensions/number_extension.dart';
 import 'package:phone/core/providers/language_provider.dart';
 import 'package:phone/core/widgets/card_badge.dart';
 import 'package:phone/features/groups/pages/group_page.dart';
+import 'package:phone/features/groups/pages/group_payments_page.dart';
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/groups/services/group_service.dart';
 import 'package:phone/features/groups/services/lesson_service.dart';
@@ -360,6 +361,23 @@ void main() {
     expect(client.deletedGroupIds, ['group-1']);
 
     expect(find.byType(GroupPage), findsNothing);
+  });
+
+  testWidgets('the popup menu opens payments page', (tester) async {
+    await tester.pumpWidget(_wrap(_FakeGroupClient()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(t.groups.payments));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GroupPaymentsPage), findsOneWidget);
+    expect(
+      find.text(t.groups.groupPaymentsTitle(name: _group.name)),
+      findsOneWidget,
+    );
   });
 
   testWidgets(

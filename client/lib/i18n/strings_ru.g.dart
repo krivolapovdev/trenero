@@ -124,6 +124,13 @@ class _Translations$groups$ru implements Translations$groups$en {
 	@override String get noGroup => 'Без группы';
 	@override String get defaultPrice => 'Стандартная цена';
 	@override String get report => 'Отчет';
+	@override String get payments => 'Платежи';
+	@override String groupPaymentsTitle({required Object name}) => 'Платежи: ${name}';
+	@override String get groupPayments => 'Групповые платежи';
+	@override String get amountPerStudent => 'Сумма за ученика';
+	@override String get editStudentPayment => 'Редактировать платеж';
+	@override String get customAmount => 'Своя сумма';
+	@override String get noStudents => 'В группе пока нет учеников';
 	@override String get notFound => 'Группы не найдены';
 	@override String get deleteGroup => 'Удалить группу?';
 	@override String get deleteGroupMessage => 'Группа будет удалена безвозвратно. Действие нельзя отменить.';
@@ -387,6 +394,13 @@ extension on TranslationsRu {
 			'groups.noGroup' => 'Без группы',
 			'groups.defaultPrice' => 'Стандартная цена',
 			'groups.report' => 'Отчет',
+			'groups.payments' => 'Платежи',
+			'groups.groupPaymentsTitle' => ({required Object name}) => 'Платежи: ${name}',
+			'groups.groupPayments' => 'Групповые платежи',
+			'groups.amountPerStudent' => 'Сумма за ученика',
+			'groups.editStudentPayment' => 'Редактировать платеж',
+			'groups.customAmount' => 'Своя сумма',
+			'groups.noStudents' => 'В группе пока нет учеников',
 			'groups.notFound' => 'Группы не найдены',
 			'groups.deleteGroup' => 'Удалить группу?',
 			'groups.deleteGroupMessage' => 'Группа будет удалена безвозвратно. Действие нельзя отменить.',

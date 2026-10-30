@@ -54,6 +54,13 @@
     "noGroup": "No group",
     "defaultPrice": "Price by default",
     "report": "Report",
+    "payments": "Payments",
+    "groupPaymentsTitle": "Payments: $name",
+    "groupPayments": "Group payments",
+    "amountPerStudent": "Amount per student",
+    "editStudentPayment": "Edit payment",
+    "customAmount": "Custom amount",
+    "noStudents": "This group has no students yet",
     "notFound": "No groups found",
     "deleteGroup": "Delete group?",
     "deleteGroupMessage": "The group will be deleted permanently. This action cannot be undone."

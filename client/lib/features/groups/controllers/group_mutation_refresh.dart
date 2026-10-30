@@ -2,11 +2,14 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phone/features/finance/controllers/payment_metrics_controller.dart';
+import 'package:phone/features/finance/controllers/transaction_list_controller.dart';
 import 'package:phone/features/groups/controllers/group_list_controller.dart';
 import 'package:phone/features/groups/controllers/group_report_controller.dart';
 import 'package:phone/features/groups/controllers/group_students_controller.dart';
 import 'package:phone/features/students/controllers/student_lessons_controller.dart';
 import 'package:phone/features/students/controllers/student_list_controller.dart';
+import 'package:phone/features/students/controllers/student_payment_list_controller.dart';
 
 void refreshAfterGroupMutation(Ref ref) {
   unawaited(
@@ -51,6 +54,40 @@ void refreshAfterGroupLessonsMutation(
       }),
     );
   }
+}
+
+Future<void> refreshAfterGroupPaymentsMutation(
+  Ref ref, {
+  required String groupId,
+  required Iterable<String> studentIds,
+}) async {
+  ref
+    ..invalidate(groupReportProvider)
+    ..invalidate(groupStudentsProvider(groupId));
+
+  for (final studentId in studentIds) {
+    ref.invalidate(studentPaymentsControllerProvider(studentId));
+  }
+
+  await ref.read(transactionsControllerProvider.notifier).refresh();
+
+  unawaited(
+    ref
+        .read(paymentMetricsControllerProvider.notifier)
+        .loadMetrics()
+        .catchError((error, _) {
+          log('Error refreshing metrics after group payments: $error');
+        }),
+  );
+
+  unawaited(
+    ref
+        .read(studentListControllerProvider.notifier)
+        .getAllStudents(forceRefresh: true)
+        .catchError((error, _) {
+          log('Error refreshing the students after group payments: $error');
+        }),
+  );
 }
 
 void refreshAfterGroupStudentsMutation(Ref ref, {required String groupId}) {

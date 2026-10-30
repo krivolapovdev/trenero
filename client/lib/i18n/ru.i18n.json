@@ -54,6 +54,13 @@
     "noGroup": "Без группы",
     "defaultPrice": "Стандартная цена",
     "report": "Отчет",
+    "payments": "Платежи",
+    "groupPaymentsTitle": "Платежи: $name",
+    "groupPayments": "Групповые платежи",
+    "amountPerStudent": "Сумма за ученика",
+    "editStudentPayment": "Редактировать платеж",
+    "customAmount": "Своя сумма",
+    "noStudents": "В группе пока нет учеников",
     "notFound": "Группы не найдены",
     "deleteGroup": "Удалить группу?",
     "deleteGroupMessage": "Группа будет удалена безвозвратно. Действие нельзя отменить."
