@@ -261,6 +261,47 @@ void main() {
     await tester.tap(find.text('${today.day}'));
     await tester.pumpAndSettle();
 
+    expect(find.byType(GroupDayLessonsBottomSheet), findsNothing);
+    expect(find.byType(LessonPage), findsOneWidget);
+    expect(
+      find.text(t.lessons.groupLessonTitle(name: _group.name)),
+      findsOneWidget,
+    );
+    expect(find.text(_formatDate(today)), findsOneWidget);
+  });
+
+  testWidgets('tapping a day with multiple lessons opens the bottom sheet', (
+    tester,
+  ) async {
+    final today = DateTime.now();
+
+    await tester.pumpWidget(
+      _wrap(
+        _FakeGroupClient(
+          lessons: [
+            LessonResponse(
+              id: 'lesson-1',
+              date: today,
+              createdAt: today,
+              groupId: _group.id,
+            ),
+            LessonResponse(
+              id: 'lesson-2',
+              date: today,
+              createdAt: today.add(const Duration(hours: 1)),
+              groupId: _group.id,
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('${today.day}'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GroupDayLessonsBottomSheet), findsOneWidget);
+
     await tester.tap(find.text('${t.lessons.groupLesson} 1'));
     await tester.pumpAndSettle();
 

@@ -14,14 +14,19 @@ import 'package:phone/features/groups/controllers/group_students_controller.dart
 import 'package:phone/features/groups/pages/lesson_page.dart';
 import 'package:phone/features/students/pages/student_lesson_page.dart';
 import 'package:phone/features/students/pages/student_page.dart';
+import 'package:phone/features/students/widgets/student_day_lessons_bottom_sheet.dart';
 import 'package:phone/features/students/widgets/student_header.dart';
 import 'package:phone/features/students/widgets/student_report_bottom_sheet.dart';
 import 'package:phone/generated/models/group_response.dart';
 import 'package:phone/generated/models/group_student_summary_response.dart';
 import 'package:phone/generated/models/group_summary_response.dart';
+import 'package:phone/generated/models/lesson_response.dart';
 import 'package:phone/generated/models/student_status.dart';
 import 'package:phone/generated/models/student_summary_response.dart';
 import 'package:phone/generated/models/transaction_response.dart';
+import 'package:phone/generated/models/visit_response.dart';
+import 'package:phone/generated/models/visit_status.dart';
+import 'package:phone/generated/models/visit_type.dart';
 import 'package:phone/generated/models/visit_with_lesson_response.dart';
 import 'package:phone/i18n/strings.g.dart';
 
@@ -50,6 +55,21 @@ final _studentWithGroup = StudentSummaryResponse(
   studentGroups: [_group],
 );
 
+VisitWithLessonResponse _visit({
+  required LessonResponse lesson,
+  VisitStatus status = VisitStatus.present,
+}) => VisitWithLessonResponse(
+  visit: VisitResponse(
+    id: 'visit-${lesson.id}',
+    status: status,
+    type: VisitType.regular,
+    lessonId: lesson.id,
+    studentId: _studentId,
+    createdAt: lesson.date,
+  ),
+  lesson: lesson,
+);
+
 class _FakeStudentListController extends StudentListController {
   new(this.students);
 
@@ -60,10 +80,12 @@ class _FakeStudentListController extends StudentListController {
 }
 
 class _FakeStudentLessonsController extends StudentLessonsController {
-  new(super.studentId);
+  new(super.studentId, [this.visits = const []]);
+
+  final List<VisitWithLessonResponse> visits;
 
   @override
-  Future<List<VisitWithLessonResponse>> build() async => const [];
+  Future<List<VisitWithLessonResponse>> build() async => visits;
 }
 
 class _FakeStudentPaymentsController extends StudentPaymentsController {
@@ -101,14 +123,17 @@ class _FakeGroupStudentsController extends GroupStudentsController {
 
 Future<void> _pumpPage(
   WidgetTester tester,
-  StudentSummaryResponse student,
-) async {
+  StudentSummaryResponse student, {
+  List<VisitWithLessonResponse> visits = const [],
+}) async {
   final container = ProviderContainer(
     overrides: [
       studentListControllerProvider.overrideWith(
         () => _FakeStudentListController([student]),
       ),
-      studentLessonsProvider.overrideWith2(_FakeStudentLessonsController.new),
+      studentLessonsProvider.overrideWith2(
+        (id) => _FakeStudentLessonsController(id, visits),
+      ),
       studentPaymentsControllerProvider.overrideWith2(
         _FakeStudentPaymentsController.new,
       ),
@@ -272,6 +297,141 @@ void main() {
         scrollable.position.pixels,
         equals(StudentHeaderDelegate.contentHeight),
       );
+    },
+  );
+
+  testWidgets(
+    'tapping a day with 1 individual lesson opens the lesson directly without bottom sheet',
+    (tester) async {
+      final today = DateTime.now();
+      final lesson = LessonResponse(
+        id: 'ind-lesson-1',
+        date: today,
+        createdAt: today,
+      );
+
+      await _pumpPage(
+        tester,
+        _studentWithoutGroup,
+        visits: [_visit(lesson: lesson)],
+      );
+
+      await tester.tap(find.text('${today.day}'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StudentDayLessonsBottomSheet), findsNothing);
+      expect(find.byType(StudentLessonPage), findsOneWidget);
+      final page = tester.widget<StudentLessonPage>(
+        find.byType(StudentLessonPage),
+      );
+      expect(page.lesson?.id, 'ind-lesson-1');
+    },
+  );
+
+  testWidgets(
+    'tapping a day with multiple individual lessons opens the bottom sheet',
+    (tester) async {
+      final today = DateTime.now();
+      final lesson1 = LessonResponse(
+        id: 'ind-lesson-1',
+        date: today,
+        createdAt: today,
+      );
+      final lesson2 = LessonResponse(
+        id: 'ind-lesson-2',
+        date: today,
+        createdAt: today.add(const Duration(hours: 1)),
+      );
+
+      await _pumpPage(
+        tester,
+        _studentWithoutGroup,
+        visits: [
+          _visit(lesson: lesson1),
+          _visit(lesson: lesson2),
+        ],
+      );
+
+      await tester.tap(find.text('${today.day}'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StudentDayLessonsBottomSheet), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('ind-lesson-1')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StudentLessonPage), findsOneWidget);
+      final page = tester.widget<StudentLessonPage>(
+        find.byType(StudentLessonPage),
+      );
+      expect(page.lesson?.id, 'ind-lesson-1');
+    },
+  );
+
+  testWidgets(
+    'tapping a day with 1 group lesson opens the lesson directly without bottom sheet',
+    (tester) async {
+      final today = DateTime.now();
+      final lesson = LessonResponse(
+        id: 'grp-lesson-1',
+        date: today,
+        createdAt: today,
+        groupId: _group.id,
+      );
+
+      await _pumpPage(
+        tester,
+        _studentWithGroup,
+        visits: [_visit(lesson: lesson)],
+      );
+
+      await tester.tap(find.text('${today.day}'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StudentDayLessonsBottomSheet), findsNothing);
+      expect(find.byType(LessonPage), findsOneWidget);
+      final page = tester.widget<LessonPage>(find.byType(LessonPage));
+      expect(page.lesson?.id, 'grp-lesson-1');
+    },
+  );
+
+  testWidgets(
+    'tapping a day with multiple group lessons opens the bottom sheet',
+    (tester) async {
+      final today = DateTime.now();
+      final lesson1 = LessonResponse(
+        id: 'grp-lesson-1',
+        date: today,
+        createdAt: today,
+        groupId: _group.id,
+      );
+      final lesson2 = LessonResponse(
+        id: 'grp-lesson-2',
+        date: today,
+        createdAt: today.add(const Duration(hours: 1)),
+        groupId: _group.id,
+      );
+
+      await _pumpPage(
+        tester,
+        _studentWithGroup,
+        visits: [
+          _visit(lesson: lesson1),
+          _visit(lesson: lesson2),
+        ],
+      );
+
+      await tester.tap(find.text('${today.day}'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StudentDayLessonsBottomSheet), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('grp-lesson-1')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LessonPage), findsOneWidget);
+      final page = tester.widget<LessonPage>(find.byType(LessonPage));
+      expect(page.lesson?.id, 'grp-lesson-1');
     },
   );
 }

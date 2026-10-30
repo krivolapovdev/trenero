@@ -44,6 +44,11 @@ class GroupLessonsSection extends ConsumerWidget {
       return;
     }
 
+    if (dayLessons.length == 1) {
+      await _openLessonPage(context, selectedDay, dayLessons.first);
+      return;
+    }
+
     final selection = await AppBottomSheet.show<GroupDayLessonSelection>(
       context: context,
       child: GroupDayLessonsBottomSheet(

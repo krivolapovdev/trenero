@@ -172,9 +172,21 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
     List<VisitWithLessonResponse> visits,
   ) async {
     final dayVisits = StudentLessonsSection.dayVisitsOf(visits, selectedDay);
+    final individualLessons = StudentLessonsSection.individualLessonsOf(
+      dayVisits,
+    );
 
-    if (StudentLessonsSection.opensCreatePageDirectly(dayVisits)) {
+    if (StudentLessonsSection.opensCreatePageDirectly(dayVisits) ||
+        individualLessons.isEmpty) {
       await _openIndividualLessonPage(selectedDay, null);
+      return;
+    }
+
+    if (individualLessons.length == 1) {
+      await _openIndividualLessonPage(
+        selectedDay,
+        individualLessons.first.lesson,
+      );
       return;
     }
 
@@ -182,7 +194,7 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
       context: context,
       child: StudentDayLessonsBottomSheet(
         studentName: widget.studentName,
-        individualLessons: StudentLessonsSection.individualLessonsOf(dayVisits),
+        individualLessons: individualLessons,
       ),
     );
 
@@ -197,9 +209,16 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
     List<VisitWithLessonResponse> visits,
   ) async {
     final dayVisits = StudentLessonsSection.dayVisitsOf(visits, selectedDay);
+    final groupLessons = StudentLessonsSection.groupLessonsOf(dayVisits);
 
-    if (StudentLessonsSection.opensCreatePageDirectly(dayVisits)) {
+    if (StudentLessonsSection.opensCreatePageDirectly(dayVisits) ||
+        groupLessons.isEmpty) {
       await _openGroupLessonPage(group, selectedDay, null);
+      return;
+    }
+
+    if (groupLessons.length == 1) {
+      await _openGroupLessonPage(group, selectedDay, groupLessons.first.lesson);
       return;
     }
 
@@ -207,7 +226,7 @@ class _StudentLessonsSectionState extends ConsumerState<StudentLessonsSection> {
       context: context,
       child: StudentDayLessonsBottomSheet(
         studentName: widget.studentName,
-        groupLessons: StudentLessonsSection.groupLessonsOf(dayVisits),
+        groupLessons: groupLessons,
         studentGroup: group,
         showIndividualSection: false,
       ),
